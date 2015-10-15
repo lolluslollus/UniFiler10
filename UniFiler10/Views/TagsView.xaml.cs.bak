@@ -1,0 +1,59 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
+using UniFiler10.DataModel;
+using UniFiler10.ViewModels;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Navigation;
+
+// The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
+
+namespace UniFiler10.Views
+{
+    public sealed partial class TagsView : UserControl
+    {
+        public BinderVM VM
+        {
+            get { return (BinderVM)GetValue(VMProperty); }
+            set { SetValue(VMProperty, value); }
+        }
+        public static readonly DependencyProperty VMProperty =
+            DependencyProperty.Register("VM", typeof(BinderVM), typeof(TagsView), new PropertyMetadata(null, OnVMChanged));
+        private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+        {
+            TagsView instance = obj as TagsView;
+            if (instance != null && instance.VM != null)
+            {
+                await instance.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    // LOLLO do not set the datacontext of the whole control or it will alter the dependency properties, if any
+                    instance.LayoutRoot.DataContext = instance.VM.Binder;
+                }).AsTask().ConfigureAwait(false);
+            }
+        }
+        public TagsView()
+        {
+            InitializeComponent();
+        }
+
+        private async void OnAddClick(object sender, RoutedEventArgs e)
+        {
+            if (VM != null) await VM.AddTagAsync().ConfigureAwait(false);
+        }
+
+        private async void OnDeleteClick(object sender, RoutedEventArgs e)
+        {
+            if (VM != null) await VM.DeleteTagAsync((sender as FrameworkElement)?.DataContext as Tag).ConfigureAwait(false);
+        }
+    }
+}

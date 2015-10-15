@@ -1,0 +1,43 @@
+﻿<UserControl
+    x:Class="UniFiler10.Views.SettingsView"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UniFiler10.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:utilz="using:Utilz"
+    mc:Ignorable="d"
+    DataContextChanged="OnDataContextChanged">
+
+    <!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
+
+    <!--<Grid x:Name="LayoutRoot">
+        <local:MetaCategoriesView
+            DataContext="{Binding}"
+            VM="{Binding ElementName=me, Path=VM}"/>
+    </Grid>-->
+
+    <SplitView x:Name="LayoutRoot"
+        DataContext="{Binding}"
+        IsPaneOpen="False"
+        DisplayMode="CompactInline"
+        CompactPaneLength="{StaticResource CompactPaneLength}"
+        IsDoubleTapEnabled="False" 
+        IsHoldingEnabled="False"
+        IsRightTapEnabled="False">
+
+        <SplitView.Content>
+            <StackPanel Orientation="Vertical">
+                <local:MetaCategoriesView
+                    DataContext="{Binding}"
+                    VM="{Binding ElementName=me, Path=VM}"/>
+            </StackPanel>
+        </SplitView.Content>
+
+        <SplitView.Pane>
+            <StackPanel>
+            </StackPanel>
+        </SplitView.Pane>
+    </SplitView>
+</UserControl>

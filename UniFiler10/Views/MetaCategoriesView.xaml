@@ -1,0 +1,236 @@
+﻿<UserControl
+    x:Class="UniFiler10.Views.MetaCategoriesView"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UniFiler10.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:utilz="using:Utilz"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    IsEnabled="{Binding IsEnabled, Mode=OneWay}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- categories -->
+        <ScrollViewer Grid.Column="0"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal"
+                    Width="{StaticResource MetaItemWidth}"
+                    Height="{StaticResource MetaItemHeight}">
+                    <TextBlock x:Uid="Categories"
+                        VerticalAlignment="Center"/>
+                    <AppBarButton Icon="Add"
+                        IsCompact="True"
+                        Click="OnAddCategory_Click"
+                        VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
+                <utilz:TolerantListView
+                    ItemsSource="{Binding Categories, Mode=OneWay}"
+                    IsMultiSelectCheckBoxEnabled="False" 
+                    IsItemClickEnabled="True"
+                    SelectedItem="{Binding CurrentCategory, Mode=OneWay}"
+                    SelectionChanged="OnCategoryListView_SelectionChanged"
+                    IsHoldingEnabled="False" 
+                    IsDoubleTapEnabled="False"
+                    IsSwipeEnabled="True" 
+                    IsRightTapEnabled="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                Width="{StaticResource MetaItemWidth}"
+                                Height="{StaticResource MetaItemHeight}">
+                                <TextBox Text="{Binding Name, Mode=TwoWay}"
+                                    MaxLength="{StaticResource MaxTagLength}"
+                                    VerticalAlignment="Center"/>
+                                <AppBarButton Icon="Delete"
+                                    IsCompact="True"
+                                    Click="OnDeleteCategory_Click"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </utilz:TolerantListView>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- field descriptions-->
+        <ScrollViewer Grid.Column="1"
+            Visibility="{Binding CurrentCategory, Converter={StaticResource IsNotNullToVisible}}"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal"
+                    Width="{StaticResource MetaItemWidth}"
+                    Height="{StaticResource MetaItemHeight}">
+                    <TextBlock x:Uid="FieldDescrsAssignedToCat"
+                        VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- assigned field descriptions -->
+                <!--SelectedIndexTolerant="{Binding CurrentFieldDescriptionIndex, Mode=OneWay}" 
+                LOLLO binding to the index makes trouble, better bind to the item. 
+                Here, you have two lists that should look like one and have only one selected line
+                between the two of them, so no selected item binding whatsoever:
+                we need to do it in the code behind. -->
+                <utilz:TolerantListView
+                    x:Name="AssignedLV"
+                    ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
+                    IsMultiSelectCheckBoxEnabled="False" 
+                    IsItemClickEnabled="True"
+                    SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged"
+                    IsHoldingEnabled="False" 
+                    IsDoubleTapEnabled="False"
+                    IsSwipeEnabled="True"
+                    IsRightTapEnabled="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                Width="{StaticResource MetaItemWidth}"
+                                Height="{StaticResource MetaItemHeight}">
+                                <TextBox Text="{Binding Caption, Mode=TwoWay}"
+                                    MaxLength="{StaticResource MaxTagLength}"
+                                    VerticalAlignment="Center"/>
+                                <AppBarButton Icon="Remove"
+                                    IsCompact="True"
+                                    Loaded="OnUnassignFieldFromCat_Loaded"                                         
+                                    Click="OnUnassignFieldFromCat_Click"
+                                    VerticalAlignment="Center"/>
+                                <AppBarButton Icon="Delete"
+                                    IsCompact="True"
+                                    Click="OnDeleteField_Click"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </utilz:TolerantListView>
+
+                <StackPanel Orientation="Horizontal"
+                    Width="{StaticResource MetaItemWidth}"
+                    Height="{StaticResource MetaItemHeight}">
+                    <TextBlock x:Uid="FieldDescrsNotAssignedToCat"
+                        VerticalAlignment="Center"/>
+                    <AppBarButton Icon="Add"
+                        IsCompact="True"
+                        Click="OnAddField_Click"
+                        VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- unassigned field descriptions -->
+                <utilz:TolerantListView
+                    x:Name="UnassignedLV"
+                    ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
+                    IsMultiSelectCheckBoxEnabled="False" 
+                    IsItemClickEnabled="True"
+                    SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"
+                    IsHoldingEnabled="False" 
+                    IsDoubleTapEnabled="False"
+                    IsSwipeEnabled="True"
+                    IsRightTapEnabled="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                Width="{StaticResource MetaItemWidth}"
+                                Height="{StaticResource MetaItemHeight}">
+                                <TextBox Text="{Binding Caption, Mode=TwoWay}"
+                                    MaxLength="{StaticResource MaxTagLength}"
+                                    VerticalAlignment="Center"/>
+                                <AppBarButton Icon="Accept"
+                                    IsCompact="True"
+                                    Click="OnAssignFieldToCat_Click"
+                                    VerticalAlignment="Center"/>
+                                <AppBarButton Icon="Delete"
+                                    IsCompact="True"
+                                    Click="OnDeleteField_Click"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </utilz:TolerantListView>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- field values -->
+        <ScrollViewer Grid.Column="2"
+            Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal"
+                    Width="{StaticResource MetaItemWidth}"
+                    Height="{StaticResource MetaItemHeight}">
+                    <TextBlock x:Uid="PossibleFieldValues"
+                        VerticalAlignment="Center"/>
+                    <AppBarButton Icon="Add"
+                            IsCompact="True"
+                            Click="OnAddFieldValue_Click"
+                            VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
+                    IsEnabled="{Binding CurrentFieldDescription.IsJustAdded}"
+                    x:Uid="AllowAllFieldValues"
+                    VerticalAlignment="Center"
+                    Width="{StaticResource MetaItemWidth}"
+                    Height="{StaticResource MetaItemHeight}"/>
+
+                <utilz:TolerantListView
+                    ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
+                    IsMultiSelectCheckBoxEnabled="False" 
+                    IsItemClickEnabled="True"
+                    IsHoldingEnabled="False" 
+                    IsDoubleTapEnabled="False"
+                    IsSwipeEnabled="True" 
+                    IsRightTapEnabled="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                Width="{StaticResource MetaItemWidth}"
+                                Height="{StaticResource MetaItemHeight}">
+                                <TextBox Text="{Binding Vaalue, Mode=TwoWay}"
+                                    MaxLength="{StaticResource MaxTagLength}"
+                                    VerticalAlignment="Center"/>
+                                <AppBarButton Icon="Delete"
+                                    IsCompact="True"
+                                    Click="OnDeletePossibleValue_Click"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </utilz:TolerantListView>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

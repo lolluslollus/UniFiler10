@@ -1,0 +1,52 @@
+﻿<UserControl
+    x:Class="UniFiler10.Views.DocumentsView"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UniFiler10.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:utilz="using:Utilz"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <AppBarButton Icon="Add" Click="OnAdd_Click"/>
+
+        <utilz:TolerantListView x:Name="LV"
+            Grid.Row="1"
+            ItemsSource="{Binding Documents}"
+            IsMultiSelectCheckBoxEnabled="False" 
+            IsItemClickEnabled="True"
+            IsHoldingEnabled="False" 
+            IsDoubleTapEnabled="False"
+            IsSwipeEnabled="True"
+            IsRightTapEnabled="False">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="Blue" BorderThickness="3" Background="LightBlue">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <AppBarButton Icon="Delete" Click="OnItemDelete_Click" Grid.Row="0"/>
+                            <TextBox Text="{Binding Uri0, Mode=TwoWay}" Grid.Row="1"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </utilz:TolerantListView>
+    </Grid>
+</UserControl>
