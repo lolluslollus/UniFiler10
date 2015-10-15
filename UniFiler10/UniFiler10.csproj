@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UniFiler10</RootNamespace>
     <AssemblyName>UniFiler10</AssemblyName>
-    <DefaultLanguage>en-US</DefaultLanguage>
+    <DefaultLanguage>en</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
@@ -78,6 +78,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -103,21 +104,21 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\Converters.cs" />
-    <Compile Include="DataModel\DynamicCategory.cs" />
-    <Compile Include="DataModel\DynamicField.cs" />
-    <Compile Include="DataModel\DbBoundObservableData.cs" />
-    <Compile Include="DataModel\OpenableObservableData.cs" />
-    <Compile Include="DataModel\Wallet.cs" />
-    <Compile Include="DataModel\Binder.cs" />
-    <Compile Include="DataModel\RuntimeData.cs" />
-    <Compile Include="DataModel\Folder.cs" />
-    <Compile Include="DataModel\Document.cs" />
+    <Compile Include="InfoData\DynamicCategory.cs" />
+    <Compile Include="InfoData\DynamicField.cs" />
+    <Compile Include="InfoData\DbBoundObservableData.cs" />
+    <Compile Include="InfoData\OpenableObservableData.cs" />
+    <Compile Include="InfoData\Wallet.cs" />
+    <Compile Include="InfoData\Binder.cs" />
+    <Compile Include="InfoData\RuntimeData.cs" />
+    <Compile Include="InfoData\Folder.cs" />
+    <Compile Include="InfoData\Document.cs" />
     <Compile Include="Metadata\Category.cs" />
     <Compile Include="Metadata\MetaBriefcase.cs" />
     <Compile Include="Metadata\FieldDescription.cs" />
     <Compile Include="Metadata\FieldValue.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
-    <Compile Include="DataModel\Briefcase.cs" />
+    <Compile Include="InfoData\Briefcase.cs" />
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLite.cs" />
     <Compile Include="Utilz\TolerantListView.cs" />
