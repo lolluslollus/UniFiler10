@@ -128,12 +128,6 @@ namespace UniFiler10.Data.DB
                                 IsOpen = false;
 
                                 LolloSQLiteConnectionPoolMT.Close();
-
-                                //if (delete)
-                                //{
-                                //    var dbFolder = ApplicationData.Current.LocalFolder.GetFolderAsync(_dbName).AsTask().Result;
-                                //    if (dbFolder != null) dbFolder.DeleteAsync(StorageDeleteOption.Default).AsTask().Wait();
-                                //}
                             }
                             catch (Exception ex)
                             {

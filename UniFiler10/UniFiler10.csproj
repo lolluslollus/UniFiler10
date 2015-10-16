@@ -117,6 +117,7 @@
     <Compile Include="Metadata\MetaBriefcase.cs" />
     <Compile Include="Metadata\FieldDescription.cs" />
     <Compile Include="Metadata\FieldValue.cs" />
+    <Compile Include="Utilz\Constants.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="InfoData\Briefcase.cs" />
     <Compile Include="DB\DBManager.cs" />

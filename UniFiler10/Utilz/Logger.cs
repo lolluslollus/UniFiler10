@@ -11,6 +11,7 @@ using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.CompilerServices;
 using System.Text;
+using UniFiler10.Utilz;
 
 namespace Utilz
 {
@@ -342,7 +343,7 @@ namespace Utilz
                 //Task ttt = AddAsync(msg, fileName); // was
                 string fullMessage = GetFullMsg(severity, memberName, sourceFilePath, sourceLineNumber, msg);
                 Debug.WriteLine(fullMessage);
-                Task ttt = Task.Run(() => Add(fullMessage, fileName));
+                Task ttt = Task.Run(delegate { Task add = Add2Async(fullMessage, fileName); });
             }
             catch (Exception exc)
             {
@@ -360,7 +361,7 @@ namespace Utilz
             {
                 string fullMessage = GetFullMsg(severity, memberName, sourceFilePath, sourceLineNumber, msg);
                 Debug.WriteLine(fullMessage);
-                await Task.Run(() => Add(fullMessage, fileName)).ConfigureAwait(false);
+                await Task.Run(async delegate { await Add2Async(fullMessage, fileName).ConfigureAwait(false); }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -375,15 +376,15 @@ namespace Utilz
             else
                 return string.Format("INFO from {0}, source {1}, line {2}: {3}", memberName, sourceFilePath, sourceLineNumber, msg);
         }
-        private static void Add(String msg, String fileName)
+        private static async Task Add2Async(string msg, string fileName)
         {
             try
             {
                 DateTime when = DateTime.Now;
-                _semaphore.Wait();
+                await _semaphore.WaitAsync().ConfigureAwait(false);
                 LogData logData = new LogData();
                 //Debug.WriteLine("the thread id is " + Environment.CurrentManagedThreadId + " before the await");
-                ReadSaveLogAsync(fileName, logData, msg, when, new Action<LogData, String, DateTime>(LogData.AddLineStatic)).Wait();
+                await ReadSaveLogAsync(fileName, logData, msg, when, new Action<LogData, string, DateTime>(LogData.AddLineStatic)).ConfigureAwait(false);
                 //Debug.WriteLine("the thread id is " + Environment.CurrentManagedThreadId + " after the await");
             }
             catch (Exception exc)
@@ -403,7 +404,7 @@ namespace Utilz
             EmailRecipient emailRecipient = new EmailRecipient(recipient);
 
             EmailMessage emailMsg = new EmailMessage();
-            emailMsg.Subject = "Feedback from UniFiler10 with logs";
+            emailMsg.Subject = string.Format("Feedback from {0} with logs", ConstantData.APPNAME);
             emailMsg.To.Add(emailRecipient);
             emailMsg.Body = await ReadAllLogsIntoStringAsync();
 
@@ -449,7 +450,7 @@ namespace Utilz
             {
                 try
                 {
-                    _semaphore.Wait();
+                    await _semaphore.WaitAsync().ConfigureAwait(false);
                     await ClearAsync(FileErrorLogFilename).ConfigureAwait(false);
                     await ClearAsync(PersistentDataLogFilename).ConfigureAwait(false);
                     await ClearAsync(ForegroundLogFilename).ConfigureAwait(false);

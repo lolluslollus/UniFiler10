@@ -241,7 +241,6 @@ namespace UniFiler10.Data.Model
                 }
                 if (await Binder.RestoreClosedBinderAsync(fromStorageFolder).ConfigureAwait(false))
                 {
-                    //return AddBinder2Async(fromStorageFolder.Name).Result; // LOLLO TODO check that it really opens the new binder
                     return true;
                 }
                 return false;
