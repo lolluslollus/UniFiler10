@@ -59,11 +59,8 @@ namespace UniFiler10.Data.DB
         private volatile bool _isDisposed = false;
         public void Dispose()
         {
-            //if (!_isDisposed)
-            //{
             _isDisposed = true;
             CloseAsync().Wait();
-            //}
         }
         #endregion construct and dispose
 
@@ -1008,11 +1005,8 @@ namespace UniFiler10.Data.DB
 
                 public void Reset()
                 {
-                    if (Connection != null)
-                    {
-                        Connection.Dispose();
-                        Connection = null;
-                    }
+                    Connection?.Dispose();
+                    Connection = null;
                 }
             }
 

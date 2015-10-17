@@ -81,7 +81,7 @@ namespace UniFiler10.Data.Model
         protected override async Task CloseMayOverrideAsync()
         {
             await _dbManager.CloseAsync().ConfigureAwait(false);
-            if (_dbManager != null) _dbManager.Dispose();
+            _dbManager?.Dispose();
             _dbManager = null;
 
             foreach (var folder in _folders)

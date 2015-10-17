@@ -50,18 +50,15 @@ namespace UniFiler10.Data.Model
         {
             await SaveAsync().ConfigureAwait(false);
 
-            if (_runtimeData != null)
-            {
-                _runtimeData.Dispose();
-                _runtimeData = null;
-            }
+            _runtimeData?.Dispose();
+            _runtimeData = null;
 
             await CloseCurrentBinderAsync().ConfigureAwait(false);
 
             if (_metaBriefcase != null)
             {
                 await _metaBriefcase.CloseAsync().ConfigureAwait(false);
-                _metaBriefcase.Dispose();
+                _metaBriefcase?.Dispose();
                 _metaBriefcase = null;
             }
         }
@@ -290,7 +287,7 @@ namespace UniFiler10.Data.Model
             if (_currentBinder != null)
             {
                 await _currentBinder.CloseAsync().ConfigureAwait(false);
-                _currentBinder.Dispose();
+                _currentBinder?.Dispose();
                 _currentBinder = null;
                 return true;
             }
