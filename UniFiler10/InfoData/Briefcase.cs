@@ -157,7 +157,7 @@ namespace UniFiler10.Data.Model
             }
             else
             {
-                await CoreApplication.MainView.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
                 {
                     DbNames.Add(dbName);
                     CurrentBinderName = dbName;

@@ -146,7 +146,7 @@ namespace UniFiler10.Data.Model
             var dynamicCategories = await _dbManager.GetDynamicCategoriesAsync(Id).ConfigureAwait(false);
 
             // populate my collections
-            await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
             {
                 Wallets.Clear();
                 Wallets.AddRange(wallets);
@@ -254,7 +254,7 @@ namespace UniFiler10.Data.Model
                 if (DBManager.OpenInstance != null
                     && await DBManager.OpenInstance.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
                 {
-                    await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                     {
                         DynamicFields.Remove(obsoleteDynFld);
                     }).AsTask().ConfigureAwait(false);
@@ -269,7 +269,7 @@ namespace UniFiler10.Data.Model
                 if (DBManager.OpenInstance != null
                     && await DBManager.OpenInstance.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
                 {
-                    await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                     {
                         DynamicFields.Add(dynFld);
                     }).AsTask().ConfigureAwait(false);

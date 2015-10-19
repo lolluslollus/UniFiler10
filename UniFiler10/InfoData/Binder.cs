@@ -91,7 +91,7 @@ namespace UniFiler10.Data.Model
 
             await SaveAsync().ConfigureAwait(false);
 
-            await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
             {
                 _folders.Clear();
                 CurrentFolder = null;

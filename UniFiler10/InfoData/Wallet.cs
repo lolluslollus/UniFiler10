@@ -131,8 +131,8 @@ namespace UniFiler10.Data.Model
                 if (await DBManager.OpenInstance?.DeleteFromDocumentsAsync(doc))
                 {
                     int countBefore = _documents.Count;
-                    if (CoreApplication.MainView.Dispatcher.HasThreadAccess) _documents.Remove(doc);
-                    else await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _documents.Remove(doc); }).AsTask().ConfigureAwait(false);
+                    if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess) _documents.Remove(doc);
+                    else await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _documents.Remove(doc); }).AsTask().ConfigureAwait(false);
 
                     return _documents.Count < countBefore;
                 }
