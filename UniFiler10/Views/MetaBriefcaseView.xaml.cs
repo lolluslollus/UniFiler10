@@ -19,7 +19,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class MetaCategoriesView : UserControl
+    public sealed partial class MetaBriefcaseView : UserControl
     {
         public SettingsVM VM
         {
@@ -27,10 +27,10 @@ namespace UniFiler10.Views
             set { SetValue(VMProperty, value); }
         }
         public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(SettingsVM), typeof(MetaCategoriesView), new PropertyMetadata(null));
+            DependencyProperty.Register("VM", typeof(SettingsVM), typeof(MetaBriefcaseView), new PropertyMetadata(null));
 
 
-        public MetaCategoriesView()
+        public MetaBriefcaseView()
         {
             InitializeComponent();
         }

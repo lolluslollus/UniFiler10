@@ -12,27 +12,29 @@
     d:DesignWidth="400"
     DataContextChanged="OnDataContextChanged">
 
+    <!--OpenPaneLength="{StaticResource OpenPaneLength}"-->
     <SplitView
-        IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=True}"
+        IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"
         IsEnabled="{Binding IsEnabled, Mode=OneWay, FallbackValue=False}"
         DisplayMode="CompactInline"
         CompactPaneLength="{StaticResource CompactPaneLength}"
+        
         IsDoubleTapEnabled="False" 
         IsHoldingEnabled="False"
         IsRightTapEnabled="False">
 
         <SplitView.Content>
             <local:FolderView
+                HorizontalAlignment="Left"
                 VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
                 DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
         </SplitView.Content>
 
         <SplitView.Pane>
-            <StackPanel 
+            <StackPanel Orientation="Vertical"
                 HorizontalAlignment="Left">
                 <!-- open pane -->
-                <Grid
-                    Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+                <Grid Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
                         <RowDefinition Height="Auto"/>
@@ -98,8 +100,7 @@
                     </ScrollViewer>
                 </Grid>
                 <!-- closed pane -->
-                <Grid
-                    Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}">
+                <Grid Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
                         <RowDefinition Height="Auto"/>
@@ -107,30 +108,31 @@
 
                     <AppBarButton
                         Grid.Row="0"
+                        HorizontalAlignment="Center"
                         Icon="Forward"
                         x:Uid="Expand"
                         Click="OnTogglePaneOpen">
                     </AppBarButton>
 
-                    <!-- LOLLO TODO localise fallback value for Text-->
-                    <!--<TextBlock x:Name="NoFolder_FallbackTB"
-                        x:Uid="NoFolder"
-                        Visibility="Collapsed"/>-->
-                    <!--Text="{Binding CurrentFolder.Name, Mode=OneWay, FallbackValue={Binding ElementName=NoFolder_FallbackTB, Path=Text}}"-->
-                    <TextBlock
-                        Grid.Row="1"
-                        x:Name="FolderName_PaneClosed_TB"
-                        Text="{Binding CurrentFolder.Name, Mode=OneWay, FallbackValue='TODO localise this'}"
-                        RenderTransformOrigin="0, 0" >
-                        <TextBlock.RenderTransform >
-                            <CompositeTransform 
-                                Rotation="-90" 
-                                TranslateY="{Binding ActualWidth, ElementName=FolderName_PaneClosed_TB, Mode=OneWay}"
-                                TranslateX="{StaticResource CompactPaneThirdOfLength}"/>
-                        </TextBlock.RenderTransform>
-                    </TextBlock>
+                    <utilz:LayoutTransformer Grid.Row="1"
+                        HorizontalAlignment="Center">
+                        <utilz:LayoutTransformer.LayoutTransform>
+                            <RotateTransform Angle="-90"/>
+                        </utilz:LayoutTransformer.LayoutTransform>
+                        <StackPanel Orientation="Vertical">
+                            <TextBox
+                                IsReadOnly="True"
+                                IsEnabled="False"
+                                Text="{Binding CurrentFolder.Name, Mode=OneWay}"
+                                Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToCollapsedConverter}}"/>
+                            <TextBox
+                                IsReadOnly="True"
+                                IsEnabled="False"
+                                x:Uid="NoFolder"
+                                Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToVisibleConverter}}"/>
+                        </StackPanel>
+                    </utilz:LayoutTransformer>
                 </Grid>
-
             </StackPanel>
         </SplitView.Pane>
     </SplitView>

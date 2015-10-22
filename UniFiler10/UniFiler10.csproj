@@ -103,6 +103,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\LayoutTransformer.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="InfoData\DynamicCategory.cs" />
     <Compile Include="InfoData\DynamicField.cs" />
@@ -122,7 +123,7 @@
     <Compile Include="InfoData\Briefcase.cs" />
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLite.cs" />
-    <Compile Include="Utilz\TolerantListView.cs" />
+    <Compile Include="Controlz\TolerantListView.cs" />
     <Compile Include="ViewModels\BinderVM.cs" />
     <Compile Include="ViewModels\BriefcaseVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
@@ -132,8 +133,8 @@
     <Compile Include="Views\FolderView.xaml.cs">
       <DependentUpon>FolderView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\MetaCategoriesView.xaml.cs">
-      <DependentUpon>MetaCategoriesView.xaml</DependentUpon>
+    <Compile Include="Views\MetaBriefcaseView.xaml.cs">
+      <DependentUpon>MetaBriefcaseView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsView.xaml.cs">
       <DependentUpon>SettingsView.xaml</DependentUpon>
@@ -179,6 +180,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controlz\LayoutTransformer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Page>
     <Page Include="Styles\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -191,7 +197,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\MetaCategoriesView.xaml">
+    <Page Include="Views\MetaBriefcaseView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -216,11 +222,13 @@
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
       <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
     </SDKReference>
-    <SDKReference Include="SQLite.UAP.2015, Version=3.9.0">
+    <SDKReference Include="SQLite.UAP.2015, Version=3.9.1">
       <Name>SQLite for Universal App Platform</Name>
     </SDKReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

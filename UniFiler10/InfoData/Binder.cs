@@ -112,7 +112,7 @@ namespace UniFiler10.Data.Model
 
         private Briefcase _parent = null;
         [IgnoreDataMember]
-        public Briefcase Parent { get { return _parent; } private set { _parent = value; RaisePropertyChanged_UI(); } }
+        public Briefcase Parent { get { return _parent; } private set { _parent = value; RaisePropertyChanged_UI(); UpdateIsPaneOpen(); } }
 
         private SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
         [IgnoreDataMember]
@@ -176,7 +176,10 @@ namespace UniFiler10.Data.Model
         private bool _isPaneOpen = true;
         [DataMember]
         public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); if (!_isPaneOpen) _parent.IsPaneOpen = false; } } }
-
+        private void UpdateIsPaneOpen()
+        {
+            if (_parent == null) IsPaneOpen = false;
+        }
         #endregion properties
 
         #region loading methods

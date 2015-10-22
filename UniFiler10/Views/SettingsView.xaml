@@ -13,12 +13,12 @@
     <!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
 
     <!--<Grid x:Name="LayoutRoot">
-        <local:MetaCategoriesView
+        <local:MetaBriefcaseView
             DataContext="{Binding}"
             VM="{Binding ElementName=me, Path=VM}"/>
     </Grid>-->
 
-    <SplitView x:Name="LayoutRoot"
+    <!--<SplitView x:Name="LayoutRoot"
         DataContext="{Binding}"
         IsPaneOpen="False"
         DisplayMode="CompactInline"
@@ -28,16 +28,16 @@
         IsRightTapEnabled="False">
 
         <SplitView.Content>
-            <StackPanel Orientation="Vertical">
-                <local:MetaCategoriesView
+            <StackPanel Orientation="Vertical">-->
+                <local:MetaBriefcaseView
                     DataContext="{Binding}"
                     VM="{Binding ElementName=me, Path=VM}"/>
-            </StackPanel>
+            <!--</StackPanel>
         </SplitView.Content>
 
         <SplitView.Pane>
             <StackPanel>
             </StackPanel>
         </SplitView.Pane>
-    </SplitView>
+    </SplitView>-->
 </UserControl>
