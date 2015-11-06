@@ -179,7 +179,7 @@ namespace UniFiler10.Data.Model
         private void UpdateIsPaneOpen()
         {
             if (_parent == null) IsPaneOpen = false;
-        }
+        }    
         #endregion properties
 
         #region loading methods
@@ -192,7 +192,7 @@ namespace UniFiler10.Data.Model
 
             try
             {
-                var folder = await GetPropertiesFolderAsync().ConfigureAwait(false);
+                var folder = await GetDirectoryAsync().ConfigureAwait(false);
                 var file = await folder
                     .CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
                     .AsTask().ConfigureAwait(false);
@@ -246,7 +246,7 @@ namespace UniFiler10.Data.Model
             {
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    var folder = await GetPropertiesFolderAsync().ConfigureAwait(false);
+                    var folder = await GetDirectoryAsync().ConfigureAwait(false);
                     var file = await folder
                         .CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
                         .AsTask().ConfigureAwait(false);
@@ -269,7 +269,7 @@ namespace UniFiler10.Data.Model
                 Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
             }
         }
-        private async Task<StorageFolder> GetPropertiesFolderAsync()
+        public async Task<StorageFolder> GetDirectoryAsync()
         {
             var folder = await ApplicationData.Current.LocalFolder
                 .CreateFolderAsync(DBName, CreationCollisionOption.OpenIfExists)
@@ -304,6 +304,9 @@ namespace UniFiler10.Data.Model
         #endregion loading methods
 
         #region closed static methods
+        /// <summary>
+        /// I need this semaphore for the static operations such as backup, restore, etc
+        /// </summary>
         private static SemaphoreSlimSafeRelease _isClosedSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         public static async Task<bool> DeleteClosedBinderAsync(string dbName)
         {

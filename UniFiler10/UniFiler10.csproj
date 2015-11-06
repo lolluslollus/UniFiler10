@@ -118,6 +118,7 @@
     <Compile Include="Metadata\MetaBriefcase.cs" />
     <Compile Include="Metadata\FieldDescription.cs" />
     <Compile Include="Metadata\FieldValue.cs" />
+    <Compile Include="Services\AudioRecorder.cs" />
     <Compile Include="Utilz\Constants.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="InfoData\Briefcase.cs" />
@@ -127,6 +128,9 @@
     <Compile Include="ViewModels\BinderVM.cs" />
     <Compile Include="ViewModels\BriefcaseVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
+    <Compile Include="Views\CameraView.xaml.cs">
+      <DependentUpon>CameraView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DocumentsView.xaml.cs">
       <DependentUpon>DocumentsView.xaml</DependentUpon>
     </Compile>
@@ -142,8 +146,8 @@
     <Compile Include="Views\WalletsView.xaml.cs">
       <DependentUpon>WalletsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BriefcaseView.xaml.cs">
-      <DependentUpon>BriefcaseView.xaml</DependentUpon>
+    <Compile Include="Views\BriefcasePage.xaml.cs">
+      <DependentUpon>BriefcasePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BinderView.xaml.cs">
       <DependentUpon>BinderView.xaml</DependentUpon>
@@ -189,6 +193,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\CameraView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\DocumentsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -209,7 +217,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\BriefcaseView.xaml">
+    <Page Include="Views\BriefcasePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -225,10 +233,11 @@
     <SDKReference Include="SQLite.UAP.2015, Version=3.9.1">
       <Name>SQLite for Universal App Platform</Name>
     </SDKReference>
+    <SDKReference Include="WindowsMobile, Version=10.0.10240.0">
+      <Name>Windows Mobile Extensions for the UWP</Name>
+    </SDKReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

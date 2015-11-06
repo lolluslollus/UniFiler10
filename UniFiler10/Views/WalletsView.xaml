@@ -11,16 +11,37 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <!--<Grid>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition />
-        </Grid.RowDefinitions>-->
+        </Grid.RowDefinitions>
 
-    <StackPanel Orientation="Vertical">
-        <AppBarButton Icon="Add" Click="OnAdd_Click"/>
+    <!--<StackPanel Orientation="Vertical">-->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <!--<ColumnDefinition Width="1*"/>-->
+            </Grid.ColumnDefinitions>
+            <!--<AppBarButton Grid.Column="0"
+                Icon="Add" 
+                Click="OnAdd_Click"/>-->
+            <AppBarButton Grid.Column="0"
+                Icon="Camera"
+                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable}"
+                Click="OnShoot_Click"/>
+            <AppBarButton Grid.Column="1"
+                Icon="Microphone"
+                Click="OnRecordSound_Click"/>
+            <AppBarButton Grid.Column="2"
+                Icon="OpenFile"
+                Click="OnOpenFile_Click"/>
+        </Grid>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1"
+            VerticalScrollBarVisibility="Auto">
             <utilz:TolerantListView x:Name="LV"
                 ItemsSource="{Binding Wallets}"
                 IsMultiSelectCheckBoxEnabled="False" 
@@ -42,6 +63,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition />
@@ -53,9 +75,14 @@
                                     MaxLength="{StaticResource MaxFolderDescrLength}"/>
                                 <TextBox Text="{Binding Date0, Mode=TwoWay}" Grid.Row="1" Grid.Column="0"
                                     MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                                <AppBarButton Icon="Delete" Click="OnItemDelete_Click" Grid.Row="1" Grid.Column="1"/>
+                                <AppBarButton Icon="Stop"
+                                    x:Uid="StopRecording"
+                                    Visibility="{Binding IsRecordingSound, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+                                    Click="OnStopRecordingSound_Click" 
+                                    Grid.Row="1" Grid.Column="1"/>
+                                <AppBarButton Icon="Delete" Click="OnItemDelete_Click" Grid.Row="2" Grid.Column="1"/>
                                 <local:DocumentsView
-                                    Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
                                     VM="{Binding ElementName=me, Path=VM}"
                                     DataContext="{Binding}"/>
                             </Grid>
@@ -64,7 +91,7 @@
                 </ItemsControl.ItemTemplate>
             </utilz:TolerantListView>
         </ScrollViewer>
-    </StackPanel>
+    <!--</StackPanel>-->
 
-    <!--</Grid>-->
+    </Grid>
 </UserControl>

@@ -32,6 +32,11 @@ namespace UniFiler10.Data.Model
         [DataMember]
         public bool IsSelected { get { return _isSelected; } set { if (_isSelected != value) { _isSelected = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
 
+        private bool _isRecordingSound = false;
+        [IgnoreDataMember]
+        [Ignore]
+        public bool IsRecordingSound { get { return _isRecordingSound; } set { if (_isRecordingSound != value) { _isRecordingSound = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+
         private SwitchableObservableCollection<Document> _documents = new SwitchableObservableCollection<Document>();
         [IgnoreDataMember]
         [Ignore]
@@ -42,17 +47,17 @@ namespace UniFiler10.Data.Model
         {
             if (_documents != null)
             {
-                if (_documents.Count == 0)
-                {
-                    await AddDocument2Async(new Document() { ParentId = Id }).ConfigureAwait(false);
-                }
-                else
-                {
+                //if (_documents.Count == 0)
+                //{
+                //    await AddDocument2Async(new Document() { ParentId = Id }).ConfigureAwait(false);
+                //}
+                //else
+                //{
                     foreach (var doc in _documents)
                     {
                         await doc.OpenAsync();
                     }
-                }
+                //}
             }
         }
         protected override async Task CloseMayOverrideAsync()

@@ -26,7 +26,7 @@ namespace UniFiler10.Views
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class BriefcaseView : Page, INotifyPropertyChanged
+    public sealed partial class BriefcasePage : Page, INotifyPropertyChanged
     {
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
@@ -43,7 +43,7 @@ namespace UniFiler10.Views
         #endregion properties
 
         #region construct and dispose
-        public BriefcaseView()
+        public BriefcasePage()
         {
             InitializeComponent();
         }
@@ -53,7 +53,10 @@ namespace UniFiler10.Views
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            await ActivateAsync().ConfigureAwait(false);
+            if (e.NavigationMode == NavigationMode.New || e.NavigationMode == NavigationMode.Refresh)
+            {
+                await ActivateAsync().ConfigureAwait(false);
+            }
         }
 
         // LOLLO OnUnloaded and OnNavigatingFrom do not fire
