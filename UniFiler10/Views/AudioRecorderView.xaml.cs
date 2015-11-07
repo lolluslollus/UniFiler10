@@ -39,8 +39,9 @@ namespace UniFiler10.Views
         private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
             var instance = obj as AudioRecorderView;
-            if (instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
+            if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
             {
+                instance.Close();
                 await instance.OpenAsync().ConfigureAwait(false);
             }
         }
@@ -95,16 +96,14 @@ namespace UniFiler10.Views
         private async void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM is not available yet when this fires
         {
             _isLoaded = true;
+            Close();
             await OpenAsync().ConfigureAwait(false);
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
-            UnregisterEventHandlers();
-
-            _audioRecorder?.Dispose();
-            _audioRecorder = null;
+            Close();
         }
         private async Task OpenAsync()
         {
@@ -116,6 +115,13 @@ namespace UniFiler10.Views
 
                 await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
             }
+        }
+        private void Close()
+        {
+            UnregisterEventHandlers();
+
+            _audioRecorder?.Dispose();
+            _audioRecorder = null;
         }
         /// <summary>
         /// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
