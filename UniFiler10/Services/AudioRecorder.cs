@@ -18,21 +18,20 @@ namespace UniFiler10.Services
 {
     public class AudioRecorder : OpenableObservableData
     {
-//        private SemaphoreSlimSafeRelease _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-        //private bool _isOpen = false;
-        //public bool IsOpen { get { return _isOpen; } private set { _isOpen = value; RaisePropertyChanged_UI(); } }
-
+        #region properties
         private AudioGraph _audioGraph = null;
         private AudioFileOutputNode _fileOutputNode;
         private AudioDeviceOutputNode _deviceOutputNode;
         private AudioDeviceInputNode _deviceInputNode;
         private DeviceInformationCollection _outputDevices;
+        #endregion properties
 
+        #region construct, dispose, open, close
         public AudioRecorder() { }
 
         public async Task<bool> OpenAsync(StorageFile file)
         {
-            bool isOk = await base.OpenAsync().ConfigureAwait(false);
+            bool isOk = await OpenAsync().ConfigureAwait(false);
             isOk = isOk && await RunFunctionWhileOpenAsyncTB(delegate
             {
                 return SetFile2Async(file);
@@ -41,32 +40,39 @@ namespace UniFiler10.Services
         }
         protected override async Task OpenMayOverrideAsync()
         {
-            await PopulateDeviceList().ConfigureAwait(false);
-            string errorMessage = await CreateAudioGraphAsync();
+            string errorMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
         }
         protected override async Task CloseMayOverrideAsync()
+        {
+            DisposeAudioGraph();
+            await Task.CompletedTask; // avoid the warning...
+        }
+        private void DisposeAudioGraph()
         {
             if (_audioGraph != null)
             {
                 _audioGraph.UnrecoverableErrorOccurred -= OnGraph_UnrecoverableErrorOccurred;
                 _audioGraph.Stop();
             }
-            _audioGraph?.Dispose();
+            _audioGraph?.Dispose(); // Disposes the AudioGraph and its nodes.
             _audioGraph = null;
-
-            _fileOutputNode?.Dispose();
-            _fileOutputNode = null;
-
-            _deviceInputNode?.Dispose();
-            _deviceInputNode = null;
-
-            _deviceOutputNode?.Dispose();
-            _deviceOutputNode = null;
-
-            await Task.CompletedTask; // avoid the warning...
         }
+        #endregion construct, dispose, open, close
+
+        #region init properties before recording
+        /// <summary>
+        /// Required before starting recording
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         private async Task<string> CreateAudioGraphAsync()
         {
+            _outputDevices = await DeviceInformation.FindAllAsync(MediaDevice.GetAudioRenderSelector());
+            if (_outputDevices == null || _outputDevices.Count < 1)
+            {
+                return "AudioGraph Creation Error: no output devices found";
+            }
+
             AudioGraphSettings settings = new AudioGraphSettings(AudioRenderCategory.Media);
             settings.QuantumSizeSelectionMode = QuantumSizeSelectionMode.LowestLatency;
             settings.PrimaryRenderDevice = _outputDevices[0];
@@ -110,19 +116,16 @@ namespace UniFiler10.Services
         private async void OnGraph_UnrecoverableErrorOccurred(AudioGraph sender, AudioGraphUnrecoverableErrorOccurredEventArgs args)
         {
             // Recreate the graph and all nodes when this happens
-            sender.Dispose();
+            //sender.Dispose();
+            DisposeAudioGraph();
             // Re-query for devices
-            await PopulateDeviceList();
+            string errorMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
         }
-
-        public Task<bool> SetFileAsync(StorageFile file)
-        {
-            return RunFunctionWhileOpenAsyncTB(delegate 
-            {
-                return SetFile2Async(file);
-            });
-        }
-
+        /// <summary>
+        /// Required before starting recording
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         private async Task<bool> SetFile2Async(StorageFile file)
         {
             // File can be null if cancel is hit in the file picker
@@ -167,21 +170,19 @@ namespace UniFiler10.Services
                     throw new ArgumentException();
             }
         }
-        private async Task PopulateDeviceList()
-        {
-            _outputDevices = await DeviceInformation.FindAllAsync(MediaDevice.GetAudioRenderSelector());
-        }
+        #endregion init properties before recording
 
+        #region record
         public Task RecordStartAsync()
         {
-            return RunFunctionWhileOpenAsyncA(delegate 
+            return RunFunctionWhileOpenAsyncA(delegate
             {
                 _audioGraph.Start();
             });
         }
         public Task<bool> RecordStopAsync()
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate 
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 // Good idea to stop the graph to avoid data loss
                 _audioGraph.Stop();
@@ -197,5 +198,6 @@ namespace UniFiler10.Services
                 return true;
             });
         }
+        #endregion record
     }
 }

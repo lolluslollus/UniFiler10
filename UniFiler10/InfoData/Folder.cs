@@ -9,8 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
+using UniFiler10.Services;
 using Utilz;
 using Windows.ApplicationModel.Core;
+using Windows.Foundation;
+using Windows.Graphics.Imaging;
+using Windows.Storage;
+using Windows.Storage.FileProperties;
+using Windows.Storage.Streams;
 using Windows.UI.Core;
 
 namespace UniFiler10.Data.Model
@@ -178,7 +184,12 @@ namespace UniFiler10.Data.Model
             foreach (var dynCat in _dynamicCategories)
             {
                 await dynCat.OpenAsync().ConfigureAwait(false);
-            }           
+            }
+        }
+        public override Task<bool> CloseAsync()
+        {
+            //EndRecordingSoundIntoNewWallet();
+            return base.CloseAsync();
         }
         protected override async Task CloseMayOverrideAsync()
         {
@@ -282,46 +293,53 @@ namespace UniFiler10.Data.Model
         #region loaded methods
         public Task<bool> AddWalletAsync(Wallet wallet)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate 
             {
-                if (wallet != null)
-                {
-                    wallet.ParentId = Id;
-                    wallet.Date0 = DateTime.Now;
+                return await AddWallet2Async(wallet).ConfigureAwait(false);
+            });
+        }
 
-                    if (Wallet.Check(wallet))
+        private async Task<bool> AddWallet2Async(Wallet wallet)
+        {
+            if (wallet != null)
+            {
+                wallet.ParentId = Id;
+                wallet.Date0 = DateTime.Now;
+
+                if (Wallet.Check(wallet))
+                {
+                    if (await DBManager.OpenInstance?.InsertIntoWalletsAsync(wallet, true))
                     {
-                        if (await DBManager.OpenInstance?.InsertIntoWalletsAsync(wallet, true))
-                        {
-                            Wallets.Add(wallet);
-                            await wallet.OpenAsync().ConfigureAwait(false);
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        Logger.Add_TPL("ERROR in Folder.AddWalletAsync(): new wallet did not stand Wallet.CheckAllowedValues()", Logger.ForegroundLogFilename);
+                        Wallets.Add(wallet);
+                        await wallet.OpenAsync().ConfigureAwait(false);
+                        return true;
                     }
                 }
-                return false;
-            });
+                else
+                {
+                    Logger.Add_TPL("ERROR in Folder.AddWalletAsync(): new wallet did not stand Wallet.CheckAllowedValues()", Logger.ForegroundLogFilename);
+                }
+            }
+            return false;
         }
 
         public Task<bool> RemoveWalletAsync(Wallet wallet)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate 
             {
-                if (wallet != null && wallet.ParentId == Id)
-                {
-                    if (await DBManager.OpenInstance?.DeleteFromWalletsAsync(wallet))
-                    {
-                        bool result = Wallets.Remove(wallet);
-                        //await wallet.RemoveAllDocumentsAsync().ConfigureAwait(false); // no need
-                        return await wallet.CloseAsync().ConfigureAwait(false);
-                    }
-                }
-                return false;
+                return await RemoveWallet2Async(wallet).ConfigureAwait(false);
             });
+        }
+        private async Task<bool> RemoveWallet2Async(Wallet wallet)
+        {
+            if (wallet != null && wallet.ParentId == Id)
+            {
+                await DBManager.OpenInstance?.DeleteFromWalletsAsync(wallet);
+                _wallets.Remove(wallet);
+                return await wallet.RemoveAllDocumentsAsync().ConfigureAwait(false)
+                    & await wallet.CloseAsync().ConfigureAwait(false);
+            }
+            return false;
         }
 
         public Task<bool> AddDynamicCategoryAsync(string catId)
@@ -391,6 +409,24 @@ namespace UniFiler10.Data.Model
                 }
             }
             return false;
+        }
+
+        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file)
+        {
+            await RunFunctionWhileOpenAsyncT(async delegate
+            {
+                if (Binder.OpenInstance != null && file != null)
+                {
+                    var newWallet = new Wallet();
+                    if (await AddWallet2Async(newWallet))
+                    {
+                        var directory = await Binder.OpenInstance.GetDirectoryAsync();
+                        var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
+
+                        await newWallet.AddDocumentAsync(new Document() { Uri0 = newFile.Path });
+                    }
+                }
+            }).ConfigureAwait(false);
         }
         #endregion loaded methods
     }

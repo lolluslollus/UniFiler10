@@ -138,9 +138,16 @@
             </SplitView.Pane>
         </SplitView>
 
-        <Popup x:Name="CameraPopup"
+        <Popup
             IsOpen="{Binding ElementName=me, Path=VM.IsCameraOverlayOpen, Mode=OneWay}">
             <local:CameraView 
+                VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
+                DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
+        </Popup>
+        
+        <Popup
+            IsOpen="{Binding ElementName=me, Path=VM.IsAudioRecorderOverlayOpen, Mode=OneWay}">
+            <local:AudioRecorderView
                 VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
                 DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
         </Popup>

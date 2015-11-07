@@ -146,7 +146,8 @@ namespace UniFiler10.Data.Model
             AddHandlers();
             UpdateIsConnectionAvailable();
 
-            // _videoDeviceWatcher.Start(); // LOLLO TODO check this
+            _videoDeviceWatcher.Start();
+            _audioDeviceWatcher.Start();
             await UpdateIsCameraAvailableAsync().ConfigureAwait(false);
             await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
         }
@@ -155,7 +156,8 @@ namespace UniFiler10.Data.Model
         {
             _isDisposed = true;
             RemoveHandlers();
-            // _videoDeviceWatcher.Stop(); // LOLLO TODO check this
+            _videoDeviceWatcher.Stop();
+            _audioDeviceWatcher.Stop();
             ClearListeners();
         }
         #endregion construct and dispose
@@ -168,8 +170,17 @@ namespace UniFiler10.Data.Model
             {
                 NetworkInformation.NetworkStatusChanged += OnNetworkStatusChanged;
                 _briefcase.PropertyChanged += OnPersistentData_PropertyChanged;
+
                 _videoDeviceWatcher.EnumerationCompleted += OnVideoDeviceWatcher_EnumerationCompleted;
+                _videoDeviceWatcher.Added += OnVideoDeviceWatcher_Added;
+                _videoDeviceWatcher.Updated += OnVideoDeviceWatcher_Updated;
+                _videoDeviceWatcher.Removed += OnVideoDeviceWatcher_Removed;
+
                 _audioDeviceWatcher.EnumerationCompleted += OnAudioDeviceWatcher_EnumerationCompleted;
+                _audioDeviceWatcher.Added += OnAudioDeviceWatcher_Added;
+                _audioDeviceWatcher.Updated += OnAudioDeviceWatcher_Updated;
+                _audioDeviceWatcher.Removed += OnAudioDeviceWatcher_Removed;
+
                 _isHandlersActive = true;
             }
         }
@@ -180,8 +191,17 @@ namespace UniFiler10.Data.Model
             {
                 NetworkInformation.NetworkStatusChanged -= OnNetworkStatusChanged;
                 _briefcase.PropertyChanged -= OnPersistentData_PropertyChanged;
+
                 _videoDeviceWatcher.EnumerationCompleted -= OnVideoDeviceWatcher_EnumerationCompleted;
+                _videoDeviceWatcher.Added -= OnVideoDeviceWatcher_Added;
+                _videoDeviceWatcher.Updated -= OnVideoDeviceWatcher_Updated;
+                _videoDeviceWatcher.Removed -= OnVideoDeviceWatcher_Removed;
+
                 _audioDeviceWatcher.EnumerationCompleted -= OnAudioDeviceWatcher_EnumerationCompleted;
+                _audioDeviceWatcher.Added -= OnAudioDeviceWatcher_Added;
+                _audioDeviceWatcher.Updated -= OnAudioDeviceWatcher_Updated;
+                _audioDeviceWatcher.Removed -= OnAudioDeviceWatcher_Removed;
+
                 _isHandlersActive = false;
             }
         }
@@ -197,13 +217,38 @@ namespace UniFiler10.Data.Model
                 UpdateIsConnectionAvailable();
         }
 
+        private async void OnAudioDeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
+        {
+            await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
+        }
+        private async void OnAudioDeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
+        {
+            await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
+        }
+        private async void OnAudioDeviceWatcher_Updated(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
+        }
+        private async void OnAudioDeviceWatcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
+        }
+
         private async void OnVideoDeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
         {
             await UpdateIsCameraAvailableAsync().ConfigureAwait(false);
         }
-        private async void OnAudioDeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
+        private async void OnVideoDeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
-            await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
+            await UpdateIsCameraAvailableAsync().ConfigureAwait(false);
+        }
+        private async void OnVideoDeviceWatcher_Updated(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            await UpdateIsCameraAvailableAsync().ConfigureAwait(false);
+        }
+        private async void OnVideoDeviceWatcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            await UpdateIsCameraAvailableAsync().ConfigureAwait(false);
         }
 
         #endregion event handlers

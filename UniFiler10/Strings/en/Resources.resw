@@ -183,7 +183,7 @@
   <data name="Shrink.Label" xml:space="preserve">
     <value>Shrink</value>
   </data>
-  <data name="StopRecording.Label" xml:space="preserve">
+  <data name="StopRecording.Text" xml:space="preserve">
     <value>Stop</value>
   </data>
 </root>

@@ -552,7 +552,7 @@ namespace UniFiler10.Data.DB
             try
             {
                 result = await LolloSQLiteConnectionMT.DeleteAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, record, _walletsSemaphore).ConfigureAwait(false);
-                if (result) await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), record.Id).ConfigureAwait(false);
+                result = result & await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), record.Id).ConfigureAwait(false);
             }
             catch (Exception exc)
             {

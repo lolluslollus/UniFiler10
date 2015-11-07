@@ -34,6 +34,7 @@
                 Click="OnShoot_Click"/>
             <AppBarButton Grid.Column="1"
                 Icon="Microphone"
+                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsMicrophoneAvailable}"
                 Click="OnRecordSound_Click"/>
             <AppBarButton Grid.Column="2"
                 Icon="OpenFile"
@@ -75,11 +76,11 @@
                                     MaxLength="{StaticResource MaxFolderDescrLength}"/>
                                 <TextBox Text="{Binding Date0, Mode=TwoWay}" Grid.Row="1" Grid.Column="0"
                                     MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                                <AppBarButton Icon="Stop"
+                                <!--<AppBarButton Icon="Stop"
                                     x:Uid="StopRecording"
                                     Visibility="{Binding IsRecordingSound, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
                                     Click="OnStopRecordingSound_Click" 
-                                    Grid.Row="1" Grid.Column="1"/>
+                                    Grid.Row="1" Grid.Column="1"/>-->
                                 <AppBarButton Icon="Delete" Click="OnItemDelete_Click" Grid.Row="2" Grid.Column="1"/>
                                 <local:DocumentsView
                                     Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"

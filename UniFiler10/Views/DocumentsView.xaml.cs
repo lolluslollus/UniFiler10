@@ -44,7 +44,7 @@ namespace UniFiler10.Views
         private async void OnShoot_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && DataContext is Wallet)
-                await VM.StartShootAsync(DataContext as Wallet).ConfigureAwait(false);
+                await VM.ShootAsync(DataContext as Wallet).ConfigureAwait(false);
         }
 
         //private void OnRecordSound_Click(object sender, RoutedEventArgs e)

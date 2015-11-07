@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using Utilz;
 using Windows.ApplicationModel.Core;
+using Windows.Storage;
 using Windows.UI.Core;
 
 namespace UniFiler10.Data.Model
@@ -53,10 +54,10 @@ namespace UniFiler10.Data.Model
                 //}
                 //else
                 //{
-                    foreach (var doc in _documents)
-                    {
-                        await doc.OpenAsync();
-                    }
+                foreach (var doc in _documents)
+                {
+                    await doc.OpenAsync();
+                }
                 //}
             }
         }
@@ -114,7 +115,7 @@ namespace UniFiler10.Data.Model
                 {
                     if (await DBManager.OpenInstance?.InsertIntoDocumentsAsync(doc, true))
                     {
-                        Documents.Add(doc);
+                        _documents.Add(doc);
                         await doc.OpenAsync().ConfigureAwait(false);
                         return true;
                     }
@@ -133,14 +134,24 @@ namespace UniFiler10.Data.Model
         {
             if (doc != null && doc.ParentId == Id)
             {
-                if (await DBManager.OpenInstance?.DeleteFromDocumentsAsync(doc))
-                {
-                    int countBefore = _documents.Count;
-                    if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess) _documents.Remove(doc);
-                    else await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _documents.Remove(doc); }).AsTask().ConfigureAwait(false);
+                await DBManager.OpenInstance?.DeleteFromDocumentsAsync(doc);
 
-                    return _documents.Count < countBefore;
+                int countBefore = _documents.Count;
+                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess) _documents.Remove(doc);
+                else await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _documents.Remove(doc); }).AsTask().ConfigureAwait(false);
+
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(doc.Uri0))
+                    {
+                        var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
+                        if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+                    }
                 }
+                catch { }
+
+                await doc.CloseAsync().ConfigureAwait(false);
+                return _documents.Count < countBefore;
             }
             return false;
         }
@@ -151,6 +162,38 @@ namespace UniFiler10.Data.Model
                 return await RemoveDocument2Async(doc).ConfigureAwait(false);
             });
         }
+        public Task<bool> RemoveAllDocumentsAsync()
+        {
+            return RunFunctionWhileOpenAsyncTB(async delegate
+            {
+                bool isOk = true;
+                while (_documents.Count > 0) // do not use foreach to avoid error with enumeration
+                {
+                    var doc = _documents[0];
+                    isOk = isOk & await RemoveDocument2Async(doc).ConfigureAwait(false);
+                }
+                return isOk;
+            });
+        }
+
+        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file)
+        {
+            await RunFunctionWhileOpenAsyncT(async delegate
+            {
+                if (Binder.OpenInstance != null && file != null)
+                {
+                    var newDocument = new Document();
+                    if (await AddDocument2Async(newDocument))
+                    {
+                        var directory = await Binder.OpenInstance.GetDirectoryAsync();
+                        var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
+
+                        newDocument.Uri0 = newFile.Path;
+                    }
+                }
+            }).ConfigureAwait(false);
+        }
+
         #endregion loaded methods
     }
 }

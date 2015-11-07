@@ -38,6 +38,12 @@ namespace UniFiler10.ViewModels
             get { return _isCameraOverlayOpen; }
             set { _isCameraOverlayOpen = value; RaisePropertyChanged_UI(); }
         }
+        private bool _isAudioRecorderOverlayOpen = false;
+        public bool IsAudioRecorderOverlayOpen
+        {
+            get { return _isAudioRecorderOverlayOpen; }
+            set { _isAudioRecorderOverlayOpen = value; RaisePropertyChanged_UI(); }
+        }
 
         public BinderVM(Binder binder)
         {
@@ -49,7 +55,9 @@ namespace UniFiler10.ViewModels
         public void Dispose()
         {
             if (Binder != null) Binder.PropertyChanged -= OnBinder_PropertyChanged;
-            _audioRecorder?.Dispose(); _audioRecorder = null;
+            //EndRecordSound();
+            SemaphoreSlimSafeRelease.TryRelease(_audioRecorderSemaphore);
+            SemaphoreSlimSafeRelease.TryRelease(_shootSemaphore);
             ClearListeners();
         }
         private void OnBinder_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -101,31 +109,81 @@ namespace UniFiler10.ViewModels
         }
 
         #region save media
-        private object _newWalletOrDocument = null;
-        private object _parentOfNewWalletOrDocument = null;
-        private AudioRecorder _audioRecorder = null;
-        private StorageFile _audioFile = null;
-
         public async Task LoadMediaFile(Folder parentFolder)
         {
-            if (_binder != null && _binder.IsOpen && parentFolder != null)
+            if (_binder != null && parentFolder != null)
             {
-                _newWalletOrDocument = new Wallet();
-                _parentOfNewWalletOrDocument = parentFolder;
-
-                var file = await PickMediaFile();
-                await ImportMediaFile(file);
+                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                {
+                    var file = await PickMediaFile();
+                    await parentFolder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
         }
         public async Task LoadMediaFile(Wallet parentWallet)
         {
             if (_binder != null && _binder.IsOpen && parentWallet != null)
             {
-                _newWalletOrDocument = new Document();
-                _parentOfNewWalletOrDocument = parentWallet;
+                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                {
+                    var file = await PickMediaFile();
+                    await parentWallet.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }
+        }
 
-                var file = await PickMediaFile();
-                await ImportMediaFile(file);
+        public async Task ShootAsync(Folder parentFolder)
+        {
+            if (_binder != null && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
+            {
+                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                {
+                    IsCameraOverlayOpen = true;
+                    await _shootSemaphore.WaitAsync();
+
+                    var file = await GetShotFileAsync();
+                    await parentFolder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }
+        }
+        public async Task ShootAsync(Wallet parentWallet)
+        {
+            if (_binder != null && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
+            {
+                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                {
+                    IsCameraOverlayOpen = true;
+                    await _shootSemaphore.WaitAsync();
+
+                    var file = await GetShotFileAsync();
+                    await parentWallet.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }
+        }
+        public void EndShoot(IRandomAccessStream stream, PhotoOrientation photoOrientation = PhotoOrientation.Normal)
+        {
+            _shootStream = stream;
+            _shootPhotoOrientation = photoOrientation;
+            SemaphoreSlimSafeRelease.TryRelease(_shootSemaphore);
+        }
+        public void EndAudioRecorder()
+        {
+            SemaphoreSlimSafeRelease.TryRelease(_audioRecorderSemaphore);
+        }
+
+        public async Task RecordAudioAsync(Folder parentFolder)
+        {
+            if (_binder != null && !_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+            {
+                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                {
+                    var directory = ApplicationData.Current.LocalCacheFolder;
+                    _audioRecorderFile = await directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
+                    IsAudioRecorderOverlayOpen = true;
+                    await _audioRecorderSemaphore.WaitAsync();
+
+                    await parentFolder.ImportMediaFileIntoNewWalletAsync(_audioRecorderFile).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
         }
         private async Task<StorageFile> PickMediaFile()
@@ -145,149 +203,45 @@ namespace UniFiler10.ViewModels
             var file = await openPicker.PickSingleFileAsync();
             return file;
         }
+        private static SemaphoreSlimSafeRelease _audioRecorderSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+        private StorageFile _audioRecorderFile = null;
+        public StorageFile AudioRecorderFile { get { return _audioRecorderFile; } }
+        private static SemaphoreSlimSafeRelease _shootSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+        private IRandomAccessStream _shootStream = null;
+        private PhotoOrientation _shootPhotoOrientation = PhotoOrientation.Normal;
 
-        private async Task ImportMediaFile(StorageFile file)
+        private async Task<StorageFile> GetShotFileAsync()
         {
-            if (file != null)
+            if (_shootStream != null)
             {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                try
                 {
                     var directory = await _binder.GetDirectoryAsync();
-                    var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
-                    await AddFileToInfoDataAsync(newFile);
-                }).ConfigureAwait(false);
-            }
-        }
-        public async Task StartShootAsync(Folder parentFolder)
-        {
-            if (_binder != null && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
-            {
-                await _binder.RunFunctionWhileOpenAsyncA(delegate
-                {
-                    _newWalletOrDocument = new Wallet();
-                    _parentOfNewWalletOrDocument = parentFolder;
-                    IsCameraOverlayOpen = true;
-                }).ConfigureAwait(false);
-            }
-        }
-        public async Task StartShootAsync(Wallet parentWallet)
-        {
-            if (_binder != null && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
-            {
-                await _binder.RunFunctionWhileOpenAsyncA(delegate
-                {
-                    _newWalletOrDocument = new Document();
-                    _parentOfNewWalletOrDocument = parentWallet;
-                    IsCameraOverlayOpen = true;
-                }).ConfigureAwait(false);
-            }
-        }
-        public async Task StartRecordSoundAsync(Folder parentFolder)
-        {
-            if (_binder != null && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
-            {
-                await _binder.RunFunctionWhileOpenAsyncA(async delegate
-                {
-                    _newWalletOrDocument = new Wallet() { IsRecordingSound = true };
-                    _parentOfNewWalletOrDocument = parentFolder;
+                    var file = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
 
-                    if (await (_parentOfNewWalletOrDocument as Folder).AddWalletAsync(_newWalletOrDocument as Wallet))
+                    var decoder = await BitmapDecoder.CreateAsync(_shootStream);
+                    using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
                     {
-                        //await _audioRecorder.OpenAsync().ConfigureAwait(false);
+                        var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
 
-                        var directory = await _binder.GetDirectoryAsync().ConfigureAwait(false);
-                        _audioFile = await directory.CreateFileAsync("Sound.mp3", CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+                        var properties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(_shootPhotoOrientation, PropertyType.UInt16) } };
 
-                        _audioRecorder = new AudioRecorder();
-                        //await _audioRecorder.SetFileAsync(_audioFile).ConfigureAwait(false);
-                        if (await _audioRecorder.OpenAsync(_audioFile).ConfigureAwait(false))
-                        {
-                            await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            if (_audioFile != null) await _audioFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-                        }
+                        await encoder.BitmapProperties.SetPropertiesAsync(properties);
+                        await encoder.FlushAsync();
                     }
-                }).ConfigureAwait(false);
-            }
-        }
-
-        public async Task EndShootAsync(IRandomAccessStream stream, PhotoOrientation photoOrientation = PhotoOrientation.Normal)
-        {
-            if (_binder != null && _newWalletOrDocument != null && stream != null)
-            {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                    return file;
+                }
+                catch (Exception ex)
                 {
-                    using (var inputStream = stream)
-                    {
-                        var directory = await _binder.GetDirectoryAsync();
-                        var file = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
-
-                        var decoder = await BitmapDecoder.CreateAsync(inputStream);
-                        using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
-                        {
-                            var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
-
-                            var properties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(photoOrientation, PropertyType.UInt16) } };
-
-                            await encoder.BitmapProperties.SetPropertiesAsync(properties);
-                            await encoder.FlushAsync();
-                        }
-
-                        await AddFileToInfoDataAsync(file).ConfigureAwait(false);
-                    }
-                }).ConfigureAwait(false);
-            }
-        }
-
-        public async Task EndRecordSoundAsync()
-        {
-            if (_newWalletOrDocument is Wallet)
-            {
-                (_newWalletOrDocument as Wallet).IsRecordingSound = false;
-
-                if (_binder != null && _audioRecorder != null && _audioFile != null)
+                    Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                }
+                finally
                 {
-                    await _binder.RunFunctionWhileOpenAsyncT(async delegate
-                    {
-                        await _audioRecorder.RecordStopAsync(); // .ConfigureAwait(true)
-                        await AddFileToWalletAsync(_audioFile).ConfigureAwait(false);
-                    }).ConfigureAwait(false);
+                    _shootStream?.Dispose();
+                    _shootStream = null;
                 }
             }
-        }
-        private async Task AddFileToInfoDataAsync(StorageFile file)
-        {
-            if (file != null)
-            {
-                if (_newWalletOrDocument is Wallet)
-                {
-                    if (await (_parentOfNewWalletOrDocument as Folder).AddWalletAsync(_newWalletOrDocument as Wallet))
-                    {
-                        await (_newWalletOrDocument as Wallet).AddDocumentAsync(new Document() { Uri0 = file.Path });
-                    }
-                }
-                else if (_newWalletOrDocument is Document)
-                {
-                    (_newWalletOrDocument as Document).Uri0 = file.Path;
-                    await (_parentOfNewWalletOrDocument as Wallet).AddDocumentAsync(_newWalletOrDocument as Document);
-                }
-            }
-            _newWalletOrDocument = null;
-            _parentOfNewWalletOrDocument = null;
-        }
-        private async Task AddFileToWalletAsync(StorageFile file)
-        {
-            if (_binder != null && _binder.IsOpen && file != null)
-            {
-                if (_newWalletOrDocument is Wallet)
-                {
-                    await (_newWalletOrDocument as Wallet).AddDocumentAsync(new Document() { Uri0 = file.Path });
-                }
-            }
-            _newWalletOrDocument = null;
-            _parentOfNewWalletOrDocument = null;
+            return null;
         }
         #endregion save media
 

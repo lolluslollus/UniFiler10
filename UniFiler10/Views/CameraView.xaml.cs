@@ -40,14 +40,6 @@ namespace UniFiler10.Views
         public static readonly DependencyProperty VMProperty =
             DependencyProperty.Register("VM", typeof(BinderVM), typeof(CameraView), new PropertyMetadata(null));
 
-        //public FrameworkElement PopupContainer
-        //{
-        //    get { return (FrameworkElement)GetValue(PopupContainerProperty); }
-        //    set { SetValue(PopupContainerProperty, value); }
-        //}
-        //public static readonly DependencyProperty PopupContainerProperty =
-        //    DependencyProperty.Register("PopupContainer", typeof(FrameworkElement), typeof(CameraView), new PropertyMetadata(Window.Current.Content));
-
         // Receive notifications about rotation of the device and UI and apply any necessary rotation to the preview stream and UI controls       
         private readonly DisplayInformation _displayInformation = DisplayInformation.GetForCurrentView();
         private readonly SimpleOrientationSensor _orientationSensor = SimpleOrientationSensor.GetDefault();
@@ -84,33 +76,33 @@ namespace UniFiler10.Views
             //NavigationCacheMode = NavigationCacheMode.Disabled;
 
             // Useful to know when to initialize/clean up the camera
-            Application.Current.Suspending += OnApplication_Suspending;
-            Application.Current.Resuming += OnApplication_Resuming;
+            //Application.Current.Suspending += OnApplication_Suspending; // LOLLO TODO check if we need these event handlers
+            //Application.Current.Resuming += OnApplication_Resuming;
         }
 
-        private async void OnApplication_Suspending(object sender, SuspendingEventArgs e)
-        {
-            // Handle global application events only if this page is active
-            //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-            //{
-                var deferral = e.SuspendingOperation.GetDeferral();
+        //private async void OnApplication_Suspending(object sender, SuspendingEventArgs e)
+        //{
+        //    // Handle global application events only if this page is active
+        //    //if (Frame.CurrentSourcePageType == typeof(CameraPage))
+        //    //{
+        //        var deferral = e.SuspendingOperation.GetDeferral();
 
-                await CleanupCameraAsync();
-                await CleanupUiAsync();
+        //        await CleanupCameraAsync();
+        //        await CleanupUiAsync();
 
-                deferral.Complete();
-            //}
-        }
+        //        deferral.Complete();
+        //    //}
+        //}
 
-        private async void OnApplication_Resuming(object sender, object o)
-        {
-            // Handle global application events only if this page is active
-            //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-            //{
-                await SetupUiAsync();
-                await InitializeCameraAsync();
-            //}
-        }
+        //private async void OnApplication_Resuming(object sender, object o)
+        //{
+        //    // Handle global application events only if this page is active
+        //    //if (Frame.CurrentSourcePageType == typeof(CameraPage))
+        //    //{
+        //        await SetupUiAsync();
+        //        await InitializeCameraAsync();
+        //    //}
+        //}
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             await SetupUiAsync();
@@ -122,28 +114,10 @@ namespace UniFiler10.Views
             await CleanupCameraAsync();
             await CleanupUiAsync();
         }
-
-        //protected override async void OnNavigatedTo(NavigationEventArgs e)
-        //{
-        //    await SetupUiAsync();
-
-        //    await InitializeCameraAsync();
-        //}
-
-        //protected override async void OnNavigatingFrom(NavigatingCancelEventArgs e)
-        //{
-        //    // Handling of this event is included for completenes, as it will only fire when navigating between pages and this sample only includes one page
-
-        //    await CleanupCameraAsync();
-
-        //    await CleanupUiAsync();
-        //}
-
         #endregion Constructor, lifecycle and navigation
 
 
         #region Event handlers
-
         /// <summary>
         /// In the event of the app being minimized this method handles media property change events. If the app receives a mute
         /// notification, it is no longer in the foregroud.
@@ -255,13 +229,11 @@ namespace UniFiler10.Views
         private void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
             VM.IsCameraOverlayOpen = false;
-
         }
         private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
         {
             VM.IsCameraOverlayOpen = false;
         }
-
         private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
         {
             VM.IsCameraOverlayOpen = false;
@@ -443,7 +415,7 @@ namespace UniFiler10.Views
 
                 var photoOrientation = ConvertOrientationToPhotoOrientation(GetCameraOrientation());
 
-                await ReencodeAndSavePhotoAsync(stream, photoOrientation);
+                ReencodeAndSavePhoto(stream, photoOrientation);
             }
             catch (Exception ex)
             {
@@ -686,9 +658,12 @@ namespace UniFiler10.Views
         /// <param name="stream">The photo stream</param>
         /// <param name="photoOrientation">The orientation metadata to apply to the photo</param>
         /// <returns></returns>
-        private async Task ReencodeAndSavePhotoAsync(IRandomAccessStream stream, PhotoOrientation photoOrientation)
+        private void ReencodeAndSavePhoto(IRandomAccessStream stream, PhotoOrientation photoOrientation)
         {
-            await VM.EndShootAsync(stream, photoOrientation);
+            VM.EndShoot(stream, photoOrientation);
+
+            //await VM.EndShootAsync(stream, photoOrientation);
+
             //using (var inputStream = stream)
             //{
             //    var decoder = await BitmapDecoder.CreateAsync(inputStream);

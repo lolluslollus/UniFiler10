@@ -73,7 +73,7 @@ namespace UniFiler10.Data.Model
 #pragma warning disable 1998
         protected virtual async Task OpenMayOverrideAsync() { } // LOLLO return null; dumps, so we live with the warning
 #pragma warning restore 1998
-        public async Task<bool> CloseAsync()
+        public virtual async Task<bool> CloseAsync()
         {
             if (_isOpen)
             {

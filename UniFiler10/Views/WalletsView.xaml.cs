@@ -52,7 +52,7 @@ namespace UniFiler10.Views
         private async void OnShoot_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && DataContext is Folder)
-                await VM.StartShootAsync(DataContext as Folder).ConfigureAwait(false);
+                await VM.ShootAsync(DataContext as Folder).ConfigureAwait(false);
         }
 
         private async void OnOpenFile_Click(object sender, RoutedEventArgs e)
@@ -64,13 +64,13 @@ namespace UniFiler10.Views
         private async void OnRecordSound_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && DataContext is Folder)
-                await VM.StartRecordSoundAsync(DataContext as Folder).ConfigureAwait(false);
+                await VM.RecordAudioAsync(DataContext as Folder).ConfigureAwait(false);
         }
 
-        private async void OnStopRecordingSound_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null)
-                await VM.EndRecordSoundAsync().ConfigureAwait(false);
-        }
+        //private void OnStopRecordingSound_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (VM != null)
+        //        VM.EndRecordSound();
+        //}
     }
 }
