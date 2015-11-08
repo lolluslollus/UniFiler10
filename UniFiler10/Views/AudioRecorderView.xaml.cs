@@ -57,8 +57,9 @@ namespace UniFiler10.Views
 
         public AudioRecorderView()
         {
-            InitializeComponent();
+            OpenCloseWhenLoadedUnloaded = true;
             IsEnabled = false;
+            InitializeComponent();
         }
 
         protected override async Task<bool> OpenMayOverrideAsync()
@@ -127,11 +128,11 @@ namespace UniFiler10.Views
         private async Task StopRecordingAsync()
         {
             if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
-            if (VM != null) VM.Media.EndRecordAudio();
+            VM?.Media?.EndRecordAudio();
         }
         private void CloseMe()
         {
-            if (VM != null) VM.IsAudioRecorderOverlayOpen = false;
+            if (VM != null) VM.Media.IsAudioRecorderOverlayOpen = false;
         }
     }
 }

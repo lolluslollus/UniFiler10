@@ -65,6 +65,16 @@ namespace UniFiler10.Controlz
         //}
         //#endregion IDisposable
 
+
+        public bool OpenCloseWhenLoadedUnloaded
+        {
+            get { return (bool)GetValue(OpenCloseWhenLoadedUnloadedProperty); }
+            set { SetValue(OpenCloseWhenLoadedUnloadedProperty, value); }
+        }
+        public static readonly DependencyProperty OpenCloseWhenLoadedUnloadedProperty =
+            DependencyProperty.Register("OpenCloseWhenLoadedUnloaded", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+
+
         #region load unload
         public OpenableObservableControl()
         {
@@ -75,39 +85,33 @@ namespace UniFiler10.Controlz
         }
         private async void OnApplication_Suspending(object sender, SuspendingEventArgs e)
         {
-            // Handle global application events only if this page is active
-            //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-            //{
             var deferral = e.SuspendingOperation.GetDeferral();
-
-            // UnregisterEventHandlers();
             await CloseAsync().ConfigureAwait(false);
-
             deferral.Complete();
-            //}
         }
 
         private async void OnApplication_Resuming(object sender, object o)
         {
-            // Handle global application events only if this page is active
-            //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-            //{
-            //RegisterEventHandlers();
-            //}
-            if (_isLoaded) await TryOpenAsync().ConfigureAwait(false); // LOLLO TODO check if _isLoaded remembers its previous value
+            if (_isLoaded) await TryOpenAsync().ConfigureAwait(false);
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
         {
-            _isLoaded = true;
-            await CloseAsync().ConfigureAwait(false);
-            await TryOpenAsync().ConfigureAwait(false);
+            if (OpenCloseWhenLoadedUnloaded)
+            {
+                _isLoaded = true;
+                await CloseAsync().ConfigureAwait(false);
+                await TryOpenAsync().ConfigureAwait(false);
+            }
         }
 
         private async void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            _isLoaded = false;
-            await CloseAsync().ConfigureAwait(false);
+            if (OpenCloseWhenLoadedUnloaded)
+            {
+                _isLoaded = false;
+                await CloseAsync().ConfigureAwait(false);
+            }
         }
 
         protected bool _isLoaded = false;
@@ -133,6 +137,7 @@ namespace UniFiler10.Controlz
                 });
             }
         }
+
         public async Task<bool> TryOpenAsync(bool enable = true)
         {
             if (!_isOpen)

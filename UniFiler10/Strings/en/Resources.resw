@@ -132,8 +132,14 @@
   <data name="Categories.Text" xml:space="preserve">
     <value>Categories</value>
   </data>
+  <data name="ConfirmationRequest" xml:space="preserve">
+    <value>ConfirmationRequest</value>
+  </data>
   <data name="DeleteBinder.Label" xml:space="preserve">
     <value>Delete</value>
+  </data>
+  <data name="DeleteBinderConfirmationRequest" xml:space="preserve">
+    <value>This will delete all the binder data. Are you sure?</value>
   </data>
   <data name="DeleteFolder.Label" xml:space="preserve">
     <value>Delete folder</value>
@@ -165,6 +171,9 @@
   <data name="NewFolder.Text" xml:space="preserve">
     <value>New folder</value>
   </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
   <data name="NoBinder.Text" xml:space="preserve">
     <value>Select or add a binder</value>
   </data>
@@ -185,5 +194,8 @@
   </data>
   <data name="StopRecording.Text" xml:space="preserve">
     <value>Stop</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
   </data>
 </root>

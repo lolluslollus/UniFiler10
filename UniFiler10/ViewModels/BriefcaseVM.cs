@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
-using Utilz;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.UI.ViewManagement;
 
 namespace UniFiler10.ViewModels
 {

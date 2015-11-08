@@ -70,12 +70,9 @@ namespace UniFiler10.Views
 
         public CameraView()
         {
+            OpenCloseWhenLoadedUnloaded = true;
             InitializeComponent();
             VideoButton.Visibility = Visibility.Collapsed;
-            // Do not cache the state of the UI when suspending/navigating
-            //NavigationCacheMode = NavigationCacheMode.Disabled;
-
-            // Useful to know when to initialize/clean up the camera
         }
 
         protected override async Task<bool> OpenMayOverrideAsync()
@@ -86,6 +83,7 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
+            VM?.Media?.EndShoot(); // LOLLO TODO check this
             await CleanupCameraAsync();
             await CleanupUiAsync().ConfigureAwait(false);
         }
@@ -218,7 +216,7 @@ namespace UniFiler10.Views
         }
         private void CloseMe()
         {
-            if (VM != null) VM.IsCameraOverlayOpen = false;
+            if (VM != null) VM.Media.IsCameraOverlayOpen = false;
         }
         #endregion Event handlers
 

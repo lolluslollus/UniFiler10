@@ -1,23 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using UniFiler10.Converters;
-using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Windows.ApplicationModel.Resources;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -166,9 +155,28 @@ namespace UniFiler10.Views
 
         private async void OnDeleteBinder_Click(object sender, RoutedEventArgs e)
         {
-            // LOLLO TODO ask for confirmation before deleting
             var fe = sender as FrameworkElement;
-            if (VM != null && fe != null) await VM.DeleteDbAsync(fe.DataContext as string).ConfigureAwait(false);
+            if (VM != null && fe != null)
+            {
+                //raise confirmation popup
+                var rl = new ResourceLoader(); // localisation globalisation
+                string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
+                string strYes = rl.GetString("Yes");
+                string strNo = rl.GetString("No");
+                
+                var dialog = new MessageDialog(strQuestion);
+                UICommand yesCommand = new UICommand(strYes, (command) => { });
+                UICommand noCommand = new UICommand(strNo, (command) => { });
+                dialog.Commands.Add(yesCommand);
+                dialog.Commands.Add(noCommand);
+                dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
+                IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+
+                if (reply == yesCommand)
+                {
+                    await VM.DeleteDbAsync(fe.DataContext as string).ConfigureAwait(false);
+                }
+            }
         }
     }
 }
