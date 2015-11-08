@@ -67,7 +67,7 @@ namespace UniFiler10.Data.Model
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
                 }
             }
-            if (enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
+            if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
             return false;
         }
 #pragma warning disable 1998
@@ -103,6 +103,9 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
+#pragma warning disable 1998
+        protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
+#pragma warning restore 1998
 
         public virtual async Task<bool> SetIsEnabledAsync(bool enable)
         {
@@ -129,9 +132,7 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
-#pragma warning disable 1998
-        protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null; dumps, so we live with the warning
-#pragma warning restore 1998
+
         public async Task RunFunctionWhileOpenAsyncA(Action func)
         {
             if (_isOpen && _isEnabled)

@@ -37,7 +37,8 @@ namespace UniFiler10
                 Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
                 Microsoft.ApplicationInsights.WindowsCollectors.Session);
             InitializeComponent();
-            Suspending += OnSuspendingAsync;
+            Suspending += OnSuspending;
+            Resuming += OnResuming;
             UnhandledException += OnUnhandledException;
         }
 
@@ -92,6 +93,11 @@ namespace UniFiler10
             Window.Current.Activate();
         }
 
+        private void OnResuming(object sender, object e)
+        {
+            // throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Invoked when application execution is being suspended.  Application state is saved
         /// without knowing whether the application will be terminated or resumed with the contents
@@ -99,19 +105,19 @@ namespace UniFiler10
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
         /// <param name="e">Details about the suspend request.</param>
-        private async void OnSuspendingAsync(object sender, SuspendingEventArgs e)
+        private void OnSuspending(object sender, SuspendingEventArgs e)
         {
-            var deferral = e.SuspendingOperation.GetDeferral();
-            // Save application state and stop any background activity
-            var briefcase = Briefcase.InstanceNeverMindIfClosed;
-            if (briefcase != null)
-            {
-                await briefcase.CloseAsync().ConfigureAwait(false);
-                briefcase.Dispose();
-                briefcase = null;
-            }
+            //var deferral = e.SuspendingOperation.GetDeferral();
+            //// Save application state and stop any background activity
+            //var briefcase = Briefcase.InstanceNeverMindIfClosed;
+            //if (briefcase != null)
+            //{
+            //    await briefcase.CloseAsync().ConfigureAwait(false);
+            //    briefcase.Dispose();
+            //    briefcase = null;
+            //}
 
-            deferral.Complete();
+            //deferral.Complete();
         }
         /// <summary>
         /// Invoked when Navigation to a certain page fails

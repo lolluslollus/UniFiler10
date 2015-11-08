@@ -1,9 +1,6 @@
 ﻿using SQLite;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using Utilz;
@@ -176,7 +173,7 @@ namespace UniFiler10.Data.Model
             });
         }
 
-        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file)
+        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
         {
             await RunFunctionWhileOpenAsyncT(async delegate
             {
@@ -185,10 +182,16 @@ namespace UniFiler10.Data.Model
                     var newDocument = new Document();
                     if (await AddDocument2Async(newDocument))
                     {
-                        var directory = await Binder.OpenInstance.GetDirectoryAsync();
-                        var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
-
-                        newDocument.Uri0 = newFile.Path;
+                        if (copyFile)
+                        {
+                            var directory = await Binder.OpenInstance.GetDirectoryAsync();
+                            var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
+                            newDocument.Uri0 = newFile.Path;
+                        }
+                        else
+                        {
+                            newDocument.Uri0 = file.Path;
+                        }
                     }
                 }
             }).ConfigureAwait(false);

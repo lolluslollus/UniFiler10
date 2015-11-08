@@ -15,75 +15,66 @@ using Windows.UI.ViewManagement;
 
 namespace UniFiler10.ViewModels
 {
-    public class BriefcaseVM : ObservableData
+    public class BriefcaseVM : OpenableObservableData
     {
-        private volatile bool _isLoaded = false;
-        public bool IsLoaded { get { return _isLoaded; } private set { if (_isLoaded != value) { _isLoaded = value; RaisePropertyChanged_UI(); } } }
-
         private Briefcase _briefcase = null;
         public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
 
 
         public BriefcaseVM() { }
-        public async Task ActivateAsync()
+        protected override async Task OpenMayOverrideAsync()
         {
-            if (!_isLoaded)
+            if (_briefcase == null)
             {
-                if (_briefcase == null || !_briefcase.IsOpen)
-                {
-                    Briefcase = Briefcase.CreateInstance();
-                    await _briefcase.OpenAsync().ConfigureAwait(false);
-                    IsLoaded = true;
-                }
+                Briefcase = Briefcase.CreateInstance();
+            }
+            if (!_briefcase.IsOpen)
+            {
+                await _briefcase.OpenAsync().ConfigureAwait(false);
             }
         }
-
-        public async Task<bool> AddDbAsync(string dbName)
+        protected override async Task CloseMayOverrideAsync()
         {
-            if (!_isLoaded || _briefcase == null) return false;
+            if (_briefcase != null)
+            {
+                await _briefcase.CloseAsync().ConfigureAwait(false);
+                _briefcase?.Dispose();
+                _briefcase = null;
+            }
 
-            return await _briefcase.AddBinderAsync(dbName).ConfigureAwait(false);
         }
-        public async Task<bool> DeleteDbAsync(string dbName)
+        public Task<bool> AddDbAsync(string dbName)
         {
-            if (!_isLoaded || _briefcase == null) return false;
-
-            return await _briefcase.DeleteBinderAsync(dbName).ConfigureAwait(false);
+            return RunFunctionWhileOpenAsyncTB(async delegate
+            {
+                return await _briefcase.AddBinderAsync(dbName).ConfigureAwait(false);
+            });
         }
-        public async Task<bool> RestoreDbAsync()
+        public Task<bool> DeleteDbAsync(string dbName)
         {
-            if (!_isLoaded || _briefcase == null) return false;
-
-            //bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
-            //if (unsnapped)
-            //{
-
-                FolderPicker openPicker = new FolderPicker();
-                openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-                //openPicker.CommitButtonText=
-                //openPicker.ViewMode = PickerViewMode.List;
-                openPicker.FileTypeFilter.Add(".db");
-                openPicker.FileTypeFilter.Add(".xml");
-                var fromStorageFolder = await openPicker.PickSingleFolderAsync();
-
+            return RunFunctionWhileOpenAsyncTB(async delegate
+            {
+                return await _briefcase.DeleteBinderAsync(dbName).ConfigureAwait(false);
+            });
+        }
+        public Task<bool> RestoreDbAsync()
+        {
+            return RunFunctionWhileOpenAsyncTB(async delegate
+            {
+                var fromStorageFolder = await PickFolderAsync();
                 return await _briefcase.RestoreBinderAsync(fromStorageFolder).ConfigureAwait(false);
-            //}
-            //return false;
+            });
         }
-        public async Task<bool> BackupDbAsync(string dbName)
+
+        public Task<bool> BackupDbAsync(string dbName)
         {
-            if (!_isLoaded || _briefcase == null || string.IsNullOrWhiteSpace(dbName) || !_briefcase.DbNames.Contains(dbName)) return false;
+            return RunFunctionWhileOpenAsyncTB(async delegate
+            {
+                if (string.IsNullOrWhiteSpace(dbName) || !_briefcase.DbNames.Contains(dbName)) return false;
 
-            FolderPicker savePicker = new FolderPicker();
-            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            //savePicker.CommitButtonText=
-            //savePicker.ViewMode = PickerViewMode.List;
-            savePicker.FileTypeFilter.Add(".db");
-            savePicker.FileTypeFilter.Add(".xml");
-
-            var toParentStorageFolder = await savePicker.PickSingleFolderAsync();
-
-            return await _briefcase.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
+                var toParentStorageFolder = await PickFolderAsync();
+                return await _briefcase.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
+            });
         }
 
         public bool CheckDbName(string newDbName)
@@ -93,12 +84,31 @@ namespace UniFiler10.ViewModels
             else
                 return false;
         }
-        public bool OpenBinder(string dbName)
+        public Task<bool> OpenBinderAsync(string dbName)
         {
-            if (!_isLoaded || _briefcase == null) return false;
+            return RunFunctionWhileOpenAsyncB(delegate
+            {
+                _briefcase.CurrentBinderName = dbName;
+                return true;
+            });
+        }
+        private async Task<StorageFolder> PickFolderAsync()
+        {
+            //bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
+            //if (unsnapped)
+            //{
 
-            _briefcase.CurrentBinderName = dbName;
-            return true;
+            FolderPicker openPicker = new FolderPicker();
+            openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            //openPicker.CommitButtonText=
+            //openPicker.ViewMode = PickerViewMode.List;
+            openPicker.FileTypeFilter.Add(".db");
+            openPicker.FileTypeFilter.Add(".xml");
+            var folder = await openPicker.PickSingleFolderAsync();
+            return folder;
+
+            //}
+            //return false;
         }
     }
 }

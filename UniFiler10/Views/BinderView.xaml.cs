@@ -52,7 +52,7 @@ namespace UniFiler10.Views
                 if (_vm == null || _vm.Binder != binder)
                 {
                     _vm?.Dispose(); // LOLLO the final dispose is missing, but that should not matter because the raiser clears the listeners when disposing.
-                    _vm = null; // In fact, this makes BinderVM.Dispose() redundant, you can see it in the debugger.
+                    _vm = null; // In fact, this makes BinderVM.Dispose() redundant, you can see it in the debugger. LOLLO TODO I think this is not enough after the latest additions.
                     VM = new BinderVM(binder);
                 }
             }).AsTask().ConfigureAwait(false);

@@ -1,22 +1,14 @@
 ﻿using SQLite;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
-using UniFiler10.Services;
 using Utilz;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation;
-using Windows.Graphics.Imaging;
 using Windows.Storage;
-using Windows.Storage.FileProperties;
-using Windows.Storage.Streams;
 using Windows.UI.Core;
 
 namespace UniFiler10.Data.Model
@@ -368,7 +360,6 @@ namespace UniFiler10.Data.Model
                             return true;
                         }
                     }
-                    else { } // LOLLO TODO log
                 }
                 return false;
             });
@@ -411,7 +402,7 @@ namespace UniFiler10.Data.Model
             return false;
         }
 
-        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file)
+        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
         {
             await RunFunctionWhileOpenAsyncT(async delegate
             {
@@ -420,10 +411,16 @@ namespace UniFiler10.Data.Model
                     var newWallet = new Wallet();
                     if (await AddWallet2Async(newWallet))
                     {
-                        var directory = await Binder.OpenInstance.GetDirectoryAsync();
-                        var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
-
-                        await newWallet.AddDocumentAsync(new Document() { Uri0 = newFile.Path });
+                        if (copyFile)
+                        {
+                            var directory = await Binder.OpenInstance.GetDirectoryAsync();
+                            var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
+                            await newWallet.AddDocumentAsync(new Document() { Uri0 = newFile.Path });
+                        }
+                        else
+                        {
+                            await newWallet.AddDocumentAsync(new Document() { Uri0 = file.Path });
+                        }
                     }
                 }
             }).ConfigureAwait(false);

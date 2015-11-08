@@ -1,33 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Services;
 using UniFiler10.ViewModels;
+using Utilz;
 using Windows.ApplicationModel;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Foundation.Metadata;
-using Windows.Media;
 using Windows.Phone.UI.Input;
-using Windows.Storage;
-using Windows.System.Display;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace UniFiler10.Views
 {
-    public sealed partial class AudioRecorderView : UserControl
+    /// <summary>
+    /// This control is supposed to run inside a Popup.
+    /// Showing or hiding the popup will open or close the control.
+    /// </summary>
+    public sealed partial class AudioRecorderView : OpenableObservableControl, IMessageWriter
     {
         public BinderVM VM
         {
@@ -36,16 +28,26 @@ namespace UniFiler10.Views
         }
         public static readonly DependencyProperty VMProperty =
             DependencyProperty.Register("VM", typeof(BinderVM), typeof(AudioRecorderView), new PropertyMetadata(null, OnVMChanged));
+        /// <summary>
+        /// LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="args"></param>
         private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
             var instance = obj as AudioRecorderView;
             if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
             {
-                instance.Close();
-                await instance.OpenAsync().ConfigureAwait(false);
+                await instance.CloseAsync().ConfigureAwait(false);
+                await instance.TryOpenAsync().ConfigureAwait(false);
             }
         }
+
+
         private AudioRecorder _audioRecorder = null;
+
+        private string _lastMessage = string.Empty;
+        public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
 
         // Prevent the screen from sleeping while the camera is running
         //private readonly DisplayRequest _displayRequest = new DisplayRequest();
@@ -56,69 +58,27 @@ namespace UniFiler10.Views
         public AudioRecorderView()
         {
             InitializeComponent();
-            //Application.Current.Suspending += OnApplication_Suspending; // LOLLO TODO see if we need these event handlers
-            //Application.Current.Resuming += OnApplication_Resuming;
+            IsEnabled = false;
         }
 
-        //private void OnApplication_Suspending(object sender, SuspendingEventArgs e)
-        //{
-        //    // Handle global application events only if this page is active
-        //    //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-        //    //{
-        //    var deferral = e.SuspendingOperation.GetDeferral();
-
-        //    UnregisterEventHandlers();
-
-        //    deferral.Complete();
-        //    //}
-        //}
-
-        //private void OnApplication_Resuming(object sender, object o)
-        //{
-        //    // Handle global application events only if this page is active
-        //    //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-        //    //{
-        //    RegisterEventHandlers();
-        //    //}
-        //}
-        //private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
-        //{
-        //    if (VM?.AudioRecorderFile != null)
-        //    {
-        //        _audioRecorder = new AudioRecorder();
-        //        await _audioRecorder.OpenAsync(VM.AudioRecorderFile);
-        //        RegisterEventHandlers();
-
-        //        await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
-        //    }
-        //}
-        private bool _isLoaded = false;
-        private async void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM is not available yet when this fires
+        protected override async Task<bool> OpenMayOverrideAsync()
         {
-            _isLoaded = true;
-            Close();
-            await OpenAsync().ConfigureAwait(false);
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            _isLoaded = false;
-            Close();
-        }
-        private async Task OpenAsync()
-        {
-            if (VM?.AudioRecorderFile != null)
+            if (VM != null)
             {
-                _audioRecorder = new AudioRecorder();
-                await _audioRecorder.OpenAsync(VM.AudioRecorderFile);
+                _audioRecorder = new AudioRecorder(this, VM.Media);
+                await _audioRecorder.OpenAsync();
                 RegisterEventHandlers();
 
                 await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
+                return true;
             }
+            return false;
         }
-        private void Close()
+        protected override async Task CloseMayOverrideAsync()
         {
             UnregisterEventHandlers();
+
+            await StopRecordingAsync().ConfigureAwait(false);
 
             _audioRecorder?.Dispose();
             _audioRecorder = null;
@@ -153,27 +113,25 @@ namespace UniFiler10.Views
 
         private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await StopRecordingAsync().ConfigureAwait(false);
+            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         }
         private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
         {
-            await StopRecordingAsync().ConfigureAwait(false);
+            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         }
-        private async void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+        private async void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
         {
-            await StopRecordingAsync().ConfigureAwait(false);
+            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         }
 
         private async Task StopRecordingAsync()
         {
-            await _audioRecorder.RecordStopAsync();
-            if (VM != null)
-            {
-                VM.EndAudioRecorder();
-                VM.IsAudioRecorderOverlayOpen = false;
-            }
+            if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
+            if (VM != null) VM.Media.EndRecordAudio();
         }
-
-
+        private void CloseMe()
+        {
+            if (VM != null) VM.IsAudioRecorderOverlayOpen = false;
+        }
     }
 }

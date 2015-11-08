@@ -1,21 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.Networking.Connectivity;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using Utilz;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
-using Windows.UI.Core;
 using Windows.Devices.Enumeration;
+using Windows.Networking.Connectivity;
 
 namespace UniFiler10.Data.Model
 {
-    public sealed class RuntimeData : ObservableData, IDisposable
+    public sealed class RuntimeData : OpenableObservableData
     {
         #region properties
         private volatile bool _isConnectionAvailable = false;
@@ -43,7 +35,7 @@ namespace UniFiler10.Data.Model
                 var level = profile.GetNetworkConnectivityLevel();
                 if (level == NetworkConnectivityLevel.InternetAccess || level == NetworkConnectivityLevel.LocalAccess)
                 {
-                    if (_briefcase != null && _briefcase.IsOpen)
+                    if (_briefcase.IsOpen)
                     {
                         if (
                             _briefcase.IsAllowMeteredConnection
@@ -113,7 +105,7 @@ namespace UniFiler10.Data.Model
         public DeviceInformation AudioDevice { get { return _audioDevice; } }
         #endregion properties
 
-        #region construct and dispose
+        #region construct dispose open close
         private static RuntimeData _instance = null;
         public static RuntimeData Instance { get { return _instance; } }
 
@@ -131,17 +123,14 @@ namespace UniFiler10.Data.Model
         }
 
         private static Briefcase _briefcase = null;
-        private static DeviceWatcher _videoDeviceWatcher = null;
-        private static DeviceWatcher _audioDeviceWatcher = null;
 
         private RuntimeData(Briefcase briefcase)
         {
             _briefcase = briefcase;
             _videoDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.VideoCapture);
             _audioDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.AudioCapture);
-            Task act = ActivateAsync();
         }
-        private async Task ActivateAsync()
+        protected override async Task OpenMayOverrideAsync()
         {
             AddHandlers();
             UpdateIsConnectionAvailable();
@@ -151,22 +140,23 @@ namespace UniFiler10.Data.Model
             await UpdateIsCameraAvailableAsync().ConfigureAwait(false);
             await UpdateIsMicrophoneAvailableAsync().ConfigureAwait(false);
         }
-        private bool _isDisposed = false;
-        public void Dispose()
+        protected override Task CloseMayOverrideAsync()
         {
-            _isDisposed = true;
             RemoveHandlers();
             _videoDeviceWatcher.Stop();
             _audioDeviceWatcher.Stop();
-            ClearListeners();
+            return Task.CompletedTask;
         }
-        #endregion construct and dispose
+        #endregion construct dispose open close
 
         #region event handlers
         private bool _isHandlersActive = false;
+        private static DeviceWatcher _videoDeviceWatcher = null;
+        private static DeviceWatcher _audioDeviceWatcher = null;
+
         private void AddHandlers()
         {
-            if (!_isHandlersActive && _briefcase != null)
+            if (!_isHandlersActive)
             {
                 NetworkInformation.NetworkStatusChanged += OnNetworkStatusChanged;
                 _briefcase.PropertyChanged += OnPersistentData_PropertyChanged;
@@ -187,23 +177,20 @@ namespace UniFiler10.Data.Model
 
         private void RemoveHandlers()
         {
-            if (_briefcase != null)
-            {
-                NetworkInformation.NetworkStatusChanged -= OnNetworkStatusChanged;
-                _briefcase.PropertyChanged -= OnPersistentData_PropertyChanged;
+            NetworkInformation.NetworkStatusChanged -= OnNetworkStatusChanged;
+            _briefcase.PropertyChanged -= OnPersistentData_PropertyChanged;
 
-                _videoDeviceWatcher.EnumerationCompleted -= OnVideoDeviceWatcher_EnumerationCompleted;
-                _videoDeviceWatcher.Added -= OnVideoDeviceWatcher_Added;
-                _videoDeviceWatcher.Updated -= OnVideoDeviceWatcher_Updated;
-                _videoDeviceWatcher.Removed -= OnVideoDeviceWatcher_Removed;
+            _videoDeviceWatcher.EnumerationCompleted -= OnVideoDeviceWatcher_EnumerationCompleted;
+            _videoDeviceWatcher.Added -= OnVideoDeviceWatcher_Added;
+            _videoDeviceWatcher.Updated -= OnVideoDeviceWatcher_Updated;
+            _videoDeviceWatcher.Removed -= OnVideoDeviceWatcher_Removed;
 
-                _audioDeviceWatcher.EnumerationCompleted -= OnAudioDeviceWatcher_EnumerationCompleted;
-                _audioDeviceWatcher.Added -= OnAudioDeviceWatcher_Added;
-                _audioDeviceWatcher.Updated -= OnAudioDeviceWatcher_Updated;
-                _audioDeviceWatcher.Removed -= OnAudioDeviceWatcher_Removed;
+            _audioDeviceWatcher.EnumerationCompleted -= OnAudioDeviceWatcher_EnumerationCompleted;
+            _audioDeviceWatcher.Added -= OnAudioDeviceWatcher_Added;
+            _audioDeviceWatcher.Updated -= OnAudioDeviceWatcher_Updated;
+            _audioDeviceWatcher.Removed -= OnAudioDeviceWatcher_Removed;
 
-                _isHandlersActive = false;
-            }
+            _isHandlersActive = false;
         }
 
         private void OnNetworkStatusChanged(object sender)

@@ -380,7 +380,8 @@ namespace UniFiler10.Data.Model
             try
             {
                 _isClosedSemaphore.Wait();
-                // LOLLO TODO check if you are restoring a Binder or something else, which may cause trouble.
+                // LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
+                // Make sure you restore a Binder and not just any directory!
                 var openBinder = OpenInstance;
                 if (from == null || openBinder == null || (openBinder != null && openBinder.DBName != from.Name))
                 {

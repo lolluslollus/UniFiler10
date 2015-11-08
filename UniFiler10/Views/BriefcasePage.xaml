@@ -16,7 +16,7 @@
         DataContext="{Binding ElementName=me, Path=VM}"
         d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=True}"
         IsPaneOpen="{Binding Briefcase.IsPaneOpen, Mode=TwoWay, FallbackValue=True}"
-        IsEnabled="{Binding IsLoaded, FallbackValue=False}"
+        IsEnabled="{Binding IsOpen, FallbackValue=False}"
         DisplayMode="CompactInline"
         CompactPaneLength="{StaticResource CompactPaneLength}"
         

@@ -44,7 +44,7 @@ namespace UniFiler10.Views
         private async void OnShoot_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && DataContext is Wallet)
-                await VM.ShootAsync(DataContext as Wallet).ConfigureAwait(false);
+                await VM.Media.ShootAsync(DataContext as Wallet).ConfigureAwait(false);
         }
 
         //private void OnRecordSound_Click(object sender, RoutedEventArgs e)
@@ -55,7 +55,7 @@ namespace UniFiler10.Views
         private async void OnOpenFile_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && DataContext is Wallet)
-                await VM.LoadMediaFile(DataContext as Wallet).ConfigureAwait(false);
+                await VM.Media.LoadMediaFile(DataContext as Wallet).ConfigureAwait(false);
         }
 
         private async void OnItemDelete_Click(object sender, RoutedEventArgs e)

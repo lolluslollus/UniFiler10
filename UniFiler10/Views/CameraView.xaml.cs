@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
+using Utilz;
 using Windows.ApplicationModel;
-using Windows.Devices.Enumeration;
 using Windows.Devices.Sensors;
 using Windows.Foundation;
 using Windows.Foundation.Metadata;
@@ -21,16 +20,14 @@ using Windows.Storage.Streams;
 using Windows.System.Display;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace UniFiler10.Views
 {
-    public sealed partial class CameraView : UserControl
+    public sealed partial class CameraView : OpenableObservableControl
     {
         public BinderVM VM
         {
@@ -39,6 +36,9 @@ namespace UniFiler10.Views
         }
         public static readonly DependencyProperty VMProperty =
             DependencyProperty.Register("VM", typeof(BinderVM), typeof(CameraView), new PropertyMetadata(null));
+
+        private string _lastMessage = string.Empty;
+        public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
 
         // Receive notifications about rotation of the device and UI and apply any necessary rotation to the preview stream and UI controls       
         private readonly DisplayInformation _displayInformation = DisplayInformation.GetForCurrentView();
@@ -60,7 +60,7 @@ namespace UniFiler10.Views
         private MediaCapture _mediaCapture;
         private bool _isInitialized;
         private bool _isPreviewing;
-        private bool _isRecording;
+        private bool _isRecordingVideo;
 
         // Information about the camera device
         private bool _mirroringPreview;
@@ -71,48 +71,23 @@ namespace UniFiler10.Views
         public CameraView()
         {
             InitializeComponent();
-
+            VideoButton.Visibility = Visibility.Collapsed;
             // Do not cache the state of the UI when suspending/navigating
             //NavigationCacheMode = NavigationCacheMode.Disabled;
 
             // Useful to know when to initialize/clean up the camera
-            //Application.Current.Suspending += OnApplication_Suspending; // LOLLO TODO check if we need these event handlers
-            //Application.Current.Resuming += OnApplication_Resuming;
         }
 
-        //private async void OnApplication_Suspending(object sender, SuspendingEventArgs e)
-        //{
-        //    // Handle global application events only if this page is active
-        //    //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-        //    //{
-        //        var deferral = e.SuspendingOperation.GetDeferral();
-
-        //        await CleanupCameraAsync();
-        //        await CleanupUiAsync();
-
-        //        deferral.Complete();
-        //    //}
-        //}
-
-        //private async void OnApplication_Resuming(object sender, object o)
-        //{
-        //    // Handle global application events only if this page is active
-        //    //if (Frame.CurrentSourcePageType == typeof(CameraPage))
-        //    //{
-        //        await SetupUiAsync();
-        //        await InitializeCameraAsync();
-        //    //}
-        //}
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        protected override async Task<bool> OpenMayOverrideAsync()
         {
             await SetupUiAsync();
-            await InitializeCameraAsync();
+            bool isOk = await InitializeCameraAsync().ConfigureAwait(false);
+            return isOk;
         }
-
-        private async void OnUnloaded(object sender, RoutedEventArgs e)
+        protected override async Task CloseMayOverrideAsync()
         {
             await CleanupCameraAsync();
-            await CleanupUiAsync();
+            await CleanupUiAsync().ConfigureAwait(false);
         }
         #endregion Constructor, lifecycle and navigation
 
@@ -185,71 +160,77 @@ namespace UniFiler10.Views
 
         private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await TakePhotoAsync();
-        }
-
-        private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            if (!_isRecording)
-            {
-                await StartRecordingAsync();
-            }
-            else
-            {
-                await StopRecordingAsync();
-            }
-
-            // After starting or stopping video recording, update the UI to reflect the MediaCapture state
-            UpdateCaptureControls();
+            await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
         }
 
         private async void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
         {
-            await TakePhotoAsync();
+            await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
+        }
+
+        private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            await RunFunctionWhileOpenAsyncT(async delegate
+            {
+                if (!_isRecordingVideo)
+                {
+                    await StartRecordingVideoAsync();
+                }
+                else
+                {
+                    await StopRecordingVideoAsync();
+                }
+
+                // After starting or stopping video recording, update the UI to reflect the MediaCapture state
+                UpdateCaptureControls();
+            }).ConfigureAwait(false);
         }
 
         private async void OnMediaCapture_RecordLimitationExceeded(MediaCapture sender)
         {
             // This is a notification that recording has to stop, and the app is expected to finalize the recording
 
-            await StopRecordingAsync();
+            await StopRecordingVideoAsync();
 
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
         }
 
         private async void OnMediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
         {
-            Debug.WriteLine("MediaCapture_Failed: (0x{0:X}) {1}", errorEventArgs.Code, errorEventArgs.Message);
+            LastMessage = string.Format("MediaCapture_Failed: (0x{0:X}) {1}", errorEventArgs.Code, errorEventArgs.Message);
 
             await CleanupCameraAsync();
 
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
         }
 
-        private void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+        private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            VM.IsCameraOverlayOpen = false;
+            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         }
-        private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
+        private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
         {
-            VM.IsCameraOverlayOpen = false;
+            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         }
-        private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+        private async void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
         {
-            VM.IsCameraOverlayOpen = false;
+            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
+        }
+        private void CloseMe()
+        {
+            if (VM != null) VM.IsCameraOverlayOpen = false;
         }
         #endregion Event handlers
 
 
         #region MediaCapture methods
-
         /// <summary>
         /// Initializes the MediaCapture, registers events, gets camera device information for mirroring and rotating, starts preview and unlocks the UI
         /// </summary>
         /// <returns></returns>
-        private async Task InitializeCameraAsync()
+        private async Task<bool> InitializeCameraAsync()
         {
-            Debug.WriteLine("InitializeCameraAsync");
+            LastMessage = "InitializeCameraAsync";
 
             if (_mediaCapture == null)
             {
@@ -258,8 +239,8 @@ namespace UniFiler10.Views
                 var cameraDevice = RuntimeData.Instance?.VideoDevice;
                 if (cameraDevice == null)
                 {
-                    Debug.WriteLine("No camera device found!");
-                    return;
+                    LastMessage = "No camera device found!";
+                    return false;
                 }
 
                 // Create MediaCapture and its settings
@@ -279,36 +260,36 @@ namespace UniFiler10.Views
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    Debug.WriteLine("The app was denied access to the camera");
+                    LastMessage = "The app was denied access to the camera";
+                    return false;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Exception when initializing MediaCapture with {0}: {1}", cameraDevice.Id, ex.ToString());
+                    LastMessage = string.Format("Exception when initializing MediaCapture with {0}: {1}", cameraDevice.Id, ex.ToString());
+                    return false;
                 }
 
                 // If initialization succeeded, start the preview
-                if (_isInitialized)
+                // Figure out where the camera is located
+                if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Unknown)
                 {
-                    // Figure out where the camera is located
-                    if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Unknown)
-                    {
-                        // No information on the location of the camera, assume it's an external camera, not integrated on the device
-                        _externalCamera = true;
-                    }
-                    else
-                    {
-                        // Camera is fixed on the device
-                        _externalCamera = false;
-
-                        // Only mirror the preview if the camera is on the front panel
-                        _mirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
-                    }
-
-                    await StartPreviewAsync();
-
-                    UpdateCaptureControls();
+                    // No information on the location of the camera, assume it's an external camera, not integrated on the device
+                    _externalCamera = true;
                 }
+                else
+                {
+                    // Camera is fixed on the device
+                    _externalCamera = false;
+
+                    // Only mirror the preview if the camera is on the front panel
+                    _mirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
+                }
+
+                await StartPreviewAsync();
+
+                UpdateCaptureControls();
             }
+            return true;
         }
 
         /// <summary>
@@ -332,7 +313,7 @@ namespace UniFiler10.Views
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Exception when starting the preview: {0}", ex.ToString());
+                LastMessage = string.Format("Exception when starting the preview: {0}", ex.ToString());
             }
 
             // Initialize the preview to the current orientation
@@ -379,7 +360,7 @@ namespace UniFiler10.Views
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Exception when stopping the preview: {0}", ex.ToString());
+                LastMessage = string.Format("Exception when stopping the preview: {0}", ex.ToString());
             }
 
             // Use the dispatcher because this method is sometimes called from non-UI threads
@@ -406,20 +387,23 @@ namespace UniFiler10.Views
             VideoButton.Opacity = VideoButton.IsEnabled ? 1 : 0;
 
             var stream = new InMemoryRandomAccessStream();
+            var photoOrientation = PhotoOrientation.Normal;
 
             try
             {
-                Debug.WriteLine("Taking photo...");
+                LastMessage = "Taking photo...";
                 await _mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), stream);
-                Debug.WriteLine("Photo taken!");
+                LastMessage = "Photo taken!";
 
-                var photoOrientation = ConvertOrientationToPhotoOrientation(GetCameraOrientation());
-
-                ReencodeAndSavePhoto(stream, photoOrientation);
+                photoOrientation = ConvertOrientationToPhotoOrientation(GetCameraOrientation());
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Exception when taking a photo: {0}", ex.ToString());
+                LastMessage = string.Format("Exception when taking a photo: {0}", ex.ToString());
+            }
+            finally
+            {
+                await ReencodeAndSavePhotoAsync(stream, photoOrientation);
             }
 
             // Done taking a photo, so re-enable the button
@@ -431,7 +415,7 @@ namespace UniFiler10.Views
         /// Records an MP4 video to a StorageFile and adds rotation metadata to it
         /// </summary>
         /// <returns></returns>
-        private async Task StartRecordingAsync()
+        private async Task StartRecordingVideoAsync()
         {
             try
             {
@@ -444,16 +428,16 @@ namespace UniFiler10.Views
                 var rotationAngle = 360 - ConvertDeviceOrientationToDegrees(GetCameraOrientation());
                 encodingProfile.Video.Properties.Add(RotationKey, PropertyValue.CreateInt32(rotationAngle));
 
-                Debug.WriteLine("Starting recording...");
+                LastMessage = "Starting recording...";
 
                 await _mediaCapture.StartRecordToStorageFileAsync(encodingProfile, videoFile);
-                _isRecording = true;
+                _isRecordingVideo = true;
 
-                Debug.WriteLine("Started recording!");
+                LastMessage = "Started recording!";
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Exception when starting video recording: {0}", ex.ToString());
+                LastMessage = string.Format("Exception when starting video recording: {0}", ex.ToString());
             }
         }
 
@@ -461,20 +445,20 @@ namespace UniFiler10.Views
         /// Stops recording a video
         /// </summary>
         /// <returns></returns>
-        private async Task StopRecordingAsync()
+        private async Task StopRecordingVideoAsync()
         {
             try
             {
-                Debug.WriteLine("Stopping recording...");
+                LastMessage = "Stopping recording...";
 
-                _isRecording = false;
+                _isRecordingVideo = false;
                 await _mediaCapture.StopRecordAsync();
 
-                Debug.WriteLine("Stopped recording!");
+                LastMessage = "Stopped recording!";
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Exception when stopping video recording: {0}", ex.ToString());
+                LastMessage = string.Format("Exception when stopping video recording: {0}", ex.ToString());
             }
         }
 
@@ -484,14 +468,14 @@ namespace UniFiler10.Views
         /// <returns></returns>
         private async Task CleanupCameraAsync()
         {
-            Debug.WriteLine("CleanupCameraAsync");
+            LastMessage = "CleanupCameraAsync";
 
             if (_isInitialized)
             {
                 // If a recording is in progress during cleanup, stop it to save the recording
-                if (_isRecording)
+                if (_isRecordingVideo)
                 {
-                    await StopRecordingAsync();
+                    await StopRecordingVideoAsync();
                 }
 
                 if (_isPreviewing)
@@ -513,9 +497,7 @@ namespace UniFiler10.Views
                 _mediaCapture = null;
             }
         }
-
         #endregion MediaCapture methods
-
 
         #region Helper functions
         /// <summary>
@@ -571,13 +553,13 @@ namespace UniFiler10.Views
             VideoButton.IsEnabled = _isPreviewing;
 
             // Update recording button to show "Stop" icon instead of red "Record" icon
-            StartRecordingIcon.Visibility = _isRecording ? Visibility.Collapsed : Visibility.Visible;
-            StopRecordingIcon.Visibility = _isRecording ? Visibility.Visible : Visibility.Collapsed;
+            StartRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Collapsed : Visibility.Visible;
+            StopRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Visible : Visibility.Collapsed;
 
             // If the camera doesn't support simultaneosly taking pictures and recording video, disable the photo button on record
             if (_isInitialized && !_mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported)
             {
-                PhotoButton.IsEnabled = !_isRecording;
+                PhotoButton.IsEnabled = !_isRecordingVideo;
 
                 // Make the button invisible if it's disabled, so it's obvious it cannot be interacted with
                 PhotoButton.Opacity = PhotoButton.IsEnabled ? 1 : 0;
@@ -658,31 +640,39 @@ namespace UniFiler10.Views
         /// <param name="stream">The photo stream</param>
         /// <param name="photoOrientation">The orientation metadata to apply to the photo</param>
         /// <returns></returns>
-        private void ReencodeAndSavePhoto(IRandomAccessStream stream, PhotoOrientation photoOrientation)
+        private async Task ReencodeAndSavePhotoAsync(IRandomAccessStream stream, PhotoOrientation photoOrientation)
         {
-            VM.EndShoot(stream, photoOrientation);
+            StorageFile file = null;
+            try
+            {
+                file = await VM.Media.CreatePhotoFileAsync();
 
-            //await VM.EndShootAsync(stream, photoOrientation);
+                using (var inputStream = stream)
+                {
+                    var decoder = await BitmapDecoder.CreateAsync(inputStream);
 
-            //using (var inputStream = stream)
-            //{
-            //    var decoder = await BitmapDecoder.CreateAsync(inputStream);
+                    using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                    {
+                        var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
 
-            //    var file = await KnownFolders.PicturesLibrary.CreateFileAsync("SimplePhoto.jpeg", CreationCollisionOption.GenerateUniqueName);
+                        var properties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(photoOrientation, PropertyType.UInt16) } };
 
-            //    using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
-            //    {
-            //        var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
-
-            //        var properties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(photoOrientation, PropertyType.UInt16) } };
-
-            //        await encoder.BitmapProperties.SetPropertiesAsync(properties);
-            //        await encoder.FlushAsync();
-            //    }
-            //}
+                        await encoder.BitmapProperties.SetPropertiesAsync(properties);
+                        await encoder.FlushAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+                //if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete); // LOLLO TODO check how the file looks when these errors happen
+            }
+            finally
+            {
+                if (VM != null) VM.Media.EndShoot();
+            }
         }
         #endregion Helper functions
-
 
         #region Rotation helpers
         /// <summary>

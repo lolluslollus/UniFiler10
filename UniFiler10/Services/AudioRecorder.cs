@@ -24,23 +24,31 @@ namespace UniFiler10.Services
         private AudioDeviceOutputNode _deviceOutputNode;
         private AudioDeviceInputNode _deviceInputNode;
         private DeviceInformationCollection _outputDevices;
+        private IMessageWriter _messageWriter;
+        private IAudioFileGetter _fileGetter;
         #endregion properties
 
         #region construct, dispose, open, close
-        public AudioRecorder() { }
-
-        public async Task<bool> OpenAsync(StorageFile file)
+        public AudioRecorder(IMessageWriter messageWriter, IAudioFileGetter fileGetter)
         {
-            bool isOk = await OpenAsync().ConfigureAwait(false);
-            isOk = isOk && await RunFunctionWhileOpenAsyncTB(delegate
-            {
-                return SetFile2Async(file);
-            });
-            return isOk;
+            _messageWriter = messageWriter;
+            _fileGetter = fileGetter;
         }
+
+        //public async Task<bool> OpenAsync(StorageFile file)
+        //{
+        //    bool isOk = await OpenAsync().ConfigureAwait(false);
+        //    isOk = isOk && await RunFunctionWhileOpenAsyncTB(async delegate
+        //    {
+        //        _messageWriter.LastMessage = await SetFileAsync(file).ConfigureAwait(false);
+        //        return string.IsNullOrEmpty(_messageWriter.LastMessage);
+        //    });
+        //    return isOk;
+        //}
         protected override async Task OpenMayOverrideAsync()
         {
-            string errorMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
+            _messageWriter.LastMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
+            _messageWriter.LastMessage = await SetFileAsync(_fileGetter.GetAudioFile()).ConfigureAwait(false);
         }
         protected override async Task CloseMayOverrideAsync()
         {
@@ -118,6 +126,8 @@ namespace UniFiler10.Services
             // Recreate the graph and all nodes when this happens
             //sender.Dispose();
             DisposeAudioGraph();
+
+            _messageWriter.LastMessage = args.Error.ToString();
             // Re-query for devices
             string errorMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
         }
@@ -126,13 +136,12 @@ namespace UniFiler10.Services
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        private async Task<bool> SetFile2Async(StorageFile file)
+        private async Task<string> SetFileAsync(StorageFile file)
         {
             // File can be null if cancel is hit in the file picker
             if (file == null)
             {
-                Logger.Add_TPL("file is empty", Logger.ForegroundLogFilename);
-                return false;
+                return "file is empty";
             }
 
             MediaEncodingProfile fileProfile = CreateMediaEncodingProfile(file);
@@ -143,8 +152,7 @@ namespace UniFiler10.Services
             if (fileOutputNodeResult.Status != AudioFileNodeCreationStatus.Success)
             {
                 // FileOutputNode creation failed
-                Logger.Add_TPL(string.Format("Cannot create output file because {0}", fileOutputNodeResult.Status.ToString()), Logger.ForegroundLogFilename);
-                return false;
+                return string.Format("Cannot create output file because {0}", fileOutputNodeResult.Status.ToString());
             }
 
             _fileOutputNode = fileOutputNodeResult.FileOutputNode;
@@ -153,7 +161,7 @@ namespace UniFiler10.Services
             _deviceInputNode.AddOutgoingConnection(_fileOutputNode);
             _deviceInputNode.AddOutgoingConnection(_deviceOutputNode);
 
-            return true;
+            return string.Empty;
         }
 
         private MediaEncodingProfile CreateMediaEncodingProfile(StorageFile file)
@@ -177,6 +185,7 @@ namespace UniFiler10.Services
         {
             return RunFunctionWhileOpenAsyncA(delegate
             {
+                _messageWriter.LastMessage = "Recording...";
                 _audioGraph.Start();
             });
         }
@@ -191,13 +200,24 @@ namespace UniFiler10.Services
                 if (finalizeResult != TranscodeFailureReason.None)
                 {
                     // Finalization of file failed. Check result code to see why
-                    Logger.Add_TPL(string.Format("Finalization of file failed because {0}", finalizeResult.ToString()), Logger.ForegroundLogFilename);
+                    _messageWriter.LastMessage = string.Format("Finalization of file failed because {0}", finalizeResult.ToString());
+                    // Logger.Add_TPL(string.Format("Finalization of file failed because {0}", finalizeResult.ToString()), Logger.ForegroundLogFilename);
                     return false;
                 }
-
+                _messageWriter.LastMessage = string.Empty;
                 return true;
             });
         }
         #endregion record
+    }
+
+    public interface IMessageWriter
+    {
+        string LastMessage { get; set; }
+    }
+
+    public interface IAudioFileGetter
+    {
+        StorageFile GetAudioFile();
     }
 }

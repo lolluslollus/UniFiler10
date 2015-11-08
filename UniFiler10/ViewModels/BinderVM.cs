@@ -1,26 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using UniFiler10.Data.Model;
 using UniFiler10.Data.Metadata;
+using UniFiler10.Data.Model;
+using UniFiler10.Services;
 using Utilz;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml;
-using Windows.ApplicationModel.Core;
-using UniFiler10.Views;
-using Windows.Storage.Streams;
-using Windows.Storage.FileProperties;
+using Windows.Foundation;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
-using Windows.Foundation;
-using System.IO;
+using Windows.Storage.FileProperties;
 using Windows.Storage.Pickers;
-using UniFiler10.Services;
+using Windows.Storage.Streams;
 
 namespace UniFiler10.ViewModels
 {
@@ -45,8 +36,11 @@ namespace UniFiler10.ViewModels
             set { _isAudioRecorderOverlayOpen = value; RaisePropertyChanged_UI(); }
         }
 
+        private SaveMedia _media = null;
+        public SaveMedia Media { get { return _media; } }
         public BinderVM(Binder binder)
         {
+            _media = new SaveMedia(this);
             Binder = binder;
             RuntimeData = RuntimeData.Instance;
             UpdateCurrentFolderCategories();
@@ -55,9 +49,8 @@ namespace UniFiler10.ViewModels
         public void Dispose()
         {
             if (Binder != null) Binder.PropertyChanged -= OnBinder_PropertyChanged;
-            //EndRecordSound();
-            SemaphoreSlimSafeRelease.TryRelease(_audioRecorderSemaphore);
-            SemaphoreSlimSafeRelease.TryRelease(_shootSemaphore);
+            _media?.Dispose();
+            _media = null;
             ClearListeners();
         }
         private void OnBinder_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -109,139 +102,167 @@ namespace UniFiler10.ViewModels
         }
 
         #region save media
-        public async Task LoadMediaFile(Folder parentFolder)
+        public class SaveMedia : IAudioFileGetter, IDisposable
         {
-            if (_binder != null && parentFolder != null)
+            private BinderVM _vm = null;
+            internal SaveMedia(BinderVM vm)
             {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
-                {
-                    var file = await PickMediaFile();
-                    await parentFolder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                _vm = vm;
             }
-        }
-        public async Task LoadMediaFile(Wallet parentWallet)
-        {
-            if (_binder != null && _binder.IsOpen && parentWallet != null)
+            public void Dispose()
             {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
-                {
-                    var file = await PickMediaFile();
-                    await parentWallet.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                EndRecordAudio();
+                EndShoot();
             }
-        }
-
-        public async Task ShootAsync(Folder parentFolder)
-        {
-            if (_binder != null && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
+            public async Task LoadMediaFile(Folder parentFolder)
             {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                if (_vm._binder != null && parentFolder != null)
                 {
-                    IsCameraOverlayOpen = true;
-                    await _shootSemaphore.WaitAsync();
-
-                    var file = await GetShotFileAsync();
-                    await parentFolder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    {
+                        if (parentFolder != null)
+                        {
+                            var file = await PickMediaFile();
+                            await parentFolder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
+                        }
+                    }).ConfigureAwait(false);
+                }
             }
-        }
-        public async Task ShootAsync(Wallet parentWallet)
-        {
-            if (_binder != null && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
+            public async Task LoadMediaFile(Wallet parentWallet)
             {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                if (_vm._binder != null && parentWallet != null)
                 {
-                    IsCameraOverlayOpen = true;
-                    await _shootSemaphore.WaitAsync();
-
-                    var file = await GetShotFileAsync();
-                    await parentWallet.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    {
+                        if (parentWallet != null)
+                        {
+                            var file = await PickMediaFile();
+                            await parentWallet.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
+                        }
+                    }).ConfigureAwait(false);
+                }
             }
-        }
-        public void EndShoot(IRandomAccessStream stream, PhotoOrientation photoOrientation = PhotoOrientation.Normal)
-        {
-            _shootStream = stream;
-            _shootPhotoOrientation = photoOrientation;
-            SemaphoreSlimSafeRelease.TryRelease(_shootSemaphore);
-        }
-        public void EndAudioRecorder()
-        {
-            SemaphoreSlimSafeRelease.TryRelease(_audioRecorderSemaphore);
-        }
 
-        public async Task RecordAudioAsync(Folder parentFolder)
-        {
-            if (_binder != null && !_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+            public async Task ShootAsync(Folder parentFolder)
             {
-                await _binder.RunFunctionWhileOpenAsyncT(async delegate
+                if (_vm._binder != null && !_vm._isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
                 {
-                    var directory = ApplicationData.Current.LocalCacheFolder;
-                    _audioRecorderFile = await directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
-                    IsAudioRecorderOverlayOpen = true;
-                    await _audioRecorderSemaphore.WaitAsync();
+                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    {
+                        if (!_vm._isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
+                        {
+                            _vm.IsCameraOverlayOpen = true; // opens the Camera control
+                            await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-                    await parentFolder.ImportMediaFileIntoNewWalletAsync(_audioRecorderFile).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                            await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+                        }
+                    }).ConfigureAwait(false);
+                }
             }
-        }
-        private async Task<StorageFile> PickMediaFile()
-        {
-            FileOpenPicker openPicker = new FileOpenPicker();
-            openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            //openPicker.CommitButtonText=
-            //openPicker.ViewMode = PickerViewMode.List;
-            openPicker.FileTypeFilter.Add(".pdf");
-            openPicker.FileTypeFilter.Add(".jpg");
-            openPicker.FileTypeFilter.Add(".jpeg");
-            openPicker.FileTypeFilter.Add(".png");
-            openPicker.FileTypeFilter.Add(".bmp");
-            openPicker.FileTypeFilter.Add(".tif");
-            openPicker.FileTypeFilter.Add(".tiff");
+            public async Task ShootAsync(Wallet parentWallet)
+            {
+                if (_vm._binder != null && !_vm._isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
+                {
+                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    {
+                        if (!_vm._isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
+                        {
+                            _vm.IsCameraOverlayOpen = true; // opens the Camera control
+                            await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-            var file = await openPicker.PickSingleFileAsync();
-            return file;
-        }
-        private static SemaphoreSlimSafeRelease _audioRecorderSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
-        private StorageFile _audioRecorderFile = null;
-        public StorageFile AudioRecorderFile { get { return _audioRecorderFile; } }
-        private static SemaphoreSlimSafeRelease _shootSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
-        private IRandomAccessStream _shootStream = null;
-        private PhotoOrientation _shootPhotoOrientation = PhotoOrientation.Normal;
+                            await parentWallet.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+                        }
+                    }).ConfigureAwait(false);
+                }
+            }
+            public void EndShoot()
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_photoSemaphore);
+            }
 
-        private async Task<StorageFile> GetShotFileAsync()
-        {
-            if (_shootStream != null)
+            public async Task RecordAudioAsync(Folder parentFolder)
+            {
+                if (_vm._binder != null && !_vm._isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+                {
+                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    {
+                        if (!_vm._isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+                        {
+                            await CreateAudioFileAsync(); // required before we start any audio recording
+                            _vm.IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
+                            await _audioSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
+
+                            await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
+                        }
+                    }).ConfigureAwait(false);
+                }
+            }
+            public void EndRecordAudio()
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_audioSemaphore);
+            }
+
+            private async Task<StorageFile> PickMediaFile()
+            {
+                FileOpenPicker openPicker = new FileOpenPicker();
+                openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+                //openPicker.CommitButtonText=
+                //openPicker.ViewMode = PickerViewMode.List;
+                openPicker.FileTypeFilter.Add(".pdf");
+                openPicker.FileTypeFilter.Add(".jpg");
+                openPicker.FileTypeFilter.Add(".jpeg");
+                openPicker.FileTypeFilter.Add(".png");
+                openPicker.FileTypeFilter.Add(".bmp");
+                openPicker.FileTypeFilter.Add(".tif");
+                openPicker.FileTypeFilter.Add(".tiff");
+
+                var file = await openPicker.PickSingleFileAsync();
+                return file;
+            }
+
+            private static SemaphoreSlimSafeRelease _audioSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+            private StorageFile _audioFile = null;
+            private async Task<StorageFile> CreateAudioFileAsync()
             {
                 try
                 {
-                    var directory = await _binder.GetDirectoryAsync();
-                    var file = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
-
-                    var decoder = await BitmapDecoder.CreateAsync(_shootStream);
-                    using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
-                    {
-                        var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
-
-                        var properties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(_shootPhotoOrientation, PropertyType.UInt16) } };
-
-                        await encoder.BitmapProperties.SetPropertiesAsync(properties);
-                        await encoder.FlushAsync();
-                    }
-                    return file;
+                    //var directory = ApplicationData.Current.LocalCacheFolder;
+                    var directory = await _vm._binder.GetDirectoryAsync();
+                    _audioFile = await directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
+                    return _audioFile;
                 }
                 catch (Exception ex)
                 {
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 }
-                finally
-                {
-                    _shootStream?.Dispose();
-                    _shootStream = null;
-                }
+                return null;
             }
-            return null;
+            public StorageFile GetAudioFile()
+            {
+                return _audioFile;
+            }
+
+            private static SemaphoreSlimSafeRelease _photoSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+            private StorageFile _photoFile = null;
+            public async Task<StorageFile> CreatePhotoFileAsync()
+            {
+                try
+                {
+                    //var directory = ApplicationData.Current.LocalCacheFolder;
+                    var directory = await _vm._binder.GetDirectoryAsync();
+                    _photoFile = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
+                    return _photoFile;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                }
+                return null;
+            }
+            private StorageFile GetPhotoFile()
+            {
+                return _photoFile;
+            }
         }
         #endregion save media
 

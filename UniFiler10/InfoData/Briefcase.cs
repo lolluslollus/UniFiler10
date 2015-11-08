@@ -43,6 +43,7 @@ namespace UniFiler10.Data.Model
             await LoadAsync().ConfigureAwait(false);
 
             RuntimeData = RuntimeData.CreateInstance(this);
+            await _runtimeData.OpenAsync().ConfigureAwait(false);
 
             await UpdateCurrentBinder2Async().ConfigureAwait(false);
         }
@@ -50,6 +51,7 @@ namespace UniFiler10.Data.Model
         {
             await SaveAsync().ConfigureAwait(false);
 
+            if (_runtimeData != null) await _runtimeData.CloseAsync();
             _runtimeData?.Dispose();
             _runtimeData = null;
 

@@ -42,33 +42,54 @@ namespace UniFiler10.Views
         public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged(); } }
         #endregion properties
 
-        #region construct and dispose
+        #region construct dispose open close
         public BriefcasePage()
         {
+            Application.Current.Resuming += OnResuming;
+            Application.Current.Suspending += OnSuspending;
+            Loading += OnLoading;
             InitializeComponent();
         }
-        #endregion construct and dispose
 
-        #region open and close
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        private async void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
-            base.OnNavigatedTo(e);
-            if (e.NavigationMode == NavigationMode.New || e.NavigationMode == NavigationMode.Refresh)
-            {
-                await ActivateAsync().ConfigureAwait(false);
-            }
+            var deferral = e.SuspendingOperation.GetDeferral();
+            // Save application state and stop any background activity
+            //var briefcase = Briefcase.InstanceNeverMindIfClosed;
+            //if (briefcase != null)
+            //{
+            //    await briefcase.CloseAsync().ConfigureAwait(false);
+            //    briefcase?.Dispose();
+            //    briefcase = null;
+            //}
+
+            if (_vm != null) await _vm.CloseAsync().ConfigureAwait(false);
+
+            deferral.Complete();
+        }
+
+        private async void OnResuming(object sender, object e)
+        {
+            await ActivateAsync().ConfigureAwait(false);
+        }
+
+        private async void OnLoading(FrameworkElement sender, object args) // fires after OnNavigatedTo and before OnLoaded
+        {
+            await ActivateAsync().ConfigureAwait(false);
         }
 
         // LOLLO OnUnloaded and OnNavigatingFrom do not fire
 
         private async Task ActivateAsync()
         {
-            VM = new BriefcaseVM();
-            await _vm.ActivateAsync().ConfigureAwait(true);
-            // LOLLO do not set the datacontext of the whole control or it will alter the dependency properties, if any
-            //LayoutRoot.DataContext = VM;
+            if (_vm == null) VM = new BriefcaseVM();
+            await _vm.OpenAsync().ConfigureAwait(true);
+            // LOLLO do not set the datacontext of the whole control or it will alter the dependency properties, if any. 
+            // Instead, set LayoutRoot.DataContext, where LayoutRoot is the main child of the Page or UserControl.
+            // For example:
+            // LayoutRoot.DataContext = VM;
         }
-        #endregion open and close
+        #endregion construct dispose open close
 
         private void OnAddDbName_Click(object sender, RoutedEventArgs e)
         {
@@ -119,11 +140,11 @@ namespace UniFiler10.Views
             if (_vm != null) VM.Briefcase.IsPaneOpen = !_vm.Briefcase.IsPaneOpen;
         }
 
-        private void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
+        private async void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
         {
             if (_vm != null && e?.AddedItems?.Count > 0)
             {
-                _vm.OpenBinder(((sender as ListView).SelectedItem.ToString()));
+                await _vm.OpenBinderAsync(((sender as ListView).SelectedItem.ToString())).ConfigureAwait(false);
             }
         }
 
