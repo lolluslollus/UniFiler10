@@ -1,0 +1,112 @@
+﻿<ctl:ObservableControl
+    x:Class="UniFiler10.Views.DocumentView"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UniFiler10.Views"
+    xmlns:utilz="using:Utilz"
+    xmlns:ctl="using:UniFiler10.Controlz"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
+    DataContextChanged="OnDataContextChanged">
+
+    <!--<Grid Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}" 
+        Background="Transparent" Tapped="OnPreview_Tapped">-->
+    <!--<Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            -->
+    <!--<RowDefinition Height="Auto"/>-->
+    <!--
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>-->
+    <Border
+            Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
+            VerticalAlignment="Center" HorizontalAlignment="Center" 
+            Canvas.ZIndex="100"
+            Tapped="OnPreview_Tapped"
+            BorderThickness="0">
+        <Border.Background>
+            <LinearGradientBrush EndPoint="0.5,.5" StartPoint="0.5,0">
+                <GradientStop Color="DarkGray" Offset="0"/>
+                <GradientStop Color="Transparent" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid>
+            <AppBarButton Icon="Go"
+                    Tapped="OnPreview_Tapped"
+                    Canvas.ZIndex="150"
+                    Style="{StaticResource AppBarButtonRecoloured}"
+                    IsCompact="True"
+                    Foreground="{StaticResource FlashyForeground}"
+                    Opacity="1"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+            <AppBarButton Icon="Delete" 
+                    Visibility="{x:Bind IsDeleteEnabled, Converter={StaticResource BooleanToVisibleConverter}}"
+                    Tapped="OnItemDelete_Tapped"
+                    Canvas.ZIndex="150"
+                    Style="{StaticResource AppBarButtonRecoloured}"
+                    IsCompact="True"
+                    Foreground="{StaticResource FlashyForeground}"
+                    Opacity="1"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"/>
+
+            <Image x:Name="ImageViewer"
+                    Canvas.ZIndex="50"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
+                    Stretch="Uniform"/>
+
+            <!--<Viewbox x:Name="WebViewBox" Stretch="UniformToFill" LOLLO Viewbox does not work with WebView
+                    Canvas.ZIndex="60"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}">-->
+            
+            <!--NavigationCompleted="WebView_NavigationCompleted"
+                    NavigationFailed="WebView_NavigationFailed">-->
+            <WebView
+                    x:Name="WebViewer"
+                    Canvas.ZIndex="60"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}">
+                <!--<WebView.Clip> LOLLO also this does not work
+                    <RectangleGeometry Rect="0 0 200 200"/>
+                </WebView.Clip>-->
+            </WebView>
+            <!--</Viewbox>-->
+        </Grid>
+    </Border>
+    <!--<TextBox Text="{Binding Uri0, Mode=OneWay}" IsReadOnly="True" Grid.Row="1"/>-->
+    <!--Source="{Binding ElementName=me, Path=DocumentVM.Uri, Mode=OneWay}"-->
+    <!--<AppBarButton Icon="Delete" Click="OnItemDelete_Click" 
+                Canvas.ZIndex="150"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                IsCompact="True"
+                Foreground="{StaticResource FlashyForeground}"
+                Opacity="1"
+                HorizontalAlignment="Right" VerticalAlignment="Top"/>
+        <Image 
+            Canvas.ZIndex="50"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
+            x:Name="ImageViewer" Stretch="Uniform"/>
+        <WebView
+            Canvas.ZIndex="50"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
+            x:Name="WebView"
+            Tapped="OnWebView_Tapped"
+            NavigationCompleted="WebView_NavigationCompleted"
+            NavigationFailed="WebView_NavigationFailed"/>-->
+    <!--</Grid>-->
+</ctl:ObservableControl>

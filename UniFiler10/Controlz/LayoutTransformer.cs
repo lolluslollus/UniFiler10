@@ -258,47 +258,54 @@ namespace Utilz
         /// <returns>The size that this element determines it needs during layout, based on its calculations of child element sizes.</returns>
         protected override Size MeasureOverride(Size availableSize)
         {
-            FrameworkElement child = Child;
-            if ((null == _transformRoot) || (null == child))
+            try
             {
-                // No content, no size
-                return Size.Empty;
-            }
+                FrameworkElement child = Child;
+                if ((null == _transformRoot) || (null == child))
+                {
+                    // No content, no size
+                    return Size.Empty;
+                }
 
-            //DiagnosticWriteLine("MeasureOverride < " + availableSize);
-            Size measureSize;
-            if (_childActualSize == Size.Empty)
+                //DiagnosticWriteLine("MeasureOverride < " + availableSize);
+                Size measureSize;
+                if (_childActualSize == Size.Empty)
+                {
+                    // Determine the largest size after the transformation
+                    measureSize = ComputeLargestTransformedSize(availableSize);
+                }
+                else
+                {
+                    // Previous measure/arrange pass determined that Child.DesiredSize was larger than believed
+                    //DiagnosticWriteLine("  Using _childActualSize");
+                    measureSize = _childActualSize;
+                }
+
+                // Perform a mesaure on the _transformRoot (containing Child)
+                //DiagnosticWriteLine("  _transformRoot.Measure < " + measureSize);
+                _transformRoot.Measure(measureSize);
+                //DiagnosticWriteLine("  _transformRoot.DesiredSize = " + _transformRoot.DesiredSize);
+
+                // WPF equivalent of _childActualSize technique (much simpler, but doesn't work on Silverlight 2)
+                // // If the child is going to render larger than the available size, re-measure according to that size
+                // child.Arrange(new Rect());
+                // if (child.RenderSize != child.DesiredSize)
+                // {
+                //     _transformRoot.Measure(child.RenderSize);
+                // }
+
+                // Transform DesiredSize to find its width/height
+                Rect transformedDesiredRect = RectTransform(new Rect(0, 0, _transformRoot.DesiredSize.Width, _transformRoot.DesiredSize.Height), _transformation);
+                Size transformedDesiredSize = new Size(transformedDesiredRect.Width, transformedDesiredRect.Height);
+
+                // Return result to allocate enough space for the transformation
+                //DiagnosticWriteLine("MeasureOverride > " + transformedDesiredSize);
+                return transformedDesiredSize;
+            }
+            catch (Exception ex)
             {
-                // Determine the largest size after the transformation
-                measureSize = ComputeLargestTransformedSize(availableSize);
+                throw;
             }
-            else
-            {
-                // Previous measure/arrange pass determined that Child.DesiredSize was larger than believed
-                //DiagnosticWriteLine("  Using _childActualSize");
-                measureSize = _childActualSize;
-            }
-
-            // Perform a mesaure on the _transformRoot (containing Child)
-            //DiagnosticWriteLine("  _transformRoot.Measure < " + measureSize);
-            _transformRoot.Measure(measureSize);
-            //DiagnosticWriteLine("  _transformRoot.DesiredSize = " + _transformRoot.DesiredSize);
-
-            // WPF equivalent of _childActualSize technique (much simpler, but doesn't work on Silverlight 2)
-            // // If the child is going to render larger than the available size, re-measure according to that size
-            // child.Arrange(new Rect());
-            // if (child.RenderSize != child.DesiredSize)
-            // {
-            //     _transformRoot.Measure(child.RenderSize);
-            // }
-
-            // Transform DesiredSize to find its width/height
-            Rect transformedDesiredRect = RectTransform(new Rect(0, 0, _transformRoot.DesiredSize.Width, _transformRoot.DesiredSize.Height), _transformation);
-            Size transformedDesiredSize = new Size(transformedDesiredRect.Width, transformedDesiredRect.Height);
-
-            // Return result to allocate enough space for the transformation
-            //DiagnosticWriteLine("MeasureOverride > " + transformedDesiredSize);
-            return transformedDesiredSize;
         }
 
         /// <summary>

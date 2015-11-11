@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
+using Utilz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -9,76 +11,116 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class BinderView : OpenableObservableControl
+    public sealed partial class BinderView : ObservableControl
     {
         private BinderVM _vm = null;
         public BinderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
-        #region construct dispose open close
+        #region construct dispose
         public BinderView()
         {
-            OpenCloseWhenLoadedUnloaded = false;
             InitializeComponent();
         }
-
-        private Binder _newBinderTemp = null;
+        private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
         {
-            if (args != null)
+            try
             {
-                var newBinder = args.NewValue as Binder;
-                if (newBinder != null && (_vm == null || _vm.Binder != newBinder))
+                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+                if (args != null)
                 {
-                    _newBinderTemp = newBinder;
-                    await CloseAsync().ConfigureAwait(false);
-                    await TryOpenAsync().ConfigureAwait(false);
-                    _newBinderTemp = null;
+                    var newBinder = args.NewValue as Binder;
+                    if (newBinder == null)
+                    {
+                        if (_vm != null) await _vm.CloseAsync().ConfigureAwait(false);
+                    }
+                    else if (_vm == null)
+                    {
+                        VM = new BinderVM(newBinder);
+                        // await _vm.OpenAsync().ConfigureAwait(false); // no: this particular class only opens when its Binder has opened
+                    }
+                    else if (_vm.Binder != newBinder)
+                    {
+                        await _vm.CloseAsync().ConfigureAwait(false);
+                        VM = new BinderVM(newBinder);
+                        // await _vm.OpenAsync().ConfigureAwait(false); // no: this particular class only opens when its Binder has opened
+                    }
                 }
             }
-        }
-        protected override async Task<bool> OpenMayOverrideAsync()
-        {
-            if (_newBinderTemp != null)
+            finally
             {
-                VM = new BinderVM(_newBinderTemp);
-                await _vm.OpenAsync().ConfigureAwait(false);
-                return true;
-            }
-            else
-            {
-                return false;
+                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
             }
         }
-        protected override async Task CloseMayOverrideAsync()
-        {
-            await _vm?.CloseAsync();
-            _vm?.Dispose();
-            _vm = null;
-        }
-        #endregion construct dispose open close
+        #endregion construct dispose
 
-        private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ListView lv = sender as ListView;
-            if (VM?.Binder != null && lv?.SelectedItem is Folder)
+            try
             {
-                VM.Binder.CurrentFolderId = (lv.SelectedItem as Folder).Id;
+                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+                ListView lv = sender as ListView;
+                if (_vm?.Binder != null && lv?.SelectedItem is Folder)
+                {
+                    await _vm.SelectFolderAsync((lv.SelectedItem as Folder).Id).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
             }
         }
 
         private async void OnDeleteFolder_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm != null) await _vm.DeleteFolderAsync((sender as FrameworkElement)?.DataContext as Folder).ConfigureAwait(false);
+            try
+            {
+                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+                if (_vm != null) await _vm.DeleteFolderAsync((sender as FrameworkElement)?.DataContext as Folder).ConfigureAwait(false);
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+            }
         }
 
         private async void OnAddFolder_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm != null) await _vm.AddFolderAsync().ConfigureAwait(false);
+            try
+            {
+                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+                if (_vm != null) await _vm.AddFolderAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+            }
         }
 
-        private void OnTogglePaneOpen(object sender, RoutedEventArgs e)
+        private async void OnTogglePaneOpen(object sender, RoutedEventArgs e)
         {
-            if (_vm?.Binder != null) _vm.Binder.IsPaneOpen = !_vm.Binder.IsPaneOpen;
+            try
+            {
+                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+                if (_vm?.Binder != null) _vm.Binder.IsPaneOpen = !_vm.Binder.IsPaneOpen;
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+            }
+        }
+
+        private async void OnOpenCover_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+                _vm?.OpenCover();
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+            }
         }
     }
 }

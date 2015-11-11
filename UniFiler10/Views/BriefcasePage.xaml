@@ -4,177 +4,177 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
+    xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utilz="using:Utilz"
     xmlns:vm="using:UniFiler10.ViewModels"
     mc:Ignorable="d">
+       
+        <!--DisplayMode="CompactInline"
+        CompactPaneLength="{StaticResource CompactPaneLength}"-->
+    <!--DataContext="{Binding ElementName=me, Path=VM}"-->
+    <ctl:LolloSplitView x:Name="LayoutRoot"           
+            d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=True}"
+            IsPaneOpen="{Binding Briefcase.IsPaneOpen, Mode=TwoWay, FallbackValue=True}"
+            IsEnabled="{Binding IsOpen, FallbackValue=False}"
+            ClosedPaneLength="{StaticResource CompactPaneLength}"
+            OpenPaneLength="{StaticResource OpenPaneLength}"
+            IsDoubleTapEnabled="False" 
+            IsHoldingEnabled="False"
+            IsRightTapEnabled="False">
 
-    <!--OpenPaneLength="{StaticResource CompactPaneLength}"-->
-    <!--OpenPaneLength="{StaticResource OpenPaneLength}"-->
-    <SplitView x:Name="LayoutRoot"
-        DataContext="{Binding ElementName=me, Path=VM}"
-        d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=True}"
-        IsPaneOpen="{Binding Briefcase.IsPaneOpen, Mode=TwoWay, FallbackValue=True}"
-        IsEnabled="{Binding IsOpen, FallbackValue=False}"
-        DisplayMode="CompactInline"
-        CompactPaneLength="{StaticResource CompactPaneLength}"
-        
-        IsDoubleTapEnabled="False" 
-        IsHoldingEnabled="False"
-        IsRightTapEnabled="False">
-
-        <SplitView.Content>
-            <StackPanel Orientation="Vertical"
-                HorizontalAlignment="Left">
+        <ctl:LolloSplitView.BodyContent>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <!-- LOLLO the following elements' Visibility is bound to ElementName=me -->
                 <!-- otherwise, the DataContext property will screw with it -->
-                <local:SettingsView
-                    HorizontalAlignment="Left"
-                    Visibility="{Binding ElementName=me, Path=VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
-                    DataContext="{Binding Briefcase.MetaBriefcase}"/>
+                <local:SettingsView                        
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Visibility="{x:Bind VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
+                        DataContext="{Binding Briefcase.MetaBriefcase}"/>
                 <local:BinderView
-                    HorizontalAlignment="Left"
-                    Visibility="{Binding ElementName=me, Path=VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Visible, Mode=OneWay}"
-                    DataContext="{Binding Briefcase.CurrentBinder}"/>
-            </StackPanel>
-        </SplitView.Content>
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Visibility="{x:Bind VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Visible, Mode=OneWay}"
+                        DataContext="{Binding Briefcase.CurrentBinder}"/>
+            </Grid>
+        </ctl:LolloSplitView.BodyContent>
 
-        <SplitView.Pane>
-            <StackPanel Orientation="Vertical" 
-                HorizontalAlignment="Left">
+        <ctl:LolloSplitView.PaneContent>
+            <Grid>
                 <!-- open pane -->
-                <Grid Visibility="{Binding Briefcase.IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
+                              HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
+                    <Grid Visibility="{Binding Briefcase.IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                            <!-- LOLLO Height="Auto" screws with the (automatic or not) scroll viewers within -->
+                            <RowDefinition Height="*" MinHeight="320"/>
+                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                        </Grid.RowDefinitions>
 
-                    <AppBarButton
-                                Grid.Row="0"
-                                Icon="Back"
-                                x:Uid="Shrink"
-                                Click="OnTogglePaneOpen">
-                    </AppBarButton>
+                        <AppBarButton Grid.Row="0"
+                        Icon="Back"
+                        x:Uid="Shrink"
+                        Click="OnTogglePaneOpen"/>
 
-                    <utilz:TolerantListView
-                                Grid.Row="1"
-                                ItemsSource="{Binding Briefcase.DbNames, Mode=OneWay}"
-                                x:Name="DBNamesLV"
-                                IsMultiSelectCheckBoxEnabled="False"
-                                IsSwipeEnabled="True"
-                                IsItemClickEnabled="True"
-                                ItemClick="OnDbNameClicked"                               
-                                SelectedItem="{Binding Briefcase.CurrentBinder.DBName}"
-                                SelectionChanged="OnDbItemClicked">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Vertical">
-                                    <TextBlock
-                                                Text="{Binding}"
-                                                TextAlignment="Center"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"/>
-                                    <AppBarButton 
-                                                Icon="Save"
-                                                Click="OnBackupBinder_Click"
-                                                x:Uid="BackupBinder"/>
-                                    <AppBarButton 
-                                                Icon="Delete"
-                                                Click="OnDeleteBinder_Click"
-                                                x:Uid="DeleteBinder"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </utilz:TolerantListView>
+                        <ctl:TolerantListView Grid.Row="1"
+                            ItemsSource="{Binding Briefcase.DbNames, Mode=OneWay}"
+                            x:Name="DBNamesLV"
+                            IsMultiSelectCheckBoxEnabled="False"
+                            IsItemClickEnabled="True"
+                            ItemClick="OnDbNameClicked"                               
+                            SelectedItem="{Binding Briefcase.CurrentBinder.DBName}"
+                            SelectionChanged="OnDbItemClicked"
+                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsStackPanel Orientation="Vertical"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                                            <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0"
+                                            Text="{Binding}"
+                                            TextAlignment="Center"
+                                            TextWrapping="Wrap"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                                        <AppBarButton Grid.Row="1"
+                                            Icon="Save"
+                                            Click="OnBackupBinder_Click"
+                                            x:Uid="BackupBinder"
+                                            VerticalAlignment="Center"/>
+                                        <AppBarButton Grid.Row="2"
+                                            Icon="Delete"
+                                            Click="OnDeleteBinder_Click"
+                                            x:Uid="DeleteBinder"
+                                            VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ctl:TolerantListView>
 
-                    <StackPanel 
-                                Grid.Row="2"
-                                Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
                             <AppBarButton 
-                                        Icon="Add"
-                                        Click="OnAddDbName_Click"
-                                        x:Uid="AddBinder"/>
+                            Icon="Add"
+                            Click="OnAddDbName_Click"
+                            x:Uid="AddBinder"/>
                             <TextBox 
-                                        Text="{Binding Briefcase.NewDbName, Mode=TwoWay}"
-                                        x:Name="NewDbNameTB"
-                                        Visibility="Collapsed"
-                                        MaxLength="{StaticResource MaxDbNameLength}"
-                                        TextChanged="OnNewDbNameTB_TextChanged"/>
+                            Text="{Binding Briefcase.NewDbName, Mode=TwoWay}"
+                            x:Name="NewDbNameTB"
+                            Visibility="Collapsed"
+                            MaxLength="{StaticResource MaxDbNameLength}"
+                            TextChanged="OnNewDbNameTB_TextChanged"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal">
+
+                        <StackPanel Grid.Row="3" Orientation="Horizontal">
                             <AppBarButton Icon="Go"
-                                        Click="OnAddDb_Click"
-                                        x:Name="AddDbButton"
-                                        Visibility="Collapsed"/>
+                            Click="OnAddDb_Click"
+                            x:Name="AddDbButton"
+                            Visibility="Collapsed"/>
                             <TextBlock
-                                        x:Uid="NameAlreadyInUse"
-                                        x:Name="NewDbNameErrorTB"
-                                        Visibility="Collapsed"/>
+                            x:Uid="NameAlreadyInUse"
+                            x:Name="NewDbNameErrorTB"
+                            Visibility="Collapsed"/>
                         </StackPanel>
-                    </StackPanel>
 
-                    <StackPanel 
-                                Grid.Row="3"
-                                Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal">
-                            <AppBarButton 
-                                        Icon="OpenFile"
-                                        Click="OnRestoreBinder_Click"
-                                        x:Uid="RestoreBinder"/>
-                        </StackPanel>
-                    </StackPanel>
+                        <AppBarButton Grid.Row="4"
+                        Icon="OpenFile"
+                        Click="OnRestoreBinder_Click"
+                        x:Uid="RestoreBinder"/>
 
-                </Grid>
+                        <AppBarToggleButton Grid.Row="5"
+                        HorizontalAlignment="Left"
+                        Icon="Setting"
+                        x:Uid="Settings"
+                        IsChecked="{Binding Briefcase.IsShowingSettings, Mode=TwoWay}"/>
+                    </Grid>
+                </ScrollViewer>
                 <!-- closed pane -->
                 <Grid Visibility="{Binding Briefcase.IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Visible}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
                     </Grid.RowDefinitions>
 
-                    <AppBarButton
-                                Grid.Row="0"
-                                HorizontalAlignment="Center"
-                                Icon="Forward"
-                                x:Uid="Expand"
-                                Click="OnTogglePaneOpen">
-                    </AppBarButton>
+                    <AppBarButton Grid.Row="0"
+                        HorizontalAlignment="Center"
+                        Icon="Forward"
+                        x:Uid="Expand"
+                        Click="OnTogglePaneOpen"/>
 
                     <utilz:LayoutTransformer Grid.Row="1"
                                 HorizontalAlignment="Center">
                         <utilz:LayoutTransformer.LayoutTransform>
                             <RotateTransform Angle="-90"/>
                         </utilz:LayoutTransformer.LayoutTransform>
-                        <StackPanel Orientation="Vertical">
-                            <TextBox
-                                IsReadOnly="True"
-                                IsEnabled="False"
+                        <Grid>
+                            <TextBlock
                                 Text="{Binding Briefcase.CurrentBinder.DBName, Mode=OneWay}"
                                 Visibility="{Binding Briefcase.CurrentBinder.DBName, Mode=OneWay, Converter={StaticResource TextEmptyToCollapsedConverter}}"/>
-                            <TextBox
-                                IsReadOnly="True"
-                                IsEnabled="False"
+                            <TextBlock
                                 x:Uid="NoBinder"
                                 Visibility="{Binding Briefcase.CurrentBinder.DBName, Mode=OneWay, Converter={StaticResource TextEmptyToVisibleConverter}}"/>
-                        </StackPanel>
+                        </Grid>
                     </utilz:LayoutTransformer>
-                </Grid>
 
-                <AppBarToggleButton
-                    HorizontalAlignment="Left"
-                    Icon="Setting"
-                    x:Uid="Settings"
-                    IsChecked="{Binding Briefcase.IsShowingSettings, Mode=TwoWay}"/>
-            </StackPanel>
-        </SplitView.Pane>
-    </SplitView>
+                    <AppBarToggleButton Grid.Row="2"
+                        HorizontalAlignment="Left"
+                        Icon="Setting"
+                        x:Uid="Settings"
+                        IsChecked="{Binding Briefcase.IsShowingSettings, Mode=TwoWay}"/>
+                </Grid>
+            </Grid>
+        </ctl:LolloSplitView.PaneContent>
+    </ctl:LolloSplitView>
 </Page>

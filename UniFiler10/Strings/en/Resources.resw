@@ -123,8 +123,14 @@
   <data name="AddFolder.Label" xml:space="preserve">
     <value>Add folder</value>
   </data>
+  <data name="AllFolders.Text" xml:space="preserve">
+    <value>All folders</value>
+  </data>
   <data name="AllowAllFieldValues.Content" xml:space="preserve">
     <value>Allow all values</value>
+  </data>
+  <data name="Back.Text" xml:space="preserve">
+    <value>Back</value>
   </data>
   <data name="BackupBinder.Label" xml:space="preserve">
     <value>Back up</value>
@@ -134,6 +140,9 @@
   </data>
   <data name="ConfirmationRequest" xml:space="preserve">
     <value>ConfirmationRequest</value>
+  </data>
+  <data name="Cover.Label" xml:space="preserve">
+    <value>Cover</value>
   </data>
   <data name="DeleteBinder.Label" xml:space="preserve">
     <value>Delete</value>

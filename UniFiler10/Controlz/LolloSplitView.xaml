@@ -1,0 +1,42 @@
+﻿<local:ObservableControl
+    x:Class="UniFiler10.Controlz.LolloSplitView"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UniFiler10.Controlz"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+    <Grid x:Name="LayoutRoot"
+        ScrollViewer.VerticalScrollBarVisibility="Disabled"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="PaneColumn" Width="{Binding ElementName=me, Path=PaneWidth}"/>
+            <ColumnDefinition x:Name="BodyColumn" Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!-- LOLLO the following makes all sorts of trouble with layout cycle detected exceptions -->
+        <!-- difficult to find, impossible to debug -->
+        <!--<ScrollViewer x:Name="PaneScrollViewer" Grid.Column="0"
+                      Background="Transparent"
+                      VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Visible" 
+                      HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"/>-->
+        <Border x:Name="PaneScrollViewer" Grid.Column="0"
+            Background="Transparent"
+            ScrollViewer.VerticalScrollBarVisibility="Visible"
+            ScrollViewer.VerticalScrollMode="Enabled"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+        <!-- LOLLO same as above -->
+        <!--<ScrollViewer x:Name="BodyScrollViewer" Grid.Column="1"
+                      Background="Transparent"
+                      VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Visible" 
+                      HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"/>-->
+        <Border x:Name="BodyScrollViewer" Grid.Column="1"
+            Background="Transparent"
+            ScrollViewer.VerticalScrollBarVisibility="Visible"
+            ScrollViewer.VerticalScrollMode="Enabled"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+    </Grid>
+</local:ObservableControl>

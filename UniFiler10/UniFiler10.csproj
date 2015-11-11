@@ -104,6 +104,10 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\LayoutTransformer.cs" />
+    <Compile Include="Controlz\LolloSplitView.xaml.cs">
+      <DependentUpon>LolloSplitView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controlz\ObservableControl.cs" />
     <Compile Include="Controlz\OpenableObservableControl.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="InfoData\DynamicCategory.cs" />
@@ -120,23 +124,33 @@
     <Compile Include="Metadata\FieldDescription.cs" />
     <Compile Include="Metadata\FieldValue.cs" />
     <Compile Include="Services\AudioRecorder.cs" />
+    <Compile Include="Services\DocumentExtensions.cs" />
     <Compile Include="Utilz\Constants.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="InfoData\Briefcase.cs" />
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLite.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
+    <Compile Include="Utilz\ProportionsTrigger.cs" />
+    <Compile Include="ViewModels\BinderCoverVM.cs" />
     <Compile Include="ViewModels\BinderVM.cs" />
     <Compile Include="ViewModels\BriefcaseVM.cs" />
+    <Compile Include="ViewModels\DocumentVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="Views\AudioRecorderView.xaml.cs">
       <DependentUpon>AudioRecorderView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\BinderCoverView.xaml.cs">
+      <DependentUpon>BinderCoverView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CameraView.xaml.cs">
       <DependentUpon>CameraView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\DocumentsView.xaml.cs">
-      <DependentUpon>DocumentsView.xaml</DependentUpon>
+    <Compile Include="Views\WalletView.xaml.cs">
+      <DependentUpon>WalletView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DocumentView.xaml.cs">
+      <DependentUpon>DocumentView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\FolderView.xaml.cs">
       <DependentUpon>FolderView.xaml</DependentUpon>
@@ -174,6 +188,7 @@
     <None Include="UniFiler10_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\voice-200.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -193,6 +208,10 @@
       <Generator>MSBuild:Compile</Generator>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Page>
+    <Page Include="Controlz\LolloSplitView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Styles\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -201,13 +220,21 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\BinderCoverView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CameraView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\DocumentsView.xaml">
+    <Page Include="Views\WalletView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DocumentView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\FolderView.xaml">
       <SubType>Designer</SubType>

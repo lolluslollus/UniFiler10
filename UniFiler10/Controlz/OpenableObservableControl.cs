@@ -15,41 +15,8 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Controlz
 {
-    public class OpenableObservableControl : UserControl, INotifyPropertyChanged //, IDisposable
+    public class OpenableObservableControl : ObservableControl //, IDisposable
     {
-        #region INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void ClearListeners()
-        {
-            PropertyChanged = null;
-        }
-        protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
-        {
-            try
-            {
-                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
-                else
-                {
-                    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                    {
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-            }
-        }
-        #endregion INotifyPropertyChanged
-
         //#region IDisposable
         //protected volatile bool _isDisposed = false;
         //public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
@@ -74,23 +41,22 @@ namespace UniFiler10.Controlz
         public static readonly DependencyProperty OpenCloseWhenLoadedUnloadedProperty =
             DependencyProperty.Register("OpenCloseWhenLoadedUnloaded", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
 
-
         #region load unload
         public OpenableObservableControl()
         {
-            Application.Current.Suspending += OnApplication_Suspending; // LOLLO TODO check these event handlers
-            Application.Current.Resuming += OnApplication_Resuming;
+            Application.Current.Suspending += OnSuspending; // LOLLO TODO check these event handlers
+            Application.Current.Resuming += OnResuming;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
-        private async void OnApplication_Suspending(object sender, SuspendingEventArgs e)
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             await CloseAsync().ConfigureAwait(false);
             deferral.Complete();
         }
 
-        private async void OnApplication_Resuming(object sender, object o)
+        private async void OnResuming(object sender, object o)
         {
             if (_isLoaded) await TryOpenAsync().ConfigureAwait(false);
         }

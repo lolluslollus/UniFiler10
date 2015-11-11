@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utilz="using:Utilz"
+    xmlns:ctl="using:UniFiler10.Controlz"
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400"
@@ -35,7 +36,7 @@
                 </StackPanel>
 
                 <!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
-                <utilz:TolerantListView
+                <ctl:TolerantListView
                     ItemsSource="{Binding Categories, Mode=OneWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
@@ -43,11 +44,10 @@
                     SelectionChanged="OnCategoryListView_SelectionChanged"
                     IsHoldingEnabled="False" 
                     IsDoubleTapEnabled="False"
-                    IsSwipeEnabled="True" 
                     IsRightTapEnabled="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Vertical"/>
+                            <ItemsStackPanel Orientation="Vertical"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -66,7 +66,7 @@
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </utilz:TolerantListView>
+                </ctl:TolerantListView>
             </StackPanel>
         </ScrollViewer>
 
@@ -88,7 +88,7 @@
                 Here, you have two lists that should look like one and have only one selected line
                 between the two of them, so no selected item binding whatsoever:
                 we need to do it in the code behind. -->
-                <utilz:TolerantListView
+                <ctl:TolerantListView
                     x:Name="AssignedLV"
                     ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
@@ -96,11 +96,10 @@
                     SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged"
                     IsHoldingEnabled="False" 
                     IsDoubleTapEnabled="False"
-                    IsSwipeEnabled="True"
                     IsRightTapEnabled="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Vertical"/>
+                            <ItemsStackPanel Orientation="Vertical"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -124,7 +123,7 @@
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </utilz:TolerantListView>
+                </ctl:TolerantListView>
 
                 <StackPanel Orientation="Horizontal"
                     Width="{StaticResource MetaItemWidth}"
@@ -138,7 +137,7 @@
                 </StackPanel>
 
                 <!-- unassigned field descriptions -->
-                <utilz:TolerantListView
+                <ctl:TolerantListView
                     x:Name="UnassignedLV"
                     ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
@@ -146,11 +145,10 @@
                     SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"
                     IsHoldingEnabled="False" 
                     IsDoubleTapEnabled="False"
-                    IsSwipeEnabled="True"
                     IsRightTapEnabled="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Vertical"/>
+                            <ItemsStackPanel Orientation="Vertical"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -173,7 +171,7 @@
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </utilz:TolerantListView>
+                </ctl:TolerantListView>
             </StackPanel>
         </ScrollViewer>
 
@@ -200,17 +198,16 @@
                     Width="{StaticResource MetaItemWidth}"
                     Height="{StaticResource MetaItemHeight}"/>
 
-                <utilz:TolerantListView
+                <ctl:TolerantListView
                     ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
                     IsHoldingEnabled="False" 
                     IsDoubleTapEnabled="False"
-                    IsSwipeEnabled="True" 
                     IsRightTapEnabled="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Vertical"/>
+                            <ItemsStackPanel Orientation="Vertical"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -229,7 +226,7 @@
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </utilz:TolerantListView>
+                </ctl:TolerantListView>
             </StackPanel>
         </ScrollViewer>
     </Grid>

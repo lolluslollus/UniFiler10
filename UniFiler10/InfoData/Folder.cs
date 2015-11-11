@@ -285,7 +285,7 @@ namespace UniFiler10.Data.Model
         #region loaded methods
         public Task<bool> AddWalletAsync(Wallet wallet)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate 
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 return await AddWallet2Async(wallet).ConfigureAwait(false);
             });
@@ -302,7 +302,9 @@ namespace UniFiler10.Data.Model
                 {
                     if (await DBManager.OpenInstance?.InsertIntoWalletsAsync(wallet, true))
                     {
-                        Wallets.Add(wallet);
+                        if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess) _wallets.Add(wallet);
+                        else await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _wallets.Add(wallet); }).AsTask().ConfigureAwait(false);
+
                         await wallet.OpenAsync().ConfigureAwait(false);
                         return true;
                     }
@@ -317,7 +319,7 @@ namespace UniFiler10.Data.Model
 
         public Task<bool> RemoveWalletAsync(Wallet wallet)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate 
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 return await RemoveWallet2Async(wallet).ConfigureAwait(false);
             });
@@ -327,7 +329,10 @@ namespace UniFiler10.Data.Model
             if (wallet != null && wallet.ParentId == Id)
             {
                 await DBManager.OpenInstance?.DeleteFromWalletsAsync(wallet);
-                _wallets.Remove(wallet);
+
+                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess) _wallets.Remove(wallet);
+                else await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _wallets.Remove(wallet); }).AsTask().ConfigureAwait(false);
+
                 return await wallet.RemoveAllDocumentsAsync().ConfigureAwait(false)
                     & await wallet.CloseAsync().ConfigureAwait(false);
             }
@@ -402,28 +407,27 @@ namespace UniFiler10.Data.Model
             return false;
         }
 
-        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
+        public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
         {
-            await RunFunctionWhileOpenAsyncT(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 if (Binder.OpenInstance != null && file != null)
                 {
                     var newWallet = new Wallet();
-                    if (await AddWallet2Async(newWallet))
+                    await newWallet.OpenAsync().ConfigureAwait(false); // open the wallet or the following won't run
+                    bool isOk = await newWallet.ImportMediaFileAsync(file, copyFile).ConfigureAwait(false)
+                        && await AddWallet2Async(newWallet).ConfigureAwait(false);
+                    if (isOk)
                     {
-                        if (copyFile)
-                        {
-                            var directory = await Binder.OpenInstance.GetDirectoryAsync();
-                            var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
-                            await newWallet.AddDocumentAsync(new Document() { Uri0 = newFile.Path });
-                        }
-                        else
-                        {
-                            await newWallet.AddDocumentAsync(new Document() { Uri0 = file.Path });
-                        }
+                        return true;
+                    }
+                    else
+                    {
+                        await RemoveWallet2Async(newWallet).ConfigureAwait(false);
                     }
                 }
-            }).ConfigureAwait(false);
+                return false;
+            });
         }
         #endregion loaded methods
     }

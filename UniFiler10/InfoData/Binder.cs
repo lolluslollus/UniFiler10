@@ -23,24 +23,24 @@ namespace UniFiler10.Data.Model
     {
         #region construct and dispose
         private static readonly object _instanceLock = new object();
-        internal static Binder CreateInstance(string dbName, Briefcase parent)
+        internal static Binder CreateInstance(string dbName, IPaneOpener parentPaneOpener)
         {
             lock (_instanceLock)
             {
                 if (_instance == null || _instance._isDisposed)
                 {
-                    _instance = new Binder(dbName, parent);
+                    _instance = new Binder(dbName, parentPaneOpener);
                 }
                 return _instance;
             }
         }
-        private Binder(string dbName, Briefcase parent)
+        private Binder(string dbName, IPaneOpener parentPaneOpener)
         {
             if (dbName == null || string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
-            if (parent == null) throw new ArgumentException("Binder ctor: parent cannot be null");
+            if (parentPaneOpener == null) throw new ArgumentNullException("Binder ctor: parentPaneOpener cannot be null");
 
             DBName = dbName;
-            Parent = parent;
+            ParentPaneOpener = parentPaneOpener;
         }
         #endregion construct and dispose
 
@@ -101,6 +101,8 @@ namespace UniFiler10.Data.Model
 
         #region properties
         private DBManager _dbManager = null;
+        [IgnoreDataMember]
+        internal DBManager DbManager { get { return _dbManager; } }
 
         private static Binder _instance = null;
         [IgnoreDataMember]
@@ -110,9 +112,9 @@ namespace UniFiler10.Data.Model
         [DataMember]
         public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
 
-        private Briefcase _parent = null;
+        private IPaneOpener _parentPaneOpener = null;
         [IgnoreDataMember]
-        public Briefcase Parent { get { return _parent; } private set { _parent = value; RaisePropertyChanged_UI(); UpdateIsPaneOpen(); } }
+        public IPaneOpener ParentPaneOpener { get { return _parentPaneOpener; } private set { _parentPaneOpener = value; RaisePropertyChanged_UI(); UpdateIsPaneOpen(); } }
 
         private SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
         [IgnoreDataMember]
@@ -175,15 +177,20 @@ namespace UniFiler10.Data.Model
 
         private bool _isPaneOpen = true;
         [DataMember]
-        public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); if (!_isPaneOpen) _parent.IsPaneOpen = false; } } }
+        public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); if (!_isPaneOpen) _parentPaneOpener.IsPaneOpen = false; } } }
         private void UpdateIsPaneOpen()
         {
-            if (_parent == null) IsPaneOpen = false;
-        }    
+            if (_parentPaneOpener == null) IsPaneOpen = false;
+        }
+
+        private bool _isCoverOpen = true;
+        [DataMember]
+        public bool IsCoverOpen { get { return _isCoverOpen; } set { if (_isCoverOpen != value) { _isCoverOpen = value; RaisePropertyChanged_UI(); } } }
+
         #endregion properties
 
         #region loading methods
-        private const string FILENAME = "LolloSessionDataBinder.xml";
+        internal const string FILENAME = "LolloSessionDataBinder.xml";
 
         private async Task LoadNonDbPropertiesAsync()
         {
@@ -192,8 +199,8 @@ namespace UniFiler10.Data.Model
 
             try
             {
-                var folder = await GetDirectoryAsync().ConfigureAwait(false);
-                var file = await folder
+                var directory = await GetDirectoryAsync().ConfigureAwait(false);
+                var file = await directory
                     .CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
                     .AsTask().ConfigureAwait(false);
 
@@ -279,14 +286,16 @@ namespace UniFiler10.Data.Model
         private void CopyNonDbProperties(Binder source)
         {
             IsPaneOpen = source.IsPaneOpen;
+            IsCoverOpen = source.IsCoverOpen;
             DBName = source.DBName;
             CurrentFolderId = source.CurrentFolderId; // last
         }
         private Binder CloneNonDbProperties()
         {
-            Binder target = new Binder(DBName, _parent);
+            Binder target = new Binder(DBName, _parentPaneOpener);
             target.CurrentFolderId = _currentFolderId;
             target.IsPaneOpen = _isPaneOpen;
+            target.IsCoverOpen = _isCoverOpen;
             target.DBName = _dbName;
             return target;
         }
@@ -314,7 +323,7 @@ namespace UniFiler10.Data.Model
             {
                 _isClosedSemaphore.Wait();
                 var openBinder = OpenInstance;
-                if (openBinder == null || (openBinder != null && openBinder.DBName != dbName))
+                if (openBinder == null || openBinder.DBName != dbName)
                 {
                     try
                     {
@@ -342,7 +351,7 @@ namespace UniFiler10.Data.Model
             {
                 _isClosedSemaphore.Wait();
                 var openBinder = OpenInstance;
-                if (!string.IsNullOrWhiteSpace(dbName) && into != null && (openBinder == null || (openBinder != null && openBinder.DBName != dbName) || !openBinder.IsEnabled))
+                if (!string.IsNullOrWhiteSpace(dbName) && into != null && (openBinder == null || openBinder.DBName != dbName || !openBinder.IsEnabled))
                 {
                     try
                     {
@@ -383,7 +392,7 @@ namespace UniFiler10.Data.Model
                 // LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
                 // Make sure you restore a Binder and not just any directory!
                 var openBinder = OpenInstance;
-                if (from == null || openBinder == null || (openBinder != null && openBinder.DBName != from.Name))
+                if (from == null || openBinder == null || openBinder.DBName != from.Name)
                 {
                     try
                     {

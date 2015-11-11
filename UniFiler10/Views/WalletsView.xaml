@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
+    xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utilz="using:Utilz"
@@ -11,88 +12,85 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid>
+    <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition />
+            <RowDefinition Height="{StaticResource ButtonBarItemSizeMedium_ForGrid}"/>
+            <!-- LOLLO Height="Auto" screws with the (automatic or not) scroll viewers within -->
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-    <!--<StackPanel Orientation="Vertical">-->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <!--<ColumnDefinition Width="1*"/>-->
-            </Grid.ColumnDefinitions>
-            <!--<AppBarButton Grid.Column="0"
-                Icon="Add" 
-                Click="OnAdd_Click"/>-->
-            <AppBarButton Grid.Column="0"
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <AppBarButton
                 Icon="Camera"
                 IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable}"
                 Click="OnShoot_Click"/>
-            <AppBarButton Grid.Column="1"
+            <AppBarButton
                 Icon="Microphone"
                 IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsMicrophoneAvailable}"
                 Click="OnRecordSound_Click"/>
-            <AppBarButton Grid.Column="2"
+            <AppBarButton
                 Icon="OpenFile"
                 Click="OnOpenFile_Click"/>
-        </Grid>
+        </StackPanel>
 
-        <ScrollViewer Grid.Row="1"
-            VerticalScrollBarVisibility="Auto">
-            <utilz:TolerantListView x:Name="LV"
-                ItemsSource="{Binding Wallets}"
-                IsMultiSelectCheckBoxEnabled="False" 
-                IsItemClickEnabled="True"
-                IsHoldingEnabled="False" 
-                IsDoubleTapEnabled="False"
-                IsSwipeEnabled="True"
-                IsRightTapEnabled="False">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel Orientation="Vertical"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderBrush="Red" BorderThickness="3" Background="Pink">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <TextBox Text="{Binding Name, Mode=TwoWay}" Grid.Row="0" Grid.Column="0"
-                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                                <TextBox Text="{Binding Descr0, Mode=TwoWay}" Grid.Row="0" Grid.Column="1"
-                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                                <TextBox Text="{Binding Date0, Mode=TwoWay}" Grid.Row="1" Grid.Column="0"
-                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                                <!--<AppBarButton Icon="Stop"
-                                    x:Uid="StopRecording"
-                                    Visibility="{Binding IsRecordingSound, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-                                    Click="OnStopRecordingSound_Click" 
-                                    Grid.Row="1" Grid.Column="1"/>-->
-                                <AppBarButton Icon="Delete" Click="OnItemDelete_Click" Grid.Row="2" Grid.Column="1"/>
-                                <local:DocumentsView
-                                    Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
-                                    VM="{Binding ElementName=me, Path=VM}"
-                                    DataContext="{Binding}"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </utilz:TolerantListView>
-        </ScrollViewer>
-    <!--</StackPanel>-->
+        <!--<Border BorderBrush="DarkRed" BorderThickness="3" Grid.Row="1">-->
+        <!-- LOLLO ItemsControl does not allow scrolling so we take a ListView instead -->
+        <ctl:TolerantListView Grid.Row="1"
+            ItemsSource="{Binding Wallets}"
+            IsMultiSelectCheckBoxEnabled="False" 
+            IsItemClickEnabled="True"
+            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+            <!-- LOLLO no padding inside the ListView -->
+            <!--<ItemsControl.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>-->
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel Orientation="Vertical"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!--<Border BorderBrush="Red" BorderThickness="3">-->
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="{StaticResource ButtonBarItemSizeMedium_ForGrid}"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
+                            <VariableSizedWrapGrid Orientation="Horizontal">
+                                <TextBox Text="{Binding Name, Mode=TwoWay}"
+                                    Width="{StaticResource ItemWidth}"
+                                    Height="{StaticResource ItemHeight}"
+                                    VerticalAlignment="Center"
+                                    TextWrapping="Wrap"
+                                    MaxLength="{StaticResource MaxFolderDescrLength}" />
+                                <TextBox Text="{Binding Descr0, Mode=TwoWay}"
+                                    Width="{StaticResource ItemWidth}"
+                                    Height="{StaticResource ItemHeight}"
+                                    VerticalAlignment="Center"
+                                    TextWrapping="Wrap"
+                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
+                                <TextBox Text="{Binding Date0, Mode=TwoWay}"
+                                    Width="{StaticResource ItemWidth}"
+                                    Height="{StaticResource ItemHeight}"
+                                    VerticalAlignment="Center"
+                                    TextWrapping="Wrap"
+                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
+                            </VariableSizedWrapGrid>
+
+                            <local:WalletView Grid.Row="1"
+                                VM="{Binding ElementName=me, Path=VM}"
+                                DataContext="{Binding}"
+                                Folder="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
+                        </Grid>
+                    <!--</Border>-->
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ctl:TolerantListView>
+        <!--</Border>-->
     </Grid>
 </UserControl>

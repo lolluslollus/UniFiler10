@@ -11,7 +11,7 @@ using Windows.Storage.Pickers;
 
 namespace UniFiler10.ViewModels
 {
-    public sealed class BinderVM : OpenableObservableData, IDisposable
+    public sealed class BinderVM : OpenableObservableData
     {
         private Binder _binder = null;
         public Binder Binder { get { return _binder; } private set { _binder = value; RaisePropertyChanged_UI(); } }
@@ -21,21 +21,26 @@ namespace UniFiler10.ViewModels
 
         private SaveMedia _media = null;
         public SaveMedia Media { get { return _media; } }
+
+        #region construct dispose open close
         public BinderVM(Binder binder)
         {
+            if (binder == null) throw new ArgumentNullException("BinderVM ctor: binder may not be null");
+
             _media = new SaveMedia(this);
             Binder = binder;
             RuntimeData = RuntimeData.Instance;
             UpdateCurrentFolderCategories();
+            UpdateOpenClose();
         }
         protected override Task OpenMayOverrideAsync()
         {
-            Binder.PropertyChanged += OnBinder_PropertyChanged;
+            _binder.PropertyChanged += OnBinder_PropertyChanged;
             return Task.CompletedTask;
         }
         protected override Task CloseMayOverrideAsync()
         {
-            if (Binder != null) Binder.PropertyChanged -= OnBinder_PropertyChanged;
+            if (_binder != null) _binder.PropertyChanged -= OnBinder_PropertyChanged;
             _media?.Dispose();
             _media = null;
             return Task.CompletedTask;
@@ -43,49 +48,62 @@ namespace UniFiler10.ViewModels
 
         private void OnBinder_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Binder.CurrentFolder)
-                || e.PropertyName == nameof(Binder.IsOpen))
+            if (e.PropertyName == nameof(Binder.CurrentFolder) || e.PropertyName == nameof(Binder.IsOpen))
+            {
                 UpdateCurrentFolderCategories();
+            }
+            if (e.PropertyName == nameof(Binder.IsOpen))
+            {
+                UpdateOpenClose();
+            }
         }
+        private void UpdateOpenClose()
+        {
+            if (_binder.IsOpen)
+            {
+                Task open = OpenAsync();
+            }
+            else
+            {
+                Task close = CloseAsync();
+            }
+        }
+        #endregion construct dispose open close
 
-        public async Task AddFolderAsync()
+        #region add delete actions
+        public Task AddFolderAsync()
         {
-            if (_binder != null) await _binder.AddFolderAsync(new Folder()).ConfigureAwait(false);
+            return _binder?.AddFolderAsync(new Folder());
         }
-        public async Task DeleteFolderAsync(Folder folder)
+        public Task DeleteFolderAsync(Folder folder)
         {
-            if (_binder != null) await _binder.RemoveFolderAsync(folder).ConfigureAwait(false);
+            return _binder?.RemoveFolderAsync(folder);
         }
-        public async Task AddWalletToFolderAsync(Folder folder)
+        public Task AddWalletToFolderAsync(Folder folder)
         {
-            if (_binder != null && folder != null)
-            {
-                Wallet newWallet = new Wallet();
-                await folder.AddWalletAsync(newWallet).ConfigureAwait(false);
-            }
+            return folder?.AddWalletAsync(new Wallet());
         }
-        public async Task RemoveWalletFromFolderAsync(Folder folder, Wallet wallet)
+        public Task<bool> RemoveWalletFromFolderAsync(Folder folder, Wallet wallet)
         {
-            if (_binder != null && folder != null && wallet != null)
-            {
-                await folder.RemoveWalletAsync(wallet).ConfigureAwait(false);
-            }
+            return folder?.RemoveWalletAsync(wallet);
         }
-        public async Task AddEmptyDocumentToWalletAsync(Wallet wallet)
+        public Task AddEmptyDocumentToWalletAsync(Wallet wallet)
         {
-            if (_binder != null && wallet != null)
-            {
-                Document newDoc = new Document();
-                await wallet.AddDocumentAsync(newDoc).ConfigureAwait(false);
-            }
+            return wallet?.AddDocumentAsync(new Document());
         }
-        public async Task RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
+        public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
         {
-            if (_binder != null && wallet != null)
-            {
-                await wallet.RemoveDocumentAsync(doc).ConfigureAwait(false);
-            }
+            return wallet?.RemoveDocumentAsync(doc);
         }
+        public void OpenCover()
+        {
+            if (_binder != null) _binder.IsCoverOpen = true;
+        }
+        public Task SelectFolderAsync(string folderId)
+        {
+            return _binder.RunFunctionWhileOpenAsyncA(delegate { _binder.CurrentFolderId = folderId; });
+        }
+        #endregion add delete actions
 
         #region save media
         public class SaveMedia : ObservableData, IAudioFileGetter, IDisposable
@@ -114,110 +132,77 @@ namespace UniFiler10.ViewModels
                 set { _isAudioRecorderOverlayOpen = value; RaisePropertyChanged_UI(); }
             }
 
-            public async Task LoadMediaFile(Folder parentFolder)
+            public Task LoadMediaFileAsync(Folder parentFolder)
             {
-                if (_vm._binder != null && parentFolder != null)
+                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
-                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    if (parentFolder != null)
                     {
-                        if (parentFolder != null)
-                        {
-                            var file = await PickMediaFile();
-                            await parentFolder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
-                        }
-                    }).ConfigureAwait(false);
-                }
+                        var file = await DocumentExtensions.PickMediaFileAsync();
+                        await parentFolder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
+                    }
+                });
             }
-            public async Task LoadMediaFile(Wallet parentWallet)
+            public Task LoadMediaFileAsync(Wallet parentWallet)
             {
-                if (_vm._binder != null && parentWallet != null)
+                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
-                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    if (parentWallet != null)
                     {
-                        if (parentWallet != null)
-                        {
-                            var file = await PickMediaFile();
-                            await parentWallet.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
-                        }
-                    }).ConfigureAwait(false);
-                }
+                        var file = await DocumentExtensions.PickMediaFileAsync();
+                        await parentWallet.ImportMediaFileAsync(file, true).ConfigureAwait(false);
+                    }
+                });
             }
 
-            public async Task ShootAsync(Folder parentFolder)
+            public Task ShootAsync(Folder parentFolder)
             {
-                if (_vm._binder != null && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
+                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
-                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    if (!_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
                     {
-                        if (!_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
-                        {
-                            IsCameraOverlayOpen = true; // opens the Camera control
-                            await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
+                        IsCameraOverlayOpen = true; // opens the Camera control
+                        await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-                            await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
-                        }
-                    }).ConfigureAwait(false);
-                }
+                        await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+                    }
+                });
             }
-            public async Task ShootAsync(Wallet parentWallet)
+            public Task ShootAsync(Wallet parentWallet)
             {
-                if (_vm._binder != null && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
+                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
-                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    if (!_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
                     {
-                        if (!_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
-                        {
-                            IsCameraOverlayOpen = true; // opens the Camera control
-                            await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
+                        IsCameraOverlayOpen = true; // opens the Camera control
+                        await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-                            await parentWallet.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
-                        }
-                    }).ConfigureAwait(false);
-                }
+                        await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
+                    }
+                });
             }
             public void EndShoot()
             {
                 SemaphoreSlimSafeRelease.TryRelease(_photoSemaphore);
             }
 
-            public async Task RecordAudioAsync(Folder parentFolder)
+            public Task RecordAudioAsync(Folder parentFolder)
             {
-                if (_vm._binder != null && !_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
-                    await _vm._binder.RunFunctionWhileOpenAsyncT(async delegate
+                    if (!_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
                     {
-                        if (!_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
-                        {
-                            await CreateAudioFileAsync(); // required before we start any audio recording
-                            IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
-                            await _audioSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
+                        await CreateAudioFileAsync(); // required before we start any audio recording
+                        IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
+                        await _audioSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
 
-                            await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
-                        }
-                    }).ConfigureAwait(false);
-                }
+                        await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
+                    }
+                });
             }
             public void EndRecordAudio()
             {
                 SemaphoreSlimSafeRelease.TryRelease(_audioSemaphore);
-            }
-
-            private async Task<StorageFile> PickMediaFile()
-            {
-                FileOpenPicker openPicker = new FileOpenPicker();
-                openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-                //openPicker.CommitButtonText=
-                //openPicker.ViewMode = PickerViewMode.List;
-                openPicker.FileTypeFilter.Add(".pdf");
-                openPicker.FileTypeFilter.Add(".jpg");
-                openPicker.FileTypeFilter.Add(".jpeg");
-                openPicker.FileTypeFilter.Add(".png");
-                openPicker.FileTypeFilter.Add(".bmp");
-                openPicker.FileTypeFilter.Add(".tif");
-                openPicker.FileTypeFilter.Add(".tiff");
-
-                var file = await openPicker.PickSingleFileAsync();
-                return file;
             }
 
             private static SemaphoreSlimSafeRelease _audioSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
@@ -266,6 +251,7 @@ namespace UniFiler10.ViewModels
         }
         #endregion save media
 
+        #region edit categories
         public readonly SwitchableObservableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableCollection<FolderCategorySelectorRow>();
         public SwitchableObservableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
         public class FolderCategorySelectorRow : ObservableData
@@ -288,11 +274,11 @@ namespace UniFiler10.ViewModels
                         _isOn = value; RaisePropertyChanged_UI();
                         if (_isOn)
                         {
-                            Task upd = _vm.Binder.CurrentFolder.AddDynamicCategoryAsync(_catId);
+                            Task upd = _vm._binder.CurrentFolder.AddDynamicCategoryAsync(_catId);
                         }
                         else
                         {
-                            Task upd = _vm.Binder.CurrentFolder.RemoveDynamicCategoryAsync(_catId);
+                            Task upd = _vm._binder.CurrentFolder.RemoveDynamicCategoryAsync(_catId);
                         }
                         //if (_vm?._binder?.CurrentFolder != null)
                         //{
@@ -334,7 +320,9 @@ namespace UniFiler10.ViewModels
                 _binder.CurrentFolder.IsEditingCategories = !_binder.CurrentFolder.IsEditingCategories;
             }
         }
+        #endregion edit categories
 
+        #region edit field value
         public bool ChangeFieldValue(DynamicField dynFld, string newValue)
         {
             if (dynFld == null) return false;
@@ -360,5 +348,6 @@ namespace UniFiler10.ViewModels
             }
             return false;
         }
+        #endregion edit field value
     }
 }

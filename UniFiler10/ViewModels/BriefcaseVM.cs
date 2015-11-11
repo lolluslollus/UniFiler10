@@ -15,24 +15,14 @@ namespace UniFiler10.ViewModels
         public BriefcaseVM() { }
         protected override async Task OpenMayOverrideAsync()
         {
-            if (_briefcase == null)
-            {
-                Briefcase = Briefcase.CreateInstance();
-            }
-            if (!_briefcase.IsOpen)
-            {
-                await _briefcase.OpenAsync().ConfigureAwait(false);
-            }
+            if (_briefcase == null) Briefcase = Briefcase.CreateInstance();
+            await _briefcase.OpenAsync().ConfigureAwait(false);
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            if (_briefcase != null)
-            {
-                await _briefcase.CloseAsync().ConfigureAwait(false);
-                _briefcase?.Dispose();
-                _briefcase = null;
-            }
-
+            await _briefcase?.CloseAsync();
+            _briefcase?.Dispose();
+            _briefcase = null;
         }
         public Task<bool> AddDbAsync(string dbName)
         {
@@ -68,12 +58,15 @@ namespace UniFiler10.ViewModels
             });
         }
 
-        public bool CheckDbName(string newDbName)
+        public Task<bool> CheckDbNameAsync(string newDbName)
         {
-            if (_briefcase != null && _briefcase.IsOpen && !string.IsNullOrWhiteSpace(newDbName))
-                return !_briefcase.DbNames.Contains(newDbName);
-            else
-                return false;
+            return RunFunctionWhileOpenAsyncB(delegate
+            {
+                if (!string.IsNullOrWhiteSpace(newDbName))
+                    return !_briefcase.DbNames.Contains(newDbName);
+                else
+                    return false;
+            });
         }
         public Task<bool> OpenBinderAsync(string dbName)
         {

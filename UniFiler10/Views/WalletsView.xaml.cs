@@ -41,13 +41,13 @@ namespace UniFiler10.Views
                 await VM.AddWalletToFolderAsync(DataContext as Folder).ConfigureAwait(false);
         }
 
-        private async void OnItemDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null
-                && DataContext is Folder
-                && sender is FrameworkElement && (sender as FrameworkElement).DataContext is Wallet)
-                await VM.RemoveWalletFromFolderAsync(DataContext as Folder, (sender as FrameworkElement).DataContext as Wallet).ConfigureAwait(false);
-        }
+        //private async void OnItemDelete_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (VM != null
+        //        && DataContext is Folder
+        //        && sender is FrameworkElement && (sender as FrameworkElement).DataContext is Wallet)
+        //        await VM.RemoveWalletFromFolderAsync(DataContext as Folder, (sender as FrameworkElement).DataContext as Wallet).ConfigureAwait(false);
+        //}
 
         private async void OnShoot_Click(object sender, RoutedEventArgs e)
         {
@@ -58,7 +58,7 @@ namespace UniFiler10.Views
         private async void OnOpenFile_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && DataContext is Folder)
-                await VM.Media.LoadMediaFile(DataContext as Folder).ConfigureAwait(false);
+                await VM.Media.LoadMediaFileAsync(DataContext as Folder).ConfigureAwait(false);
         }
 
         private async void OnRecordSound_Click(object sender, RoutedEventArgs e)

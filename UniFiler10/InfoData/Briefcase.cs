@@ -15,7 +15,7 @@ using Windows.Storage.Streams;
 namespace UniFiler10.Data.Model
 {
     [DataContract]
-    public sealed class Briefcase : OpenableObservableData
+    public sealed class Briefcase : OpenableObservableData, IPaneOpener
     {
         #region construct and dispose
         private static readonly object _instanceLock = new object();
@@ -37,7 +37,8 @@ namespace UniFiler10.Data.Model
         protected override async Task OpenMayOverrideAsync()
         {
             _metaBriefcase = MetaBriefcase.CreateInstance();
-            await _metaBriefcase.OpenAsync(false).ConfigureAwait(false);
+            //await _metaBriefcase.OpenAsync(false).ConfigureAwait(false); // LOLLO TODO it was like this, check it
+            await _metaBriefcase.OpenAsync().ConfigureAwait(false);
             RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
             await LoadAsync().ConfigureAwait(false);
@@ -68,9 +69,9 @@ namespace UniFiler10.Data.Model
 
         #region properties
         private static Briefcase _instance = null;
-        [IgnoreDataMember]
-        public static Briefcase OpenInstance { get { if (_instance != null && _instance._isOpen) return _instance; else return null; } }
-        public static Briefcase InstanceNeverMindIfClosed { get { return _instance; } }
+        //[IgnoreDataMember]
+        //public static Briefcase OpenInstance { get { if (_instance != null && _instance._isOpen) return _instance; else return null; } }
+        //public static Briefcase InstanceNeverMindIfClosed { get { return _instance; } }
 
         private MetaBriefcase _metaBriefcase = null;
         [IgnoreDataMember]
@@ -404,5 +405,10 @@ namespace UniFiler10.Data.Model
             return target;
         }
         #endregion loading methods
+    }
+
+    public interface IPaneOpener
+    {
+        bool IsPaneOpen { get; set; }
     }
 }

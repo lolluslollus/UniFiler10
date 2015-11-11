@@ -175,7 +175,7 @@ namespace UniFiler10.Services
                 case ".wav":
                     return MediaEncodingProfile.CreateWav(AudioEncodingQuality.High);
                 default:
-                    throw new ArgumentException();
+                    throw new ArgumentException("AudioRecorder.CreateMediaEncodingProfile() : wrong media encoding profile");
             }
         }
         #endregion init properties before recording

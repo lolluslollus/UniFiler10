@@ -7,6 +7,7 @@ using Windows.ApplicationModel.Resources;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -43,16 +44,10 @@ namespace UniFiler10.Views
         private async void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
-            // Save application state and stop any background activity
-            //var briefcase = Briefcase.InstanceNeverMindIfClosed;
-            //if (briefcase != null)
-            //{
-            //    await briefcase.CloseAsync().ConfigureAwait(false);
-            //    briefcase?.Dispose();
-            //    briefcase = null;
-            //}
 
-            if (_vm != null) await _vm.CloseAsync().ConfigureAwait(false);
+            await _vm?.CloseAsync();
+            _vm.Dispose();
+            VM = null;
 
             deferral.Complete();
         }
@@ -61,7 +56,11 @@ namespace UniFiler10.Views
         {
             await ActivateAsync().ConfigureAwait(false);
         }
-
+        //protected override async void OnNavigatedTo(NavigationEventArgs e)
+        //{
+        //    await ActivateAsync();
+        //    base.OnNavigatedTo(e);
+        //}
         private async void OnLoading(FrameworkElement sender, object args) // fires after OnNavigatedTo and before OnLoaded
         {
             await ActivateAsync().ConfigureAwait(false);
@@ -71,8 +70,10 @@ namespace UniFiler10.Views
 
         private async Task ActivateAsync()
         {
-            if (_vm == null) VM = new BriefcaseVM();
+            if (_vm == null) _vm = new BriefcaseVM();
             await _vm.OpenAsync().ConfigureAwait(true);
+            RaisePropertyChanged(nameof(VM));
+            LayoutRoot.DataContext = VM;
             // LOLLO do not set the datacontext of the whole control or it will alter the dependency properties, if any. 
             // Instead, set LayoutRoot.DataContext, where LayoutRoot is the main child of the Page or UserControl.
             // For example:
@@ -80,19 +81,19 @@ namespace UniFiler10.Views
         }
         #endregion construct dispose open close
 
-        private void OnAddDbName_Click(object sender, RoutedEventArgs e)
+        private async void OnAddDbName_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
             NewDbNameTB.Visibility = Visibility.Visible;
-            UpdateAddDbFields();
+            await UpdateAddDbFieldsAsync().ConfigureAwait(false);
         }
-        private void UpdateAddDbFields()
+        private async Task UpdateAddDbFieldsAsync()
         {
             if (!string.IsNullOrWhiteSpace(NewDbNameTB.Text))
             {
                 if (_vm != null)
                 {
-                    if (_vm.CheckDbName(NewDbNameTB.Text))
+                    if (await _vm.CheckDbNameAsync(NewDbNameTB.Text))
                     {
                         AddDbButton.Visibility = Visibility.Visible;
                         NewDbNameErrorTB.Visibility = Visibility.Collapsed;
@@ -110,9 +111,9 @@ namespace UniFiler10.Views
                 NewDbNameErrorTB.Visibility = Visibility.Collapsed;
             }
         }
-        private void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
+        private async void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
         {
-            UpdateAddDbFields();
+            await UpdateAddDbFieldsAsync().ConfigureAwait(false);
         }
         private async void OnAddDb_Click(object sender, RoutedEventArgs e)
         {
@@ -159,11 +160,11 @@ namespace UniFiler10.Views
             if (VM != null && fe != null)
             {
                 //raise confirmation popup
-                var rl = new ResourceLoader(); // localisation globalisation
+                var rl = new ResourceLoader(); // localisation globalisation localization globalization
                 string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
                 string strYes = rl.GetString("Yes");
                 string strNo = rl.GetString("No");
-                
+
                 var dialog = new MessageDialog(strQuestion);
                 UICommand yesCommand = new UICommand(strYes, (command) => { });
                 UICommand noCommand = new UICommand(strNo, (command) => { });
@@ -171,7 +172,7 @@ namespace UniFiler10.Views
                 dialog.Commands.Add(noCommand);
                 dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
                 IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
-
+                // proceed
                 if (reply == yesCommand)
                 {
                     await VM.DeleteDbAsync(fe.DataContext as string).ConfigureAwait(false);

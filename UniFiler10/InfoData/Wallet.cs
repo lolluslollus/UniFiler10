@@ -145,7 +145,7 @@ namespace UniFiler10.Data.Model
                         if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
                     }
                 }
-                catch { }
+                catch (Exception ex) { }
 
                 await doc.CloseAsync().ConfigureAwait(false);
                 return _documents.Count < countBefore;
@@ -173,28 +173,37 @@ namespace UniFiler10.Data.Model
             });
         }
 
-        public async Task ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
+        public Task<bool> ImportMediaFileAsync(StorageFile file, bool copyFile)
         {
-            await RunFunctionWhileOpenAsyncT(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 if (Binder.OpenInstance != null && file != null)
                 {
                     var newDocument = new Document();
+
+                    StorageFile newFile = null;
+                    if (copyFile)
+                    {
+                        var directory = await Binder.OpenInstance.GetDirectoryAsync();
+                        newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
+                        newDocument.Uri0 = newFile.Path;
+                    }
+                    else
+                    {
+                        newDocument.Uri0 = file.Path;
+                    }
+
                     if (await AddDocument2Async(newDocument))
                     {
-                        if (copyFile)
-                        {
-                            var directory = await Binder.OpenInstance.GetDirectoryAsync();
-                            var newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
-                            newDocument.Uri0 = newFile.Path;
-                        }
-                        else
-                        {
-                            newDocument.Uri0 = file.Path;
-                        }
+                        return true;
+                    }
+                    else
+                    {
+                        if (newFile != null) await newFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
                     }
                 }
-            }).ConfigureAwait(false);
+                return false;
+            });
         }
 
         #endregion loaded methods

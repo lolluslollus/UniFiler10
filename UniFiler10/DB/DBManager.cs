@@ -54,7 +54,7 @@ namespace UniFiler10.Data.DB
                 _dbName = pathInLocalFolder;
                 _dbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, _dbName, DB_FILE_NAME);
             }
-            else throw new Exception("DBManager ctor: dbName cannot be null or empty");
+            else throw new ArgumentNullException("DBManager ctor: dbName cannot be null or empty");
         }
         private volatile bool _isDisposed = false;
         public void Dispose()
@@ -504,6 +504,19 @@ namespace UniFiler10.Data.DB
             }
             return docs;
         }
+        internal async Task<List<Document>> GetDocumentsAsync()
+        {
+            var docs = new List<Document>();
+            try
+            {
+                docs = await LolloSQLiteConnectionMT.ReadTableAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore).ConfigureAwait(false);
+            }
+            catch (Exception exc)
+            {
+                Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+            }
+            return docs;
+        }
         internal async Task<List<Wallet>> GetWalletsAsync(string parentId)
         {
             var wallets = new List<Wallet>();
@@ -511,6 +524,19 @@ namespace UniFiler10.Data.DB
             {
                 wallets = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<Wallet>
                     (_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, nameof(Wallet), parentId).ConfigureAwait(false);
+            }
+            catch (Exception exc)
+            {
+                Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+            }
+            return wallets;
+        }
+        internal async Task<List<Wallet>> GetWalletsAsync()
+        {
+            var wallets = new List<Wallet>();
+            try
+            {
+                wallets = await LolloSQLiteConnectionMT.ReadTableAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore).ConfigureAwait(false);
             }
             catch (Exception exc)
             {
