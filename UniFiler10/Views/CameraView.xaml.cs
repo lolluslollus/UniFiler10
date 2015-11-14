@@ -83,7 +83,7 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            VM?.Media?.EndShoot(); // LOLLO TODO check this
+            VM?.EndShoot(); // LOLLO TODO check this
             await CleanupCameraAsync();
             await CleanupUiAsync().ConfigureAwait(false);
         }
@@ -216,7 +216,7 @@ namespace UniFiler10.Views
         }
         private void CloseMe()
         {
-            if (VM != null) VM.Media.IsCameraOverlayOpen = false;
+            if (VM != null) VM.IsCameraOverlayOpen = false;
         }
         #endregion Event handlers
 
@@ -643,7 +643,7 @@ namespace UniFiler10.Views
             StorageFile file = null;
             try
             {
-                file = await VM.Media.CreatePhotoFileAsync();
+                file = await VM.CreatePhotoFileAsync();
 
                 using (var inputStream = stream)
                 {
@@ -667,7 +667,7 @@ namespace UniFiler10.Views
             }
             finally
             {
-                if (VM != null) VM.Media.EndShoot();
+                if (VM != null) VM.EndShoot();
             }
         }
         #endregion Helper functions

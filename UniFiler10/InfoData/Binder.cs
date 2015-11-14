@@ -97,6 +97,13 @@ namespace UniFiler10.Data.Model
                 CurrentFolder = null;
             }).AsTask().ConfigureAwait(false);
         }
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            _folders?.Dispose();
+            _folders = null;
+        }
         #endregion open and close
 
         #region properties
@@ -171,6 +178,11 @@ namespace UniFiler10.Data.Model
             return RunFunctionWhileOpenAsyncT(UpdateCurrentFolder2Async);
         }
 
+        public Task SetCurrentFolderIdAsync(string newValue)
+        {
+            return RunFunctionWhileOpenAsyncA(delegate { CurrentFolderId = newValue; });
+        }
+
         private Folder _currentFolder = null;
         [IgnoreDataMember]
         public Folder CurrentFolder { get { return _currentFolder; } private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } } }
@@ -182,10 +194,18 @@ namespace UniFiler10.Data.Model
         {
             if (_parentPaneOpener == null) IsPaneOpen = false;
         }
+        public void ToggleIsPaneOpen()
+        {
+            IsPaneOpen = !_isPaneOpen;
+        }
 
         private bool _isCoverOpen = true;
         [DataMember]
         public bool IsCoverOpen { get { return _isCoverOpen; } set { if (_isCoverOpen != value) { _isCoverOpen = value; RaisePropertyChanged_UI(); } } }
+        public void SetIsCoverOpen(bool newValue)
+        {
+            IsCoverOpen = newValue;
+        }
 
         #endregion properties
 
@@ -433,6 +453,8 @@ namespace UniFiler10.Data.Model
 
                     folder.Date0 = DateTime.Now;
 
+                    folder.DateCreated = DateTime.Now;
+
                     if (Check(folder))
                     {
                         if (await _dbManager.InsertIntoFoldersAsync(folder, true))
@@ -447,22 +469,39 @@ namespace UniFiler10.Data.Model
                 return false;
             });
         }
+        public Task<bool> RemoveFolderAsync(string folderId)
+        {
+            return RunFunctionWhileOpenAsyncTB(delegate
+            {
+                return RemoveFolder2Async(folderId);
+            });
+        }
         public Task<bool> RemoveFolderAsync(Folder folder)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileOpenAsyncTB(delegate
             {
-                if (folder != null)
-                {
-                    if (await _dbManager.DeleteFromFoldersAsync(folder))
-                    {
-                        int previousFolderIndex = Math.Max(0, _folders.IndexOf(folder) - 1);
-                        bool isOK = _folders.Remove(folder) && await folder.CloseAsync();
-                        CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
-                        return isOK;
-                    }
-                }
-                return false;
+                return RemoveFolder2Async(folder);
             });
+        }
+        private async Task<bool> RemoveFolder2Async(string folderId)
+        {
+            var folder = _folders.FirstOrDefault(fol => fol.Id == folderId);
+            return await RemoveFolder2Async(folder).ConfigureAwait(false);
+        }
+        private async Task<bool> RemoveFolder2Async(Folder folder)
+        {
+            if (folder != null)
+            {
+                if (await _dbManager.DeleteFromFoldersAsync(folder))
+                {
+                    int previousFolderIndex = Math.Max(0, _folders.IndexOf(folder) - 1);
+                    bool isOK = _folders.Remove(folder);
+                    await folder.CloseAsync();
+                    CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
+                    return isOK;
+                }
+            }
+            return false;
         }
         #endregion while open methods        
 

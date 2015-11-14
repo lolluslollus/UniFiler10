@@ -22,30 +22,28 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal">
             <AppBarButton
                 Icon="Camera"
+                VerticalAlignment="Center"
                 IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable}"
                 Click="OnShoot_Click"/>
             <AppBarButton
                 Icon="Microphone"
+                VerticalAlignment="Center"
                 IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsMicrophoneAvailable}"
                 Click="OnRecordSound_Click"/>
             <AppBarButton
                 Icon="OpenFile"
+                VerticalAlignment="Center"
                 Click="OnOpenFile_Click"/>
         </StackPanel>
 
         <!--<Border BorderBrush="DarkRed" BorderThickness="3" Grid.Row="1">-->
         <!-- LOLLO ItemsControl does not allow scrolling so we take a ListView instead -->
-        <ctl:TolerantListView Grid.Row="1"
+        <!--IsMultiSelectCheckBoxEnabled="False" 
+            IsItemClickEnabled="False"-->
+
+        <ItemsControl Grid.Row="1"
             ItemsSource="{Binding Wallets}"
-            IsMultiSelectCheckBoxEnabled="False" 
-            IsItemClickEnabled="True"
             ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
-            <!-- LOLLO no padding inside the ListView -->
-            <!--<ItemsControl.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Padding" Value="0"/>
-                </Style>
-            </ItemsControl.ItemContainerStyle>-->
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <ItemsStackPanel Orientation="Vertical"
@@ -55,42 +53,44 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <!--<Border BorderBrush="Red" BorderThickness="3">-->
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="{StaticResource ButtonBarItemSizeMedium_ForGrid}"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <!--<RowDefinition Height="{StaticResource ButtonBarItemSizeMedium_ForGrid}"/>-->
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+                        </Grid.RowDefinitions>
 
-                            <VariableSizedWrapGrid Orientation="Horizontal">
+                        <!--<VariableSizedWrapGrid Orientation="Horizontal">
                                 <TextBox Text="{Binding Name, Mode=TwoWay}"
-                                    Width="{StaticResource ItemWidth}"
-                                    Height="{StaticResource ItemHeight}"
+                                    Width="{StaticResource LandscapeItemWidth}"
+                                    Height="{StaticResource LandscapeItemHeight}"
                                     VerticalAlignment="Center"
                                     TextWrapping="Wrap"
                                     MaxLength="{StaticResource MaxFolderDescrLength}" />
                                 <TextBox Text="{Binding Descr0, Mode=TwoWay}"
-                                    Width="{StaticResource ItemWidth}"
-                                    Height="{StaticResource ItemHeight}"
+                                    Width="{StaticResource LandscapeItemWidth}"
+                                    Height="{StaticResource LandscapeItemHeight}"
                                     VerticalAlignment="Center"
                                     TextWrapping="Wrap"
                                     MaxLength="{StaticResource MaxFolderDescrLength}"/>
                                 <TextBox Text="{Binding Date0, Mode=TwoWay}"
-                                    Width="{StaticResource ItemWidth}"
-                                    Height="{StaticResource ItemHeight}"
+                                    Width="{StaticResource LandscapeItemWidth}"
+                                    Height="{StaticResource LandscapeItemHeight}"
                                     VerticalAlignment="Center"
                                     TextWrapping="Wrap"
                                     MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                            </VariableSizedWrapGrid>
+                            </VariableSizedWrapGrid>-->
 
-                            <local:WalletView Grid.Row="1"
+                        <!--Grid.Row="1"-->
+                        <local:WalletView 
                                 VM="{Binding ElementName=me, Path=VM}"
                                 DataContext="{Binding}"
                                 Folder="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
-                        </Grid>
+                    </Grid>
                     <!--</Border>-->
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
-        </ctl:TolerantListView>
+        </ItemsControl>
         <!--</Border>-->
     </Grid>
 </UserControl>

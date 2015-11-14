@@ -11,7 +11,7 @@ using Windows.Storage.Pickers;
 
 namespace UniFiler10.ViewModels
 {
-    public sealed class BinderVM : OpenableObservableData
+    public sealed class BinderVM : OpenableObservableData, IAudioFileGetter
     {
         private Binder _binder = null;
         public Binder Binder { get { return _binder; } private set { _binder = value; RaisePropertyChanged_UI(); } }
@@ -19,15 +19,15 @@ namespace UniFiler10.ViewModels
         private RuntimeData _runtimeData = null;
         public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
-        private SaveMedia _media = null;
-        public SaveMedia Media { get { return _media; } }
+        //private SaveMedia _media = null;
+        //public SaveMedia Media { get { return _media; } }
 
         #region construct dispose open close
         public BinderVM(Binder binder)
         {
             if (binder == null) throw new ArgumentNullException("BinderVM ctor: binder may not be null");
 
-            _media = new SaveMedia(this);
+            //_media = new SaveMedia(this);
             Binder = binder;
             RuntimeData = RuntimeData.Instance;
             UpdateCurrentFolderCategories();
@@ -41,11 +41,21 @@ namespace UniFiler10.ViewModels
         protected override Task CloseMayOverrideAsync()
         {
             if (_binder != null) _binder.PropertyChanged -= OnBinder_PropertyChanged;
-            _media?.Dispose();
-            _media = null;
+
+            EndRecordAudio();
+            EndShoot();
+
+            //_media?.Dispose();
+            //_media = null;
             return Task.CompletedTask;
         }
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
 
+            _folderCategorySelector?.Dispose();
+            _folderCategorySelector = null;
+        }
         private void OnBinder_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Binder.CurrentFolder) || e.PropertyName == nameof(Binder.IsOpen))
@@ -70,7 +80,7 @@ namespace UniFiler10.ViewModels
         }
         #endregion construct dispose open close
 
-        #region add delete actions
+        #region actions
         public Task AddFolderAsync()
         {
             return _binder?.AddFolderAsync(new Folder());
@@ -97,27 +107,31 @@ namespace UniFiler10.ViewModels
         }
         public void OpenCover()
         {
-            if (_binder != null) _binder.IsCoverOpen = true;
+            _binder?.SetIsCoverOpen(true);
         }
         public Task SelectFolderAsync(string folderId)
         {
-            return _binder.RunFunctionWhileOpenAsyncA(delegate { _binder.CurrentFolderId = folderId; });
+            return _binder?.SetCurrentFolderIdAsync(folderId);
         }
-        #endregion add delete actions
+        public void TogglePaneOpen()
+        {
+            _binder?.ToggleIsPaneOpen();
+        }
+        #endregion actions
 
         #region save media
-        public class SaveMedia : ObservableData, IAudioFileGetter, IDisposable
-        {
-            private BinderVM _vm = null;
-            internal SaveMedia(BinderVM vm)
-            {
-                _vm = vm;
-            }
-            public void Dispose()
-            {
-                EndRecordAudio();
-                EndShoot();
-            }
+        //public sealed class SaveMedia : ObservableData, IAudioFileGetter, IDisposable
+        //{
+        //    private BinderVM _vm = null;
+        //    internal SaveMedia(BinderVM vm)
+        //    {
+        //        _vm = vm;
+        //    }
+        //    public void Dispose()
+        //    {
+        //        EndRecordAudio();
+        //        EndShoot();
+        //    }
 
             private bool _isCameraOverlayOpen = false;
             public bool IsCameraOverlayOpen
@@ -134,7 +148,7 @@ namespace UniFiler10.ViewModels
 
             public Task LoadMediaFileAsync(Folder parentFolder)
             {
-                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
+                return _binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
                     if (parentFolder != null)
                     {
@@ -145,7 +159,7 @@ namespace UniFiler10.ViewModels
             }
             public Task LoadMediaFileAsync(Wallet parentWallet)
             {
-                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
+                return _binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
                     if (parentWallet != null)
                     {
@@ -157,7 +171,7 @@ namespace UniFiler10.ViewModels
 
             public Task ShootAsync(Folder parentFolder)
             {
-                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
+                return _binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
                     if (!_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
                     {
@@ -170,7 +184,7 @@ namespace UniFiler10.ViewModels
             }
             public Task ShootAsync(Wallet parentWallet)
             {
-                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
+                return _binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
                     if (!_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
                     {
@@ -188,7 +202,7 @@ namespace UniFiler10.ViewModels
 
             public Task RecordAudioAsync(Folder parentFolder)
             {
-                return _vm?._binder?.RunFunctionWhileOpenAsyncT(async delegate
+                return _binder?.RunFunctionWhileOpenAsyncT(async delegate
                 {
                     if (!_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
                     {
@@ -212,7 +226,7 @@ namespace UniFiler10.ViewModels
                 try
                 {
                     //var directory = ApplicationData.Current.LocalCacheFolder;
-                    var directory = await _vm._binder.GetDirectoryAsync();
+                    var directory = await _binder.GetDirectoryAsync();
                     _audioFile = await directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
                     return _audioFile;
                 }
@@ -234,9 +248,12 @@ namespace UniFiler10.ViewModels
                 try
                 {
                     //var directory = ApplicationData.Current.LocalCacheFolder;
-                    var directory = await _vm._binder.GetDirectoryAsync();
-                    _photoFile = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
-                    return _photoFile;
+                    var directory = await _binder?.GetDirectoryAsync();
+                    if (directory != null)
+                    {
+                        _photoFile = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
+                        return _photoFile;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -248,11 +265,11 @@ namespace UniFiler10.ViewModels
             {
                 return _photoFile;
             }
-        }
+        //}
         #endregion save media
 
         #region edit categories
-        public readonly SwitchableObservableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableCollection<FolderCategorySelectorRow>();
+        public SwitchableObservableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableCollection<FolderCategorySelectorRow>();
         public SwitchableObservableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
         public class FolderCategorySelectorRow : ObservableData
         {

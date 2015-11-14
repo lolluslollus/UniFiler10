@@ -333,12 +333,12 @@ namespace UniFiler10.Data.DB
                                     fieldDescriptionIdsAlreadyInFolder.Add(fieldInFolder.FieldDescriptionId);
                             }
 
-                            foreach (var fieldDescription in newCat.Category.FieldDescriptions)
+                            foreach (var fieldDescriptionId in newCat.Category.FieldDescriptionIds)
                             {
-                                if (fieldDescription?.Id != null
-                                    && !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescription.Id)) // do not duplicate existing fields, since different categories may have fields in common
+                                if (fieldDescriptionId != null
+                                    && !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
                                 {
-                                    var dynamicField = new DynamicField() { FieldDescriptionId = fieldDescription.Id, ParentId = newCat.ParentId };
+                                    var dynamicField = new DynamicField() { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
                                     if (await LolloSQLiteConnectionMT.InsertAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
                                     {
                                         newFields.Add(dynamicField);
@@ -370,13 +370,13 @@ namespace UniFiler10.Data.DB
                     List<string> otherFieldDescrIds = new List<string>();
                     foreach (var otherCat in otherAvailableCategories)
                     {
-                        if (otherCat?.Category?.FieldDescriptions != null)
+                        if (otherCat?.Category?.FieldDescriptionIds != null)
                         {
-                            foreach (var fieldDescr in otherCat.Category.FieldDescriptions)
+                            foreach (var fieldDescrId in otherCat.Category.FieldDescriptionIds)
                             {
-                                if (fieldDescr?.Id != null
-                                    && !otherFieldDescrIds.Contains(fieldDescr.Id))
-                                    otherFieldDescrIds.Add(fieldDescr.Id);
+                                if (fieldDescrId != null
+                                    && !otherFieldDescrIds.Contains(fieldDescrId))
+                                    otherFieldDescrIds.Add(fieldDescrId);
                             }
                         }
                     }

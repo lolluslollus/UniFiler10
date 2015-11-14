@@ -93,10 +93,7 @@
                     ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
-                    SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged"
-                    IsHoldingEnabled="False" 
-                    IsDoubleTapEnabled="False"
-                    IsRightTapEnabled="False">
+                    SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <ItemsStackPanel Orientation="Vertical"/>

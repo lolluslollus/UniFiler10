@@ -68,6 +68,13 @@ namespace UniFiler10.Data.Model
                 }
             }
         }
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            _documents?.Dispose();
+            _documents = null;
+        }
         protected override async Task<bool> UpdateDbMustOverrideAsync()
         {
             if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateWalletsAsync(this).ConfigureAwait(false);
@@ -145,7 +152,10 @@ namespace UniFiler10.Data.Model
                         if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
                     }
                 }
-                catch (Exception ex) { }
+                catch (Exception ex)
+                {
+                    await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+                }
 
                 await doc.CloseAsync().ConfigureAwait(false);
                 return _documents.Count < countBefore;

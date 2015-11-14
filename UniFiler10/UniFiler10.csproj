@@ -104,9 +104,11 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\LayoutTransformer.cs" />
+    <Compile Include="Controlz\LolloComboBox.cs" />
     <Compile Include="Controlz\LolloSplitView.xaml.cs">
       <DependentUpon>LolloSplitView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\LolloTextBox.cs" />
     <Compile Include="Controlz\ObservableControl.cs" />
     <Compile Include="Controlz\OpenableObservableControl.cs" />
     <Compile Include="Converters\Converters.cs" />
@@ -126,16 +128,17 @@
     <Compile Include="Services\AudioRecorder.cs" />
     <Compile Include="Services\DocumentExtensions.cs" />
     <Compile Include="Utilz\Constants.cs" />
+    <Compile Include="Utilz\IAnimationStarter.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="InfoData\Briefcase.cs" />
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLite.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
+    <Compile Include="Utilz\PointerOverTrigger.cs" />
     <Compile Include="Utilz\ProportionsTrigger.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />
     <Compile Include="ViewModels\BinderVM.cs" />
     <Compile Include="ViewModels\BriefcaseVM.cs" />
-    <Compile Include="ViewModels\DocumentVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="Views\AudioRecorderView.xaml.cs">
       <DependentUpon>AudioRecorderView.xaml</DependentUpon>
@@ -211,6 +214,12 @@
     <Page Include="Controlz\LolloSplitView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Properties\DesignTimeResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
     </Page>
     <Page Include="Styles\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>

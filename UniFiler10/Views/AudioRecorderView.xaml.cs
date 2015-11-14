@@ -66,7 +66,7 @@ namespace UniFiler10.Views
         {
             if (VM != null)
             {
-                _audioRecorder = new AudioRecorder(this, VM.Media);
+                _audioRecorder = new AudioRecorder(this, VM);
                 await _audioRecorder.OpenAsync();
                 RegisterEventHandlers();
 
@@ -128,11 +128,11 @@ namespace UniFiler10.Views
         private async Task StopRecordingAsync()
         {
             if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
-            VM?.Media?.EndRecordAudio();
+            VM?.EndRecordAudio();
         }
         private void CloseMe()
         {
-            if (VM != null) VM.Media.IsAudioRecorderOverlayOpen = false;
+            if (VM != null) VM.IsAudioRecorderOverlayOpen = false;
         }
     }
 }

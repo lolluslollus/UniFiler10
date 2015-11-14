@@ -11,7 +11,7 @@ using Windows.ApplicationModel.Resources.Core;
 namespace UniFiler10.ViewModels
 {
     public class SettingsVM : ObservableData
-    {
+    {// LOLLO TODO make disposable ?
         private MetaBriefcase _metaBriefcase = null;
         public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
@@ -131,7 +131,7 @@ namespace UniFiler10.ViewModels
         private void RefreshUnassignedFields()
         {
             _unassignedFields.Clear();
-            if (MetaBriefcase != null && MetaBriefcase.FieldDescriptions != null && MetaBriefcase.CurrentCategory != null && MetaBriefcase.CurrentCategory.FieldDescriptions != null)
+            if (MetaBriefcase != null && MetaBriefcase.FieldDescriptions != null && MetaBriefcase.CurrentCategory != null && MetaBriefcase.CurrentCategory.FieldDescriptionIds != null)
             {
                 _unassignedFields.AddRange(MetaBriefcase.FieldDescriptions
                     .Where(allFldDsc => !MetaBriefcase.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));

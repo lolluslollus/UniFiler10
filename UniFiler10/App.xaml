@@ -21,8 +21,10 @@
             <conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
             <conv:IsNotNullToTrue x:Key="IsNotNullToTrue"/>
             <conv:IsNotNullToVisible x:Key="IsNotNullToVisible"/>
+            <conv:IListNotEmptyToTrue x:Key="IListNotEmptyToTrue"/>
             <conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>
             <conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
+            <conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

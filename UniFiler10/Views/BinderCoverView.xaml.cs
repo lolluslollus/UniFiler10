@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
+using UniFiler10.Utilz;
 using UniFiler10.ViewModels;
 using Utilz;
 using Windows.Devices.Sensors;
@@ -27,7 +28,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class BinderCoverView : OpenableObservableControl
+    public sealed partial class BinderCoverView : OpenableObservableControl, IAnimationStarter
     {
         #region properties
         private BinderCoverVM _vm = null;
@@ -45,11 +46,15 @@ namespace UniFiler10.Views
         {
             if (DataContext is Data.Model.Binder)
             {
-                _vm = new BinderCoverVM(DataContext as Data.Model.Binder);
+                _vm = new BinderCoverVM(DataContext as Data.Model.Binder, this);
                 await _vm.OpenAsync().ConfigureAwait(false);
                 RaisePropertyChanged_UI(nameof(VM));
 
-                RegisterEventHandlers();
+                if (Dispatcher.HasThreadAccess) RegisterEventHandlers();
+                else await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                {
+                    RegisterEventHandlers();
+                }).AsTask().ConfigureAwait(false);
                 return true;
             }
             else
@@ -59,7 +64,12 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            UnregisterEventHandlers();
+            if (Dispatcher.HasThreadAccess) UnregisterEventHandlers();
+            else await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+            {
+                UnregisterEventHandlers();
+            }).AsTask().ConfigureAwait(false);
+            
             await _vm?.CloseAsync();
             _vm?.Dispose();
             VM = null;
@@ -73,7 +83,6 @@ namespace UniFiler10.Views
                 await _vmSemaphore.WaitAsync().ConfigureAwait(false);
                 if (args != null)
                 {
-                    // LOLLO TODO so far, we don't need BinderCoverVM at all!
                     var newBinder = args.NewValue as Data.Model.Binder;
                     if (newBinder == null)
                     {
@@ -123,39 +132,71 @@ namespace UniFiler10.Views
         #endregion construct, dispose, open, close
 
         #region event handlers
-        private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+        private void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
+            GoBack();
         }
-        private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
+        private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
         {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
+            GoBack();
         }
-        private async void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+        private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
         {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        }
-
-        private void CloseMe()
-        {
-            Task close = _vm?.CloseCoverAsync();
+            GoBack();
         }
 
-        private void OnAll_Tapped(object sender, TappedRoutedEventArgs e)
+        private void GoBack()
         {
-            Task all = _vm?.ReadAllFoldersAsync();
+            _vm?.CloseCover();
         }
 
-
-        private void OnAllFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+        private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
         {
             Task all = _vm?.SelectFolderAsync((e?.ClickedItem as BinderCoverVM.FolderPreview)?.FolderId);
         }
+
+        private void OnAllRefresh_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            // Task all = _vm?.RefreshAllFoldersAsync(0);
+            Task upd = _vm?.UpdateFoldersAsync(0);
+        }
+
+        private void OnRecentRefresh_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            // Task all = _vm?.RefreshRecentFoldersAsync(0);
+            Task upd = _vm?.UpdateFoldersAsync(0);
+        }
+
+        private void OnDeleteFolder_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            var fp = (sender as FrameworkElement).DataContext as BinderCoverVM.FolderPreview;
+            Task del = _vm?.DeleteFolderAsync(fp);
+        }
+        private void OnAddFolder_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            Task del = _vm?.AddFolderAsync();
+        }
+
+        private void OnAddOpenFolder_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            Task del = _vm?.AddOpenFolderAsync();
+        }
         #endregion event handlers
 
-        private void OnFolderPreview_Tapped(object sender, TappedRoutedEventArgs e)
+        public void StartAnimation()
         {
-            e.Handled = true;
+            RunInUiThread(delegate
+            {
+                UpdatingStoryboard.Begin();
+            });
+        }
+        public void EndAnimation()
+        {
+            RunInUiThread(delegate 
+            {
+                UpdatingStoryboard.SkipToFill();
+                UpdatingStoryboard.Stop();
+            });
         }
     }
 }

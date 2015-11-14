@@ -8,6 +8,7 @@ using UniFiler10.Data.Metadata;
 using Utilz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
+using System.Collections;
 
 namespace UniFiler10.Converters
 {
@@ -35,6 +36,32 @@ namespace UniFiler10.Converters
             throw new Exception("this is a one-way binding, it should never come here");
         }
 
+    }
+    public class IListNotEmptyToTrue : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value == null) return false;
+            if ((value as IList)?.Count > 0) return true;
+            return false;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
+        }
+    }
+    public class IListNotEmptyToVisible : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value == null) return Visibility.Visible;
+            if ((value as IList)?.Count > 0) return Visibility.Visible;
+            return Visibility.Collapsed;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
+        }
     }
 
     public class TrueToFalseConverter : IValueConverter

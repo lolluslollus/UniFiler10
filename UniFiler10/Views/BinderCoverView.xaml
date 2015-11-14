@@ -1,5 +1,4 @@
-﻿<ctl:OpenableObservableControl
-    x:Class="UniFiler10.Views.BinderCoverView"
+﻿<ctl:OpenableObservableControl    x:Class="UniFiler10.Views.BinderCoverView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -11,7 +10,54 @@
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400"
-    DataContextChanged="OnDataContextChanged">
+    DataContextChanged="OnDataContextChanged"
+    IsEnabled="{Binding IsEnabled}">
+
+    <ctl:OpenableObservableControl.Resources>
+        <Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
+            <ObjectAnimationUsingKeyFrames 
+                Storyboard.TargetName="symbolIcon" 
+                Storyboard.TargetProperty="Visibility">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
+            </ObjectAnimationUsingKeyFrames>
+
+            <DoubleAnimationUsingKeyFrames 
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.Rotation)" 
+                Storyboard.TargetName="symbolIcon">
+                <LinearDoubleKeyFrame KeyTime="0" Value="0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
+            </DoubleAnimationUsingKeyFrames>
+
+            <!--<DoubleAnimationUsingKeyFrames 
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
+                Storyboard.TargetName="symbolIcon">
+                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
+                Storyboard.TargetName="symbolIcon">
+                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>-->
+
+            <!--<ObjectAnimationUsingKeyFrames 
+                Storyboard.TargetName="symbolIcon" 
+                Storyboard.TargetProperty="Visibility">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0.5" Value="Collapsed"/>
+            </ObjectAnimationUsingKeyFrames>-->
+            <!--<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="symbolIcon">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)" Storyboard.TargetName="symbolIcon">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
+            </DoubleAnimationUsingKeyFrames>-->
+        </Storyboard>
+    </ctl:OpenableObservableControl.Resources>
 
     <ScrollViewer>
         <Grid Background="Violet" x:Name="LayoutRoot" DataContext="{x:Bind VM, Mode=OneWay}">
@@ -20,31 +66,132 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <TextBlock FontSize="40" Text="BinderCoverView" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <!--Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"-->
+            <!--<Border 
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top">-->
+                <Viewbox
+                    Width="{StaticResource LandscapeItemHeight}"
+                    Height="{StaticResource LandscapeItemHeight}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Stretch="Uniform">
+                    <SymbolIcon x:Name="symbolIcon" 
+                            Symbol="Sync"
+                            RenderTransformOrigin=".5, .5" 
+                            Visibility="Collapsed"
+                            Foreground="{StaticResource DiagonalNESWBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="{StaticResource ButtonPadding}">
+                        <SymbolIcon.RenderTransform>
+                            <CompositeTransform Rotation="0"/>
+                        </SymbolIcon.RenderTransform>
+                    </SymbolIcon>
+                </Viewbox>
+            <!--</Border>-->
 
-            <ToggleButton Grid.Row="1" 
-                Tapped="OnAll_Tapped"
-                IsChecked="{Binding IsAllFoldersPaneOpen, Mode=TwoWay}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+            <VariableSizedWrapGrid Grid.Row="0"
+                Orientation="Horizontal"
+                Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"
+                HorizontalAlignment="Stretch">
 
-                    <SymbolIcon Symbol="Download" Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-                    <SymbolIcon Symbol="Up" Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
-                    <TextBlock Grid.Column="1" x:Uid="AllFolders"/>
-                </Grid>
-            </ToggleButton>
+                <Button 
+                    Tapped="OnAddFolder_Tapped"
+                    Width="{StaticResource LandscapeLargeItemWidth}"
+                    Style="{StaticResource ButtonLolloStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <SymbolIcon Symbol="Add"/>
+                        <TextBlock Grid.Column="2" x:Uid="AddFolderT" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+                    </Grid>
+                </Button>
+
+                <Button 
+                    Tapped="OnAddOpenFolder_Tapped"
+                    Width="{StaticResource LandscapeLargeItemWidth}"
+                    Style="{StaticResource ButtonLolloStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <SymbolIcon Symbol="NewFolder"/>
+                        <TextBlock Grid.Column="2" x:Uid="AddOpenFolderT" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+                    </Grid>
+                </Button>
+
+                <Button 
+                    Tapped="OnBackButton_Tapped"
+                    Width="{StaticResource LandscapeLargeItemWidth}"
+                    Style="{StaticResource ButtonLolloStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <SymbolIcon Symbol="Back"/>
+                        <TextBlock Grid.Column="2" x:Uid="Back" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+                    </Grid>
+                </Button>
+
+            </VariableSizedWrapGrid>
+
+            <!--Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"-->
+            <Grid Grid.Row="1">
+                <ToggleButton 
+                    IsChecked="{Binding IsRecentFoldersPaneOpen, Mode=TwoWay}"
+                    Style="{StaticResource ToggleButtonLolloStyle}">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <SymbolIcon 
+                            Symbol="View" 
+                            Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+                        <SymbolIcon 
+                            Symbol="Up" 
+                            Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
+                        <TextBlock Grid.Column="2" 
+                            x:Uid="RecentFolders" 
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"/>
+                    </Grid>
+                </ToggleButton>
+                <!--<Button 
+                    Tapped="OnRecentRefresh_Tapped"
+                    Width="{StaticResource LandscapeItemWidth}"
+                    Height="{StaticResource LandscapeItemHeight}"
+                    Padding="{StaticResource ButtonPadding}"
+                    Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}">
+                    --><!-- was Symbol="Refresh" --><!--
+                    <SymbolIcon Symbol="Sync"/>
+                </Button>-->
+            </Grid>
 
             <ctl:TolerantListView Grid.Row="2"
-            ItemsSource="{Binding AllFolderPreviews}"
-            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"
-            IsItemClickEnabled="True"
-            IsMultiSelectCheckBoxEnabled="False"
-            ItemClick="OnAllFolderPreviews_ItemClick">
+                ItemsSource="{Binding RecentFolderPreviews}"
+                Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"
+                IsItemClickEnabled="True"
+                IsMultiSelectCheckBoxEnabled="False"
+                ItemClick="OnFolderPreviews_ItemClick"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid Orientation="Horizontal"/>
@@ -52,7 +199,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Grid Tapped="OnFolderPreview_Tapped" Background="Transparent">
+                        <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
                             </Grid.RowDefinitions>
@@ -61,36 +208,114 @@
                             </Grid.ColumnDefinitions>
 
                             <Viewbox Canvas.ZIndex="200"
-                                Stretch="Uniform" StretchDirection="Both"
-                                VerticalAlignment="Top" HorizontalAlignment="Center"
+                                Stretch="Uniform" StretchDirection="DownOnly"
+                                VerticalAlignment="Bottom" HorizontalAlignment="Center"
                                 MaxHeight="{StaticResource MiniatureQuarterHeight}">
-                                <TextBlock Canvas.ZIndex="200"
-                                    Text="{Binding Name}"
+                                <TextBlock
+                                    Text="{Binding FolderName}"
                                     Foreground="{StaticResource FlashyForeground}" 
+                                    HorizontalAlignment="Stretch"
                                     TextWrapping="Wrap"
                                     MaxWidth="{StaticResource MiniatureWidth}"/>
                             </Viewbox>
 
+                            <AppBarButton Icon="Delete" 
+                                Tapped="OnDeleteFolder_Tapped"
+                                Canvas.ZIndex="150"
+                                Style="{StaticResource AppBarButtonRecoloured}"
+                                IsCompact="True"
+                                Foreground="{StaticResource FlashyForeground}"
+                                Opacity="1"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"/>
+
+                            <!--IsRedirectTapped="True"-->
                             <local:DocumentView Canvas.ZIndex="100"
                                 IsDeleteEnabled="False"
-                                IsRedirectTapped="True"
                                 DataContext="{Binding Document, Mode=OneWay}"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ctl:TolerantListView>
 
-            <Button Grid.Row="3" Tapped="OnBackButton_Tapped" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+            <!--Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"-->
+            <Grid Grid.Row="3">
+                <ToggleButton 
+                    IsChecked="{Binding IsAllFoldersPaneOpen, Mode=TwoWay}"
+                    Style="{StaticResource ToggleButtonLolloStyle}">
 
-                    <SymbolIcon Symbol="Back"/>
-                    <TextBlock Grid.Column="1" x:Uid="Back"/>
-                </Grid>
-            </Button>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <SymbolIcon 
+                            Symbol="View" 
+                            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+                        <SymbolIcon 
+                            Symbol="Up" 
+                            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
+                        <TextBlock Grid.Column="2" 
+                            x:Uid="AllFolders" 
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"/>
+                    </Grid>
+                </ToggleButton>
+                <!--<Button Tapped="OnAllRefresh_Tapped"
+                    Width="{StaticResource LandscapeItemWidth}"
+                    Height="{StaticResource LandscapeItemHeight}"                        
+                    Padding="{StaticResource ButtonPadding}"
+                    Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}">
+                    --><!-- was Symbol="Refresh" --><!--
+                    <SymbolIcon Symbol="Sync"/>
+                </Button>-->
+            </Grid>
+
+            <!--ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">-->
+            <ctl:TolerantListView Grid.Row="4"
+                ItemsSource="{Binding AllFolderPreviews}"
+                Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"
+                IsItemClickEnabled="True"
+                IsMultiSelectCheckBoxEnabled="False"
+                ItemClick="OnFolderPreviews_ItemClick"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Viewbox Canvas.ZIndex="200"
+                                Stretch="Uniform" StretchDirection="DownOnly"
+                                VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                MaxHeight="{StaticResource MiniatureQuarterHeight}">
+                                <TextBlock
+                                    Text="{Binding FolderName}"
+                                    Foreground="{StaticResource FlashyForeground}" 
+                                    HorizontalAlignment="Stretch"
+                                    TextWrapping="Wrap"
+                                    MaxWidth="{StaticResource MiniatureWidth}"/>
+                            </Viewbox>
+
+                            <!--IsRedirectTapped="True"-->
+                            <local:DocumentView Canvas.ZIndex="100"
+                                IsDeleteEnabled="False"
+                                DataContext="{Binding Document, Mode=OneWay}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ctl:TolerantListView>
+
         </Grid>
     </ScrollViewer>
 </ctl:OpenableObservableControl>

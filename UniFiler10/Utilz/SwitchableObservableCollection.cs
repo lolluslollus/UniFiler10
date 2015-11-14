@@ -4,14 +4,18 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using Windows.ApplicationModel.Core;
+using Windows.Foundation;
+using Windows.UI.Core;
 
 namespace Utilz
 {
     // LOLLO http://blog.stephencleary.com/2009/07/interpreting-notifycollectionchangedeve.html
-    public sealed class SwitchableObservableCollection<T> : ObservableCollection<T>
+    public sealed class SwitchableObservableCollection<T> : ObservableCollection<T> //, IDisposable
     {
         private bool _isObserving = true;
         public bool IsObserving { get { return _isObserving; } set { _isObserving = value; } }
+
         private uint _capacity = UInt32.MaxValue;
         public uint Capacity { get { return _capacity; } }
 
@@ -21,6 +25,19 @@ namespace Utilz
         public SwitchableObservableCollection(bool isObserving) : base() { _isObserving = isObserving; }
         public SwitchableObservableCollection(bool isObserving, IEnumerable<T> collection) : base(collection) { _isObserving = isObserving; }
         public SwitchableObservableCollection(bool isObserving, uint capacity) : base() { _isObserving = isObserving; _capacity = capacity; }
+
+        // LOLLO TODO test begin
+        public override event NotifyCollectionChangedEventHandler CollectionChanged;
+
+        private void ClearListeners()
+        {           
+            CollectionChanged = null;
+        }
+        public void Dispose()
+        {
+            ClearListeners();
+        }
+        // LOLLO test end
 
         public void AddRange(IEnumerable<T> range)
         {
@@ -49,7 +66,33 @@ namespace Utilz
         }
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            if (_isObserving) base.OnCollectionChanged(e);
+            // LOLLO TODO test begin
+
+            // if (_isObserving) base.OnCollectionChanged(e); // this was all
+
+            if (_isObserving)
+            {
+                try
+                {
+                    if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+                    {
+                        CollectionChanged?.Invoke(this, e);
+                    }
+                    else
+                    {
+                        IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                        {
+                            CollectionChanged?.Invoke(this, e);
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+                }
+            }
+
+            // LOLLO test end
         }
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {

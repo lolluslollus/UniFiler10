@@ -28,18 +28,38 @@ namespace Utilz
         }
         protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
         {
+            RunInUiThread(delegate { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); });
+            //try
+            //{
+            //    if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+            //    {
+            //        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            //    }
+            //    else
+            //    {
+            //        IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+            //        {
+            //            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            //        });
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+            //}
+        }
+        #region UIThread
+        public void RunInUiThread(DispatchedHandler action)
+        {
             try
             {
                 if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
                 {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                    action();
                 }
                 else
                 {
-                    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                    {
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                    });
+                    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action);
                 }
             }
             catch (Exception ex)
@@ -47,5 +67,6 @@ namespace Utilz
                 Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
             }
         }
+        #endregion UIThread
     }
 }

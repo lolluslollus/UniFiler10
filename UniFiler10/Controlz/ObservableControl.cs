@@ -53,5 +53,19 @@ namespace UniFiler10.Controlz
         #region construct dispose
         public ObservableControl() { }
         #endregion construct dispose
+
+        #region UIThread
+        public void RunInUiThread(DispatchedHandler action)
+        {
+            if (Dispatcher.HasThreadAccess)
+            {
+                action();
+            }
+            else
+            {
+                IAsyncAction ani = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action);
+            }
+        }
+        #endregion UIThread
     }
 }

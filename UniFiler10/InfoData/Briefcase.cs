@@ -65,6 +65,13 @@ namespace UniFiler10.Data.Model
                 _metaBriefcase = null;
             }
         }
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            _dbNames?.Dispose();
+            _dbNames = null;
+        }
         #endregion open and close
 
         #region properties

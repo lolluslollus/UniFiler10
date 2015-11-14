@@ -47,6 +47,9 @@ namespace UniFiler10.Data.Model
         [DataMember]
         public string Descr3 { get { return _descr3; } set { if (_descr3 != value) { _descr3 = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
 
+        private DateTime _dateCreated = default(DateTime);
+        [DataMember]
+        public DateTime DateCreated { get { return _dateCreated; } set { if (_dateCreated != value) { _dateCreated = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
         private DateTime _date0 = default(DateTime);
         [DataMember]
         public DateTime Date0 { get { return _date0; } set { if (_date0 != value) { _date0 = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
@@ -85,7 +88,9 @@ namespace UniFiler10.Data.Model
         {
             var target = that as Folder;
 
-            return Date0 == target.Date0 &&
+            return 
+                DateCreated == target.DateCreated &&
+                Date0 == target.Date0 &&
                 Date1 == target.Date1 &&
                 Date2 == target.Date2 &&
                 Date3 == target.Date3 &&
@@ -103,6 +108,7 @@ namespace UniFiler10.Data.Model
         {
             var tgt = target as Folder;
 
+            tgt.DateCreated = DateCreated;
             tgt.Date0 = Date0;
             tgt.Date1 = Date1;
             tgt.Date2 = Date2;
@@ -122,6 +128,7 @@ namespace UniFiler10.Data.Model
             bool result = _id != DEFAULT_ID && Check(_wallets) && Check(_dynamicCategories) && Check(_dynamicFields);
             return result;
         }
+
         #region loading methods
         private DBManager _dbManager = null;
         public async Task OpenAsync(DBManager dbManager)
@@ -177,11 +184,6 @@ namespace UniFiler10.Data.Model
             {
                 await dynCat.OpenAsync().ConfigureAwait(false);
             }
-        }
-        public override Task<bool> CloseAsync()
-        {
-            //EndRecordingSoundIntoNewWallet();
-            return base.CloseAsync();
         }
         protected override async Task CloseMayOverrideAsync()
         {
@@ -279,6 +281,20 @@ namespace UniFiler10.Data.Model
                     await dynFld.OpenAsync();
                 }
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            _wallets?.Dispose();
+            _wallets = null;
+
+            _dynamicCategories?.Dispose();
+            _dynamicCategories = null;
+
+            _dynamicFields?.Dispose();
+            _dynamicFields = null;
         }
         #endregion loading methods
 

@@ -10,7 +10,7 @@ namespace UniFiler10.Data.Metadata
 {
     [DataContract]
     public sealed class Category : ObservableData
-    {
+    {// LOLLO TODO make disposable ?
         private static readonly string DEFAULT_ID = string.Empty;
 
         #region properties
@@ -31,22 +31,38 @@ namespace UniFiler10.Data.Metadata
         public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
         private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
-        [DataMember]
+        [IgnoreDataMember]
         public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
+
+        // LOLLO TODO I now use FieldDescriptionIds in the db, instead of FieldDescriptions. Make sure everything works fine.
+        private SwitchableObservableCollection<string> _fieldDescriptionIds = new SwitchableObservableCollection<string>();
+        [DataMember]
+        public SwitchableObservableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }
         #endregion properties
 
-        public static void Copy(Category source, ref Category target)
+        public static void Copy(Category source, ref Category target, IList<FieldDescription> allFldDscs)
         {
             if (source != null && target != null)
             {
-                FieldDescription.Copy(source.FieldDescriptions, target.FieldDescriptions);
+                // FieldDescription.Copy(source.FieldDescriptions, target.FieldDescriptions);
+                target.FieldDescriptionIds.Clear();
+                target.FieldDescriptionIds.AddRange(source.FieldDescriptionIds);
+                // populate FieldDescriptions
+                List<FieldDescription> newFldDscs = new List<FieldDescription>();
+                foreach (var fldDscId in source.FieldDescriptionIds)
+                {
+                    var newFldDsc = allFldDscs.FirstOrDefault(fd => fd.Id == fldDscId);
+                    if (newFldDsc != null) newFldDscs.Add(newFldDsc);
+                }
+                target.FieldDescriptions.AddRange(newFldDscs);
+
                 target.Id = source.Id;
                 target.IsCustom = source.IsCustom;
                 // target.IsJustAdded = source.IsJustAdded; // we don't actually need this
                 target.Name = source.Name;
             }
         }
-        public static void Copy(SwitchableObservableCollection<Category> source, SwitchableObservableCollection<Category> target)
+        public static void Copy(SwitchableObservableCollection<Category> source, SwitchableObservableCollection<Category> target, IList<FieldDescription> allFldDscs)
         {
             if (source != null && target != null)
             {
@@ -54,7 +70,7 @@ namespace UniFiler10.Data.Metadata
                 foreach (var sourceRecord in source)
                 {
                     var targetRecord = new Category();
-                    Copy(sourceRecord, ref targetRecord);
+                    Copy(sourceRecord, ref targetRecord, allFldDscs);
                     target.Add(targetRecord);
                 }
                 target.IsObserving = true;
@@ -71,24 +87,26 @@ namespace UniFiler10.Data.Metadata
             if (newFldDsc != null && !FieldDescriptions.Any(fds => fds.Caption == newFldDsc.Caption || fds.Id == newFldDsc.Id))
             {
                 FieldDescriptions.Add(newFldDsc);
+                FieldDescriptionIds.Add(newFldDsc.Id);
                 newFldDsc.AddToJustAssignedToCats(this);
                 return true;
             }
             return false;
         }
+
         public bool RemoveFieldDescription(FieldDescription fdToBeRemoved)
         {
             if (fdToBeRemoved != null)
             {
                 fdToBeRemoved.RemoveFromJustAssignedToCats(this);
-                return FieldDescriptions.Remove(fdToBeRemoved);
+                return FieldDescriptions.Remove(fdToBeRemoved) & FieldDescriptionIds.Remove(fdToBeRemoved.Id);
             }
             return false;
         }
 
         public static bool Check(Category cat)
         {
-            return cat != null && cat.Id != DEFAULT_ID && cat.FieldDescriptions != null && !string.IsNullOrWhiteSpace(cat.Name);
+            return cat != null && cat.Id != DEFAULT_ID && cat.FieldDescriptions != null && cat.FieldDescriptionIds != null && !string.IsNullOrWhiteSpace(cat.Name);
         }
 
         //public class EqComparer : IEqualityComparer<Category>

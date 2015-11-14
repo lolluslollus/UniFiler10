@@ -32,6 +32,7 @@ namespace UniFiler10.Views
 {
     public sealed partial class DocumentView : ObservableControl
     {
+        #region properties
         public bool IsDeleteEnabled
         {
             get { return (bool)GetValue(IsDeleteEnabledProperty); }
@@ -40,13 +41,13 @@ namespace UniFiler10.Views
         public static readonly DependencyProperty IsDeleteEnabledProperty =
             DependencyProperty.Register("IsDeleteEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
-        public bool IsRedirectTapped
-        {
-            get { return (bool)GetValue(IsRedirectTappedProperty); }
-            set { SetValue(IsRedirectTappedProperty, value); }
-        }
-        public static readonly DependencyProperty IsRedirectTappedProperty =
-            DependencyProperty.Register("IsRedirectTapped", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
+        //public bool IsRedirectTapped
+        //{
+        //    get { return (bool)GetValue(IsRedirectTappedProperty); }
+        //    set { SetValue(IsRedirectTappedProperty, value); }
+        //}
+        //public static readonly DependencyProperty IsRedirectTappedProperty =
+        //    DependencyProperty.Register("IsRedirectTapped", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
         public BinderVM BinderVM
         {
@@ -80,12 +81,14 @@ namespace UniFiler10.Views
         public static readonly DependencyProperty FolderProperty =
             DependencyProperty.Register("Folder", typeof(Folder), typeof(DocumentView), new PropertyMetadata(null));
 
-        private DocumentVM _documentVM = null;
-        public DocumentVM DocumentVM { get { return _documentVM; } set { _documentVM = value; RaisePropertyChanged_UI(); } }
+        private bool _isMultiPage = false;
+        public bool IsMultiPage { get { return _isMultiPage; } private set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
 
         private uint _height = 0;
         private uint _width = 0;
+        #endregion properties
 
+        #region construct
         public DocumentView()
         {
             _height = (uint)(double)Application.Current.Resources["MiniatureHeight"];
@@ -93,7 +96,9 @@ namespace UniFiler10.Views
 
             InitializeComponent();
         }
+        #endregion construct
 
+        #region render
         private string _previousUri = null;
 
         private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -104,33 +109,16 @@ namespace UniFiler10.Views
                 await _vmSemaphore.WaitAsync().ConfigureAwait(false);
                 if (args != null)
                 {
-                    // LOLLO TODO so far, we don't need DocumentVM at all!
                     var newDoc = args.NewValue as Document;
                     if (newDoc == null)
                     {
-                        if (_documentVM != null) await _documentVM.CloseAsync().ConfigureAwait(false);
-                    }
-                    else if (_documentVM == null)
-                    {
-                        DocumentVM = new DocumentVM(newDoc);
-                        // await _vm.OpenAsync().ConfigureAwait(false); // no: this particular class only opens when its Document has opened
-                    }
-                    else if (_documentVM.Document != newDoc)
-                    {
-                        await _documentVM.CloseAsync().ConfigureAwait(false);
-                        DocumentVM = new DocumentVM(newDoc);
-                        // await _vm.OpenAsync().ConfigureAwait(false); // no: this particular class only opens when its Document has opened
-                    }
-                    // render document preview
-                    if (newDoc == null)
-                    {
                         _previousUri = null;
-                        Task render = RenderPreviewImageAsync(newDoc);
+                        Task render = RenderPreviewAsync(newDoc);
                     }
                     else if (newDoc.Uri0 != _previousUri)
                     {
                         _previousUri = newDoc.Uri0;
-                        Task render = RenderPreviewImageAsync(newDoc);
+                        Task render = RenderPreviewAsync(newDoc);
                     }
                 }
             }
@@ -140,19 +128,7 @@ namespace UniFiler10.Views
             }
         }
 
-        private void ShowWebViewer()
-        {
-            ImageViewer.Visibility = Visibility.Collapsed;
-            WebViewer.Visibility = Visibility.Visible;
-            //WebViewBox.Visibility = Visibility.Visible;
-        }
-        private void ShowImageViewer()
-        {
-            ImageViewer.Visibility = Visibility.Visible;
-            //WebViewBox.Visibility = Visibility.Collapsed;
-            WebViewer.Visibility = Visibility.Collapsed;
-        }
-        private async Task RenderPreviewImageAsync(Document doc)
+        private async Task RenderPreviewAsync(Document doc)
         {
             string ext = string.Empty;
             if (doc != null)
@@ -284,6 +260,7 @@ namespace UniFiler10.Views
                         var renderOptions = GetPdfRenderOptions(pdfPage);
                         if (renderOptions != null)
                         {
+                            IsMultiPage = pdfDocument.PageCount > 1; // LOLLO TODO maybe deal with multi pages with tiff too ?
                             using (var stream = new InMemoryRandomAccessStream())
                             {
                                 await pdfPage.RenderToStreamAsync(stream, renderOptions).AsTask().ConfigureAwait(false);
@@ -306,11 +283,11 @@ namespace UniFiler10.Views
             {
                 var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document).Uri0).AsTask().ConfigureAwait(false);
 
-                var _pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
+                var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
 
-                if (_pdfDocument != null && _pdfDocument.PageCount > 0)
+                if (pdfDocument != null && pdfDocument.PageCount > 0)
                 {
-                    using (var pdfPage = _pdfDocument.GetPage(0))
+                    using (var pdfPage = pdfDocument.GetPage(0))
                     {
                         var renderOptions = GetPdfRenderOptions(pdfPage);
                         if (renderOptions != null)
@@ -319,6 +296,7 @@ namespace UniFiler10.Views
                             StorageFile jpgFile = await tempFolder.CreateFileAsync(Guid.NewGuid().ToString() + ".png", CreationCollisionOption.ReplaceExisting);
                             if (jpgFile != null)
                             {
+                                IsMultiPage = pdfDocument.PageCount > 1;
                                 using (IRandomAccessStream randomStream = await jpgFile.OpenAsync(FileAccessMode.ReadWrite))
                                 {
                                     await pdfPage.RenderToStreamAsync(randomStream, renderOptions).AsTask().ConfigureAwait(false);
@@ -386,6 +364,18 @@ namespace UniFiler10.Views
                 }).AsTask().ConfigureAwait(false);
             }
         }
+        private void ShowWebViewer()
+        {
+            ImageViewer.Visibility = Visibility.Collapsed;
+            WebViewer.Visibility = Visibility.Visible;
+            //WebViewBox.Visibility = Visibility.Visible;
+        }
+        private void ShowImageViewer()
+        {
+            ImageViewer.Visibility = Visibility.Visible;
+            //WebViewBox.Visibility = Visibility.Collapsed;
+            WebViewer.Visibility = Visibility.Collapsed;
+        }
 
         //private void WebView_NavigationCompleted(WebView sender, WebViewNavigationCompletedEventArgs args)
         //{
@@ -400,25 +390,29 @@ namespace UniFiler10.Views
         //    Debug.WriteLine("WebViewer Visibility = " + WebViewer.Visibility.ToString());
         //    Debug.WriteLine("ImageViewer Visibility = " + ImageViewer.Visibility.ToString());
         //}
+        #endregion render
 
         #region event handlers
         private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
         {
             e.Handled = true;
-            Task del = BinderVM?.RunFunctionWhileOpenAsyncT(async delegate
+            if (IsDeleteEnabled)
             {
-                if (await BinderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
+                Task del = BinderVM?.RunFunctionWhileOpenAsyncT(async delegate
                 {
-                    // if there are no more documents in the wallet, delete the wallet
-                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+                    if (await BinderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
                     {
-                        if (Wallet.Documents.Count <= 0)
-                        {
-                            Task del2 = BinderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
-                        }
-                    }).AsTask().ConfigureAwait(false);
-                }
-            });
+                        // if there are no more documents in the wallet, delete the wallet
+                        await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+                            {
+                                if (Wallet.Documents.Count <= 0)
+                                {
+                                    Task del2 = BinderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
+                                }
+                            }).AsTask().ConfigureAwait(false);
+                    }
+                });
+            }
         }
 
         private async void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
@@ -428,25 +422,28 @@ namespace UniFiler10.Views
             //WebViewer.Refresh();
             //return;
 
-            if (IsRedirectTapped) return;
+            //if (IsRedirectTapped) return;
             e.Handled = true;
 
-            var file = await StorageFile.GetFileFromPathAsync((DataContext as Document).Uri0).AsTask().ConfigureAwait(false);
-            if (file != null)
+            var doc = DataContext as Document;
+            if (doc != null && !string.IsNullOrWhiteSpace(doc.Uri0))
             {
-                bool isOk = false;
-                try
+                var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
+                if (file != null)
                 {
-                    //isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
-                    isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+                    bool isOk = false;
+                    try
+                    {
+                        //isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
+                        isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+                    }
                 }
             }
         }
         #endregion event handlers
-
     }
 }

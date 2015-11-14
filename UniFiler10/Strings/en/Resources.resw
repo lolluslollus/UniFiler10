@@ -123,6 +123,12 @@
   <data name="AddFolder.Label" xml:space="preserve">
     <value>Add folder</value>
   </data>
+  <data name="AddFolderT.Text" xml:space="preserve">
+    <value>Add folder</value>
+  </data>
+  <data name="AddOpenFolderT.Text" xml:space="preserve">
+    <value>Add and open folder</value>
+  </data>
   <data name="AllFolders.Text" xml:space="preserve">
     <value>All folders</value>
   </data>
@@ -165,6 +171,9 @@
   <data name="FieldDescrsNotAssignedToCat.Text" xml:space="preserve">
     <value>Available fields</value>
   </data>
+  <data name="Name.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
   <data name="NameAlreadyInUse.Text" xml:space="preserve">
     <value>Name already in use</value>
   </data>
@@ -191,6 +200,12 @@
   </data>
   <data name="PossibleFieldValues.Text" xml:space="preserve">
     <value>Possible values</value>
+  </data>
+  <data name="RecentFolders.Text" xml:space="preserve">
+    <value>Recent folders</value>
+  </data>
+  <data name="Remarks.Text" xml:space="preserve">
+    <value>Remarks</value>
   </data>
   <data name="RestoreBinder.Label" xml:space="preserve">
     <value>Restore</value>

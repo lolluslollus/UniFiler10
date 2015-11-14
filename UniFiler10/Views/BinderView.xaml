@@ -1,4 +1,4 @@
-﻿<ctl:ObservableControl
+﻿<ctl:OpenableObservableControl
     x:Class="UniFiler10.Views.BinderView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -16,7 +16,11 @@
     d:DataContext="{d:DesignInstance vm:BinderVM, IsDesignTimeCreatable=True}">
 
     <Grid>
+        <local:BinderCoverView
+            Visibility="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
+            DataContext="{Binding}"/>
         <ctl:LolloSplitView x:Name="LayoutRoot"
+            Visibility="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
             IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"
             IsEnabled="{Binding IsEnabled, Mode=OneWay, FallbackValue=False}"
             ClosedPaneLength="{StaticResource CompactPaneLength}"
@@ -52,7 +56,7 @@
                                 Click="OnTogglePaneOpen"/>
 
                             <AppBarButton Grid.Row="1"
-                                Icon="OpenPane"
+                                Icon="ViewAll"
                                 x:Uid="Cover"
                                 Click="OnOpenCover_Click"/>
 
@@ -122,7 +126,7 @@
                                 Click="OnTogglePaneOpen"/>
 
                         <AppBarButton Grid.Row="1"
-                                Icon="OpenPane"
+                                Icon="ViewAll"
                                 x:Uid="Cover"
                                 Click="OnOpenCover_Click"/>
 
@@ -147,38 +151,19 @@
             </ctl:LolloSplitView.PaneContent>
         </ctl:LolloSplitView>
 
-        <!--<Popup
-            IsOpen="{Binding ElementName=me, Path=VM.Media.IsCameraOverlayOpen, Mode=OneWay}">
-            <local:CameraView 
-                VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
-                DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
-        </Popup>
-
         <Popup
-            IsOpen="{Binding ElementName=me, Path=VM.Media.IsAudioRecorderOverlayOpen, Mode=OneWay}">
-            <local:AudioRecorderView
-                VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
-                DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
-        </Popup>-->
-
-        <Popup
-            IsOpen="{x:Bind VM.Media.IsCameraOverlayOpen, Mode=OneWay}">
+            IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay}">
             <local:CameraView 
                 VM="{x:Bind VM, Mode=OneWay}"
                 DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
         </Popup>
 
         <Popup
-            IsOpen="{x:Bind VM.Media.IsAudioRecorderOverlayOpen, Mode=OneWay}">
+            IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay}">
             <local:AudioRecorderView
                 VM="{x:Bind VM, Mode=OneWay}"
                 DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
         </Popup>
 
-        <Popup
-            IsOpen="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay}">
-            <local:BinderCoverView
-                DataContext="{Binding}"/>
-        </Popup>
     </Grid>
-</ctl:ObservableControl>
+</ctl:OpenableObservableControl>

@@ -304,6 +304,7 @@ namespace Utilz
             }
             catch (Exception ex)
             {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 throw;
             }
         }

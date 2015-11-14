@@ -131,6 +131,16 @@ namespace UniFiler10.Data.Metadata
         {
             await Save2Async().ConfigureAwait(false);
         }
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            _categories?.Dispose();
+            _categories = null;
+
+            _fieldDescriptions?.Dispose();
+            _fieldDescriptions = null;
+        }
         #endregion open and close
 
         //private async Task LoadAsync()
@@ -283,10 +293,10 @@ namespace UniFiler10.Data.Metadata
 
             //IsEditingCategories = source.IsEditingCategories;
 
-            Category.Copy(source.Categories, Categories);
-            RaisePropertyChanged_UI(nameof(Categories));
             FieldDescription.Copy(source.FieldDescriptions, FieldDescriptions);
             RaisePropertyChanged_UI(nameof(FieldDescriptions));
+            Category.Copy(source.Categories, Categories, FieldDescriptions);
+            RaisePropertyChanged_UI(nameof(Categories));
             CurrentCategoryId = source.CurrentCategoryId; // must come after setting the categories
             CurrentFieldDescriptionId = source.CurrentFieldDescriptionId;
 
@@ -365,7 +375,7 @@ namespace UniFiler10.Data.Metadata
                 {
                     foreach (var cat in _categories)
                     {
-                        cat.FieldDescriptions.Remove(fldDesc);
+                        cat.RemoveFieldDescription(fldDesc);
                     }
                     return FieldDescriptions.Remove(fldDesc);
                 }
