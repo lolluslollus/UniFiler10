@@ -34,7 +34,6 @@ namespace UniFiler10.Data.Metadata
         [IgnoreDataMember]
         public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-        // LOLLO TODO I now use FieldDescriptionIds in the db, instead of FieldDescriptions. Make sure everything works fine.
         private SwitchableObservableCollection<string> _fieldDescriptionIds = new SwitchableObservableCollection<string>();
         [DataMember]
         public SwitchableObservableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }

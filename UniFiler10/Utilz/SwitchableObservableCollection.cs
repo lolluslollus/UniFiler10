@@ -26,7 +26,6 @@ namespace Utilz
         public SwitchableObservableCollection(bool isObserving, IEnumerable<T> collection) : base(collection) { _isObserving = isObserving; }
         public SwitchableObservableCollection(bool isObserving, uint capacity) : base() { _isObserving = isObserving; _capacity = capacity; }
 
-        // LOLLO TODO test begin
         public override event NotifyCollectionChangedEventHandler CollectionChanged;
 
         private void ClearListeners()
@@ -37,7 +36,6 @@ namespace Utilz
         {
             ClearListeners();
         }
-        // LOLLO test end
 
         public void AddRange(IEnumerable<T> range)
         {
@@ -66,9 +64,7 @@ namespace Utilz
         }
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            // LOLLO TODO test begin
-
-            // if (_isObserving) base.OnCollectionChanged(e); // this was all
+            // if (_isObserving) base.OnCollectionChanged(e); // this was all, it's smarter now
 
             if (_isObserving)
             {
@@ -91,8 +87,6 @@ namespace Utilz
                     Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
             }
-
-            // LOLLO test end
         }
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {

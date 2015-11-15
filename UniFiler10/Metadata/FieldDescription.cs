@@ -105,13 +105,18 @@ namespace UniFiler10.Data.Metadata
             }
             return false;
         }
-        public bool RemovePossibleValue(FieldValue removedValue)
+		public FieldValue GetValueFromPossibleValues(string newValue)
+		{
+			if (string.IsNullOrEmpty(newValue)) return FieldValue.Empty;
+			else return _possibleValues.FirstOrDefault(pv => pv.Vaalue == newValue);
+		}
+		public bool RemovePossibleValue(FieldValue removedValue)
         {
             if (removedValue != null) return _possibleValues.Remove(removedValue);
             else return false;
         }
 
-        public static bool Check(FieldDescription fldDsc)
+		public static bool Check(FieldDescription fldDsc)
         {
             return fldDsc != null && fldDsc.Id != DEFAULT_ID && fldDsc.PossibleValues != null && !string.IsNullOrWhiteSpace(fldDsc.Caption);
         }

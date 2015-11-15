@@ -26,7 +26,7 @@
 			<Setter.Value>
 				<ControlTemplate TargetType="ctl:LolloTextBox">
 					<Grid Background="{TemplateBinding Background}">
-						<Grid.Resources>
+						<!--<Grid.Resources>
 							<Style x:Name="DeleteButtonStyle" TargetType="Button">
 								<Setter Property="Template">
 									<Setter.Value>
@@ -69,7 +69,7 @@
 									</Setter.Value>
 								</Setter>
 							</Style>
-						</Grid.Resources>
+						</Grid.Resources>-->
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="Auto"/>
 							<ColumnDefinition Width="*"/>
@@ -104,6 +104,12 @@
 											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
 										</ObjectAnimationUsingKeyFrames>
 										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="EditableIcon">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="DeleteGlyph">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
+										</ObjectAnimationUsingKeyFrames>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="DropDownGlyph">
 											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
 										</ObjectAnimationUsingKeyFrames>
 									</Storyboard>
@@ -145,7 +151,7 @@
 									</Storyboard>
 								</VisualState>
 							</VisualStateGroup>
-							<VisualStateGroup x:Name="ButtonStates">
+							<!--<VisualStateGroup x:Name="ButtonStates">
 								<VisualState x:Name="ButtonVisible">
 									<Storyboard>
 										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="DeleteButton">
@@ -158,7 +164,7 @@
 									</Storyboard>
 								</VisualState>
 								<VisualState x:Name="ButtonCollapsed"/>
-							</VisualStateGroup>
+							</VisualStateGroup>-->
 						</VisualStateManager.VisualStateGroups>
 						<Border x:Name="BackgroundElement"
                             Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
@@ -191,12 +197,26 @@
 							Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
 							IsHitTestVisible="False" IsTabStop="False" 
 							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" />
-						<Button x:Name="DeleteButton" BorderThickness="{TemplateBinding BorderThickness}" 
+						<!--<Button x:Name="DeleteButton" BorderThickness="{TemplateBinding BorderThickness}" 
                             Grid.Row="1" Grid.Column="2"
                             FontSize="{TemplateBinding FontSize}" 
 							Margin="{ThemeResource HelperButtonThemePadding}" 
 							MinWidth="{StaticResource LTBDecorationsSize}"
-							Style="{StaticResource DeleteButtonStyle}" Visibility="Collapsed" VerticalAlignment="Stretch"/>
+							Style="{StaticResource DeleteButtonStyle}" 
+							Visibility="Collapsed" VerticalAlignment="Stretch"/>-->
+						<Border x:Name="DeleteBorder" Grid.Column="2" Grid.Row="1" 
+							Background="Transparent"
+							Visibility="{TemplateBinding DeleteVisibility}">
+							<SymbolIcon x:Name="DeleteGlyph"
+								Grid.Column="2" Grid.Row="1"
+								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
+								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"								
+                                Symbol="Clear"
+                                IsHitTestVisible="False"
+								HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                AutomationProperties.AccessibilityView="Raw"/>
+						</Border>
 						<SymbolIcon x:Name="EditableIcon"
                             Grid.Column="0" Grid.Row="1"
                             MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"

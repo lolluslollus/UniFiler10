@@ -37,7 +37,7 @@ namespace UniFiler10.Data.Model
         protected override async Task OpenMayOverrideAsync()
         {
             _metaBriefcase = MetaBriefcase.CreateInstance();
-            //await _metaBriefcase.OpenAsync(false).ConfigureAwait(false); // LOLLO TODO it was like this, check it
+
             await _metaBriefcase.OpenAsync().ConfigureAwait(false);
             RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 

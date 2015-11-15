@@ -14,7 +14,6 @@
     d:DesignWidth="400" 
     d:DataContext="{d:DesignInstance Model:Folder, CreateList=True, IsDesignTimeCreatable=True}">
 
-	<!--Background="{StaticResource SystemControlBackgroundBaseLowBrush}"-->
 	<Grid x:Name="LayoutRoot" Background="{StaticResource SystemControlBackgroundBaseLowBrush}">
         <Grid Visibility="{Binding IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Visible}" >
             <TextBlock 
@@ -112,9 +111,6 @@
                     </ItemsControl>
                 </Grid>
 
-                <!--<Border Grid.Row="3" Background="{StaticResource SystemControlBackgroundBaseLowBrush}"
-                    VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>-->
-                
                 <!-- dynamic fields -->
                 <ItemsControl Grid.Row="4"
 					ItemsSource="{Binding DynamicFields}">
@@ -126,23 +122,6 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
 							<Grid x:Name="DFGrid">
-								<!--BorderThickness="{StaticResource PanelPadding}"
-								BorderBrush="{ThemeResource SystemControlBackgroundBaseLowBrush}">-->
-								<!--Background="Transparent"
-                                PointerEntered="DFGrid_PointerEntered"
-                                PointerExited="DFGrid_PointerExited">-->
-                                <!--<Grid.Resources>
-                                    <Storyboard x:Key="EvidenceGrid">
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="BorderBrush"
-                                            Storyboard.TargetName="DFGrid">
-											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </Grid.Resources>-->
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition />
-                                    <!--<ColumnDefinition Width="Auto"/>-->
-                                </Grid.ColumnDefinitions>
 
                                 <ctl:LolloTextBox
 									x:Name="VaalueTB"
@@ -154,34 +133,28 @@
 									MaxLength="{StaticResource MaxFolderDescrLength}"
 									Header="{Binding FieldDescription.Caption, Mode=OneWay}"
 									TextWrapping="Wrap"
+									PlaceholderText="..."
 									IsReadOnly="{Binding FieldDescription.IsAnyValueAllowed, Converter={StaticResource TrueToFalseConverter}}"
 									Style="{StaticResource LolloTextBoxFieldValueStyle}"
 									DisplayMemberPath="Vaalue"
 									ItemsSource="{Binding FieldDescription.PossibleValues}">
+									<ctl:LolloTextBox.ListItemTemplate>
+										<DataTemplate >
+											<TextBlock Text="{Binding Vaalue}" 
+												MaxWidth="{StaticResource LandscapeThreeQuartersItemWidth}"
+												TextWrapping="Wrap"/>
+										</DataTemplate>
+									</ctl:LolloTextBox.ListItemTemplate>
                                     <!--<TextBox.Header>
                                         <Border Background="{StaticResource SystemControlBackgroundBaseLowBrush}">
                                         <TextBlock Text="{Binding FieldDescription.Caption, Mode=OneWay}"/>
                                         </Border>
                                     </TextBox.Header>-->
                                 </ctl:LolloTextBox>
-                                <!--<Background="Transparent">-->
-								<!--<ComboBox Grid.Column="1"
-									Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
-									Height="{StaticResource LandscapeItemHeight}"
-									VerticalAlignment="Center"
-									Visibility="{Binding FieldDescription.PossibleValues, Converter={StaticResource IListNotEmptyToVisible}}"
-									ItemsSource="{Binding FieldDescription.PossibleValues}"
-									Style="{StaticResource ComboBoxWoText}"
-									DisplayMemberPath="Vaalue"                                    
-									SelectionChanged="OnDynamicFieldValueSelectComboBox_SelectionChanged"
-									IsSynchronizedWithCurrentItem="False"/>-->
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-
-                <!--<Border Grid.Row="5" Background="{StaticResource SystemControlBackgroundBaseLowBrush}"
-                    VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>-->
 
                 <!-- Wallets -->
                 <local:WalletsView Grid.Row="6"

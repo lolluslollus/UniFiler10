@@ -122,5 +122,29 @@ namespace UniFiler10.Data.Model
             tgt.FieldValueId = _fieldValueId;
             tgt.FieldDescriptionId = _fieldDescriptionId;
         }
-    }
+
+		public Task<bool> SetValueAsync(string newValue)
+		{
+			return RunFunctionWhileOpenAsyncB(delegate 
+			{
+				var availableFldVal = _fieldDescription.GetValueFromPossibleValues(newValue);
+				if (availableFldVal != null)
+				{
+					FieldValueId = availableFldVal.Id;
+					return true;
+				}
+				else if (_fieldDescription.IsAnyValueAllowed)
+				{
+					var newFldVal0 = new FieldValue() { IsCustom = true, IsJustAdded = true, Vaalue = newValue };
+					if (_fieldDescription.AddPossibleValue(newFldVal0))
+					{
+						FieldValueId = newFldVal0.Id;
+						return true;
+					}
+				}
+				return false;
+			});
+		}
+
+	}
 }

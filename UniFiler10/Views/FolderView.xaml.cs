@@ -60,9 +60,9 @@ namespace UniFiler10.Views
         private void OnVaalue_LostFocus(object sender, RoutedEventArgs e)
         {
             var textBox = sender as TextBox;
-            if (!textBox.IsReadOnly)
+            if (textBox != null)
             {
-                VM?.ChangeFieldValue(textBox?.DataContext as DynamicField, textBox?.Text);
+                Task setVal = VM?.ChangeFieldValueAsync(textBox?.DataContext as DynamicField, textBox?.Text);
             }
         }
 

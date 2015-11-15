@@ -13,6 +13,7 @@ namespace UniFiler10.Data.Metadata
     {
         #region properties
         private static readonly string DEFAULT_ID = string.Empty;
+		public static readonly FieldValue Empty = new FieldValue() { Id = DEFAULT_ID };
 
         private string _id = DEFAULT_ID;
         [DataMember]
