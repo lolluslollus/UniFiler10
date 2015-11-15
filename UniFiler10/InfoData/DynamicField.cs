@@ -123,7 +123,7 @@ namespace UniFiler10.Data.Model
             tgt.FieldDescriptionId = _fieldDescriptionId;
         }
 
-		public Task<bool> SetValueAsync(string newValue)
+		public Task<bool> SetFieldValueAsync(string newValue)
 		{
 			return RunFunctionWhileOpenAsyncB(delegate 
 			{
@@ -135,10 +135,10 @@ namespace UniFiler10.Data.Model
 				}
 				else if (_fieldDescription.IsAnyValueAllowed)
 				{
-					var newFldVal0 = new FieldValue() { IsCustom = true, IsJustAdded = true, Vaalue = newValue };
-					if (_fieldDescription.AddPossibleValue(newFldVal0))
+					var newFldVal = new FieldValue() { IsCustom = true, IsJustAdded = true, Vaalue = newValue };
+					if (_fieldDescription.AddPossibleValue(newFldVal))
 					{
-						FieldValueId = newFldVal0.Id;
+						FieldValueId = newFldVal.Id;
 						return true;
 					}
 				}

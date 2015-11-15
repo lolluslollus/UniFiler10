@@ -185,6 +185,8 @@ namespace UniFiler10.Controlz
 
 		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
+			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
+			// when this changes a value, which goes straight into the DB, we must check it.
 			string selItem = _listView?.SelectedItem?.GetType()?.GetProperties()?.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?.GetValue(_listView?.SelectedItem)?.ToString();
 
 			//var textBinding = GetBindingExpression(TextBox.TextProperty)?.ParentBinding;
@@ -213,6 +215,8 @@ namespace UniFiler10.Controlz
 
 		private void OnDeleteBorder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
+			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
+			// when this changes a value, which goes straight into the DB, and it cannot be empty or null, we must check it.
 			ClearValue(TextProperty);
 		}
 

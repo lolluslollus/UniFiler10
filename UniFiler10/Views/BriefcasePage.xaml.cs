@@ -81,19 +81,19 @@ namespace UniFiler10.Views
         }
         #endregion construct dispose open close
 
-        private async void OnAddDbName_Click(object sender, RoutedEventArgs e)
+        private void OnAddDbName_Click(object sender, RoutedEventArgs e)
         {
             if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
             NewDbNameTB.Visibility = Visibility.Visible;
-            await UpdateAddDbFieldsAsync().ConfigureAwait(false);
+            UpdateAddDbFields();
         }
-        private async Task UpdateAddDbFieldsAsync()
+        private void UpdateAddDbFields()
         {
             if (!string.IsNullOrWhiteSpace(NewDbNameTB.Text))
             {
                 if (_vm != null)
                 {
-                    if (await _vm.CheckDbNameAsync(NewDbNameTB.Text))
+                    if (_vm.Briefcase?.CheckNewDbName(NewDbNameTB.Text) == true)
                     {
                         AddDbButton.Visibility = Visibility.Visible;
                         NewDbNameErrorTB.Visibility = Visibility.Collapsed;
@@ -111,9 +111,9 @@ namespace UniFiler10.Views
                 NewDbNameErrorTB.Visibility = Visibility.Collapsed;
             }
         }
-        private async void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
+        private void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
         {
-            await UpdateAddDbFieldsAsync().ConfigureAwait(false);
+            UpdateAddDbFields();
         }
         private async void OnAddDb_Click(object sender, RoutedEventArgs e)
         {
@@ -130,11 +130,11 @@ namespace UniFiler10.Views
             if (_vm != null) VM.Briefcase.IsPaneOpen = !_vm.Briefcase.IsPaneOpen;
         }
 
-        private async void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
+        private void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
         {
             if (_vm != null && e?.AddedItems?.Count > 0)
             {
-                await _vm.OpenBinderAsync(((sender as ListView).SelectedItem.ToString())).ConfigureAwait(false);
+                _vm.OpenBinder(((sender as ListView).SelectedItem.ToString()));
             }
         }
 
@@ -143,41 +143,46 @@ namespace UniFiler10.Views
             if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
         }
 
-        private async void OnRestoreBinder_Click(object sender, RoutedEventArgs e)
+        private void OnRestoreBinder_Click(object sender, RoutedEventArgs e)
         {
-            if (VM != null) await VM.RestoreDbAsync().ConfigureAwait(false);
+			Task restore = _vm?.RestoreDbAsync();
         }
 
-        private async void OnBackupBinder_Click(object sender, RoutedEventArgs e)
+        private void OnBackupBinder_Click(object sender, RoutedEventArgs e)
         {
-            var fe = sender as FrameworkElement;
-            if (VM != null && fe != null) await VM.BackupDbAsync(fe.DataContext as string).ConfigureAwait(false);
+			Task backup = _vm?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
         }
 
-        private async void OnDeleteBinder_Click(object sender, RoutedEventArgs e)
+        private void OnDeleteBinder_Click(object sender, RoutedEventArgs e)
         {
-            var fe = sender as FrameworkElement;
-            if (VM != null && fe != null)
-            {
-                //raise confirmation popup
-                var rl = new ResourceLoader(); // localisation globalisation localization globalization
-                string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
-                string strYes = rl.GetString("Yes");
-                string strNo = rl.GetString("No");
+			Task delete = _vm?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+			//var fe = sender as FrameworkElement;
+   //         if (VM != null && fe != null)
+   //         {
+   //             //raise confirmation popup
+   //             var rl = new ResourceLoader(); // localisation globalisation localization globalization
+   //             string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
+   //             string strYes = rl.GetString("Yes");
+   //             string strNo = rl.GetString("No");
 
-                var dialog = new MessageDialog(strQuestion);
-                UICommand yesCommand = new UICommand(strYes, (command) => { });
-                UICommand noCommand = new UICommand(strNo, (command) => { });
-                dialog.Commands.Add(yesCommand);
-                dialog.Commands.Add(noCommand);
-                dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
-                IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
-                // proceed
-                if (reply == yesCommand)
-                {
-                    await VM.DeleteDbAsync(fe.DataContext as string).ConfigureAwait(false);
-                }
-            }
+   //             var dialog = new MessageDialog(strQuestion);
+   //             UICommand yesCommand = new UICommand(strYes, (command) => { });
+   //             UICommand noCommand = new UICommand(strNo, (command) => { });
+   //             dialog.Commands.Add(yesCommand);
+   //             dialog.Commands.Add(noCommand);
+   //             dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
+   //             IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+   //             // proceed
+   //             if (reply == yesCommand)
+   //             {
+   //                 await VM.DeleteDbAsync(fe.DataContext as string).ConfigureAwait(false);
+   //             }
+   //         }
         }
-    }
+
+		private void OnOpenCover_Click(object sender, RoutedEventArgs e)
+		{
+			_vm?.OpenCover();
+		}
+	}
 }

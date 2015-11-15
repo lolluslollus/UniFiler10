@@ -120,14 +120,23 @@
   <data name="AddBinder.Label" xml:space="preserve">
     <value>Add</value>
   </data>
+  <data name="AddBinderT.Text" xml:space="preserve">
+    <value>Add binder</value>
+  </data>
   <data name="AddFolder.Label" xml:space="preserve">
     <value>Add folder</value>
   </data>
   <data name="AddFolderT.Text" xml:space="preserve">
     <value>Add folder</value>
   </data>
+  <data name="AddOpenBinderT.Text" xml:space="preserve">
+    <value>Add and open binder</value>
+  </data>
   <data name="AddOpenFolderT.Text" xml:space="preserve">
     <value>Add and open folder</value>
+  </data>
+  <data name="AllBinders.Text" xml:space="preserve">
+    <value>All binders</value>
   </data>
   <data name="AllFolders.Text" xml:space="preserve">
     <value>All folders</value>
@@ -137,6 +146,9 @@
   </data>
   <data name="Back.Text" xml:space="preserve">
     <value>Back</value>
+  </data>
+  <data name="Backup.Text" xml:space="preserve">
+    <value>Back up</value>
   </data>
   <data name="BackupBinder.Label" xml:space="preserve">
     <value>Back up</value>
@@ -149,6 +161,9 @@
   </data>
   <data name="Cover.Label" xml:space="preserve">
     <value>Cover</value>
+  </data>
+  <data name="Delete.Text" xml:space="preserve">
+    <value>Delete</value>
   </data>
   <data name="DeleteBinder.Label" xml:space="preserve">
     <value>Delete</value>
@@ -207,8 +222,11 @@
   <data name="Remarks.Text" xml:space="preserve">
     <value>Remarks</value>
   </data>
-  <data name="RestoreBinder.Label" xml:space="preserve">
-    <value>Restore</value>
+  <data name="RestoreBinder.Text" xml:space="preserve">
+    <value>Restore binder</value>
+  </data>
+  <data name="RestoreBinder1.Label" xml:space="preserve">
+    <value>Restore binder</value>
   </data>
   <data name="Settings.Label" xml:space="preserve">
     <value>Settings</value>

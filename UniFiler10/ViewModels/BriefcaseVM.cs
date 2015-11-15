@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
+using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.UI.Popups;
 
 namespace UniFiler10.ViewModels
 {
@@ -11,8 +13,16 @@ namespace UniFiler10.ViewModels
         private Briefcase _briefcase = null;
         public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
 
+		private bool _isNewDbNameVisible = false;
+		public bool IsNewDbNameVisible { get { return _isNewDbNameVisible; } set { _isNewDbNameVisible = value; RaisePropertyChanged_UI(); if (_isNewDbNameVisible) UpdateIsNewDbNameErrorMessageVisible(); } }
 
-        public BriefcaseVM() { }
+		private bool _isNewDbNameErrorMessageVisible = false;
+		public bool IsNewDbNameErrorMessageVisible { get { return _isNewDbNameErrorMessageVisible; } set { _isNewDbNameErrorMessageVisible = value; RaisePropertyChanged_UI(); } }
+
+		private string _newDbName = string.Empty;
+		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); UpdateIsNewDbNameErrorMessageVisible(); } }
+
+		public BriefcaseVM() { }
         protected override async Task OpenMayOverrideAsync()
         {
             if (_briefcase == null) Briefcase = Briefcase.CreateInstance();
@@ -24,58 +34,93 @@ namespace UniFiler10.ViewModels
             _briefcase?.Dispose();
             _briefcase = null;
         }
-        public Task<bool> AddDbAsync(string dbName)
+		public bool AddDbStep0()
+		{
+			if (_briefcase == null || !_briefcase.IsOpen) return false;
+
+			_briefcase.IsShowingSettings = false;
+			IsNewDbNameVisible = true;
+
+			return true;
+		}
+
+		public async Task<bool> AddDbStep1()
+		{
+			bool isDbNameOk = _briefcase?.CheckNewDbName(_newDbName) == true;
+			if (isDbNameOk)
+			{
+				isDbNameOk = await AddDbAsync(_newDbName);
+			}
+			if (isDbNameOk)
+			{
+				OpenBinder(_newDbName);
+				_briefcase.SetIsCoverOpen(false);
+			}
+
+			return isDbNameOk;
+		}
+		public bool OpenBinder(string newDbName)
+		{
+			return _briefcase?.OpenBinder(newDbName) == true;
+		}
+		private void UpdateIsNewDbNameErrorMessageVisible()
+		{
+			bool isDbNameOk = _briefcase?.CheckNewDbName(_newDbName) == true;
+			if (isDbNameOk)
+			{
+				IsNewDbNameErrorMessageVisible = false;
+			}
+			else
+			{
+				IsNewDbNameErrorMessageVisible = true;
+			}
+
+		}
+		public Task<bool> AddDbAsync(string dbName)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
-            {
-                return await _briefcase.AddBinderAsync(dbName).ConfigureAwait(false);
-            });
+            return _briefcase?.AddBinderAsync(dbName);
         }
-        public Task<bool> DeleteDbAsync(string dbName)
+        public async Task<bool> DeleteDbAsync(string dbName)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
-            {
-                return await _briefcase.DeleteBinderAsync(dbName).ConfigureAwait(false);
-            });
+			if (_briefcase == null) return false;
+
+			bool isDeleted = await GetUserConfirmationBeforeDeletingBinderAsync() && await _briefcase?.DeleteBinderAsync(dbName);
+
+			return isDeleted;
         }
-        public Task<bool> RestoreDbAsync()
+		private async Task<bool> GetUserConfirmationBeforeDeletingBinderAsync()
+		{
+			//raise confirmation popup
+			var rl = new ResourceLoader(); // localisation globalisation localization globalization
+			string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
+			string strYes = rl.GetString("Yes");
+			string strNo = rl.GetString("No");
+
+			var dialog = new MessageDialog(strQuestion);
+			UICommand yesCommand = new UICommand(strYes, (command) => { });
+			UICommand noCommand = new UICommand(strNo, (command) => { });
+			dialog.Commands.Add(yesCommand);
+			dialog.Commands.Add(noCommand);
+			dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
+			IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+
+			return reply == yesCommand;
+		}
+
+		public async Task<bool> RestoreDbAsync()
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
-            {
-                var fromStorageFolder = await PickFolderAsync();
-                return await _briefcase.RestoreBinderAsync(fromStorageFolder).ConfigureAwait(false);
-            });
+            var fromStorageFolder = await PickFolderAsync();
+            return await _briefcase?.RestoreBinderAsync(fromStorageFolder);
         }
 
-        public Task<bool> BackupDbAsync(string dbName)
+        public async Task<bool> BackupDbAsync(string dbName)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
-            {
-                if (string.IsNullOrWhiteSpace(dbName) || !_briefcase.DbNames.Contains(dbName)) return false;
+            if (string.IsNullOrWhiteSpace(dbName) || _briefcase == null || !_briefcase.DbNames.Contains(dbName)) return false;
 
-                var toParentStorageFolder = await PickFolderAsync();
-                return await _briefcase.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
-            });
+            var toParentStorageFolder = await PickFolderAsync();
+            return await _briefcase.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
         }
 
-        public Task<bool> CheckDbNameAsync(string newDbName)
-        {
-            return RunFunctionWhileOpenAsyncB(delegate
-            {
-                if (!string.IsNullOrWhiteSpace(newDbName))
-                    return !_briefcase.DbNames.Contains(newDbName);
-                else
-                    return false;
-            });
-        }
-        public Task<bool> OpenBinderAsync(string dbName)
-        {
-            return RunFunctionWhileOpenAsyncB(delegate
-            {
-                _briefcase.CurrentBinderName = dbName;
-                return true;
-            });
-        }
         private async Task<StorageFolder> PickFolderAsync()
         {
             //bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
@@ -94,5 +139,10 @@ namespace UniFiler10.ViewModels
             //}
             //return false;
         }
-    }
+
+		public void OpenCover()
+		{
+			_briefcase?.SetIsCoverOpen(true);
+		}
+	}
 }

@@ -16,14 +16,14 @@
     <ctl:OpenableObservableControl.Resources>
         <Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
             <ObjectAnimationUsingKeyFrames 
-                Storyboard.TargetName="symbolIcon" 
+                Storyboard.TargetName="RefreshIcon" 
                 Storyboard.TargetProperty="Visibility">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
             </ObjectAnimationUsingKeyFrames>
 
             <DoubleAnimationUsingKeyFrames 
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.Rotation)" 
-                Storyboard.TargetName="symbolIcon">
+                Storyboard.TargetName="RefreshIcon">
                 <LinearDoubleKeyFrame KeyTime="0" Value="0"/>
                 <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90"/>
                 <LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
@@ -32,27 +32,27 @@
 
             <!--<DoubleAnimationUsingKeyFrames 
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
-                Storyboard.TargetName="symbolIcon">
+                Storyboard.TargetName="RefreshIcon">
                 <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
                 <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
             </DoubleAnimationUsingKeyFrames>
             <DoubleAnimationUsingKeyFrames 
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
-                Storyboard.TargetName="symbolIcon">
+                Storyboard.TargetName="RefreshIcon">
                 <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
                 <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
             </DoubleAnimationUsingKeyFrames>-->
 
             <!--<ObjectAnimationUsingKeyFrames 
-                Storyboard.TargetName="symbolIcon" 
+                Storyboard.TargetName="RefreshIcon" 
                 Storyboard.TargetProperty="Visibility">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.5" Value="Collapsed"/>
             </ObjectAnimationUsingKeyFrames>-->
-            <!--<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="symbolIcon">
+            <!--<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="RefreshIcon">
                 <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
                 <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
             </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)" Storyboard.TargetName="symbolIcon">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)" Storyboard.TargetName="RefreshIcon">
                 <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
                 <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
             </DoubleAnimationUsingKeyFrames>-->
@@ -79,7 +79,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Stretch="Uniform">
-                    <SymbolIcon x:Name="symbolIcon" 
+                    <SymbolIcon x:Name="RefreshIcon" 
                             Symbol="Sync"
                             RenderTransformOrigin=".5, .5" 
                             Visibility="Collapsed"

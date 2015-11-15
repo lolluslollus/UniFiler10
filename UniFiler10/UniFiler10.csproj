@@ -133,7 +133,6 @@
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLite.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
-    <Compile Include="Utilz\PointerOverTrigger.cs" />
     <Compile Include="Utilz\ProportionsTrigger.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />
     <Compile Include="ViewModels\BinderVM.cs" />
@@ -141,6 +140,9 @@
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="Views\AudioRecorderView.xaml.cs">
       <DependentUpon>AudioRecorderView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BriefcaseCoverView.xaml.cs">
+      <DependentUpon>BriefcaseCoverView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BinderCoverView.xaml.cs">
       <DependentUpon>BinderCoverView.xaml</DependentUpon>
@@ -232,6 +234,10 @@
     <Page Include="Views\AudioRecorderView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BriefcaseCoverView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\BinderCoverView.xaml">
       <SubType>Designer</SubType>

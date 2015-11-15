@@ -349,13 +349,13 @@ namespace UniFiler10.ViewModels
 			{
 				var oldValue = dynFld.FieldValue.Vaalue;
 
-				isOk = await dynFld.SetValueAsync(newValue);
+				isOk = await dynFld.SetFieldValueAsync(newValue);
 
 				if (!isOk) dynFld.FieldValue.Vaalue = oldValue;
 			}
 			else if (dynFld.FieldValue == null)
 			{
-				isOk = await dynFld.SetValueAsync(newValue);
+				isOk = await dynFld.SetFieldValueAsync(newValue);
 			}
 			return isOk;
 		}
