@@ -26,6 +26,7 @@
 		<Setter Property="ScrollViewer.IsDeferredScrollingEnabled" Value="False"/>
 		<Setter Property="Padding" Value="{ThemeResource TextControlThemePadding}"/>
 		<Setter Property="IsEditableDecoratorVisible" Value="True"/>
+		<Setter Property="IsDropDownButtonVisible" Value="True"/>
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="ctl:LolloTextBox">
@@ -197,6 +198,10 @@
 							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"/>
 						<ContentControl x:Name="PlaceholderTextContentPresenter" 
                             Grid.Row="1" Grid.Column="1"
+							VerticalAlignment="Stretch"
+							HorizontalAlignment="Stretch"
+							VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+							HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                             Content="{TemplateBinding PlaceholderText}" 
 							Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
 							IsHitTestVisible="False" IsTabStop="False" 

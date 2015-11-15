@@ -207,10 +207,14 @@ namespace UniFiler10.Data.Model
             IsCoverOpen = newValue;
         }
 
-        #endregion properties
+		private string _catIdForFilter = DEFAULT_ID;
+		[DataMember]
+		public string CatIdForFilter { get { return _catIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_catIdForFilter != newValue) { _catIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
 
-        #region loading methods
-        internal const string FILENAME = "LolloSessionDataBinder.xml";
+		#endregion properties
+
+		#region loading methods
+		internal const string FILENAME = "LolloSessionDataBinder.xml";
 
         private async Task LoadNonDbPropertiesAsync()
         {
@@ -307,6 +311,7 @@ namespace UniFiler10.Data.Model
         {
             IsPaneOpen = source.IsPaneOpen;
             IsCoverOpen = source.IsCoverOpen;
+			CatIdForFilter = source.CatIdForFilter;
             DBName = source.DBName;
             CurrentFolderId = source.CurrentFolderId; // last
         }
@@ -316,6 +321,7 @@ namespace UniFiler10.Data.Model
             target.CurrentFolderId = _currentFolderId;
             target.IsPaneOpen = _isPaneOpen;
             target.IsCoverOpen = _isCoverOpen;
+			target.CatIdForFilter = _catIdForFilter;
             target.DBName = _dbName;
             return target;
         }

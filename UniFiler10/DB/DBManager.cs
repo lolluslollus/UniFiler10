@@ -474,7 +474,37 @@ namespace UniFiler10.Data.DB
             }
             return dynCats;
         }
-        internal async Task<List<DynamicField>> GetDynamicFieldsAsync(string parentId)
+		internal async Task<List<DynamicCategory>> GetDynamicCategoriesAsync()
+		{
+			List<DynamicCategory> dynCats = new List<DynamicCategory>();
+			try
+			{
+				dynCats = await LolloSQLiteConnectionMT.ReadTableAsync<DynamicCategory>
+					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore)
+					.ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return dynCats;
+		}
+		internal async Task<List<DynamicCategory>> GetDynamicCategoriesByCatAsync(string catId)
+		{
+			List<DynamicCategory> dynCats = new List<DynamicCategory>();
+			try
+			{
+				dynCats = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicCategory>
+					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, nameof(DynamicCategory), catId, "CategoryId")
+					.ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return dynCats;
+		}
+		internal async Task<List<DynamicField>> GetDynamicFieldsAsync(string parentId)
         {
             var dynFlds = new List<DynamicField>();
             try
@@ -712,15 +742,15 @@ namespace UniFiler10.Data.DB
                 }
                 return result;
             }
-            public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId) where T : new()
+            public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
             {
                 return Task.Run<List<T>>(() =>
                 //                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
                 {
-                    return ReadRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId);
+                    return ReadRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
                 });
             }
-            public static List<T> ReadRecordsWithParentId<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId) where T : new()
+            public static List<T> ReadRecordsWithParentId<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
             {
                 if (!_isOpen) return null;
 
@@ -735,7 +765,7 @@ namespace UniFiler10.Data.DB
                         try
                         {
                             int aResult = conn.CreateTable(typeof(T));
-                            string queryString = string.Format("SELECT * FROM {0} WHERE ParentId = '{1}'", tableName, parentId);
+                            string queryString = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
                             var query = conn.Query<T>(queryString);
                             result = query.ToList<T>();
                         }

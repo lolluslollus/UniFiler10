@@ -6,48 +6,50 @@
     xmlns:local="using:UniFiler10.Views"
     xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:utilz="using:Utilz"
+	xmlns:vms="using:UniFiler10.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    d:DesignHeight="300"
-    d:DesignWidth="700"
+    d:DesignHeight="500"
+    d:DesignWidth="300"
+	d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
     IsEnabled="{Binding IsEnabled}">
 
-    <ctl:OpenableObservableControl.Resources>
-        <Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
-            <ObjectAnimationUsingKeyFrames 
+	<ctl:OpenableObservableControl.Resources>
+		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
+			<ObjectAnimationUsingKeyFrames 
                 Storyboard.TargetName="RefreshIcon" 
                 Storyboard.TargetProperty="Visibility">
-                <DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
-            </ObjectAnimationUsingKeyFrames>
+				<DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
+			</ObjectAnimationUsingKeyFrames>
 
-            <DoubleAnimationUsingKeyFrames 
+			<DoubleAnimationUsingKeyFrames 
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.Rotation)" 
                 Storyboard.TargetName="RefreshIcon">
-                <LinearDoubleKeyFrame KeyTime="0" Value="0"/>
-                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90"/>
-                <LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
-                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
-            </DoubleAnimationUsingKeyFrames>
-        </Storyboard>
-    </ctl:OpenableObservableControl.Resources>
+				<LinearDoubleKeyFrame KeyTime="0" Value="0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+	</ctl:OpenableObservableControl.Resources>
 
-    <ScrollViewer>
-        <Grid Background="Lavender" x:Name="LayoutRoot" DataContext="{x:Bind VM, Mode=OneWay}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+	<ScrollViewer>
+		<Grid Background="Lavender" x:Name="LayoutRoot" DataContext="{x:Bind VM, Mode=OneWay}">
+			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
 
-                <Viewbox
+			<Viewbox
                     Width="{StaticResource LandscapeItemHeight}"
                     Height="{StaticResource LandscapeItemHeight}"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Stretch="Uniform">
-                    <SymbolIcon x:Name="RefreshIcon" 
+				<SymbolIcon x:Name="RefreshIcon" 
                             Symbol="Sync"
                             RenderTransformOrigin=".5, .5" 
                             Visibility="Collapsed"
@@ -55,37 +57,37 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Margin="{StaticResource ButtonPadding}">
-                        <SymbolIcon.RenderTransform>
-                            <CompositeTransform Rotation="0"/>
-                        </SymbolIcon.RenderTransform>
-                    </SymbolIcon>
-                </Viewbox>
+					<SymbolIcon.RenderTransform>
+						<CompositeTransform Rotation="0"/>
+					</SymbolIcon.RenderTransform>
+				</SymbolIcon>
+			</Viewbox>
 
 			<!-- actions for all binders -->
-            <VariableSizedWrapGrid Grid.Row="0"
+			<VariableSizedWrapGrid Grid.Row="0"
                 Orientation="Horizontal"
                 Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"
                 HorizontalAlignment="Stretch">
 
-                <Button 
+				<Button 
                     Tapped="OnAddBinderStep0_Tapped"
                     Width="{StaticResource LandscapeLargeItemWidth}"
 					Height="{StaticResource LandscapeItemHeight}"
                     Style="{StaticResource ButtonLolloStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
 
-                        <SymbolIcon Symbol="Add"/>
-                        <TextBlock Grid.Column="2" x:Uid="AddBinderT" 
+						<SymbolIcon Symbol="Add"/>
+						<TextBlock Grid.Column="2" x:Uid="AddBinderT" 
 							MaxWidth="{StaticResource LandscapeItemWidth}"
 							TextWrapping="Wrap" 
 							HorizontalAlignment="Left"/>
-                    </Grid>
-                </Button>
+					</Grid>
+				</Button>
 
 				<Button 
                     Tapped="OnRestoreButton_Tapped"
@@ -112,22 +114,22 @@
                     Width="{StaticResource LandscapeLargeItemWidth}"
 					Height="{StaticResource LandscapeItemHeight}"
                     Style="{StaticResource ButtonLolloStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-                            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
 
-                        <SymbolIcon Symbol="Back"/>
-                        <TextBlock Grid.Column="2" x:Uid="Back" 
+						<SymbolIcon Symbol="Back"/>
+						<TextBlock Grid.Column="2" x:Uid="Back" 
 							MaxWidth="{StaticResource LandscapeItemWidth}"
 							TextWrapping="Wrap" 
 							HorizontalAlignment="Left"/>
-                    </Grid>
-                </Button>
+					</Grid>
+				</Button>
 
-            </VariableSizedWrapGrid>
+			</VariableSizedWrapGrid>
 
 			<!-- add new binder -->
 			<Grid Grid.Row="1"
@@ -160,14 +162,11 @@
 					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
 					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 			</Grid>
-			
+
 			<!-- "all binders" header -->
 			<Grid Grid.Row="2">
 				<Border
-					Background="{ThemeResource SystemControlBackgroundBaseMediumBrush}"
-					Padding="{StaticResource ButtonPadding}"
-					HorizontalAlignment="Stretch"
-					VerticalAlignment="Stretch"
+					Style="{StaticResource BorderLolloStyle}"
 					MinWidth="{StaticResource LandscapeItemWidth}"
 					MinHeight="{StaticResource LandscapeItemHeight}"/>
 
@@ -180,41 +179,41 @@
 					Foreground="{ThemeResource SystemControlHighlightAltChromeWhiteBrush}"
                     x:Uid="AllBinders" 
                     TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
-            </Grid>
+			</Grid>
 
 			<!-- all binder miniatures -->
-            <ctl:TolerantListView Grid.Row="3"
+			<ctl:TolerantListView Grid.Row="3"
                 ItemsSource="{Binding Briefcase.DbNames}"
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
                 ItemClick="OnFolderPreviews_ItemClick"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsWrapGrid Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
-                            </Grid.ColumnDefinitions>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<ItemsWrapGrid Orientation="Horizontal"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
+							</Grid.ColumnDefinitions>
 
-                            <Viewbox Canvas.ZIndex="200"
+							<Viewbox Canvas.ZIndex="200"
                                 Stretch="Uniform" StretchDirection="DownOnly"
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
                                 MaxHeight="{StaticResource MiniatureQuarterHeight}">
-                                <TextBlock
+								<TextBlock
                                     Text="{Binding}"
                                     Foreground="{StaticResource FlashyForeground}" 
                                     HorizontalAlignment="Stretch"
                                     TextWrapping="Wrap"
                                     MaxWidth="{StaticResource MiniatureWidth}"/>
-                            </Viewbox>
+							</Viewbox>
 
 							<Border Height="{StaticResource MiniatureHeight}"
 								Width="{StaticResource MiniatureWidth}"
@@ -238,10 +237,10 @@
 									Opacity="1"
 									HorizontalAlignment="Right" VerticalAlignment="Top"/>
 						</Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ctl:TolerantListView>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ctl:TolerantListView>
 
-        </Grid>
-    </ScrollViewer>
+		</Grid>
+	</ScrollViewer>
 </ctl:OpenableObservableControl>

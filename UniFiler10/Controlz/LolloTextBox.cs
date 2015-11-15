@@ -39,13 +39,13 @@ namespace UniFiler10.Controlz
 		public static readonly DependencyProperty IsEditableDecoratorVisibleProperty =
 			DependencyProperty.Register("IsEditableDecoratorVisible", typeof(bool), typeof(LolloTextBox), new PropertyMetadata(true, OnIsEditableDecoratorVisibleChanged));
 
-		public bool IsDropDownVisible
+		public bool IsDropDownButtonVisible
 		{
-			get { return (bool)GetValue(IsDropDownVisibleProperty); }
-			set { SetValue(IsDropDownVisibleProperty, value); }
+			get { return (bool)GetValue(IsDropDownButtonVisibleProperty); }
+			set { SetValue(IsDropDownButtonVisibleProperty, value); }
 		}
-		public static readonly DependencyProperty IsDropDownVisibleProperty =
-			DependencyProperty.Register("IsDropDownVisible", typeof(bool), typeof(LolloTextBox), new PropertyMetadata(true, OnIsDropDownVisibleChanged));
+		public static readonly DependencyProperty IsDropDownButtonVisibleProperty =
+			DependencyProperty.Register("IsDropDownButtonVisible", typeof(bool), typeof(LolloTextBox), new PropertyMetadata(true, OnIsDropDownButtonVisibleChanged));
 
 		public Visibility EditableDecoratorVisibility
 		{
@@ -85,26 +85,44 @@ namespace UniFiler10.Controlz
 		public static readonly DependencyProperty DisplayMemberPathProperty =
 			DependencyProperty.Register("DisplayMemberPath", typeof(string), typeof(LolloTextBox), new PropertyMetadata(null));
 
+		public bool IsEmptyValueAllowedEvenIfNotInList
+		{
+			get { return (bool)GetValue(IsEmptyValueAllowedEvenIfNotInListProperty); }
+			set { SetValue(IsEmptyValueAllowedEvenIfNotInListProperty, value); }
+		}
+		public static readonly DependencyProperty IsEmptyValueAllowedEvenIfNotInListProperty =
+			DependencyProperty.Register("IsEmptyValueAllowedEvenIfNotInList", typeof(bool), typeof(LolloTextBox), new PropertyMetadata(true, OnIsEmptyValueAllowedEvenIfNotInListChanged));
+
+		private static void OnIsEmptyValueAllowedEvenIfNotInListChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			if (args == null || args.NewValue == args.OldValue) return;
+			(obj as LolloTextBox)?.UpdateDeleteButton();
+		}
+
 		private static void OnIsEditableDecoratorVisibleChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
+			if (args == null || args.NewValue == args.OldValue) return;
 			(obj as LolloTextBox)?.UpdateEDV();
 		}
 
-		private static void OnIsDropDownVisibleChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		private static void OnIsDropDownButtonVisibleChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			(obj as LolloTextBox)?.UpdateDropDown();
+			if (args == null || args.NewValue == args.OldValue) return;
+			(obj as LolloTextBox)?.UpdateDropDownButton();
 			(obj as LolloTextBox)?.UpdateDeleteButton();
 		}
 
 		private void OnItemsSource_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			UpdateItemsSource();
-			UpdateDropDown();
+			UpdateDropDownButton();
 			UpdateDeleteButton();
 		}
 
 		private static void OnItemsSourceChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
+			if (args == null || args.NewValue == args.OldValue) return;
+
 			var ltb = (obj as LolloTextBox);
 			if (ltb != null)
 			{
@@ -112,7 +130,7 @@ namespace UniFiler10.Controlz
 				if (args.NewValue is INotifyCollectionChanged) (args.NewValue as INotifyCollectionChanged).CollectionChanged += ltb.OnItemsSource_CollectionChanged;
 
 				ltb.UpdateItemsSource();
-				ltb.UpdateDropDown();
+				ltb.UpdateDropDownButton();
 				ltb.UpdateDeleteButton();
 			}
 		}
@@ -126,7 +144,7 @@ namespace UniFiler10.Controlz
 		private static void OnIsEnabledChanged(DependencyObject obj, DependencyProperty prop)
 		{
 			(obj as LolloTextBox)?.UpdateEDV();
-			(obj as LolloTextBox)?.UpdateDropDown();
+			(obj as LolloTextBox)?.UpdateDropDownButton();
 			(obj as LolloTextBox)?.UpdateDeleteButton();
 		}
 
@@ -176,7 +194,7 @@ namespace UniFiler10.Controlz
 
 			UpdateEDV();
 			UpdateItemsSource();
-			UpdateDropDown();
+			UpdateDropDownButton();
 			UpdateDeleteButton();
 
 			//UpdateStates(false);
@@ -184,7 +202,7 @@ namespace UniFiler10.Controlz
 
 
 		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{
+		{		
 			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
 			// when this changes a value, which goes straight into the DB, we must check it.
 			string selItem = _listView?.SelectedItem?.GetType()?.GetProperties()?.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?.GetValue(_listView?.SelectedItem)?.ToString();
@@ -235,14 +253,14 @@ namespace UniFiler10.Controlz
 			if (!IsReadOnly && IsEnabled && IsEditableDecoratorVisible) EditableDecoratorVisibility = Visibility.Visible;
 			else EditableDecoratorVisibility = Visibility.Collapsed;
 		}
-		private void UpdateDropDown()
+		private void UpdateDropDownButton()
 		{
-			if (IsEnabled && IsDropDownVisible && (_listView?.ItemsSource as IList)?.Count > 0) DropDownVisibility = Visibility.Visible;
+			if (IsEnabled && IsDropDownButtonVisible && (_listView?.ItemsSource as IList)?.Count > 0) DropDownVisibility = Visibility.Visible;
 			else DropDownVisibility = Visibility.Collapsed;
 		}
 		private void UpdateDeleteButton()
 		{
-			if (IsEnabled && (!IsReadOnly || (IsDropDownVisible && (_listView?.ItemsSource as IList)?.Count > 0))) DeleteVisibility = Visibility.Visible;
+			if (IsEnabled && (!IsReadOnly || (IsDropDownButtonVisible && (_listView?.ItemsSource as IList)?.Count > 0 && IsEmptyValueAllowedEvenIfNotInList))) DeleteVisibility = Visibility.Visible;
 			else DeleteVisibility = Visibility.Collapsed;
 		}
 		private void UpdateItemsSource()

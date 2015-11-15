@@ -1009,6 +1009,13 @@
 		</Setter>
 	</Style>
 
+	<Style x:Key="BorderLolloStyle" TargetType="Border">
+		<Setter Property="Background" Value="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
+		<Setter Property="Padding" Value="{StaticResource ButtonPadding}"/>
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="VerticalAlignment" Value="Stretch"/>
+	</Style>
+
 	<GridLength x:Key="CheckBoxWidth_ForGrid">32</GridLength>
     <x:Double x:Key="CheckBoxWidth">32</x:Double>
 

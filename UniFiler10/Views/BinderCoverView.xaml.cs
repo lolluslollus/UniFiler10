@@ -155,18 +155,6 @@ namespace UniFiler10.Views
             Task all = _vm?.SelectFolderAsync((e?.ClickedItem as BinderCoverVM.FolderPreview)?.FolderId);
         }
 
-        private void OnAllRefresh_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            // Task all = _vm?.RefreshAllFoldersAsync(0);
-            Task upd = _vm?.UpdateFoldersAsync(0);
-        }
-
-        private void OnRecentRefresh_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            // Task all = _vm?.RefreshRecentFoldersAsync(0);
-            Task upd = _vm?.UpdateFoldersAsync(0);
-        }
-
         private void OnDeleteFolder_Tapped(object sender, TappedRoutedEventArgs e)
         {
             var fp = (sender as FrameworkElement).DataContext as BinderCoverVM.FolderPreview;

@@ -14,7 +14,7 @@ namespace UniFiler10.Data.Model
     [DataContract]
     public abstract class DbBoundObservableData : OpenableObservableData
     {
-        protected static readonly string DEFAULT_ID = string.Empty;
+        public static readonly string DEFAULT_ID = string.Empty;
 
         #region properties
         // SQLite does not like a private set here
