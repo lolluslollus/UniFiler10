@@ -30,6 +30,7 @@
     <x:Double x:Key="ButtonBarItemSizeMedium">64</x:Double>
     <x:Double x:Key="LandscapeLargeItemWidth">300</x:Double>
     <x:Double x:Key="LandscapeItemWidth">200</x:Double>
+	<x:Double x:Key="LandscapeThreeQuartersItemWidth">150</x:Double>
     <x:Double x:Key="LandscapeItemHeight">80</x:Double>
     <GridLength x:Key="LandscapeLargeItemWidth_ForGrid">300</GridLength>
     <GridLength x:Key="LandscapeItemWidth_ForGrid">200</GridLength>
@@ -1012,14 +1013,17 @@
     <x:Double x:Key="CheckBoxWidth">32</x:Double>
 
     <Style x:Key="CheckBoxLolloStyle" TargetType="CheckBox">
-        <Setter Property="Background" Value="Transparent"/>
+        <!--<Setter Property="Background" Value="Transparent"/>-->
+		<Setter Property="Background" Value="{ThemeResource SystemControlBackgroundAltHighBrush}"/>
         <Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
-        <!--<Setter Property="Padding" Value="8,5,0,0"/>-->
-        <Setter Property="Padding" Value="0,0,8,0"/>
-        <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="BorderBrush" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
+		<Setter Property="BorderThickness" Value="{ThemeResource TextControlBorderThemeThickness}"/>
+		<!--<Setter Property="Padding" Value="8,5,0,0"/>-->
+        <Setter Property="Padding" Value="8,0,8,0"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
         <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}"/>
         <Setter Property="MinWidth" Value="120"/>
@@ -1029,10 +1033,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                    <Grid Background="{TemplateBinding Background}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="{StaticResource CheckBoxWidth_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource CheckBoxWidth_ForGrid}"/>
                         </Grid.ColumnDefinitions>
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CombinedStates">
@@ -1193,13 +1197,21 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Grid Grid.Column="1"
-                            Height="{StaticResource CheckBoxWidth}" 
+						<Border x:Name="BorderElement" 
+                            Grid.ColumnSpan="2"
+							Background="Transparent"
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            BorderBrush="{TemplateBinding BorderBrush}"/>
+						<Grid Grid.Column="1"
+                            Width="{StaticResource CheckBoxWidth}"
                             VerticalAlignment="Top">
-                            <Rectangle x:Name="NormalRectangle" Fill="Transparent" 
+
+							<!--Stroke="{ThemeResource SystemControlForegroundBaseMediumHighBrush}"-->
+							<Rectangle x:Name="NormalRectangle" Fill="Transparent" 
                                 Height="{StaticResource CheckBoxWidth}"
-                                Width="{StaticResource CheckBoxWidth}"
-                                Stroke="{ThemeResource SystemControlForegroundBaseMediumHighBrush}" StrokeThickness="{ThemeResource CheckBoxBorderThemeThickness}"
+                                Width="{StaticResource CheckBoxWidth}"                                
+								Stroke="{ThemeResource SystemControlHighlightAccentBrush}"
+								StrokeThickness="{ThemeResource CheckBoxBorderThemeThickness}"
                                 UseLayoutRounding="False"/>
                             <FontIcon x:Name="CheckGlyph" Foreground="{ThemeResource SystemControlHighlightAltChromeWhiteBrush}" 
                                 FontSize="{StaticResource CheckBoxWidth}" 
@@ -1207,15 +1219,15 @@
                                 Glyph="&#xE001;" 
                                 Opacity="0"/>
                         </Grid>
-                        <ContentPresenter x:Name="ContentPresenter" Grid.Column="0"
-                            AutomationProperties.AccessibilityView="Raw" 
-                            ContentTemplate="{TemplateBinding ContentTemplate}" 
-                            ContentTransitions="{TemplateBinding ContentTransitions}" 
-                            Content="{TemplateBinding Content}"  
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
-                            Margin="{TemplateBinding Padding}" 
-                            TextWrapping="Wrap" 
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+						<ContentPresenter x:Name="ContentPresenter" Grid.Column="0"										  
+                            AutomationProperties.AccessibilityView="Raw"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            ContentTransitions="{TemplateBinding ContentTransitions}"
+                            Content="{TemplateBinding Content}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+							VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Margin="{TemplateBinding Padding}"
+                            TextWrapping="Wrap"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

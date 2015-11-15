@@ -82,6 +82,8 @@
                     </Grid.ColumnDefinitions>
 
                     <AppBarToggleButton
+						Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"						
                         VerticalAlignment="Top"
 						IsChecked="{Binding IsEditingCategories, Mode=TwoWay}"
 						Icon="Edit"
@@ -93,18 +95,17 @@
 						ItemsSource="{Binding VM.FolderCategorySelector, ElementName=me}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <ItemsStackPanel Orientation="Vertical"/>
+								<ItemsWrapGrid Orientation="Horizontal"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <CheckBox 
+                                <CheckBox
+									Width="{StaticResource LandscapeItemWidth}"
+									Height="{StaticResource LandscapeItemHeight}"
 									IsChecked="{Binding IsOn, Mode=TwoWay}"
-                                    Style="{StaticResource CheckBoxLolloStyle}">
-                                    <CheckBox.Content>
-                                        <TextBlock
-										    Text="{Binding Name, Mode=OneWay}" />
-                                    </CheckBox.Content>
+                                    Style="{StaticResource CheckBoxLolloStyle}"
+									Content="{Binding Name, Mode=OneWay}">
                                 </CheckBox>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -139,12 +140,13 @@
                                     </Storyboard>
                                 </Grid.Resources>-->
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+                                    <ColumnDefinition />
                                     <!--<ColumnDefinition Width="Auto"/>-->
                                 </Grid.ColumnDefinitions>
 
                                 <ctl:LolloTextBox
 									x:Name="VaalueTB"
+									Width="{StaticResource LandscapeItemWidth}"
 									Height="{StaticResource LandscapeItemHeight}"
 									VerticalAlignment="Center"
 									Text="{Binding FieldValue.Vaalue, Mode=OneWay}"                                    

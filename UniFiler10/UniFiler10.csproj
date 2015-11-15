@@ -104,7 +104,6 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\LayoutTransformer.cs" />
-    <Compile Include="Controlz\LolloComboBox.cs" />
     <Compile Include="Controlz\LolloSplitView.xaml.cs">
       <DependentUpon>LolloSplitView.xaml</DependentUpon>
     </Compile>
