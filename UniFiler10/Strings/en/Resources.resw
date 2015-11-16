@@ -156,6 +156,9 @@
   <data name="ByCatFolders.Text" xml:space="preserve">
     <value>Folders with category</value>
   </data>
+  <data name="ByFldFolders.Text" xml:space="preserve">
+    <value>Folders with value</value>
+  </data>
   <data name="Categories.Text" xml:space="preserve">
     <value>Categories</value>
   </data>

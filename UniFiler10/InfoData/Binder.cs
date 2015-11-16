@@ -207,11 +207,23 @@ namespace UniFiler10.Data.Model
             IsCoverOpen = newValue;
         }
 
+		private string _catIdForCatFilter = DEFAULT_ID;
+		[DataMember]
+		public string CatIdForCatFilter { get { return _catIdForCatFilter; } set { string newValue = value ?? DEFAULT_ID; if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; RaisePropertyChanged_UI(); } } }
+
 		private string _catIdForFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForFilter { get { return _catIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_catIdForFilter != newValue) { _catIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
 
+		private string _fldDscIdForFilter = DEFAULT_ID;
+		[DataMember]
+		public string FldDscIdForFilter { get { return _fldDscIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_fldDscIdForFilter != newValue) { _fldDscIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
+
+		private string _fldValIdForFilter = DEFAULT_ID;
+		[DataMember]
+		public string FldValIdForFilter { get { return _fldValIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_fldValIdForFilter != newValue) { _fldValIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
 		#endregion properties
+
 
 		#region loading methods
 		internal const string FILENAME = "LolloSessionDataBinder.xml";
