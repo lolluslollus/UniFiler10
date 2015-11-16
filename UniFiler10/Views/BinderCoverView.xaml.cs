@@ -169,9 +169,14 @@ namespace UniFiler10.Views
         {
             Task del = _vm?.AddOpenFolderAsync();
         }
-        #endregion event handlers
 
-        public void StartAnimation()
+		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			_vm?.ShowSettings();
+		}
+		#endregion event handlers
+
+		public void StartAnimation()
         {
             RunInUiThread(delegate
             {
@@ -186,5 +191,5 @@ namespace UniFiler10.Views
                 UpdatingStoryboard.Stop();
             });
         }
-    }
+	}
 }

@@ -144,5 +144,10 @@ namespace UniFiler10.ViewModels
 		{
 			_briefcase?.SetIsCoverOpen(true);
 		}
+		public void ShowSettings(bool newValue)
+		{
+			_briefcase.SetIsCoverOpen(false);
+			_briefcase?.ShowSettings(newValue);
+		}
 	}
 }

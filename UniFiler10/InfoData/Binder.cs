@@ -89,7 +89,7 @@ namespace UniFiler10.Data.Model
                 await folder.CloseAsync().ConfigureAwait(false);
             }
 
-            await SaveAsync().ConfigureAwait(false);
+            await SaveNonDbPropertiesAsync().ConfigureAwait(false);
 
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
             {
@@ -207,21 +207,33 @@ namespace UniFiler10.Data.Model
             IsCoverOpen = newValue;
         }
 
+		#region filter properties
+		public enum Filters { All, Recent, Cat, Field };
+
 		private string _catIdForCatFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForCatFilter { get { return _catIdForCatFilter; } set { string newValue = value ?? DEFAULT_ID; if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; RaisePropertyChanged_UI(); } } }
 
-		private string _catIdForFilter = DEFAULT_ID;
+		private string _catIdForFldFilter = DEFAULT_ID;
 		[DataMember]
-		public string CatIdForFilter { get { return _catIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_catIdForFilter != newValue) { _catIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
+		public string CatIdForFldFilter { get { return _catIdForFldFilter; } set { string newValue = value ?? DEFAULT_ID; if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; RaisePropertyChanged_UI(); } } }
 
-		private string _fldDscIdForFilter = DEFAULT_ID;
+		private string _fldDscIdForFldFilter = DEFAULT_ID;
 		[DataMember]
-		public string FldDscIdForFilter { get { return _fldDscIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_fldDscIdForFilter != newValue) { _fldDscIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
+		public string FldDscIdForFldFilter { get { return _fldDscIdForFldFilter; } set { string newValue = value ?? DEFAULT_ID; if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; RaisePropertyChanged_UI(); } } }
 
-		private string _fldValIdForFilter = DEFAULT_ID;
+		private string _fldValIdForFldFilter = DEFAULT_ID;
 		[DataMember]
-		public string FldValIdForFilter { get { return _fldValIdForFilter; } set { string newValue = value ?? DEFAULT_ID; if (_fldValIdForFilter != newValue) { _fldValIdForFilter = newValue; RaisePropertyChanged_UI(); } } }
+		public string FldValIdForFldFilter { get { return _fldValIdForFldFilter; } set { string newValue = value ?? DEFAULT_ID; if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; RaisePropertyChanged_UI(); } } }
+
+		private Filters _whichFilter = Filters.Recent;
+		[DataMember]
+		public Filters WhichFilter { get { return _whichFilter; } private set { _whichFilter = value; RaisePropertyChanged_UI(); } }
+		public void SetFilter(Filters newValue)
+		{
+			if (_whichFilter != newValue) WhichFilter = newValue;
+		}
+		#endregion filter properties
 		#endregion properties
 
 
@@ -277,7 +289,7 @@ namespace UniFiler10.Data.Model
 
             Debug.WriteLine("ended method Binder.LoadAsync()");
         }
-        private async Task SaveAsync()
+        private async Task SaveNonDbPropertiesAsync()
         {
             Binder binderClone = CloneNonDbProperties();
             //for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
@@ -323,8 +335,12 @@ namespace UniFiler10.Data.Model
         {
             IsPaneOpen = source.IsPaneOpen;
             IsCoverOpen = source.IsCoverOpen;
-			CatIdForFilter = source.CatIdForFilter;
-            DBName = source.DBName;
+			CatIdForFldFilter = source.CatIdForFldFilter;
+			FldDscIdForFldFilter = source.FldDscIdForFldFilter;
+			FldValIdForFldFilter = source.FldValIdForFldFilter;
+			CatIdForCatFilter = source.CatIdForCatFilter;
+			WhichFilter = source.WhichFilter;
+			DBName = source.DBName;
             CurrentFolderId = source.CurrentFolderId; // last
         }
         private Binder CloneNonDbProperties()
@@ -333,7 +349,11 @@ namespace UniFiler10.Data.Model
             target.CurrentFolderId = _currentFolderId;
             target.IsPaneOpen = _isPaneOpen;
             target.IsCoverOpen = _isCoverOpen;
-			target.CatIdForFilter = _catIdForFilter;
+			target.CatIdForFldFilter = _catIdForFldFilter;
+			target.FldDscIdForFldFilter = _fldDscIdForFldFilter;
+			target.FldValIdForFldFilter = _fldValIdForFldFilter;
+			target.CatIdForCatFilter = _catIdForCatFilter;
+			target.WhichFilter = _whichFilter;
             target.DBName = _dbName;
             return target;
         }

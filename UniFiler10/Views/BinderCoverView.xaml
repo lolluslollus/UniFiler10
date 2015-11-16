@@ -102,6 +102,22 @@
 				<RowDefinition/>
 			</Grid.RowDefinitions>
 
+			<!-- test -->
+			<!--<ctl:LolloTextBox
+				Text="text"
+				Header="header"
+				BorderBrush="Red"
+				BorderThickness="2"
+				IsReadOnly="True"
+				IsEmptyValueAllowedEvenIfNotInList="False"
+				TextWrapping="Wrap"
+				PlaceholderText="..."
+				Width="{StaticResource LandscapeItemWidth}"
+				Height="{StaticResource LandscapeItemHeight}"
+				Style="{StaticResource LolloTextBoxFieldValueStyle}"
+				VerticalContentAlignment="Bottom"
+				VerticalAlignment="Top"/>-->
+
 			<!-- animation for refresh -->
 			<Viewbox
                 Width="{StaticResource LandscapeItemHeight}"
@@ -141,7 +157,10 @@
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon Symbol="Add"/>
-						<TextBlock Grid.Column="2" x:Uid="AddFolderT" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+						<TextBlock Grid.Column="2" x:Uid="AddFolderT" 
+							MaxWidth="{StaticResource LandscapeItemWidth}"
+							TextWrapping="Wrap" 
+							HorizontalAlignment="Left"/>
 					</Grid>
 				</Button>
 
@@ -157,10 +176,32 @@
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon Symbol="NewFolder"/>
-						<TextBlock Grid.Column="2" x:Uid="AddOpenFolderT" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+						<TextBlock Grid.Column="2" x:Uid="AddOpenFolderT"
+							MaxWidth="{StaticResource LandscapeItemWidth}"
+							TextWrapping="Wrap" 
+							HorizontalAlignment="Left"/>
 					</Grid>
 				</Button>
 
+				<Button 
+                    Tapped="OnSettingsButton_Tapped"
+                    Width="{StaticResource LandscapeLargeItemWidth}"
+                    Style="{StaticResource ButtonLolloStyle}">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+
+						<SymbolIcon Symbol="Setting"/>
+						<TextBlock Grid.Column="2" x:Uid="Settings1" 
+							MaxWidth="{StaticResource LandscapeItemWidth}"
+							TextWrapping="Wrap" 
+							HorizontalAlignment="Left"/>
+					</Grid>
+				</Button>
+				
 				<Button 
                     Tapped="OnBackButton_Tapped"
                     Width="{StaticResource LandscapeLargeItemWidth}"
@@ -173,10 +214,12 @@
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon Symbol="Back"/>
-						<TextBlock Grid.Column="2" x:Uid="Back" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+						<TextBlock Grid.Column="2" x:Uid="Back"
+							MaxWidth="{StaticResource LandscapeItemWidth}"
+							TextWrapping="Wrap" 
+							HorizontalAlignment="Left"/>
 					</Grid>
 				</Button>
-
 			</VariableSizedWrapGrid>
 
 			<!-- filter choosers -->
@@ -350,7 +393,7 @@
 					PlaceholderText="..."
 					ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
 					DisplayMemberPath="Name"
-					Text="{Binding CatNameForFilter, Mode=TwoWay}">
+					Text="{Binding CatNameForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate >
 							<TextBlock Text="{Binding Name}"
@@ -373,7 +416,7 @@
 					PlaceholderText="..."
 					ItemsSource="{Binding FldDscsInCat, Mode=OneWay}"
 					DisplayMemberPath="Caption"
-					Text="{Binding FldDscCaptionForFilter, Mode=TwoWay}">
+					Text="{Binding FldDscCaptionForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate >
 							<TextBlock Text="{Binding Caption}"
@@ -396,7 +439,7 @@
 					PlaceholderText="..."
 					ItemsSource="{Binding FldValsInFldDscs, Mode=OneWay}"
 					DisplayMemberPath="Vaalue"
-					Text="{Binding FldValVaalueForFilter, Mode=TwoWay}">
+					Text="{Binding FldValVaalueForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate >
 							<TextBlock Text="{Binding Vaalue}"

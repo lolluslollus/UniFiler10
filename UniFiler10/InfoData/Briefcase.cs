@@ -111,7 +111,10 @@ namespace UniFiler10.Data.Model
 				}
 			}
 		}
-
+		public void ShowSettings(bool newValue)
+		{
+			IsShowingSettings = newValue;
+		}
 		private string _currentBinderName = string.Empty;
 		[DataMember]
 		public string CurrentBinderName
@@ -227,7 +230,7 @@ namespace UniFiler10.Data.Model
 
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName)) return false;
+				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName) || intoStorageFolder == null) return false;
 
 
 				// close the current binder if it is the one to be backed up
@@ -445,5 +448,6 @@ namespace UniFiler10.Data.Model
 	public interface IPaneOpener
 	{
 		bool IsPaneOpen { get; set; }
+		bool IsShowingSettings { get; set; }
 	}
 }

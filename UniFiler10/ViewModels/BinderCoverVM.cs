@@ -16,6 +16,8 @@ namespace UniFiler10.ViewModels
 {
 	public class BinderCoverVM : OpenableObservableData
 	{
+
+
 		#region properties
 		private const int HOW_MANY_IN_RECENT = 10;
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
@@ -32,16 +34,60 @@ namespace UniFiler10.ViewModels
 
 
 		private bool _isAllFolderPaneOpen = false;
-		public bool IsAllFoldersPaneOpen { get { return _isAllFolderPaneOpen; } set { if (_isAllFolderPaneOpen != value) { _isAllFolderPaneOpen = value; RaisePropertyChanged_UI(); if (_isAllFolderPaneOpen) { CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); } } } }
+		public bool IsAllFoldersPaneOpen
+		{
+			get { return _isAllFolderPaneOpen; }
+			set
+			{
+				if (_isAllFolderPaneOpen != value)
+				{
+					_isAllFolderPaneOpen = value; RaisePropertyChanged_UI();
+					if (_isAllFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.All); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
 
 		private bool _isRecentFolderPaneOpen = false;
-		public bool IsRecentFoldersPaneOpen { get { return _isRecentFolderPaneOpen; } set { if (_isRecentFolderPaneOpen != value) { _isRecentFolderPaneOpen = value; RaisePropertyChanged_UI(); if (_isRecentFolderPaneOpen) { CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); } } } }
+		public bool IsRecentFoldersPaneOpen
+		{
+			get { return _isRecentFolderPaneOpen; }
+			set
+			{
+				if (_isRecentFolderPaneOpen != value)
+				{
+					_isRecentFolderPaneOpen = value; RaisePropertyChanged_UI();
+					if (_isRecentFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Recent); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
 
 		private bool _isByCatFolderPaneOpen = false;
-		public bool IsByCatFoldersPaneOpen { get { return _isByCatFolderPaneOpen; } set { if (_isByCatFolderPaneOpen != value) { _isByCatFolderPaneOpen = value; RaisePropertyChanged_UI(); if (_isByCatFolderPaneOpen) { CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); } } } }
+		public bool IsByCatFoldersPaneOpen
+		{
+			get { return _isByCatFolderPaneOpen; }
+			set
+			{
+				if (_isByCatFolderPaneOpen != value)
+				{
+					_isByCatFolderPaneOpen = value; RaisePropertyChanged_UI();
+					if (_isByCatFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Cat); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
 
 		private bool _isByFldFolderPaneOpen = false;
-		public bool IsByFldFoldersPaneOpen { get { return _isByFldFolderPaneOpen; } set { if (_isByFldFolderPaneOpen != value) { _isByFldFolderPaneOpen = value; RaisePropertyChanged_UI(); if (_isByFldFolderPaneOpen) { CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); } } } }
+		public bool IsByFldFoldersPaneOpen
+		{
+			get { return _isByFldFolderPaneOpen; }
+			set
+			{
+				if (_isByFldFolderPaneOpen != value)
+				{
+					_isByFldFolderPaneOpen = value; RaisePropertyChanged_UI();
+					if (_isByFldFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Field); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
 		private void CloseOtherPanes([CallerMemberName] string currentPropertyName = "")
 		{
 			if (currentPropertyName != nameof(IsAllFoldersPaneOpen)) IsAllFoldersPaneOpen = false;
@@ -49,12 +95,38 @@ namespace UniFiler10.ViewModels
 			if (currentPropertyName != nameof(IsByCatFoldersPaneOpen)) IsByCatFoldersPaneOpen = false;
 			if (currentPropertyName != nameof(IsByFldFoldersPaneOpen)) IsByFldFoldersPaneOpen = false;
 		}
+		private void UpdateIsPaneOpen()
+		{
+			var binder = _binder; if (binder == null) return;
+
+			switch (binder.WhichFilter)
+			{
+				case Binder.Filters.All:
+					IsAllFoldersPaneOpen = true; break;
+				case Binder.Filters.Cat:
+					IsByCatFoldersPaneOpen = true; break;
+				case Binder.Filters.Field:
+					IsByFldFoldersPaneOpen = true; break;
+				case Binder.Filters.Recent:
+					IsRecentFoldersPaneOpen = true; break;
+				default:
+					IsRecentFoldersPaneOpen = true; break;
+			}
+		}
 
 		private bool _isAllFoldersDirty = false;
-		private bool IsAllFoldersDirty { get { return _isAllFoldersDirty; } set { if (_isAllFoldersDirty != value) { _isAllFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdateFoldersAsync(_refreshIntervalMsec); } } }
+		private bool IsAllFoldersDirty
+		{
+			get { return _isAllFoldersDirty; }
+			set { if (_isAllFoldersDirty != value) { _isAllFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdateFoldersAsync(_refreshIntervalMsec); } }
+		}
 
 		private bool _isRecentFoldersDirty = false;
-		private bool IsRecentFoldersDirty { get { return _isRecentFoldersDirty; } set { if (_isRecentFoldersDirty != value) { _isRecentFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdateFoldersAsync(_refreshIntervalMsec); } } }
+		private bool IsRecentFoldersDirty
+		{
+			get { return _isRecentFoldersDirty; }
+			set { if (_isRecentFoldersDirty != value) { _isRecentFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdateFoldersAsync(_refreshIntervalMsec); } }
+		}
 		private void SetIsDirty(bool newValue)
 		{
 			IsAllFoldersDirty = newValue;
@@ -65,45 +137,93 @@ namespace UniFiler10.ViewModels
 
 
 		private string _catNameForCatFilter = null;
-		public string CatNameForCatFilter { get { return _catNameForCatFilter; } set { if (_catNameForCatFilter != value) { _catNameForCatFilter = value; RaisePropertyChanged_UI(); UpdateCatForCatFilter(); if (_isByCatFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); } } } }
-		private void UpdateCatForCatFilter()
+		public string CatNameForCatFilter
 		{
-			if (_binder == null) return;
+			get { return _catNameForCatFilter; }
+			set
+			{
+				if (_catNameForCatFilter != value && !string.IsNullOrEmpty(value))
+				{
+					_catNameForCatFilter = value; RaisePropertyChanged_UI(); UpdateIdsForCatFilter();
+					if (_isByCatFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
+		private void UpdateIdsForCatFilter()
+		{
+			var binder = _binder; if (binder == null) return;
 
-			_binder.CatIdForCatFilter = Binder.DEFAULT_ID;
+			//binder.CatIdForCatFilter = DEFAULT_ID;
 
-			_binder.CatIdForFilter = _metaBriefcase.Categories.FirstOrDefault(cat => cat.Name == _catNameForCatFilter)?.Id;
+			binder.CatIdForCatFilter = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Name == _catNameForCatFilter)?.Id;
+		}
+		private void UpdateDataForCatFilter()
+		{
+			var binder = _binder; if (binder == null) return;
+
+			CatNameForCatFilter = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Id == binder.CatIdForCatFilter)?.Name;
 		}
 
 
-		private string _catNameForFilter = null;
-		public string CatNameForFilter { get { return _catNameForFilter; } set { if (_catNameForFilter != value) { _catNameForFilter = value; RaisePropertyChanged_UI(); UpdateCatFldForFilter(); UpdateFlds(); if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); } } } }
-
-		private string _fldDscCaptionForFilter = null;
-		public string FldDscCaptionForFilter { get { return _fldDscCaptionForFilter; } set { if (_fldDscCaptionForFilter != value) { _fldDscCaptionForFilter = value; RaisePropertyChanged_UI(); UpdateCatFldForFilter(); if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); } } } }
-
-		private string _fldValVaalueForFilter = null;
-		public string FldValVaalueForFilter { get { return _fldValVaalueForFilter; } set { if (_fldValVaalueForFilter != value) { _fldValVaalueForFilter = value; RaisePropertyChanged_UI(); UpdateCatFldForFilter(); if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); } } } }
-		private void UpdateCatFldForFilter()
+		private string _catNameForFldFilter = null;
+		public string CatNameForFldFilter
 		{
-			if (_binder == null) return;
-
-			_binder.CatIdForFilter = _binder.FldDscIdForFilter = _binder.FldValIdForFilter = Binder.DEFAULT_ID;
-
-			var catForFilter = _metaBriefcase.Categories.FirstOrDefault(cat => cat.Name == _catNameForFilter);
-			if (catForFilter != null)
+			get { return _catNameForFldFilter; }
+			set
 			{
-				_binder.CatIdForFilter = catForFilter.Id;
-
-				var fldDscForFilter = _metaBriefcase.FieldDescriptions.FirstOrDefault(fldDsc => catForFilter.FieldDescriptionIds.Contains(fldDsc.Id) && fldDsc.Caption == _fldDscCaptionForFilter);
-				if (fldDscForFilter != null)
+				if (_catNameForFldFilter != value && !string.IsNullOrEmpty(value))
 				{
-					_binder.FldDscIdForFilter = fldDscForFilter.Id;
+					_catNameForFldFilter = value; RaisePropertyChanged_UI(); UpdateIdsForFldFilter(); UpdateDataForFldFilter();
+					if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
 
-					var fldValForFilter = fldDscForFilter.PossibleValues.FirstOrDefault(fVal => fVal.Vaalue == _fldValVaalueForFilter);
-					if (fldValForFilter != null)
+		private string _fldDscCaptionForFldFilter = null;
+		public string FldDscCaptionForFldFilter
+		{
+			get { return _fldDscCaptionForFldFilter; }
+			set
+			{
+				if (_fldDscCaptionForFldFilter != value && !string.IsNullOrEmpty(value))
+				{
+					_fldDscCaptionForFldFilter = value; RaisePropertyChanged_UI(); UpdateIdsForFldFilter();
+					if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
+
+		private string _fldValVaalueForFldFilter = null;
+		public string FldValVaalueForFldFilter
+		{
+			get { return _fldValVaalueForFldFilter; }
+			set
+			{
+				if (_fldValVaalueForFldFilter != value && !string.IsNullOrEmpty(value))
+				{
+					_fldValVaalueForFldFilter = value; RaisePropertyChanged_UI(); UpdateIdsForFldFilter();
+					if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+				}
+			}
+		}
+		private void UpdateIdsForFldFilter()
+		{
+			var binder = _binder; if (binder == null) return;
+
+			var cat4F = _metaBriefcase.Categories.FirstOrDefault(cat => cat.Name == _catNameForFldFilter);
+			if (cat4F != null)
+			{
+				binder.CatIdForFldFilter = cat4F.Id;
+
+				var fldDsc4F = _metaBriefcase.FieldDescriptions.FirstOrDefault(fDsc => cat4F.FieldDescriptionIds.Contains(fDsc.Id) && fDsc.Caption == _fldDscCaptionForFldFilter);
+				if (fldDsc4F != null)
+				{
+					binder.FldDscIdForFldFilter = fldDsc4F.Id;
+
+					var fldVal4F = fldDsc4F.PossibleValues.FirstOrDefault(fVal => fVal.Vaalue == _fldValVaalueForFldFilter);
+					if (fldVal4F != null)
 					{
-						_binder.FldValIdForFilter = fldValForFilter.Id;
+						binder.FldValIdForFldFilter = fldVal4F.Id;
 					}
 				}
 			}
@@ -114,18 +234,28 @@ namespace UniFiler10.ViewModels
 
 		private SwitchableObservableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableCollection<FieldValue>();
 		public SwitchableObservableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
-		private void UpdateFlds()
+		private void UpdateDataForFldFilter()
 		{
+			var binder = _binder; if (binder == null) return;
+
 			_fldDscsInCat.Clear();
 			_fldValsInFldDscs.Clear();
 
-			var catForFilter = _metaBriefcase.Categories.FirstOrDefault(cat => cat.Id == _binder.CatIdForFilter);
-			if (catForFilter != null)
+			var cat4F = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Id == binder.CatIdForFldFilter);
+			if (cat4F != null)
 			{
-				_fldDscsInCat.AddRange(catForFilter.FieldDescriptions);
+				_fldDscsInCat.AddRange(cat4F.FieldDescriptions);
 				foreach (var fldDsc in _fldDscsInCat)
 				{
 					_fldValsInFldDscs.AddRange(fldDsc.PossibleValues);
+				}
+
+				CatNameForFldFilter = cat4F.Name;
+				var fldDsc4F = cat4F.FieldDescriptions.FirstOrDefault(fd => fd.Id == binder.FldDscIdForFldFilter);
+				if (fldDsc4F != null)
+				{
+					FldDscCaptionForFldFilter = fldDsc4F.Caption;
+					FldValVaalueForFldFilter = fldDsc4F.PossibleValues?.FirstOrDefault(fVal => fVal.Id == binder.FldValIdForFldFilter)?.Vaalue;
 				}
 			}
 		}
@@ -159,15 +289,16 @@ namespace UniFiler10.ViewModels
 			if (_metaBriefcase == null) Debugger.Break(); // LOLLO this must never happen, check it
 			_animationStarter = animationStarter;
 
-			UpdateFlds();
+			UpdateDataForCatFilter();
+			UpdateDataForFldFilter();
 			UpdateOpenClose();
 		}
 
 		protected override Task OpenMayOverrideAsync()
 		{
-			_binder.PropertyChanged += OnBinder_PropertyChanged;
+			_binder.PropertyChanged += OnBinder_PropertyChanged; // throws if _binder is null
 			RegisterFolderChanged();
-			IsRecentFoldersPaneOpen = true;
+			UpdateIsPaneOpen();
 
 			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			SetIsDirty(true);
@@ -177,7 +308,7 @@ namespace UniFiler10.ViewModels
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			if (_binder != null) _binder.PropertyChanged -= OnBinder_PropertyChanged;
+			if (_binder != null) _binder.PropertyChanged -= OnBinder_PropertyChanged; // not perfectly atomic, but alas
 			UnregisterFolderChanged();
 			return Task.CompletedTask;
 		}
@@ -197,7 +328,7 @@ namespace UniFiler10.ViewModels
 		}
 		private void UpdateOpenClose()
 		{
-			if (_binder.IsOpen)
+			if (_binder?.IsOpen == true)
 			{
 				Task open = OpenAsync();
 			}
@@ -214,8 +345,7 @@ namespace UniFiler10.ViewModels
 
 		private bool IsNeedRefresh { get { return (_isAllFoldersDirty && _isAllFolderPaneOpen) || (_isRecentFoldersDirty && _isRecentFolderPaneOpen) || _isByCatFolderPaneOpen || _isByFldFolderPaneOpen; } }
 
-		private static SemaphoreSlimSafeRelease _refreshFoldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		public async Task UpdateFoldersAsync(int waitMsec)
+		private async Task UpdateFoldersAsync(int waitMsec)
 		{
 			_refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
 
@@ -227,39 +357,40 @@ namespace UniFiler10.ViewModels
 					await Task.Delay(waitMsec).ConfigureAwait(false);
 					Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
-					await _refreshFoldersSemaphore.WaitAsync().ConfigureAwait(false);
-					if (IsNeedRefresh)
+					await RunFunctionWhileOpenAsyncT(async delegate
 					{
-						//_animationStarter.StartAnimation();
-						//await Task.Delay(waitMsec).ConfigureAwait(false);
-						//Debug.WriteLine("Finished waiting " + waitMsec + " msec");
+						if (IsNeedRefresh)
+						{
+							//_animationStarter.StartAnimation();
+							//await Task.Delay(waitMsec).ConfigureAwait(false);
+							//Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
-						if (_isAllFoldersDirty && _isAllFolderPaneOpen)
-						{
-							await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
-							IsAllFoldersDirty = false;
+							if (_isAllFoldersDirty && _isAllFolderPaneOpen)
+							{
+								await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
+								IsAllFoldersDirty = false;
+							}
+							if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
+							{
+								await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
+								IsRecentFoldersDirty = false;
+							}
+							if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
+							{
+								await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
+								//IsByCatFoldersDirty = false;
+							}
+							if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
+							{
+								await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
+								//IsByFldFoldersDirty = false;
+							}
 						}
-						if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
-						{
-							await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
-							IsRecentFoldersDirty = false;
-						}
-						if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
-						{
-							await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
-							//IsByCatFoldersDirty = false;
-						}
-						if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
-						{
-							await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
-							//IsByFldFoldersDirty = false;
-						}
-					}
+					});
 				}
 				finally
 				{
 					_animationStarter.EndAnimation();
-					SemaphoreSlimSafeRelease.TryRelease(_refreshFoldersSemaphore);
 				}
 			}
 		}
@@ -296,10 +427,10 @@ namespace UniFiler10.ViewModels
 		{
 			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
 			{
-				if (!IsByCatFoldersPaneOpen || _binder == null || _binder.DbManager == null || _binder.CatIdForFilter == null || _binder.CatIdForFilter == Binder.DEFAULT_ID) return;
+				if (!IsByCatFoldersPaneOpen || _binder.DbManager == null || _binder.CatIdForCatFilter == null || _binder.CatIdForCatFilter == Binder.DEFAULT_ID) return;
 
 				//var dynCatsTest = await _binder.DbManager.GetDynamicCategoriesAsync().ConfigureAwait(false);
-				var dynCatsWithChosenId = await _binder.DbManager.GetDynamicCategoriesByCatIdAsync(_binder.CatIdForFilter).ConfigureAwait(false);
+				var dynCatsWithChosenId = await _binder.DbManager.GetDynamicCategoriesByCatIdAsync(_binder.CatIdForCatFilter).ConfigureAwait(false);
 				var folders = (await _binder.DbManager.GetFoldersAsync().ConfigureAwait(false)).Where(fol => dynCatsWithChosenId.Any(cat => cat.ParentId == fol.Id));
 				var wallets = await _binder.DbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _binder.DbManager.GetDocumentsAsync().ConfigureAwait(false);
@@ -312,16 +443,47 @@ namespace UniFiler10.ViewModels
 		{
 			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
 			{
-				if (!IsByFldFoldersPaneOpen || _binder == null || _binder.DbManager == null || _binder.FldDscIdForFilter == null) return;
+				if (!IsByFldFoldersPaneOpen || _binder.DbManager == null || _binder.FldDscIdForFldFilter == null) return;
 
-				var dynFldsWithChosenId = (await _binder.DbManager.GetDynamicFieldsByFldDscIdAsync(_binder.FldDscIdForFilter).ConfigureAwait(false))
-					.Where(df => df.FieldValue?.Id == _binder.FldValIdForFilter);
+				var dynFldsWithChosenId = (await _binder.DbManager.GetDynamicFieldsByFldDscIdAsync(_binder.FldDscIdForFldFilter).ConfigureAwait(false))
+					.Where(df => df.FieldValue?.Id == _binder.FldValIdForFldFilter);
 				var folders = (await _binder.DbManager.GetFoldersAsync().ConfigureAwait(false)).Where(fol => dynFldsWithChosenId.Any(df => df.ParentId == fol.Id));
 				var wallets = await _binder.DbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _binder.DbManager.GetDocumentsAsync().ConfigureAwait(false);
 
 				await UpdateFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
 			});
+		}
+		private async Task UpdateFolderPreviewsAsync(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
+		{
+			var folderPreviews = new List<FolderPreview>();
+
+			foreach (var fol in folders)
+			{
+				var folderPreview = new FolderPreview() { FolderName = fol.Name, FolderId = fol.Id };
+				bool exit = false;
+				foreach (var wal in wallets.Where(w => w.ParentId == fol.Id))
+				{
+					foreach (var doc in documents.Where(d => d.ParentId == wal.Id))
+					{
+						if (!string.IsNullOrWhiteSpace(doc.Uri0))
+						{
+							folderPreview.DocumentUri0 = doc.Uri0;
+							folderPreview.Document = doc;
+							exit = true;
+						}
+						if (exit) break;
+					}
+					if (exit) break;
+				}
+				folderPreviews.Add(folderPreview);
+			}
+
+			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			{
+				_folderPreviews?.Clear();
+				_folderPreviews?.AddRange(folderPreviews);
+			}).AsTask().ConfigureAwait(false);
 		}
 		#endregion binder data
 
@@ -464,48 +626,15 @@ namespace UniFiler10.ViewModels
 				await SelectFolderAsync(newFolder.Id);
 			}
 		}
-		#endregion actions
-
-
-		#region utilz
-		private async Task UpdateFolderPreviewsAsync(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
+		public void ShowSettings()
 		{
-			var folderPreviews = new List<FolderPreview>();
-
-			foreach (var fol in folders)
+			var opener = _binder?.ParentPaneOpener;
+			if (opener != null)
 			{
-				var folderPreview = new FolderPreview() { FolderName = fol.Name, FolderId = fol.Id };
-				bool exit = false;
-				foreach (var wal in wallets.Where(w => w.ParentId == fol.Id))
-				{
-					foreach (var doc in documents.Where(d => d.ParentId == wal.Id))
-					{
-						if (!string.IsNullOrWhiteSpace(doc.Uri0))
-						{
-							//var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
-							//{
-							//    if (file != null)
-							//    {
-							//doc.OpenAsync();
-							folderPreview.DocumentUri0 = doc.Uri0;
-							folderPreview.Document = doc;
-							exit = true;
-							//    }
-							//}
-						}
-						if (exit) break;
-					}
-					if (exit) break;
-				}
-				folderPreviews.Add(folderPreview);
+				_binder.SetIsCoverOpen(false);
+				opener.IsShowingSettings = true;
 			}
-
-			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-			{
-				_folderPreviews?.Clear();
-				_folderPreviews?.AddRange(folderPreviews);
-			}).AsTask().ConfigureAwait(false);
 		}
-		#endregion utilz
+		#endregion actions
 	}
 }

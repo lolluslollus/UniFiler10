@@ -123,6 +123,10 @@ namespace UniFiler10.Views
 		{
 			Task delete = _vm?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
 		}
+		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			_vm?.ShowSettings(true);
+		}
 		#endregion event handlers
 
 

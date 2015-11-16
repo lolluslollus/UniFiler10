@@ -14,7 +14,7 @@
         <!--DisplayMode="CompactInline"
         CompactPaneLength="{StaticResource CompactPaneLength}"-->
     <!--DataContext="{Binding ElementName=me, Path=VM}"-->
-	<Grid d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=True}">
+	<Grid d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
 		<local:BriefcaseCoverView
             Visibility="{x:Bind VM.Briefcase.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
             VM="{x:Bind VM, Mode=OneWay}"/>

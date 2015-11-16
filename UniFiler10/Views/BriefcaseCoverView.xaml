@@ -110,6 +110,26 @@
 				</Button>
 
 				<Button 
+                    Tapped="OnSettingsButton_Tapped"
+                    Width="{StaticResource LandscapeLargeItemWidth}"
+					Height="{StaticResource LandscapeItemHeight}"
+                    Style="{StaticResource ButtonLolloStyle}">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+
+						<SymbolIcon Symbol="Setting"/>
+						<TextBlock Grid.Column="2" x:Uid="Settings1" 
+							MaxWidth="{StaticResource LandscapeItemWidth}"
+							TextWrapping="Wrap" 
+							HorizontalAlignment="Left"/>
+					</Grid>
+				</Button>
+
+				<Button 
                     Tapped="OnBackButton_Tapped"
                     Width="{StaticResource LandscapeLargeItemWidth}"
 					Height="{StaticResource LandscapeItemHeight}"
