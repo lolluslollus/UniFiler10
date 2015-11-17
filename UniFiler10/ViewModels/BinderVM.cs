@@ -109,14 +109,24 @@ namespace UniFiler10.ViewModels
 		{
 			_binder?.SetIsCoverOpen(true);
 		}
+		public void GoBack()
+		{
+			var opener = _binder?.ParentPaneOpener;
+			if (opener != null)
+			{
+				// _binder.SetIsCoverOpen(false);
+				opener.IsShowingCover = true;
+			}
+
+		}
 		public Task SelectFolderAsync(string folderId)
 		{
 			return _binder?.SetCurrentFolderIdAsync(folderId);
 		}
-		public void TogglePaneOpen()
-		{
-			_binder?.ToggleIsPaneOpen();
-		}
+		//public void TogglePaneOpen()
+		//{
+		//	_binder?.ToggleIsPaneOpen();
+		//}
 		#endregion actions
 
 		#region save media

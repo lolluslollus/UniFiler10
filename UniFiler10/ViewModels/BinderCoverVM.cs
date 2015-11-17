@@ -42,7 +42,7 @@ namespace UniFiler10.ViewModels
 				if (_isAllFolderPaneOpen != value)
 				{
 					_isAllFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isAllFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.All); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+					if (_isAllFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.All); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -56,7 +56,7 @@ namespace UniFiler10.ViewModels
 				if (_isRecentFolderPaneOpen != value)
 				{
 					_isRecentFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isRecentFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Recent); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+					if (_isRecentFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Recent); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -70,7 +70,7 @@ namespace UniFiler10.ViewModels
 				if (_isByCatFolderPaneOpen != value)
 				{
 					_isByCatFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isByCatFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Cat); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+					if (_isByCatFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Cat); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -84,7 +84,7 @@ namespace UniFiler10.ViewModels
 				if (_isByFldFolderPaneOpen != value)
 				{
 					_isByFldFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isByFldFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Field); CloseOtherPanes(); Task upd = UpdateFoldersAsync(0); }
+					if (_isByFldFolderPaneOpen) { _binder?.SetFilter(Binder.Filters.Field); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -118,14 +118,14 @@ namespace UniFiler10.ViewModels
 		private bool IsAllFoldersDirty
 		{
 			get { return _isAllFoldersDirty; }
-			set { if (_isAllFoldersDirty != value) { _isAllFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdateFoldersAsync(_refreshIntervalMsec); } }
+			set { if (_isAllFoldersDirty != value) { _isAllFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdatePaneContentAsync(_refreshIntervalMsec); } }
 		}
 
 		private bool _isRecentFoldersDirty = false;
 		private bool IsRecentFoldersDirty
 		{
 			get { return _isRecentFoldersDirty; }
-			set { if (_isRecentFoldersDirty != value) { _isRecentFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdateFoldersAsync(_refreshIntervalMsec); } }
+			set { if (_isRecentFoldersDirty != value) { _isRecentFoldersDirty = value; RaisePropertyChanged_UI(); Task upd = UpdatePaneContentAsync(_refreshIntervalMsec); } }
 		}
 		private void SetIsDirty(bool newValue)
 		{
@@ -145,7 +145,7 @@ namespace UniFiler10.ViewModels
 				if (_catNameForCatFilter != value && !string.IsNullOrEmpty(value))
 				{
 					_catNameForCatFilter = value; RaisePropertyChanged_UI(); UpdateIdsForCatFilter();
-					if (_isByCatFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+					if (_isByCatFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -169,12 +169,19 @@ namespace UniFiler10.ViewModels
 		public string CatNameForFldFilter
 		{
 			get { return _catNameForFldFilter; }
-			set
+			set { SetCatNameForFldFilter(value, true); } // we only use this setter for the binding
+		}
+		private void SetCatNameForFldFilter(string value, bool doUpdates)
+		{
+			if (_catNameForFldFilter != value && !string.IsNullOrEmpty(value))
 			{
-				if (_catNameForFldFilter != value && !string.IsNullOrEmpty(value))
+				_catNameForFldFilter = value; RaisePropertyChanged_UI();
+				if (doUpdates)
 				{
-					_catNameForFldFilter = value; RaisePropertyChanged_UI(); UpdateIdsForFldFilter(); UpdateDataForFldFilter();
-					if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+					UpdateIdsForFldFilter();
+					UpdateDataForFldFilter();
+					UpdateIdsForFldFilter();
+					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -183,12 +190,19 @@ namespace UniFiler10.ViewModels
 		public string FldDscCaptionForFldFilter
 		{
 			get { return _fldDscCaptionForFldFilter; }
-			set
+			set { SetFldDscCaptionForFldFilter(value, true); } // we only use this setter for the binding
+		}
+		private void SetFldDscCaptionForFldFilter(string value, bool doUpdates)
+		{
+			if (_fldDscCaptionForFldFilter != value && !string.IsNullOrEmpty(value))
 			{
-				if (_fldDscCaptionForFldFilter != value && !string.IsNullOrEmpty(value))
+				_fldDscCaptionForFldFilter = value; RaisePropertyChanged_UI();
+				if (doUpdates)
 				{
-					_fldDscCaptionForFldFilter = value; RaisePropertyChanged_UI(); UpdateIdsForFldFilter();
-					if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+					UpdateIdsForFldFilter();
+					UpdateDataForFldFilter();
+					UpdateIdsForFldFilter();
+					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -197,15 +211,53 @@ namespace UniFiler10.ViewModels
 		public string FldValVaalueForFldFilter
 		{
 			get { return _fldValVaalueForFldFilter; }
-			set
+			set { SetFldValVaalueForFldFilter(value, true); } // we only use this setter for the binding
+		}
+		private void SetFldValVaalueForFldFilter(string value, bool doUpdates)
+		{
+			if (_fldValVaalueForFldFilter != value && !string.IsNullOrEmpty(value))
 			{
-				if (_fldValVaalueForFldFilter != value && !string.IsNullOrEmpty(value))
+				_fldValVaalueForFldFilter = value; RaisePropertyChanged_UI();
+				if (doUpdates)
 				{
-					_fldValVaalueForFldFilter = value; RaisePropertyChanged_UI(); UpdateIdsForFldFilter();
-					if (_isByFldFolderPaneOpen) { Task upd = UpdateFoldersAsync(0); }
+					UpdateIdsForFldFilter();
+					//UpdateDataForFldFilter(); // we don't need it here
+					//UpdateIdsForFldFilter(); // we don't need it here
+					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
+
+		private SwitchableObservableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableCollection<FieldDescription>();
+		public SwitchableObservableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
+
+		private SwitchableObservableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableCollection<FieldValue>();
+		public SwitchableObservableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
+		private void UpdateDataForFldFilter()
+		{
+			var binder = _binder; if (binder == null) return;
+
+			_fldDscsInCat.Clear();
+			_fldValsInFldDscs.Clear();
+
+			var cat4F = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Id == binder.CatIdForFldFilter);
+			if (cat4F != null)
+			{
+				SetCatNameForFldFilter(cat4F.Name, false);
+
+				if(cat4F.FieldDescriptions!=null) _fldDscsInCat.AddRange(cat4F.FieldDescriptions);
+
+				var fldDsc4F = cat4F.FieldDescriptions.FirstOrDefault(fd => fd.Id == binder.FldDscIdForFldFilter);
+				if (fldDsc4F != null)
+				{
+					if(fldDsc4F.PossibleValues != null) _fldValsInFldDscs.AddRange(fldDsc4F.PossibleValues);
+
+					SetFldDscCaptionForFldFilter(fldDsc4F.Caption, false);
+					SetFldValVaalueForFldFilter(fldDsc4F.PossibleValues?.FirstOrDefault(fVal => fVal.Id == binder.FldValIdForFldFilter)?.Vaalue, false);
+				}
+			}
+		}
+
 		private void UpdateIdsForFldFilter()
 		{
 			var binder = _binder; if (binder == null) return;
@@ -229,36 +281,6 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private SwitchableObservableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableCollection<FieldDescription>();
-		public SwitchableObservableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
-
-		private SwitchableObservableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableCollection<FieldValue>();
-		public SwitchableObservableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
-		private void UpdateDataForFldFilter()
-		{
-			var binder = _binder; if (binder == null) return;
-
-			_fldDscsInCat.Clear();
-			_fldValsInFldDscs.Clear();
-
-			var cat4F = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Id == binder.CatIdForFldFilter);
-			if (cat4F != null)
-			{
-				_fldDscsInCat.AddRange(cat4F.FieldDescriptions);
-				foreach (var fldDsc in _fldDscsInCat)
-				{
-					_fldValsInFldDscs.AddRange(fldDsc.PossibleValues);
-				}
-
-				CatNameForFldFilter = cat4F.Name;
-				var fldDsc4F = cat4F.FieldDescriptions.FirstOrDefault(fd => fd.Id == binder.FldDscIdForFldFilter);
-				if (fldDsc4F != null)
-				{
-					FldDscCaptionForFldFilter = fldDsc4F.Caption;
-					FldValVaalueForFldFilter = fldDsc4F.PossibleValues?.FirstOrDefault(fVal => fVal.Id == binder.FldValIdForFldFilter)?.Vaalue;
-				}
-			}
-		}
 		public class FolderPreview : ObservableData
 		{
 			protected string _folderId = string.Empty;
@@ -289,8 +311,6 @@ namespace UniFiler10.ViewModels
 			if (_metaBriefcase == null) Debugger.Break(); // LOLLO this must never happen, check it
 			_animationStarter = animationStarter;
 
-			UpdateDataForCatFilter();
-			UpdateDataForFldFilter();
 			UpdateOpenClose();
 		}
 
@@ -298,17 +318,21 @@ namespace UniFiler10.ViewModels
 		{
 			_binder.PropertyChanged += OnBinder_PropertyChanged; // throws if _binder is null
 			RegisterFolderChanged();
-			UpdateIsPaneOpen();
 
-			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
+			UpdateDataForCatFilter();
+			UpdateDataForFldFilter();
+
+			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			SetIsDirty(true);
+			UpdateIsPaneOpen();
 
 			return Task.CompletedTask;
 		}
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			if (_binder != null) _binder.PropertyChanged -= OnBinder_PropertyChanged; // not perfectly atomic, but alas
+			var binder = _binder;
+			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 			UnregisterFolderChanged();
 			return Task.CompletedTask;
 		}
@@ -330,7 +354,7 @@ namespace UniFiler10.ViewModels
 		{
 			if (_binder?.IsOpen == true)
 			{
-				Task open = OpenAsync();
+				Task open = OpenAsync().ContinueWith((dummy) => UpdatePaneContentAsync(0));
 			}
 			else
 			{
@@ -345,11 +369,11 @@ namespace UniFiler10.ViewModels
 
 		private bool IsNeedRefresh { get { return (_isAllFoldersDirty && _isAllFolderPaneOpen) || (_isRecentFoldersDirty && _isRecentFolderPaneOpen) || _isByCatFolderPaneOpen || _isByFldFolderPaneOpen; } }
 
-		private async Task UpdateFoldersAsync(int waitMsec)
+		private async Task UpdatePaneContentAsync(int waitMsec)
 		{
 			_refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
 
-			if (IsNeedRefresh)
+			if (IsNeedRefresh && IsOpen)
 			{
 				try
 				{
@@ -405,7 +429,7 @@ namespace UniFiler10.ViewModels
 				var wallets = await _binder.DbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _binder.DbManager.GetDocumentsAsync().ConfigureAwait(false);
 
-				await UpdateFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
+				await RefreshFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
 			});
 		}
 
@@ -419,7 +443,7 @@ namespace UniFiler10.ViewModels
 				var wallets = await _binder.DbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _binder.DbManager.GetDocumentsAsync().ConfigureAwait(false);
 
-				await UpdateFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
+				await RefreshFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
 			});
 		}
 
@@ -435,7 +459,7 @@ namespace UniFiler10.ViewModels
 				var wallets = await _binder.DbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _binder.DbManager.GetDocumentsAsync().ConfigureAwait(false);
 
-				await UpdateFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
+				await RefreshFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
 			});
 		}
 
@@ -451,10 +475,10 @@ namespace UniFiler10.ViewModels
 				var wallets = await _binder.DbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _binder.DbManager.GetDocumentsAsync().ConfigureAwait(false);
 
-				await UpdateFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
+				await RefreshFolderPreviewsAsync(folders, wallets, documents).ConfigureAwait(false);
 			});
 		}
-		private async Task UpdateFolderPreviewsAsync(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
+		private async Task RefreshFolderPreviewsAsync(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
 		{
 			var folderPreviews = new List<FolderPreview>();
 
@@ -593,11 +617,6 @@ namespace UniFiler10.ViewModels
 
 
 		#region user actions
-		public void CloseCover()
-		{
-			_binder?.SetIsCoverOpen(false);
-		}
-
 		public async Task SelectFolderAsync(string folderId)
 		{
 			if (!string.IsNullOrWhiteSpace(folderId))
@@ -625,6 +644,20 @@ namespace UniFiler10.ViewModels
 			{
 				await SelectFolderAsync(newFolder.Id);
 			}
+		}
+		public void CloseCover()
+		{
+			_binder?.SetIsCoverOpen(false);
+		}
+		public void GoBack()
+		{
+			var opener = _binder?.ParentPaneOpener;
+			if (opener != null)
+			{
+				// _binder.SetIsCoverOpen(false);
+				opener.IsShowingCover = true;
+			}
+
 		}
 		public void ShowSettings()
 		{

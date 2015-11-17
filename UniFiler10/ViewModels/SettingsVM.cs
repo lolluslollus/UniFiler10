@@ -20,25 +20,19 @@ namespace UniFiler10.ViewModels
             MetaBriefcase = metaBriefcase;
         }
 
-        public async Task<bool> AddCategoryAsync()
-        {
-            if (_metaBriefcase == null) return false;
-           
-            return await _metaBriefcase.AddCategoryAsync().ConfigureAwait(false);
+        public Task<bool> AddCategoryAsync()
+        {          
+            return _metaBriefcase?.AddCategoryAsync();
         }
 
-        public async Task<bool> RemoveCategoryAsync(Category cat)
+        public Task<bool> RemoveCategoryAsync(Category cat)
         {
-            if (_metaBriefcase == null) return false;
-
-            return await _metaBriefcase.RemoveCategoryAsync(cat).ConfigureAwait(false);
+            return _metaBriefcase?.RemoveCategoryAsync(cat);
         }
 
         public async Task<bool> AddFieldDescriptionAsync()
         {
-            if (_metaBriefcase == null) return false;
-
-            if (await _metaBriefcase.AddFieldDescriptionAsync())
+            if (await _metaBriefcase?.AddFieldDescriptionAsync())
             {
                 RefreshUnassignedFields();
                 return true;
@@ -48,9 +42,7 @@ namespace UniFiler10.ViewModels
 
         public async Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
         {
-            if (_metaBriefcase == null) return false;
-
-            if (await _metaBriefcase.RemoveFieldDescription(fldDesc))
+            if (await _metaBriefcase?.RemoveFieldDescription(fldDesc))
             {
                 RefreshUnassignedFields();
                 return true;
@@ -60,9 +52,10 @@ namespace UniFiler10.ViewModels
 
         public bool AssignFieldDescriptionToCategory(FieldDescription fldDsc, Category toCat)
         {
-            if (fldDsc == null || toCat == null) return false;
+			var mb = _metaBriefcase;
+			if (mb == null || fldDsc == null || toCat == null) return false;
 
-            var cat = _metaBriefcase?.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
+            var cat = mb.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
             if (cat != null)
             {
                 if (cat.AddFieldDescription(fldDsc))
@@ -75,9 +68,10 @@ namespace UniFiler10.ViewModels
         }
         public bool UnassignFieldDescriptionFromCategory(FieldDescription fldDsc, Category toCat)
         {
-            if (fldDsc == null || toCat == null) return false;
+			var mb = _metaBriefcase;
+			if (mb == null || fldDsc == null || toCat == null) return false;
 
-            var cat = _metaBriefcase?.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
+            var cat = mb.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
             if (cat?.Id != null && fldDsc.JustAssignedToCats.Contains(cat.Id))
             {
                 if (cat.RemoveFieldDescription(fldDsc))
@@ -91,6 +85,7 @@ namespace UniFiler10.ViewModels
 
         public bool AddPossibleValueToFieldDescription()
         {
+			// localisation localization globalisation globalization
             string name = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
             return AddPossibleValueToFieldDescription(new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true }, MetaBriefcase?.CurrentFieldDescription);
         }
@@ -112,13 +107,14 @@ namespace UniFiler10.ViewModels
         public bool RemovePossibleValueFromFieldDescription(FieldValue fldVal)
         {
             if (fldVal == null || !fldVal.IsJustAdded) return false;
-            return RemovePossibleValueFromFieldDescription(fldVal, MetaBriefcase?.CurrentFieldDescription);
+            return RemovePossibleValueFromFieldDescription(fldVal, _metaBriefcase?.CurrentFieldDescription);
         }
         public bool RemovePossibleValueFromFieldDescription(FieldValue fldVal, FieldDescription toFldDesc)
         {
-            if (fldVal == null || toFldDesc == null || !fldVal.IsJustAdded) return false;
+			var mb = _metaBriefcase;
+			if (mb == null || fldVal == null || toFldDesc == null || !fldVal.IsJustAdded) return false;
 
-            var fldDesc = _metaBriefcase?.FieldDescriptions?.FirstOrDefault(fd => fd.Id == toFldDesc.Id);
+            var fldDesc = mb.FieldDescriptions?.FirstOrDefault(fd => fd.Id == toFldDesc.Id);
             if (fldDesc != null)
             {
                 return fldDesc.RemovePossibleValue(fldVal);
@@ -130,11 +126,12 @@ namespace UniFiler10.ViewModels
         public SwitchableObservableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
         private void RefreshUnassignedFields()
         {
-            _unassignedFields.Clear();
-            if (MetaBriefcase != null && MetaBriefcase.FieldDescriptions != null && MetaBriefcase.CurrentCategory != null && MetaBriefcase.CurrentCategory.FieldDescriptionIds != null)
+			var mb = _metaBriefcase;
+			_unassignedFields.Clear();
+            if (mb != null && mb.FieldDescriptions != null && mb.CurrentCategory != null && mb.CurrentCategory.FieldDescriptionIds != null)
             {
-                _unassignedFields.AddRange(MetaBriefcase.FieldDescriptions
-                    .Where(allFldDsc => !MetaBriefcase.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
+                _unassignedFields.AddRange(mb.FieldDescriptions
+                    .Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
                 // _unassignedFields.AddRange(MetaBriefcase.FieldDescriptions.Except(MetaBriefcase.CurrentCategory.FieldDescriptions, new FieldDescription.Comparer()));
                 RaisePropertyChanged_UI(nameof(UnassignedFields));
             }
@@ -142,18 +139,17 @@ namespace UniFiler10.ViewModels
 
         public void UpdateCurrentCategory(Category newItem)
         {
-            if (MetaBriefcase != null && newItem != null)
+			var mb = _metaBriefcase;
+			if (mb != null && newItem != null)
             {
-                MetaBriefcase.CurrentCategoryId = newItem.Id;
+                mb.CurrentCategoryId = newItem.Id;
                 RefreshUnassignedFields();
             }
         }
         public void UpdateCurrentFieldDescription(FieldDescription newItem)
         {
-            if (MetaBriefcase != null && newItem != null)
-            {
-                MetaBriefcase.CurrentFieldDescriptionId = newItem.Id;
-            }
+			var mb = _metaBriefcase;
+            if (mb != null && newItem != null) mb.CurrentFieldDescriptionId = newItem.Id;
         }
     }
 }

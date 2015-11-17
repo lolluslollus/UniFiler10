@@ -25,8 +25,9 @@ namespace UniFiler10.ViewModels
 		public BriefcaseVM() { }
         protected override async Task OpenMayOverrideAsync()
         {
-            if (_briefcase == null) Briefcase = Briefcase.CreateInstance();
+            if (_briefcase == null) _briefcase = Briefcase.CreateInstance();
             await _briefcase.OpenAsync().ConfigureAwait(false);
+			RaisePropertyChanged_UI(nameof(Briefcase));
         }
         protected override async Task CloseMayOverrideAsync()
         {
@@ -36,9 +37,10 @@ namespace UniFiler10.ViewModels
         }
 		public bool AddDbStep0()
 		{
-			if (_briefcase == null || !_briefcase.IsOpen) return false;
+			var briefcase = _briefcase;
+			if (briefcase == null || !briefcase.IsOpen) return false;
 
-			_briefcase.IsShowingSettings = false;
+			briefcase.IsShowingSettings = false;
 			IsNewDbNameVisible = true;
 
 			return true;
@@ -46,15 +48,17 @@ namespace UniFiler10.ViewModels
 
 		public async Task<bool> AddDbStep1()
 		{
-			bool isDbNameOk = _briefcase?.CheckNewDbName(_newDbName) == true;
+			var briefcase = _briefcase; if (briefcase == null) return false;
+
+			bool isDbNameOk = briefcase.CheckNewDbName(_newDbName) == true;
 			if (isDbNameOk)
 			{
-				isDbNameOk = await AddDbAsync(_newDbName);
+				isDbNameOk = await briefcase.AddBinderAsync(_newDbName).ConfigureAwait(false);
 			}
 			if (isDbNameOk)
 			{
 				OpenBinder(_newDbName);
-				_briefcase.SetIsCoverOpen(false);
+				briefcase.IsShowingBinder = true;
 			}
 
 			return isDbNameOk;
@@ -76,10 +80,10 @@ namespace UniFiler10.ViewModels
 			}
 
 		}
-		public Task<bool> AddDbAsync(string dbName)
-        {
-            return _briefcase?.AddBinderAsync(dbName);
-        }
+		//public Task<bool> AddDbAsync(string dbName)
+  //      {
+  //          return _briefcase?.AddBinderAsync(dbName);
+  //      }
         public async Task<bool> DeleteDbAsync(string dbName)
         {
 			if (_briefcase == null) return false;
@@ -140,14 +144,33 @@ namespace UniFiler10.ViewModels
             //return false;
         }
 
-		public void OpenCover()
+		//public void OpenCover()
+		//{
+		//	_briefcase?.SetIsCoverOpen(true);
+		//}
+		public void ShowBinder()
 		{
-			_briefcase?.SetIsCoverOpen(true);
+			var briefcase = _briefcase;
+			if (briefcase != null)
+			{
+				briefcase.IsShowingBinder = true;
+			}
 		}
-		public void ShowSettings(bool newValue)
+		public void ShowCover()
 		{
-			_briefcase.SetIsCoverOpen(false);
-			_briefcase?.ShowSettings(newValue);
+			var briefcase = _briefcase;
+			if (briefcase != null)
+			{
+				briefcase.IsShowingCover = true;
+			}
+		}
+		public void ShowSettings()
+		{
+			var briefcase = _briefcase;
+			if (briefcase != null)
+			{
+				briefcase.IsShowingSettings = true;
+			}
 		}
 	}
 }

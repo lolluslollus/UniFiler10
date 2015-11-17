@@ -81,108 +81,86 @@ namespace UniFiler10.Views
         }
         #endregion construct dispose open close
 
-        private void OnAddDbName_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
-            NewDbNameTB.Visibility = Visibility.Visible;
-            UpdateAddDbFields();
-        }
-        private void UpdateAddDbFields()
-        {
-            if (!string.IsNullOrWhiteSpace(NewDbNameTB.Text))
-            {
-                if (_vm != null)
-                {
-                    if (_vm.Briefcase?.CheckNewDbName(NewDbNameTB.Text) == true)
-                    {
-                        AddDbButton.Visibility = Visibility.Visible;
-                        NewDbNameErrorTB.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        AddDbButton.Visibility = Visibility.Collapsed;
-                        NewDbNameErrorTB.Visibility = Visibility.Visible;
-                    }
-                }
-            }
-            else
-            {
-                AddDbButton.Visibility = Visibility.Collapsed;
-                NewDbNameErrorTB.Visibility = Visibility.Collapsed;
-            }
-        }
-        private void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            UpdateAddDbFields();
-        }
-        private async void OnAddDb_Click(object sender, RoutedEventArgs e)
-        {
-            if (_vm != null)
-            {
-                NewDbNameTB.Visibility = Visibility.Collapsed;
-                AddDbButton.Visibility = Visibility.Collapsed;
-                await _vm.AddDbAsync(NewDbNameTB.Text).ConfigureAwait(false);
-            }
-        }
+        //private void OnAddDbName_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
+        //    NewDbNameTB.Visibility = Visibility.Visible;
+        //    UpdateAddDbFields();
+        //}
+        //private void UpdateAddDbFields()
+        //{
+        //    if (!string.IsNullOrWhiteSpace(NewDbNameTB.Text))
+        //    {
+        //        if (_vm != null)
+        //        {
+        //            if (_vm.Briefcase?.CheckNewDbName(NewDbNameTB.Text) == true)
+        //            {
+        //                AddDbButton.Visibility = Visibility.Visible;
+        //                NewDbNameErrorTB.Visibility = Visibility.Collapsed;
+        //            }
+        //            else
+        //            {
+        //                AddDbButton.Visibility = Visibility.Collapsed;
+        //                NewDbNameErrorTB.Visibility = Visibility.Visible;
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        AddDbButton.Visibility = Visibility.Collapsed;
+        //        NewDbNameErrorTB.Visibility = Visibility.Collapsed;
+        //    }
+        //}
+        //private void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
+        //{
+        //    UpdateAddDbFields();
+        //}
+        //private async void OnAddDb_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (_vm != null)
+        //    {
+        //        NewDbNameTB.Visibility = Visibility.Collapsed;
+        //        AddDbButton.Visibility = Visibility.Collapsed;
+        //        await _vm.AddDbAsync(NewDbNameTB.Text).ConfigureAwait(false);
+        //    }
+        //}
 
-        private void OnTogglePaneOpen(object sender, RoutedEventArgs e)
-        {
-            if (_vm != null) VM.Briefcase.IsPaneOpen = !_vm.Briefcase.IsPaneOpen;
-        }
+        //private void OnTogglePaneOpen(object sender, RoutedEventArgs e)
+        //{
+        //    if (_vm != null) VM.Briefcase.IsPaneOpen = !_vm.Briefcase.IsPaneOpen;
+        //}
 
-        private void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
-        {
-            if (_vm != null && e?.AddedItems?.Count > 0)
-            {
-                _vm.OpenBinder(((sender as ListView).SelectedItem.ToString()));
-            }
-        }
-
-        private void OnDbNameClicked(object sender, ItemClickEventArgs e)
-        {
-            if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
-        }
-
-        private void OnRestoreBinder_Click(object sender, RoutedEventArgs e)
-        {
-			Task restore = _vm?.RestoreDbAsync();
-        }
-
-        private void OnBackupBinder_Click(object sender, RoutedEventArgs e)
-        {
-			Task backup = _vm?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
-        }
-
-        private void OnDeleteBinder_Click(object sender, RoutedEventArgs e)
-        {
-			Task delete = _vm?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
-			//var fe = sender as FrameworkElement;
-   //         if (VM != null && fe != null)
+   //     private void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
+   //     {
+   //         if (_vm != null && e?.AddedItems?.Count > 0)
    //         {
-   //             //raise confirmation popup
-   //             var rl = new ResourceLoader(); // localisation globalisation localization globalization
-   //             string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
-   //             string strYes = rl.GetString("Yes");
-   //             string strNo = rl.GetString("No");
-
-   //             var dialog = new MessageDialog(strQuestion);
-   //             UICommand yesCommand = new UICommand(strYes, (command) => { });
-   //             UICommand noCommand = new UICommand(strNo, (command) => { });
-   //             dialog.Commands.Add(yesCommand);
-   //             dialog.Commands.Add(noCommand);
-   //             dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
-   //             IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
-   //             // proceed
-   //             if (reply == yesCommand)
-   //             {
-   //                 await VM.DeleteDbAsync(fe.DataContext as string).ConfigureAwait(false);
-   //             }
+   //             _vm.OpenBinder(((sender as ListView).SelectedItem.ToString()));
    //         }
-        }
+   //     }
 
-		private void OnOpenCover_Click(object sender, RoutedEventArgs e)
-		{
-			_vm?.OpenCover();
-		}
+   //     private void OnDbNameClicked(object sender, ItemClickEventArgs e)
+   //     {
+   //         if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
+   //     }
+
+   //     private void OnRestoreBinder_Click(object sender, RoutedEventArgs e)
+   //     {
+			//Task restore = _vm?.RestoreDbAsync();
+   //     }
+
+   //     private void OnBackupBinder_Click(object sender, RoutedEventArgs e)
+   //     {
+			//Task backup = _vm?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
+   //     }
+
+   //     private void OnDeleteBinder_Click(object sender, RoutedEventArgs e)
+   //     {
+			//Task delete = _vm?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+   //     }
+
+		//private void OnOpenCover_Click(object sender, RoutedEventArgs e)
+		//{
+		//	_vm?.OpenCover();
+		//}
 	}
 }

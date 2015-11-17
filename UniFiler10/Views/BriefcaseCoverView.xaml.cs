@@ -30,7 +30,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-	public sealed partial class BriefcaseCoverView : OpenableObservableControl, IAnimationStarter
+	public sealed partial class BriefcaseCoverView : ObservableControl, IAnimationStarter
 	{
 		#region properties
 		private BriefcaseVM _vm = null;
@@ -41,63 +41,66 @@ namespace UniFiler10.Views
 		#region construct, dispose, open, close
 		public BriefcaseCoverView()
 		{
-			OpenCloseWhenLoadedUnloaded = false;
+			//OpenCloseWhenLoadedUnloaded = false;
 			InitializeComponent();
 		}
 
-		protected override async Task<bool> OpenMayOverrideAsync()
-		{
-			RunInUiThread(delegate { RegisterEventHandlers(); });
-			await Task.CompletedTask;
-			return true;
-		}
-		protected override Task CloseMayOverrideAsync()
-		{
-			RunInUiThread(delegate { UnregisterEventHandlers(); });
-			return Task.CompletedTask;
-		}
-		private void RegisterEventHandlers()
-		{
-			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-			{
-				HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-			}
-			SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
-		}
-		private void UnregisterEventHandlers()
-		{
-			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-			{
-				HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-			}
-			SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
-		}
+		//protected override async Task<bool> OpenMayOverrideAsync()
+		//{
+		//	RunInUiThread(delegate { RegisterEventHandlers(); });
+		//	await Task.CompletedTask;
+		//	return true;
+		//}
+		//protected override Task CloseMayOverrideAsync()
+		//{
+		//	RunInUiThread(delegate { UnregisterEventHandlers(); });
+		//	return Task.CompletedTask;
+		//}
+		//private void RegisterEventHandlers()
+		//{
+		//	if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+		//	{
+		//		HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+		//	}
+		//	SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
+		//}
+		//private void UnregisterEventHandlers()
+		//{
+		//	if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+		//	{
+		//		HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
+		//	}
+		//	SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
+		//}
 		#endregion construct, dispose, open, close
 
 
 		#region event handlers
-		private void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			GoBack();
-		}
-		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-		{
-			GoBack();
-		}
-		private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
-		{
-			GoBack();
-		}
+		//private void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	GoBack();
+		//}
+		//private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
+		//{
+		//	GoBack();
+		//}
+		//private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+		//{
+		//	GoBack();
+		//}
 
-		private void GoBack()
-		{
-			VM?.Briefcase?.SetIsCoverOpen(false);
-		}
+		//private void GoBack()
+		//{
+		//	VM?.Briefcase?.SetIsCoverOpen(false);
+		//}
 
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			bool isOpen = _vm?.OpenBinder(e?.ClickedItem?.ToString()) == true;
-			if (isOpen) _vm?.Briefcase?.SetIsCoverOpen(false);
+			var vm = _vm; if (vm == null) return;
+			var briefcase = _vm.Briefcase; if (briefcase == null) return;
+
+			bool isOpen = vm.OpenBinder(e?.ClickedItem?.ToString()) == true;
+			if (isOpen) briefcase.IsShowingBinder=true;
 		}
 
 		private void OnAddBinderStep0_Tapped(object sender, TappedRoutedEventArgs e)
@@ -125,7 +128,7 @@ namespace UniFiler10.Views
 		}
 		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			_vm?.ShowSettings(true);
+			_vm?.ShowSettings();
 		}
 		#endregion event handlers
 

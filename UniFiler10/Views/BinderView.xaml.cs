@@ -11,7 +11,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class BinderView : OpenableObservableControl
+    public sealed partial class BinderView : BackableOpenableObservableControl
     {
         private BinderVM _vm = null;
         public BinderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
@@ -30,6 +30,8 @@ namespace UniFiler10.Views
                 await _vm.OpenAsync().ConfigureAwait(false);
                 RaisePropertyChanged_UI(nameof(VM));
 
+				RunInUiThread(delegate { RegisterBackEventHandlers(); });
+
                 return true;
             }
             else
@@ -39,7 +41,9 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            await _vm?.CloseAsync();
+			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
+
+			await _vm?.CloseAsync();
             _vm?.Dispose();
             VM = null;
         }
@@ -90,14 +94,19 @@ namespace UniFiler10.Views
             Task add = _vm?.AddFolderAsync();
         }
 
-        private void OnTogglePaneOpen(object sender, RoutedEventArgs e)
-        {
-            _vm?.TogglePaneOpen();
-        }
+        //private void OnTogglePaneOpen(object sender, RoutedEventArgs e)
+        //{
+        //    _vm?.TogglePaneOpen();
+        //}
 
         private void OnOpenCover_Click(object sender, RoutedEventArgs e)
         {
             _vm?.OpenCover();
         }
-    }
+
+		protected override void CloseMe()
+		{
+			_vm?.GoBack();
+		}
+	}
 }

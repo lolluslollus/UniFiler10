@@ -3,11 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
+using Windows.Foundation;
 using Windows.UI;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -18,7 +22,9 @@ namespace UniFiler10.Controlz
 {
 	[TemplatePart(Name = "DropDownBorder", Type = typeof(Border))]
 	[TemplatePart(Name = "DeleteBorder", Type = typeof(Border))]
-	[TemplatePart(Name = "Popup", Type = typeof(Popup))]
+	[TemplatePart(Name = "PopupBorder", Type =typeof(Border))]
+	//[TemplatePart(Name = "Popup", Type = typeof(Popup))]
+	[TemplatePart(Name = "Flyout", Type = typeof(Flyout))]
 	[TemplatePart(Name = "PopupListView", Type = typeof(ListView))]
 
 	public class LolloTextBox : TextBox
@@ -150,7 +156,9 @@ namespace UniFiler10.Controlz
 
 		Border _dropDownBorder = null;
 		Border _deleteBorder = null;
-		Popup _popup = null;
+		Border _popupBorder = null;
+		//Popup _popup = null;
+		Flyout _flyout = null;
 		ListView _listView = null;
 
 		public LolloTextBox() : base()
@@ -177,12 +185,15 @@ namespace UniFiler10.Controlz
 				_deleteBorder.Tapped += OnDeleteBorder_Tapped;
 			}
 
-			_popup = GetTemplateChild("Popup") as Popup;
-			if (_popup != null)
-			{
-				_popup.Closed += OnPopup_Closed;
-				_popup.Opened += OnPopup_Opened;
-			}
+			_popupBorder = GetTemplateChild("PopupBorder") as Border;
+			//_popup = GetTemplateChild("Popup") as Popup;
+			//if (_popup != null)
+			//{
+			//	_popup.Closed += OnPopup_Closed;
+			//	_popup.Opened += OnPopup_Opened;
+			//}
+
+			_flyout = GetTemplateChild("Flyout") as Flyout;
 
 			_listView = GetTemplateChild("PopupListView") as ListView;
 			if (_listView != null)
@@ -202,7 +213,9 @@ namespace UniFiler10.Controlz
 
 
 		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{		
+		{
+			//if (_popup?.IsOpen == true) _popup.IsOpen = false;
+			_flyout?.Hide();
 			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
 			// when this changes a value, which goes straight into the DB, we must check it.
 			string selItem = _listView?.SelectedItem?.GetType()?.GetProperties()?.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?.GetValue(_listView?.SelectedItem)?.ToString();
@@ -211,23 +224,37 @@ namespace UniFiler10.Controlz
 			//var tb = GetBindingExpression(TextBox.TextProperty);
 
 			SetValue(TextProperty, selItem);
-
-			if (_popup?.IsOpen == true) _popup.IsOpen = false;
 		}
 
 		private void OnDropDownBorder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			if (_popup == null || _listView == null) return;
+			Debug.WriteLine("Tapped");
 
-			if (_popup.IsOpen == false)
+			if (_listView == null) return;
+
+			//if (_popup != null)
+			//{
+			//	if (_popup.IsOpen == false)
+			//	{
+			//		//_popup.HorizontalOffset = ActualWidth; // LOLLO this may get out of the window. The flyout is smarter.
+			//		//_popup.MinWidth = ActualWidth;
+			//		_popup.IsOpen = true;
+			//	}
+			//	else
+			//	{
+			//		_popup.IsOpen = false;
+			//	}
+			//}
+
+			if (_flyout != null)
 			{
-				//_popup.HorizontalOffset = ActualWidth; // LOLLO this may get out of the window: fix it
-				//_popup.MinWidth = ActualWidth;
-				_popup.IsOpen = true;
-			}
-			else
-			{
-				_popup.IsOpen = false;
+				if (_popupBorder != null)
+				{
+					if (_appView == null) _appView = ApplicationView.GetForCurrentView();
+					_popupBorder.MaxHeight = _appView.VisibleBounds.Height;
+					_popupBorder.MaxWidth = _appView.VisibleBounds.Width;
+				}
+				_flyout.ShowAt(this);
 			}
 		}
 
@@ -238,15 +265,24 @@ namespace UniFiler10.Controlz
 			ClearValue(TextProperty);
 		}
 
-		private void OnPopup_Closed(object sender, object e)
-		{
-			// throw new NotImplementedException();
-		}
+		//private void OnPopup_Closed(object sender, object e)
+		//{
+		//	// throw new NotImplementedException();
+		//}
+		private ApplicationView _appView = null;
+		//private void OnPopup_Opened(object sender, object e)
+		//{
+		//	//((sender as Popup).Child as FrameworkElement); LOLLO if the popup is full of items, they spill out of the window border and become invisible, instead of scrolling
+		//	// throw new NotImplementedException();
+		//	//if (_appView == null) _appView = ApplicationView.GetForCurrentView();
+		//	//var transform = TransformToVisual(_listView);
+		//	//var relativePoint = transform.TransformPoint(new Point(0.0, 0.0));
+		//	//Debug.WriteLine("X= " + relativePoint.X + ", Y= " + relativePoint.Y);
+		//	//Debug.WriteLine("The list is " + _listView.ActualHeight + " px high");
 
-		private void OnPopup_Opened(object sender, object e)
-		{
-			// throw new NotImplementedException();
-		}
+			
+		//	//var transform0 = TransformToVisual(Application.Current.);
+		//}
 
 		private void UpdateEDV()
 		{

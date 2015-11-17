@@ -1,4 +1,4 @@
-﻿<ctl:OpenableObservableControl
+﻿<ctl:BackableOpenableObservableControl
     x:Class="UniFiler10.Views.BinderView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -19,12 +19,15 @@
         <local:BinderCoverView
             Visibility="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
             DataContext="{Binding}"/>
-        <ctl:LolloSplitView x:Name="LayoutRoot"
+		<!--ClosedPaneLength="{StaticResource CompactPaneLength}"
+            OpenPaneLength="{StaticResource OpenPaneLength}"
+		IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"-->
+		<ctl:LolloSplitView x:Name="LayoutRoot"
             Visibility="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
-            IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"
+            IsPaneOpen="True"
             IsEnabled="{Binding IsEnabled, Mode=OneWay, FallbackValue=False}"
             ClosedPaneLength="{StaticResource CompactPaneLength}"
-            OpenPaneLength="{StaticResource OpenPaneLength}"
+            OpenPaneLength="{StaticResource CompactPaneLength}"
             IsDoubleTapEnabled="False" 
             IsHoldingEnabled="False"
             IsRightTapEnabled="False">
@@ -42,39 +45,45 @@
                     <!-- open pane -->
                     <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
                               HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
-                        <Grid Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
+						<!--Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}"-->
+                        <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
-                                <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
-                                <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
+                                <!--<RowDefinition Height="Auto"/>-->
+                                <RowDefinition Height="Auto"/>
+                                <!--<RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>-->
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             
-                            <AppBarButton Grid.Row="0"
+                            <!--<AppBarButton Grid.Row="0"
                                 Icon="Back"
                                 x:Uid="Shrink"
-                                Click="OnTogglePaneOpen"/>
+								Height="{StaticResource CompactPaneLength}"
+								Width="{StaticResource CompactPaneLength}"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+                                Click="OnTogglePaneOpen"/>-->
 
-                            <AppBarButton Grid.Row="1"
+                            <AppBarButton Grid.Row="0"
                                 Icon="ViewAll"
                                 x:Uid="Cover"
+								Height="{StaticResource CompactPaneLength}"
+								Width="{StaticResource CompactPaneLength}"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
                                 Click="OnOpenCover_Click"/>
 
-                            <AppBarButton Grid.Row="2"
+                            <!--<AppBarButton Grid.Row="2"
                                 Icon="Add"
                                 x:Uid="AddFolder"
-                                Click="OnAddFolder_Click"/>
+                                Click="OnAddFolder_Click"/>-->
 
                             <!--SelectedIndexTolerant="{Binding CurrentFolder, Mode=OneWay, Converter={StaticResource FolderIdToIndex}}"-->
-                            <ctl:TolerantListView Grid.Row="3"
+                            <ctl:TolerantListView Grid.Row="1"
                                 ItemsSource="{Binding Folders, Mode=OneWay}"
                                 IsMultiSelectCheckBoxEnabled="False" 
                                 IsItemClickEnabled="True"
                                 SelectedItem="{Binding CurrentFolder}"
                                 SelectionChanged="OnListView_SelectionChanged"
-                                IsHoldingEnabled="False" 
-                                IsDoubleTapEnabled="False"
-                                IsRightTapEnabled="False"
                                 ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -83,70 +92,84 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid>
-                                            <Grid.RowDefinitions>
+                                        <!--<Grid>-->
+                                            <!--<Grid.RowDefinitions>
                                                 <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
                                                 <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
                                                 <RowDefinition MaxHeight="{StaticResource ButtonBarItemSizeLarge}"/>
-                                            </Grid.RowDefinitions>
-                                            <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly">
+                                            </Grid.RowDefinitions>-->
+                                            <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly"
+												Height="{StaticResource CompactPaneLength}"
+												Width="{StaticResource CompactPaneLength}">
                                                 <TextBlock Grid.Row="0"
-                                                    MaxWidth="{StaticResource OpenPaneLength}"
+                                                    MaxWidth="{StaticResource CompactPaneLength}"
                                                     Text="{Binding Name, Mode=OneWay}"
                                                     TextAlignment="Center"
                                                     TextWrapping="Wrap"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"/>
                                             </Viewbox>
-                                            <AppBarButton Grid.Row="1"
+											<!--<AppBarButton Grid.Row="1"
                                                 Icon="Delete"
                                                 x:Uid="DeleteFolder"
                                                 Click="OnDeleteFolder_Click"
-                                                VerticalAlignment="Center"/>
-                                            <!-- TODO add a miniature of the first document in the first wallet -->
-                                        </Grid>
+												Width="{StaticResource CompactPaneLength}"
+												HorizontalAlignment="Center"
+												VerticalAlignment="Center"/>-->
+                                            <!-- LOLLO TODO add a miniature of the first document in the first wallet -->
+                                        <!--</Grid>-->
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ctl:TolerantListView>
                         </Grid>
                     </ScrollViewer>
                     
-                    <!-- closed pane -->
-                    <Grid Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">
+                     <!--closed pane--> 
+                    <!--<Grid Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
-                            <RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <AppBarButton Grid.Row="0"
-                                HorizontalAlignment="Center"
+								Height="{StaticResource CompactPaneLength}"
+								Width="{StaticResource CompactPaneLength}"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
                                 Icon="Forward"
                                 x:Uid="Expand"
                                 Click="OnTogglePaneOpen"/>
 
                         <AppBarButton Grid.Row="1"
+								Height="{StaticResource CompactPaneLength}"
+								Width="{StaticResource CompactPaneLength}"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"									  
                                 Icon="ViewAll"
                                 x:Uid="Cover"
                                 Click="OnOpenCover_Click"/>
 
                         <utilz:LayoutTransformer Grid.Row="2"
-                                HorizontalAlignment="Center">
+							Width="{StaticResource CompactPaneLength}"
+                            HorizontalAlignment="Center">
                             <utilz:LayoutTransformer.LayoutTransform>
                                 <RotateTransform Angle="-90"/>
                             </utilz:LayoutTransformer.LayoutTransform>
                             <Grid>
                                 <TextBlock
-                                    Text="{Binding CurrentFolder.Name, Mode=OneWay}"
-                                    TextWrapping="Wrap"
+                                    Text="{Binding CurrentFolder.Name, Mode=OneWay}"                                    
                                     Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToCollapsedConverter}}"
+									TextWrapping="Wrap"
                                     MaxWidth="{StaticResource PaneHeight}"/>
                                 <TextBlock
                                     x:Uid="NoFolder"
-                                    Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToVisibleConverter}}"/>
-                            </Grid>
+                                    Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToVisibleConverter}}"
+									TextWrapping="Wrap"
+                                    MaxWidth="{StaticResource PaneHeight}"/>
+							</Grid>
                         </utilz:LayoutTransformer>
-                    </Grid>
+                    </Grid>-->
                 </Grid>
             </ctl:LolloSplitView.PaneContent>
         </ctl:LolloSplitView>
@@ -166,4 +189,4 @@
         </Popup>
 
     </Grid>
-</ctl:OpenableObservableControl>
+</ctl:BackableOpenableObservableControl>

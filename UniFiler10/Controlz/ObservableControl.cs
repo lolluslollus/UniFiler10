@@ -55,7 +55,7 @@ namespace UniFiler10.Controlz
         #endregion construct dispose
 
         #region UIThread
-        public void RunInUiThread(DispatchedHandler action)
+        public async void RunInUiThread(DispatchedHandler action)
         {
             if (Dispatcher.HasThreadAccess)
             {
@@ -63,7 +63,7 @@ namespace UniFiler10.Controlz
             }
             else
             {
-                IAsyncAction ani = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action);
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action);
             }
         }
         #endregion UIThread

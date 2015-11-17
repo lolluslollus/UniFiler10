@@ -22,7 +22,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class WalletView : ObservableControl
+    public sealed partial class WalletView : UserControl
     {
         public BinderVM VM
         {

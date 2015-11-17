@@ -1,4 +1,4 @@
-﻿<ctl:OpenableObservableControl
+﻿<ctl:BackableOpenableObservableControl
     x:Class="UniFiler10.Views.AudioRecorderView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -50,4 +50,4 @@
             <TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>
-</ctl:OpenableObservableControl>
+</ctl:BackableOpenableObservableControl>

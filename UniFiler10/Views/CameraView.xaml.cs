@@ -27,7 +27,7 @@ using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class CameraView : OpenableObservableControl
+    public sealed partial class CameraView : BackableOpenableObservableControl
     {
         public BinderVM VM
         {
@@ -202,21 +202,22 @@ namespace UniFiler10.Views
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
         }
 
-        private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+        //private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+        //{
+        //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
+        //}
+        //private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
+        //{
+        //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
+        //}
+        //private async void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+        //{
+        //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
+        //}
+        protected override void CloseMe()
         {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        }
-        private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-        {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        }
-        private async void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
-        {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        }
-        private void CloseMe()
-        {
-            if (VM != null) VM.IsCameraOverlayOpen = false;
+			var vm = VM; if (vm == null) return;
+            vm.IsCameraOverlayOpen = false;
         }
         #endregion Event handlers
 
@@ -569,15 +570,11 @@ namespace UniFiler10.Views
         /// </summary>
         private void RegisterEventHandlers()
         {
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+			RegisterBackEventHandlers();
+			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
             {
                 HardwareButtons.CameraPressed += OnHardwareButtons_CameraPressed;
             }
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-            {
-                HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-            }
-            SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
             // If there is an orientation sensor present on the device, register for notifications
             if (_orientationSensor != null)
             {
@@ -596,15 +593,11 @@ namespace UniFiler10.Views
         /// </summary>
         private void UnregisterEventHandlers()
         {
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+			UnregisterBackEventHandlers();
+			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
             {
                 HardwareButtons.CameraPressed -= OnHardwareButtons_CameraPressed;
             }
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-            {
-                HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-            }
-            SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 
             if (_orientationSensor != null)
             {

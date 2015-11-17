@@ -19,7 +19,7 @@ namespace UniFiler10.Views
     /// This control is supposed to run inside a Popup.
     /// Showing or hiding the popup will open or close the control.
     /// </summary>
-    public sealed partial class AudioRecorderView : OpenableObservableControl, IMessageWriter
+    public sealed partial class AudioRecorderView : BackableOpenableObservableControl, IMessageWriter
     {
         public BinderVM VM
         {
@@ -68,61 +68,22 @@ namespace UniFiler10.Views
             {
                 _audioRecorder = new AudioRecorder(this, VM);
                 await _audioRecorder.OpenAsync();
-                RegisterEventHandlers();
 
-                await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
-                return true;
+				await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
+
+				RunInUiThread(delegate { RegisterBackEventHandlers(); });
+				return true;
             }
             return false;
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            UnregisterEventHandlers();
+			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
 
-            await StopRecordingAsync().ConfigureAwait(false);
+			await StopRecordingAsync().ConfigureAwait(false);
 
             _audioRecorder?.Dispose();
             _audioRecorder = null;
-        }
-        /// <summary>
-        /// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
-        /// </summary>
-        private void RegisterEventHandlers()
-        {
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-            {
-                HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-            }
-            SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
-
-            //_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
-        }
-
-        /// <summary>
-        /// Unregisters event handlers for hardware buttons and orientation sensors
-        /// </summary>
-        private void UnregisterEventHandlers()
-        {
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-            {
-                HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-            }
-            SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
-
-            //_systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
-        }
-
-        private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        }
-        private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-        {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        }
-        private async void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
-        {
-            await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         }
 
         private async Task StopRecordingAsync()
@@ -130,9 +91,10 @@ namespace UniFiler10.Views
             if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
             VM?.EndRecordAudio();
         }
-        private void CloseMe()
+        protected override void CloseMe()
         {
-            if (VM != null) VM.IsAudioRecorderOverlayOpen = false;
+			var vm = VM; if (vm == null) return;
+            vm.IsAudioRecorderOverlayOpen = false;
         }
     }
 }

@@ -121,7 +121,7 @@ namespace UniFiler10.Data.Model
 
         private IPaneOpener _parentPaneOpener = null;
         [IgnoreDataMember]
-        public IPaneOpener ParentPaneOpener { get { return _parentPaneOpener; } private set { _parentPaneOpener = value; RaisePropertyChanged_UI(); UpdateIsPaneOpen(); } }
+        public IPaneOpener ParentPaneOpener { get { return _parentPaneOpener; } private set { _parentPaneOpener = value; RaisePropertyChanged_UI(); /*UpdateIsPaneOpen();*/ } }
 
         private SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
         [IgnoreDataMember]
@@ -187,17 +187,17 @@ namespace UniFiler10.Data.Model
         [IgnoreDataMember]
         public Folder CurrentFolder { get { return _currentFolder; } private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } } }
 
-        private bool _isPaneOpen = true;
-        [DataMember]
-        public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); if (!_isPaneOpen) _parentPaneOpener.IsPaneOpen = false; } } }
-        private void UpdateIsPaneOpen()
-        {
-            if (_parentPaneOpener == null) IsPaneOpen = false;
-        }
-        public void ToggleIsPaneOpen()
-        {
-            IsPaneOpen = !_isPaneOpen;
-        }
+        //private bool _isPaneOpen = true;
+        //[DataMember]
+        //public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); /*if (!_isPaneOpen) _parentPaneOpener.IsPaneOpen = false; */} } }
+        //private void UpdateIsPaneOpen()
+        //{
+        //    if (_parentPaneOpener == null) IsPaneOpen = false;
+        //}
+        //public void ToggleIsPaneOpen()
+        //{
+        //    IsPaneOpen = !_isPaneOpen;
+        //}
 
         private bool _isCoverOpen = true;
         [DataMember]
@@ -333,7 +333,7 @@ namespace UniFiler10.Data.Model
         }
         private void CopyNonDbProperties(Binder source)
         {
-            IsPaneOpen = source.IsPaneOpen;
+            //IsPaneOpen = source.IsPaneOpen;
             IsCoverOpen = source.IsCoverOpen;
 			CatIdForFldFilter = source.CatIdForFldFilter;
 			FldDscIdForFldFilter = source.FldDscIdForFldFilter;
@@ -347,7 +347,7 @@ namespace UniFiler10.Data.Model
         {
             Binder target = new Binder(DBName, _parentPaneOpener);
             target.CurrentFolderId = _currentFolderId;
-            target.IsPaneOpen = _isPaneOpen;
+            //target.IsPaneOpen = _isPaneOpen;
             target.IsCoverOpen = _isCoverOpen;
 			target.CatIdForFldFilter = _catIdForFldFilter;
 			target.FldDscIdForFldFilter = _fldDscIdForFldFilter;

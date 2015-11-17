@@ -166,7 +166,7 @@
     <value>ConfirmationRequest</value>
   </data>
   <data name="Cover.Label" xml:space="preserve">
-    <value>Cover</value>
+    <value>Overview</value>
   </data>
   <data name="Delete.Text" xml:space="preserve">
     <value>Delete</value>

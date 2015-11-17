@@ -103,6 +103,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\BackableOpenableObservableControl.cs" />
     <Compile Include="Controlz\LayoutTransformer.cs" />
     <Compile Include="Controlz\LolloSplitView.xaml.cs">
       <DependentUpon>LolloSplitView.xaml</DependentUpon>

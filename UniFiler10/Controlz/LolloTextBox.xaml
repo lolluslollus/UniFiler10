@@ -249,29 +249,90 @@
                                 VerticalAlignment="Center"
                                 AutomationProperties.AccessibilityView="Raw"/>
 						</Border>
-						<Popup x:Name="Popup" IsLightDismissEnabled="True">
-							<!--Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"-->
+						<!--<Popup x:Name="Popup" IsLightDismissEnabled="True">
+							--><!--Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"--><!--
 							<Border x:Name="PopupBorder"
                                 Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}"
                                 HorizontalAlignment="Stretch">
-								<!--MinWidth="{ThemeResource ComboBoxPopupThemeMinWidth}"-->
-
-								<ListView x:Name="PopupListView"
+								--><!--MinWidth="{ThemeResource ComboBoxPopupThemeMinWidth}"--><!--
+								<ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled">
+									<ListView x:Name="PopupListView"
 									IsItemClickEnabled="True"
 									IsMultiSelectCheckBoxEnabled="False"
 									VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
-									HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-									ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Enabled" 
-									ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollMode="Disabled">
-									<ItemsControl.ItemsPanel>
-										<ItemsPanelTemplate>
-											<ItemsWrapGrid Orientation="Vertical"/>
-											<!--<ItemsStackPanel Orientation="Vertical"/>-->
-										</ItemsPanelTemplate>
-									</ItemsControl.ItemsPanel>
-								</ListView>
+									HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+										--><!--ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Enabled" 
+									ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollMode="Disabled" IsActiveView="True">--><!--
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												--><!--<CarouselPanel CanVerticallyScroll="True"/>-->
+												<!--<ItemsWrapGrid Orientation="Vertical"
+												ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Enabled"
+												ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Enabled"/>--><!--
+												<ItemsStackPanel Orientation="Vertical"/>
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+									</ListView>
+								</ScrollViewer>
 							</Border>
-						</Popup>
+						</Popup>-->
+						<FlyoutBase.AttachedFlyout>
+							<Flyout Placement="Right" x:Name="Flyout">
+								<Flyout.FlyoutPresenterStyle>
+									<Style TargetType="FlyoutPresenter">
+										<Setter Property="Margin" Value="0"/>
+										<Setter Property="Padding" Value="0"/>
+										<Setter Property="BorderThickness" Value="0"/>
+										<Setter Property="Template">
+											<Setter.Value>
+												<ControlTemplate TargetType="FlyoutPresenter">
+													<!--Margin="{TemplateBinding Padding}"-->
+													<!--HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+														 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"-->
+													<ContentPresenter Background="{TemplateBinding Background}"
+														BorderThickness="0"
+														Content="{TemplateBinding Content}"
+														ContentTemplate="{TemplateBinding ContentTemplate}"
+														ContentTransitions="{TemplateBinding ContentTransitions}"
+														Margin="0"
+														Padding="0"
+														HorizontalAlignment="Stretch"
+														VerticalAlignment="Stretch"/>
+												</ControlTemplate>
+											</Setter.Value>
+										</Setter>
+									</Style>
+								</Flyout.FlyoutPresenterStyle>
+								<Border x:Name="PopupBorder"
+									Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}"
+									BorderThickness="0"
+										Margin="0"
+										Padding="0"
+									HorizontalAlignment="Stretch">
+									<ListView x:Name="PopupListView"
+										Margin="0"
+										Padding="0"
+										IsItemClickEnabled="True"
+										IsMultiSelectCheckBoxEnabled="False"
+										VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
+										HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+										ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Enabled"
+										ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Enabled">
+										<ItemsControl.ItemContainerStyle>
+											<Style TargetType="ListViewItem">
+												<Setter Property="Margin" Value="0"/>
+												<Setter Property="Padding" Value="0"/>
+											</Style>
+										</ItemsControl.ItemContainerStyle>
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												<ItemsWrapGrid Orientation="Vertical" Margin="0" GroupPadding="0"/>
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+									</ListView>
+								</Border>
+							</Flyout>
+						</FlyoutBase.AttachedFlyout>
 
 					</Grid>
 				</ControlTemplate>

@@ -28,7 +28,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class BinderCoverView : OpenableObservableControl, IAnimationStarter
+    public sealed partial class BinderCoverView : BackableOpenableObservableControl, IAnimationStarter
     {
         #region properties
         private BinderCoverVM _vm = null;
@@ -50,12 +50,9 @@ namespace UniFiler10.Views
                 await _vm.OpenAsync().ConfigureAwait(false);
                 RaisePropertyChanged_UI(nameof(VM));
 
-                if (Dispatcher.HasThreadAccess) RegisterEventHandlers();
-                else await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                {
-                    RegisterEventHandlers();
-                }).AsTask().ConfigureAwait(false);
-                return true;
+				RunInUiThread(delegate { RegisterBackEventHandlers(); });
+
+				return true;
             }
             else
             {
@@ -64,11 +61,7 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            if (Dispatcher.HasThreadAccess) UnregisterEventHandlers();
-            else await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-            {
-                UnregisterEventHandlers();
-            }).AsTask().ConfigureAwait(false);
+			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
             
             await _vm?.CloseAsync();
             _vm?.Dispose();
@@ -105,52 +98,14 @@ namespace UniFiler10.Views
                 SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
             }
         }
-
-        /// <summary>
-        /// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
-        /// </summary>
-        private void RegisterEventHandlers()
-        {
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-            {
-                HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-            }
-            SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
-        }
-
-        /// <summary>
-        /// Unregisters event handlers for hardware buttons and orientation sensors
-        /// </summary>
-        private void UnregisterEventHandlers()
-        {
-            if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-            {
-                HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-            }
-            SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
-        }
         #endregion construct, dispose, open, close
 
         #region event handlers
-        private void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            GoBack();
-        }
-        private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-        {
-            GoBack();
-        }
-        private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
-        {
-            GoBack();
-        }
-
-        private void GoBack()
-        {
-            _vm?.CloseCover();
-        }
-
-        private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+		protected override void CloseMe()
+		{
+			_vm?.GoBack();
+		}
+		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
         {
             Task all = _vm?.SelectFolderAsync((e?.ClickedItem as BinderCoverVM.FolderPreview)?.FolderId);
         }

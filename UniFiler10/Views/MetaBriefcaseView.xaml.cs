@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
 using UniFiler10.ViewModels;
 using Windows.Foundation;
@@ -66,15 +67,15 @@ namespace UniFiler10.Views
             VM?.UnassignFieldDescriptionFromCategory(newFD, VM?.MetaBriefcase?.CurrentCategory);
         }
 
-        private async void OnAddField_Click(object sender, RoutedEventArgs e)
+        private void OnAddField_Click(object sender, RoutedEventArgs e)
         {
-            if (VM != null) await VM.AddFieldDescriptionAsync().ConfigureAwait(false);
+            Task add = VM?.AddFieldDescriptionAsync();
         }
 
-        private async void OnDeleteField_Click(object sender, RoutedEventArgs e)
+        private void OnDeleteField_Click(object sender, RoutedEventArgs e)
         {
             var fldDsc = ((sender as FrameworkElement)?.DataContext as FieldDescription);
-            if (VM != null) await VM.RemoveFieldDescriptionAsync(fldDsc).ConfigureAwait(false);
+            Task del = VM?.RemoveFieldDescriptionAsync(fldDsc);
         }
 
         private void OnAddFieldValue_Click(object sender, RoutedEventArgs e)
@@ -87,9 +88,9 @@ namespace UniFiler10.Views
             VM?.RemovePossibleValueFromFieldDescription(fldVal);
         }
 
-        private async void OnAddCategory_Click(object sender, RoutedEventArgs e)
+        private void OnAddCategory_Click(object sender, RoutedEventArgs e)
         {
-            if (VM != null) await VM.AddCategoryAsync().ConfigureAwait(false);
+            Task add = VM.AddCategoryAsync();
         }
 
         private async void OnDeleteCategory_Click(object sender, RoutedEventArgs e)

@@ -1,4 +1,4 @@
-﻿<ctl:OpenableObservableControl    
+﻿<ctl:BackableOpenableObservableControl
 	x:Class="UniFiler10.Views.BinderCoverView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -368,10 +368,13 @@
 				DisplayMemberPath="Name"
 				Text="{Binding CatNameForCatFilter, Mode=TwoWay}">
 				<ctl:LolloTextBox.ListItemTemplate>
-					<DataTemplate >
-						<TextBlock Text="{Binding Name}"
-								MaxWidth="{StaticResource LandscapeThreeQuartersItemWidth}"
+					<DataTemplate>
+						<Grid Width="{StaticResource LandscapeItemWidth}">
+							<TextBlock Text="{Binding Name}"
+								MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+								Margin="{StaticResource PanelPadding}"
 								TextWrapping="Wrap"/>
+						</Grid>
 					</DataTemplate>
 				</ctl:LolloTextBox.ListItemTemplate>
 			</ctl:LolloTextBox>
@@ -395,10 +398,13 @@
 					DisplayMemberPath="Name"
 					Text="{Binding CatNameForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
-						<DataTemplate >
-							<TextBlock Text="{Binding Name}"
-								MaxWidth="{StaticResource LandscapeThreeQuartersItemWidth}"
-								TextWrapping="Wrap"/>
+						<DataTemplate>
+							<Grid Width="{StaticResource LandscapeItemWidth}">
+								<TextBlock Text="{Binding Name}"
+									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+									Margin="{StaticResource PanelPadding}"
+									TextWrapping="Wrap"/>
+							</Grid>
 						</DataTemplate>
 					</ctl:LolloTextBox.ListItemTemplate>
 				</ctl:LolloTextBox>
@@ -418,10 +424,13 @@
 					DisplayMemberPath="Caption"
 					Text="{Binding FldDscCaptionForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
-						<DataTemplate >
-							<TextBlock Text="{Binding Caption}"
-								MaxWidth="{StaticResource LandscapeThreeQuartersItemWidth}"
-								TextWrapping="Wrap"/>
+						<DataTemplate>
+							<Grid Width="{StaticResource LandscapeItemWidth}">
+								<TextBlock Text="{Binding Caption}"
+									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+									Margin="{StaticResource PanelPadding}"
+									TextWrapping="Wrap"/>
+							</Grid>
 						</DataTemplate>
 					</ctl:LolloTextBox.ListItemTemplate>
 				</ctl:LolloTextBox>
@@ -441,10 +450,13 @@
 					DisplayMemberPath="Vaalue"
 					Text="{Binding FldValVaalueForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
-						<DataTemplate >
-							<TextBlock Text="{Binding Vaalue}"
-								MaxWidth="{StaticResource LandscapeThreeQuartersItemWidth}"
-								TextWrapping="Wrap"/>
+						<DataTemplate>
+							<Grid Width="{StaticResource LandscapeItemWidth}">
+								<TextBlock Text="{Binding Vaalue}"
+									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+									Margin="{StaticResource PanelPadding}"
+									TextWrapping="Wrap"/>
+							</Grid>
 						</DataTemplate>
 					</ctl:LolloTextBox.ListItemTemplate>
 				</ctl:LolloTextBox>
@@ -461,4 +473,4 @@
 				ItemsPanel="{StaticResource FolderItemPanel}"/>
 		</Grid>
 	</ScrollViewer>
-</ctl:OpenableObservableControl>
+</ctl:BackableOpenableObservableControl>

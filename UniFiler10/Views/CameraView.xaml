@@ -1,4 +1,4 @@
-﻿<ctl:OpenableObservableControl
+﻿<ctl:BackableOpenableObservableControl
     x:Class="UniFiler10.Views.CameraView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -57,4 +57,4 @@
             <TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>
-</ctl:OpenableObservableControl>
+</ctl:BackableOpenableObservableControl>

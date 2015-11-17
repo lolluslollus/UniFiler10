@@ -5,21 +5,31 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
     xmlns:ctl="using:UniFiler10.Controlz"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utilz="using:Utilz"
     xmlns:vm="using:UniFiler10.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
        
         <!--DisplayMode="CompactInline"
         CompactPaneLength="{StaticResource CompactPaneLength}"-->
-    <!--DataContext="{Binding ElementName=me, Path=VM}"-->
-	<Grid d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
-		<local:BriefcaseCoverView
-            Visibility="{x:Bind VM.Briefcase.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
-            VM="{x:Bind VM, Mode=OneWay}"/>
+	<Grid x:Name="LayoutRoot"
+		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
 
-		<ctl:LolloSplitView x:Name="LayoutRoot"
+		<local:BriefcaseCoverView
+			Visibility="{x:Bind VM.Briefcase.IsShowingCover, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Visible, Mode=OneWay}"
+            VM="{x:Bind VM, Mode=OneWay}"/>
+		<local:SettingsView
+            HorizontalAlignment="Left" VerticalAlignment="Top"
+            Visibility="{x:Bind VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
+            DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"
+			BriefcaseVM="{x:Bind VM, Mode=OneWay}"/>
+		<local:BinderView
+            HorizontalAlignment="Left" VerticalAlignment="Top"
+            Visibility="{x:Bind VM.Briefcase.IsShowingBinder, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
+            DataContext="{x:Bind VM.Briefcase.CurrentBinder, Mode=OneWay}"/>
+
+		<!--<ctl:LolloSplitView x:Name="LayoutRoot"
 			Visibility="{x:Bind VM.Briefcase.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
             IsPaneOpen="{Binding Briefcase.IsPaneOpen, Mode=TwoWay, FallbackValue=True}"
             IsEnabled="{Binding IsOpen, FallbackValue=False}"
@@ -31,8 +41,8 @@
 
 			<ctl:LolloSplitView.BodyContent>
 				<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-					<!-- LOLLO the following elements' Visibility is bound to ElementName=me -->
-					<!-- otherwise, the DataContext property will screw with it -->
+					--><!-- LOLLO the following elements' Visibility is bound to ElementName=me -->
+					<!-- otherwise, the DataContext property will screw with it --><!--
 					<local:SettingsView                        
                         HorizontalAlignment="Left" VerticalAlignment="Top"
                         Visibility="{x:Bind VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
@@ -46,14 +56,14 @@
 
 			<ctl:LolloSplitView.PaneContent>
 				<Grid>
-					<!-- open pane -->
+					--><!-- open pane --><!--
 					<ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
                               HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
 						<Grid Visibility="{Binding Briefcase.IsPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}">
 							<Grid.RowDefinitions>
 								<RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
 								<RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
-								<!-- LOLLO Height="Auto" screws with the (automatic or not) scroll viewers within -->
+								--><!-- LOLLO Height="Auto" screws with the (automatic or not) scroll viewers within --><!--
 								<RowDefinition Height="*" MinHeight="320"/>
 								<RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
 								<RowDefinition Height="Auto"/>
@@ -150,7 +160,7 @@
                         IsChecked="{Binding Briefcase.IsShowingSettings, Mode=TwoWay}"/>
 						</Grid>
 					</ScrollViewer>
-					<!-- closed pane -->
+					--><!-- closed pane --><!--
 					<Grid Visibility="{Binding Briefcase.IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Visible}">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="{StaticResource CompactPaneLength_ForGrid}"/>
@@ -193,6 +203,6 @@
 					</Grid>
 				</Grid>
 			</ctl:LolloSplitView.PaneContent>
-		</ctl:LolloSplitView>
+		</ctl:LolloSplitView>-->
 	</Grid>
 </Page>

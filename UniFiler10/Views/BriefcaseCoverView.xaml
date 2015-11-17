@@ -1,4 +1,4 @@
-﻿<ctl:OpenableObservableControl    
+﻿<ctl:ObservableControl    
 	x:Class="UniFiler10.Views.BriefcaseCoverView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -15,7 +15,7 @@
 	d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
     IsEnabled="{Binding IsEnabled}">
 
-	<ctl:OpenableObservableControl.Resources>
+	<ctl:ObservableControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
 			<ObjectAnimationUsingKeyFrames 
                 Storyboard.TargetName="RefreshIcon" 
@@ -32,7 +32,7 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
-	</ctl:OpenableObservableControl.Resources>
+	</ctl:ObservableControl.Resources>
 
 	<ScrollViewer>
 		<Grid Background="Lavender" x:Name="LayoutRoot" DataContext="{x:Bind VM, Mode=OneWay}">
@@ -129,7 +129,7 @@
 					</Grid>
 				</Button>
 
-				<Button 
+				<!--<Button 
                     Tapped="OnBackButton_Tapped"
                     Width="{StaticResource LandscapeLargeItemWidth}"
 					Height="{StaticResource LandscapeItemHeight}"
@@ -147,7 +147,7 @@
 							TextWrapping="Wrap" 
 							HorizontalAlignment="Left"/>
 					</Grid>
-				</Button>
+				</Button>-->
 
 			</VariableSizedWrapGrid>
 
@@ -263,4 +263,4 @@
 
 		</Grid>
 	</ScrollViewer>
-</ctl:OpenableObservableControl>
+</ctl:ObservableControl>
