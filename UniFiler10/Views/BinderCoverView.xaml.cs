@@ -50,7 +50,7 @@ namespace UniFiler10.Views
                 await _vm.OpenAsync().ConfigureAwait(false);
                 RaisePropertyChanged_UI(nameof(VM));
 
-				RunInUiThread(delegate { RegisterBackEventHandlers(); });
+				RegisterBackEventHandlers();
 
 				return true;
             }
@@ -61,7 +61,7 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
+			UnregisterBackEventHandlers();
             
             await _vm?.CloseAsync();
             _vm?.Dispose();
@@ -107,12 +107,12 @@ namespace UniFiler10.Views
 		}
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
         {
-            Task all = _vm?.SelectFolderAsync((e?.ClickedItem as BinderCoverVM.FolderPreview)?.FolderId);
+            Task all = _vm?.SelectFolderAsync((e?.ClickedItem as Data.Model.Binder.FolderPreview)?.FolderId);
         }
 
         private void OnDeleteFolder_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            var fp = (sender as FrameworkElement).DataContext as BinderCoverVM.FolderPreview;
+            var fp = (sender as FrameworkElement).DataContext as Data.Model.Binder.FolderPreview;
             Task del = _vm?.DeleteFolderAsync(fp);
         }
         private void OnAddFolder_Tapped(object sender, TappedRoutedEventArgs e)

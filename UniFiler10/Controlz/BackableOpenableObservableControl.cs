@@ -14,13 +14,13 @@ namespace UniFiler10.Controlz
 	{
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
-			RunInUiThread(delegate { RegisterBackEventHandlers(); });
+			RegisterBackEventHandlers();
 			await Task.CompletedTask;
 			return true;
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
-			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
+			UnregisterBackEventHandlers();
 			return Task.CompletedTask;
 		}
 		/// <summary>
@@ -28,13 +28,16 @@ namespace UniFiler10.Controlz
 		/// </summary>
 		protected void RegisterBackEventHandlers()
 		{
-			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+			RunInUiThread(delegate 
 			{
-				HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-			}
-			SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
+				if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+				{
+					HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+				}
+				SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
 
-			//_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
+				//_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
+			});
 		}
 
 		/// <summary>
@@ -42,13 +45,17 @@ namespace UniFiler10.Controlz
 		/// </summary>
 		protected void UnregisterBackEventHandlers()
 		{
-			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+			RunInUiThread(delegate
 			{
-				HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-			}
-			SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 
-			//_systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
+				if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+				{
+					HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
+				}
+				SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
+
+				//_systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
+			});
 		}
 
 		public void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)

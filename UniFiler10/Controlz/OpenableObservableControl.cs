@@ -15,7 +15,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Controlz
 {
-    public class OpenableObservableControl : ObservableControl //, IDisposable
+    public abstract class OpenableObservableControl : ObservableControl //, IDisposable
     {
         //#region IDisposable
         //protected volatile bool _isDisposed = false;
@@ -203,7 +203,7 @@ namespace UniFiler10.Controlz
             return false;
         }
 
-        public async Task RunFunctionWhileOpenAsyncA(Action func)
+        protected async Task RunFunctionWhileOpenAsyncA(Action func)
         {
             if (_isOpen && IsEnabled)
             {
@@ -223,7 +223,7 @@ namespace UniFiler10.Controlz
                 }
             }
         }
-        public async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
         {
             if (_isOpen && IsEnabled)
             {
@@ -244,7 +244,7 @@ namespace UniFiler10.Controlz
             }
             return false;
         }
-        public async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
         {
             if (_isOpen && IsEnabled)
             {
@@ -264,7 +264,7 @@ namespace UniFiler10.Controlz
                 }
             }
         }
-        public async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
+		protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
         {
             if (_isOpen && IsEnabled)
             {

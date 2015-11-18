@@ -11,7 +11,7 @@ using Utilz;
 namespace UniFiler10.Data.Model
 {
     [DataContract]
-    public class OpenableObservableData : ObservableData, IDisposable
+    public abstract class OpenableObservableData : ObservableData, IDisposable
     {
         protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
@@ -133,7 +133,7 @@ namespace UniFiler10.Data.Model
             return false;
         }
 
-        public async Task RunFunctionWhileOpenAsyncA(Action func)
+		protected async Task RunFunctionWhileOpenAsyncA(Action func)
         {
             if (_isOpen && _isEnabled)
             {
@@ -153,7 +153,7 @@ namespace UniFiler10.Data.Model
                 }
             }
         }
-        public async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
         {
             if (_isOpen && _isEnabled)
             {
@@ -174,7 +174,7 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
-        public async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
         {
             if (_isOpen && _isEnabled)
             {
@@ -194,7 +194,7 @@ namespace UniFiler10.Data.Model
                 }
             }
         }
-        public async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
+        protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
         {
             if (_isOpen && _isEnabled)
             {

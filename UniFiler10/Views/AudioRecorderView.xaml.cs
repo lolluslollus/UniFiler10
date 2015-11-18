@@ -71,14 +71,14 @@ namespace UniFiler10.Views
 
 				await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
 
-				RunInUiThread(delegate { RegisterBackEventHandlers(); });
+				RegisterBackEventHandlers();
 				return true;
             }
             return false;
         }
         protected override async Task CloseMayOverrideAsync()
         {
-			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
+			UnregisterBackEventHandlers();
 
 			await StopRecordingAsync().ConfigureAwait(false);
 

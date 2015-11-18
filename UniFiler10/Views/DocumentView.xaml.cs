@@ -393,25 +393,22 @@ namespace UniFiler10.Views
         #endregion render
 
         #region event handlers
-        private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
+        private async void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
         {
             e.Handled = true;
             if (IsDeleteEnabled)
             {
-                Task del = BinderVM?.RunFunctionWhileOpenAsyncT(async delegate
+                if (await BinderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
                 {
-                    if (await BinderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
-                    {
-                        // if there are no more documents in the wallet, delete the wallet
-                        await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+                    // if there are no more documents in the wallet, delete the wallet
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+                        {
+                            if (Wallet.Documents.Count <= 0)
                             {
-                                if (Wallet.Documents.Count <= 0)
-                                {
-                                    Task del2 = BinderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
-                                }
-                            }).AsTask().ConfigureAwait(false);
-                    }
-                });
+                                Task del2 = BinderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
+                            }
+                        }).AsTask().ConfigureAwait(false);
+                }
             }
         }
 

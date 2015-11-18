@@ -26,28 +26,14 @@ namespace Utilz
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
-        {
-            RunInUiThread(delegate { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); });
-            //try
-            //{
-            //    if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-            //    {
-            //        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            //    }
-            //    else
-            //    {
-            //        IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-            //        {
-            //            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            //        });
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-            //}
-        }
+		/// <summary>
+		/// Runs in the UI thread if available, otherwise queues the operation in it.
+		/// </summary>
+		/// <param name="propertyName"></param>
+		protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
+		{
+			RunInUiThread(delegate { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); });
+		}
         #region UIThread
         public void RunInUiThread(DispatchedHandler action)
         {

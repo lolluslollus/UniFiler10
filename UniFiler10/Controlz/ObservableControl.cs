@@ -15,7 +15,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Controlz
 {
-    public class ObservableControl : UserControl, INotifyPropertyChanged
+    public abstract class ObservableControl : UserControl, INotifyPropertyChanged
     {
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;

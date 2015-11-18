@@ -306,8 +306,8 @@
 								<Border x:Name="PopupBorder"
 									Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}"
 									BorderThickness="0"
-										Margin="0"
-										Padding="0"
+									Margin="0"
+									Padding="0"
 									HorizontalAlignment="Stretch">
 									<ListView x:Name="PopupListView"
 										Margin="0"
@@ -326,7 +326,7 @@
 										</ItemsControl.ItemContainerStyle>
 										<ItemsControl.ItemsPanel>
 											<ItemsPanelTemplate>
-												<ItemsWrapGrid Orientation="Vertical" Margin="0" GroupPadding="0"/>
+												<ItemsWrapGrid Orientation="Vertical" Margin="0" GroupPadding="0" Background="Transparent"/>
 											</ItemsPanelTemplate>
 										</ItemsControl.ItemsPanel>
 									</ListView>

@@ -22,13 +22,22 @@ namespace UniFiler10.Controlz
 {
 	[TemplatePart(Name = "DropDownBorder", Type = typeof(Border))]
 	[TemplatePart(Name = "DeleteBorder", Type = typeof(Border))]
-	[TemplatePart(Name = "PopupBorder", Type =typeof(Border))]
+	[TemplatePart(Name = "PopupBorder", Type = typeof(Border))]
 	//[TemplatePart(Name = "Popup", Type = typeof(Popup))]
 	[TemplatePart(Name = "Flyout", Type = typeof(Flyout))]
 	[TemplatePart(Name = "PopupListView", Type = typeof(ListView))]
 
 	public class LolloTextBox : TextBox
 	{
+		#region properties
+		private ApplicationView _appView = null;
+		Border _dropDownBorder = null;
+		Border _deleteBorder = null;
+		Border _popupBorder = null;
+		//Popup _popup = null;
+		Flyout _flyout = null;
+		ListView _listView = null;
+
 		public DataTemplate ListItemTemplate
 		{
 			get { return (DataTemplate)GetValue(ListItemTemplateProperty); }
@@ -120,7 +129,7 @@ namespace UniFiler10.Controlz
 
 		private void OnItemsSource_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			UpdateItemsSource();
+			//UpdateItemsSource();
 			UpdateDropDownButton();
 			UpdateDeleteButton();
 		}
@@ -135,7 +144,7 @@ namespace UniFiler10.Controlz
 				if (args.OldValue is INotifyCollectionChanged) (args.OldValue as INotifyCollectionChanged).CollectionChanged -= ltb.OnItemsSource_CollectionChanged;
 				if (args.NewValue is INotifyCollectionChanged) (args.NewValue as INotifyCollectionChanged).CollectionChanged += ltb.OnItemsSource_CollectionChanged;
 
-				ltb.UpdateItemsSource();
+				//ltb.UpdateItemsSource();
 				ltb.UpdateDropDownButton();
 				ltb.UpdateDeleteButton();
 			}
@@ -153,14 +162,9 @@ namespace UniFiler10.Controlz
 			(obj as LolloTextBox)?.UpdateDropDownButton();
 			(obj as LolloTextBox)?.UpdateDeleteButton();
 		}
+		#endregion properties
 
-		Border _dropDownBorder = null;
-		Border _deleteBorder = null;
-		Border _popupBorder = null;
-		//Popup _popup = null;
-		Flyout _flyout = null;
-		ListView _listView = null;
-
+		#region construct and init
 		public LolloTextBox() : base()
 		{
 			DefaultStyleKey = "LolloTextBoxFieldValueStyle";
@@ -204,33 +208,22 @@ namespace UniFiler10.Controlz
 
 
 			UpdateEDV();
-			UpdateItemsSource();
+			//UpdateItemsSource();
 			UpdateDropDownButton();
 			UpdateDeleteButton();
 
 			//UpdateStates(false);
 		}
+		#endregion construct and init
 
-
-		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{
-			//if (_popup?.IsOpen == true) _popup.IsOpen = false;
-			_flyout?.Hide();
-			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
-			// when this changes a value, which goes straight into the DB, we must check it.
-			string selItem = _listView?.SelectedItem?.GetType()?.GetProperties()?.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?.GetValue(_listView?.SelectedItem)?.ToString();
-
-			//var textBinding = GetBindingExpression(TextBox.TextProperty)?.ParentBinding;
-			//var tb = GetBindingExpression(TextBox.TextProperty);
-
-			SetValue(TextProperty, selItem);
-		}
-
+		#region user actions
 		private void OnDropDownBorder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Debug.WriteLine("Tapped");
+			Debug.WriteLine("DropDownBorder Tapped");
 
 			if (_listView == null) return;
+
+			_listView.ItemsSource = ItemsSource;
 
 			//if (_popup != null)
 			//{
@@ -254,10 +247,43 @@ namespace UniFiler10.Controlz
 					_popupBorder.MaxHeight = _appView.VisibleBounds.Height;
 					_popupBorder.MaxWidth = _appView.VisibleBounds.Width;
 				}
-				_flyout.ShowAt(this);
+				try
+				{
+					_flyout.ShowAt(this);
+				}
+				catch { }
+				Debug.WriteLine("Flyout open");
 			}
 		}
 
+		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			//if (_popup?.IsOpen == true) _popup.IsOpen = false;
+			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
+			// when this changes a value, which goes straight into the DB, we must check it.
+			if (_listView == null || _listView.SelectedItem == null) return;
+
+			string selItem = _listView?.SelectedItem?.GetType()?.GetProperties()?.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?.GetValue(_listView?.SelectedItem)?.ToString();
+
+			_listView.ItemsSource = null;
+
+			try
+			{
+				_flyout?.Hide();
+			}
+			catch { }
+			Debug.WriteLine("Flyout closed");
+
+			//var textBinding = GetBindingExpression(TextBox.TextProperty)?.ParentBinding;
+			//var tb = GetBindingExpression(TextBox.TextProperty);
+			//tb.ParentBinding.SetValue(TextProperty, selItem); // no
+
+			SetValue(TextProperty, selItem);
+			Debug.WriteLine("new value set = " + selItem);
+
+			GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+			Debug.WriteLine("binding source updated");
+		}
 		private void OnDeleteBorder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
@@ -269,7 +295,7 @@ namespace UniFiler10.Controlz
 		//{
 		//	// throw new NotImplementedException();
 		//}
-		private ApplicationView _appView = null;
+
 		//private void OnPopup_Opened(object sender, object e)
 		//{
 		//	//((sender as Popup).Child as FrameworkElement); LOLLO if the popup is full of items, they spill out of the window border and become invisible, instead of scrolling
@@ -280,10 +306,12 @@ namespace UniFiler10.Controlz
 		//	//Debug.WriteLine("X= " + relativePoint.X + ", Y= " + relativePoint.Y);
 		//	//Debug.WriteLine("The list is " + _listView.ActualHeight + " px high");
 
-			
+
 		//	//var transform0 = TransformToVisual(Application.Current.);
 		//}
+		#endregion user actions
 
+		#region update methods
 		private void UpdateEDV()
 		{
 			if (!IsReadOnly && IsEnabled && IsEditableDecoratorVisible) EditableDecoratorVisibility = Visibility.Visible;
@@ -291,45 +319,21 @@ namespace UniFiler10.Controlz
 		}
 		private void UpdateDropDownButton()
 		{
-			if (IsEnabled && IsDropDownButtonVisible && (_listView?.ItemsSource as IList)?.Count > 0) DropDownVisibility = Visibility.Visible;
+			if (IsEnabled && IsDropDownButtonVisible && (ItemsSource as IList)?.Count > 0) DropDownVisibility = Visibility.Visible;
 			else DropDownVisibility = Visibility.Collapsed;
 		}
 		private void UpdateDeleteButton()
 		{
-			if (IsEnabled && (!IsReadOnly || (IsDropDownButtonVisible && (_listView?.ItemsSource as IList)?.Count > 0 && IsEmptyValueAllowedEvenIfNotInList))) DeleteVisibility = Visibility.Visible;
+			if (IsEnabled && (!IsReadOnly || (IsDropDownButtonVisible && (ItemsSource as IList)?.Count > 0 && IsEmptyValueAllowedEvenIfNotInList))) DeleteVisibility = Visibility.Visible;
 			else DeleteVisibility = Visibility.Collapsed;
 		}
-		private void UpdateItemsSource()
-		{
-			if (_listView != null)
-			{
-				_listView.ItemsSource = ItemsSource;
-				//if (ItemsSource is IList)
-				//{
-				//	var newItemsSource = new List<string>();
-				//	foreach (var item in (ItemsSource as IList))
-				//	{
-				//		var pi1 = item?.GetType()?.GetProperties()?.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?.GetValue(item)?.ToString();
-				//		if (pi1 != null) newItemsSource.Add(pi1);
-				//	}
-				//	_listView.ItemsSource = newItemsSource;
-				//}
-				//else
-				//{
-				//	_listView.ItemsSource = null;
-				//}
-			}
-		}
-
-		protected override void OnLostFocus(RoutedEventArgs e)
-		{
-			base.OnLostFocus(e);
-		}
-
-		protected override void OnPointerExited(PointerRoutedEventArgs e)
-		{
-			base.OnPointerExited(e);
-			//base.OnLostFocus(e);
-		}
+		//private void UpdateItemsSource()
+		//{
+		//	if (_listView != null)
+		//	{
+		//		_listView.ItemsSource = ItemsSource;
+		//	}
+		//}
+		#endregion update methods
 	}
 }

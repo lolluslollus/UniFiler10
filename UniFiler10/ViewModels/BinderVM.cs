@@ -156,73 +156,63 @@ namespace UniFiler10.ViewModels
 			set { _isAudioRecorderOverlayOpen = value; RaisePropertyChanged_UI(); }
 		}
 
-		public Task LoadMediaFileAsync(Folder parentFolder)
+		public async Task LoadMediaFileAsync(Folder parentFolder)
 		{
-			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
+			var binder = _binder;
+			if (binder != null && binder.IsOpen && parentFolder != null)
 			{
-				if (parentFolder != null)
-				{
-					var file = await DocumentExtensions.PickMediaFileAsync();
-					await parentFolder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
-				}
-			});
+				var file = await DocumentExtensions.PickMediaFileAsync();
+				await parentFolder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
+			}
 		}
-		public Task LoadMediaFileAsync(Wallet parentWallet)
+		public async Task LoadMediaFileAsync(Wallet parentWallet)
 		{
-			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
+			var binder = _binder;
+			if (binder != null && binder.IsOpen && parentWallet != null)
 			{
-				if (parentWallet != null)
-				{
-					var file = await DocumentExtensions.PickMediaFileAsync();
-					await parentWallet.ImportMediaFileAsync(file, true).ConfigureAwait(false);
-				}
-			});
+				var file = await DocumentExtensions.PickMediaFileAsync();
+				await parentWallet.ImportMediaFileAsync(file, true).ConfigureAwait(false);
+			}
 		}
 
-		public Task ShootAsync(Folder parentFolder)
+		public async Task ShootAsync(Folder parentFolder)
 		{
-			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
+			var binder = _binder;
+			if (binder != null && binder.IsOpen && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
 			{
-				if (!_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
-				{
-					IsCameraOverlayOpen = true; // opens the Camera control
-					await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
+				IsCameraOverlayOpen = true; // opens the Camera control
+				await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
-				}
-			});
+				await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+			}
 		}
-		public Task ShootAsync(Wallet parentWallet)
+		public async Task ShootAsync(Wallet parentWallet)
 		{
-			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
+			var binder = _binder;
+			if (binder != null && binder.IsOpen && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
 			{
-				if (!_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
-				{
-					IsCameraOverlayOpen = true; // opens the Camera control
-					await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
+				IsCameraOverlayOpen = true; // opens the Camera control
+				await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-					await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
-				}
-			});
+				await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
+			}
 		}
 		public void EndShoot()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_photoSemaphore);
 		}
 
-		public Task RecordAudioAsync(Folder parentFolder)
+		public async Task RecordAudioAsync(Folder parentFolder)
 		{
-			return _binder?.RunFunctionWhileOpenAsyncT(async delegate
+			var binder = _binder;
+			if (binder != null && binder.IsOpen && !_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 			{
-				if (!_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
-				{
-					await CreateAudioFileAsync(); // required before we start any audio recording
-					IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
-					await _audioSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
+				await CreateAudioFileAsync(); // required before we start any audio recording
+				IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
+				await _audioSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
 
-					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
-				}
-			});
+				await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
+			}
 		}
 		public void EndRecordAudio()
 		{

@@ -30,7 +30,7 @@ namespace UniFiler10.Views
                 await _vm.OpenAsync().ConfigureAwait(false);
                 RaisePropertyChanged_UI(nameof(VM));
 
-				RunInUiThread(delegate { RegisterBackEventHandlers(); });
+				RegisterBackEventHandlers();
 
                 return true;
             }
@@ -41,7 +41,7 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-			RunInUiThread(delegate { UnregisterBackEventHandlers(); });
+			UnregisterBackEventHandlers();
 
 			await _vm?.CloseAsync();
             _vm?.Dispose();

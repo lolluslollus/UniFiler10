@@ -49,12 +49,17 @@ namespace UniFiler10.Views
 		public SettingsView()
         {
 			OpenCloseWhenLoadedUnloaded = false;
-			UpdateVm(DataContext as MetaBriefcase);
             InitializeComponent();
 			Task open = TryOpenAsync();
         }
-
-        private void UpdateVm(MetaBriefcase metaBriefcase)
+		protected override async Task<bool> OpenMayOverrideAsync()
+		{
+			RegisterBackEventHandlers();
+			UpdateVm(DataContext as MetaBriefcase);
+			await Task.CompletedTask;
+			return true;
+		}
+		private void UpdateVm(MetaBriefcase metaBriefcase)
         {
 			RunInUiThread(delegate 
 			{
