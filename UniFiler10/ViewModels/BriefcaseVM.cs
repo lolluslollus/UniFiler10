@@ -31,9 +31,13 @@ namespace UniFiler10.ViewModels
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            await _briefcase?.CloseAsync();
-            _briefcase?.Dispose();
-            _briefcase = null;
+			var briefcase = _briefcase;
+			if (briefcase != null)
+			{
+				await briefcase.CloseAsync();
+				briefcase.Dispose();
+				Briefcase = null;
+			}
         }
 		public bool AddDbStep0()
 		{
@@ -82,9 +86,10 @@ namespace UniFiler10.ViewModels
 
         public async Task<bool> DeleteDbAsync(string dbName)
         {
-			if (_briefcase == null) return false;
+			var briefcase = _briefcase;
+			if (briefcase == null) return false;
 
-			bool isDeleted = await GetUserConfirmationBeforeDeletingBinderAsync() && await _briefcase?.DeleteBinderAsync(dbName);
+			bool isDeleted = await GetUserConfirmationBeforeDeletingBinderAsync() && await briefcase.DeleteBinderAsync(dbName);
 
 			return isDeleted;
         }
@@ -109,8 +114,13 @@ namespace UniFiler10.ViewModels
 
 		public async Task<bool> RestoreDbAsync()
         {
-            var fromStorageFolder = await PickFolderAsync();
-            return await _briefcase?.RestoreBinderAsync(fromStorageFolder);
+			var briefcase = _briefcase;
+			if (briefcase != null)
+			{
+				var fromStorageFolder = await PickFolderAsync();
+				return await briefcase.RestoreBinderAsync(fromStorageFolder);
+			}
+			return false;
         }
 
         public async Task<bool> BackupDbAsync(string dbName)

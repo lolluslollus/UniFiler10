@@ -28,9 +28,6 @@ namespace UniFiler10.Views
 			{
 				if (_vm == null || _vm.Binder != (DataContext as Binder))
 				{
-					await _vm?.CloseAsync();
-					_vm?.Dispose();
-
 					_vm = new BinderVM(DataContext as Binder);
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
@@ -49,9 +46,13 @@ namespace UniFiler10.Views
 		{
 			UnregisterBackEventHandlers();
 
-			await _vm?.CloseAsync();
-			_vm?.Dispose();
-			VM = null;
+			var vm = _vm;
+			if (vm != null)
+			{
+				await vm.CloseAsync();
+				vm.Dispose();
+				VM = null;
+			}
 		}
 		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
@@ -59,7 +60,7 @@ namespace UniFiler10.Views
 			try
 			{
 				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
-				if (args != null && IsOpen)
+				if (args != null)
 				{
 					var newBinder = args.NewValue as Binder;
 					if (newBinder == null)

@@ -45,9 +45,13 @@ namespace UniFiler10.Views
         {
             var deferral = e.SuspendingOperation.GetDeferral();
 
-            await _vm?.CloseAsync();
-            _vm.Dispose();
-            VM = null;
+			var vm = _vm;
+			if (vm != null)
+			{
+				await vm.CloseAsync();
+				vm.Dispose();
+				VM = null;
+			}
 
             deferral.Complete();
         }

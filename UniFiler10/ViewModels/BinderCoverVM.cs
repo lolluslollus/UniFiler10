@@ -390,7 +390,7 @@ namespace UniFiler10.ViewModels
 		}
 
 		protected override Task OpenMayOverrideAsync()
-		{			
+		{
 			_binder.PropertyChanged += OnBinder_PropertyChanged; // throws if _binder is null
 			RegisterFoldersChanged();
 
@@ -636,36 +636,48 @@ namespace UniFiler10.ViewModels
 		{
 			if (!string.IsNullOrWhiteSpace(folderId))
 			{
-				await _binder?.SetCurrentFolderIdAsync(folderId);
-				_binder?.SetIsCoverOpen(false);
+				var binder = _binder;
+				if (binder != null)
+				{
+					await binder.SetCurrentFolderIdAsync(folderId);
+					binder.SetIsCoverOpen(false);
+				}
 			}
 		}
 
 		public async Task AddFolderAsync()
 		{
 			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
-			await _binder?.AddFolderAsync(new Folder());
+			var binder = _binder;
+			if (binder != null) await binder.AddFolderAsync(new Folder()).ConfigureAwait(false);
+			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
 		}
 
 		public async Task AddOpenFolderAsync()
 		{
 			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var newFolder = new Folder();
-			if (await _binder?.AddFolderAsync(newFolder))
+			var binder = _binder;
+			if (binder != null)
 			{
-				await SelectFolderAsync(newFolder.Id);
+				if (await binder.AddFolderAsync(newFolder))
+				{
+					await SelectFolderAsync(newFolder.Id).ConfigureAwait(false);
+				}
 			}
 		}
 
 		public async Task DeleteFolderAsync(Binder.FolderPreview fp)
 		{
 			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
-			await _binder?.RemoveFolderAsync(fp?.FolderId);
+			var binder = _binder;
+			if (binder != null) await binder.RemoveFolderAsync(fp?.FolderId).ConfigureAwait(false);
 		}
 
 		public void CloseCover()
 		{
-			_binder?.SetIsCoverOpen(false);
+			var binder = _binder;
+			if (binder != null) binder.SetIsCoverOpen(false);
 		}
 
 		public void GoBack()

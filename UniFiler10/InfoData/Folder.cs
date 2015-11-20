@@ -313,7 +313,8 @@ namespace UniFiler10.Data.Model
 
 				if (Wallet.Check(wallet))
 				{
-					if (await DBManager.OpenInstance?.InsertIntoWalletsAsync(wallet, true))
+					var dbM = DBManager.OpenInstance;
+					if (dbM != null && await dbM.InsertIntoWalletsAsync(wallet, true))
 					{
 						RunInUiThread(delegate { _wallets.Add(wallet); });
 
@@ -340,12 +341,16 @@ namespace UniFiler10.Data.Model
 		{
 			if (wallet != null && wallet.ParentId == Id)
 			{
-				await DBManager.OpenInstance?.DeleteFromWalletsAsync(wallet);
+				var dbM = DBManager.OpenInstance;
+				if (dbM != null)
+				{
+					await dbM.DeleteFromWalletsAsync(wallet);
 
-				RunInUiThread(delegate { _wallets.Remove(wallet); });
+					RunInUiThread(delegate { _wallets.Remove(wallet); });
 
-				return await wallet.RemoveAllDocumentsAsync().ConfigureAwait(false)
-					& await wallet.CloseAsync().ConfigureAwait(false);
+					return await wallet.RemoveAllDocumentsAsync().ConfigureAwait(false)
+						& await wallet.CloseAsync().ConfigureAwait(false);
+				}
 			}
 			return false;
 		}
@@ -363,7 +368,8 @@ namespace UniFiler10.Data.Model
 					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
 					{
 						List<DynamicField> newFields = new List<DynamicField>();
-						if (await DBManager.OpenInstance?.InsertIntoDynamicCategoriesAsync(newDynCat, newFields, true))
+						var dbM = DBManager.OpenInstance;
+						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newFields, true))
 						{
 							DynamicCategories.Add(newDynCat);
 							//DynamicFields.AddRange(newFields);
@@ -396,7 +402,8 @@ namespace UniFiler10.Data.Model
 				if (dynCat != null)
 				{
 					var descriptionIdsOfFieldsToBeRemoved = new List<string>();
-					if (await DBManager.OpenInstance?.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
+					var dbM = DBManager.OpenInstance;
+					if (dbM != null && await dbM.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
 					{
 						_dynamicCategories.Remove(dynCat);
 

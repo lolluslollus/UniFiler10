@@ -116,7 +116,8 @@ namespace UniFiler10.Data.Model
 
                 if (Document.Check(doc))
                 {
-                    if (await DBManager.OpenInstance?.InsertIntoDocumentsAsync(doc, true))
+					var dbM = DBManager.OpenInstance;
+					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc, true))
                     {
                         _documents.Add(doc);
                         await doc.OpenAsync().ConfigureAwait(false);
@@ -137,26 +138,30 @@ namespace UniFiler10.Data.Model
         {
             if (doc != null && doc.ParentId == Id)
             {
-                await DBManager.OpenInstance?.DeleteFromDocumentsAsync(doc);
+				var dbM = DBManager.OpenInstance;
+				if (dbM != null)
+				{
+					await dbM.DeleteFromDocumentsAsync(doc);
 
-                int countBefore = _documents.Count;
-				RunInUiThread(delegate { _documents.Remove(doc); });
+					int countBefore = _documents.Count;
+					RunInUiThread(delegate { _documents.Remove(doc); });
 
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(doc.Uri0))
-                    {
-                        var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
-                        if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
-                }
+					try
+					{
+						if (!string.IsNullOrWhiteSpace(doc.Uri0))
+						{
+							var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
+							if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+						}
+					}
+					catch (Exception ex)
+					{
+						await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+					}
 
-                await doc.CloseAsync().ConfigureAwait(false);
-                return _documents.Count < countBefore;
+					await doc.CloseAsync().ConfigureAwait(false);
+					return _documents.Count < countBefore;
+				}
             }
             return false;
         }

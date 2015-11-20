@@ -38,28 +38,28 @@ namespace UniFiler10.Views
 			var instance = obj as AudioRecorderView;
 			//if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
 
-			//if (instance != null && args.NewValue is BinderVM && args.NewValue != args.OldValue)
-			//{
-			//	await instance.CloseAsync().ConfigureAwait(false);
-			//	await instance.TryOpenAsync().ConfigureAwait(false);
-			//}
-			//else if (instance != null && args.NewValue == null)
-			//{
-			//	await instance.CloseAsync().ConfigureAwait(false);
-			//}
-
-			if (instance != null && instance.IsOpen)
+			if (instance != null && args.NewValue is BinderVM && args.NewValue != args.OldValue)
 			{
-				if (args.NewValue is BinderVM && args.NewValue != args.OldValue)
-				{
-					await instance.CloseAsync().ConfigureAwait(false);
-					await instance.TryOpenAsync().ConfigureAwait(false);
-				}
-				else if (args.NewValue == null)
-				{
-					await instance.CloseAsync().ConfigureAwait(false);
-				}
+				await instance.CloseAsync().ConfigureAwait(false);
+				await instance.TryOpenAsync().ConfigureAwait(false);
 			}
+			else if (instance != null && args.NewValue == null)
+			{
+				await instance.CloseAsync().ConfigureAwait(false);
+			}
+
+			//if (instance != null && instance.IsOpen)
+			//{
+			//	if (args.NewValue is BinderVM && args.NewValue != args.OldValue)
+			//	{
+			//		await instance.CloseAsync().ConfigureAwait(false);
+			//		await instance.TryOpenAsync().ConfigureAwait(false);
+			//	}
+			//	else if (args.NewValue == null)
+			//	{
+			//		await instance.CloseAsync().ConfigureAwait(false);
+			//	}
+			//}
 		}
 
 

@@ -32,21 +32,29 @@ namespace UniFiler10.ViewModels
 
         public async Task<bool> AddFieldDescriptionAsync()
         {
-            if (await _metaBriefcase?.AddFieldDescriptionAsync())
-            {
-                RefreshUnassignedFields();
-                return true;
-            }
+			var metaBriefcase = _metaBriefcase;
+			if (metaBriefcase != null)
+			{
+				if (await metaBriefcase.AddFieldDescriptionAsync())
+				{
+					RefreshUnassignedFields();
+					return true;
+				}
+			}
             return false;
         }
 
         public async Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
         {
-            if (await _metaBriefcase?.RemoveFieldDescription(fldDesc))
-            {
-                RefreshUnassignedFields();
-                return true;
-            }
+			var metaBriefcase = _metaBriefcase;
+			if (metaBriefcase != null)
+			{
+				if (await metaBriefcase.RemoveFieldDescription(fldDesc))
+				{
+					RefreshUnassignedFields();
+					return true;
+				}
+			}
             return false;
         }
 

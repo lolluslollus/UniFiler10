@@ -247,11 +247,15 @@ namespace UniFiler10.ViewModels
 			try
 			{
 				//var directory = ApplicationData.Current.LocalCacheFolder;
-				var directory = await _binder?.GetDirectoryAsync();
-				if (directory != null)
+				var binder = _binder;
+				if (binder != null)
 				{
-					_photoFile = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
-					return _photoFile;
+					var directory = await binder.GetDirectoryAsync();
+					if (directory != null)
+					{
+						_photoFile = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
+						return _photoFile;
+					}
 				}
 			}
 			catch (Exception ex)
