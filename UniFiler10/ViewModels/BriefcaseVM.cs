@@ -79,10 +79,7 @@ namespace UniFiler10.ViewModels
 			}
 
 		}
-		//public Task<bool> AddDbAsync(string dbName)
-  //      {
-  //          return _briefcase?.AddBinderAsync(dbName);
-  //      }
+
         public async Task<bool> DeleteDbAsync(string dbName)
         {
 			if (_briefcase == null) return false;

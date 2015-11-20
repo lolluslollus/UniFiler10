@@ -55,7 +55,7 @@ namespace UniFiler10.ViewModels
 			var mb = _metaBriefcase;
 			if (mb == null || fldDsc == null || toCat == null) return false;
 
-            var cat = mb.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
+            var cat = mb.Categories?.FirstOrDefault(ca => ca.Id == toCat.Id);
             if (cat != null)
             {
                 if (cat.AddFieldDescription(fldDsc))

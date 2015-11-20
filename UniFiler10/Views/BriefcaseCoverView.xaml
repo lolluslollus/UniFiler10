@@ -150,7 +150,7 @@
 
 			</VariableSizedWrapGrid>
 
-			<!-- add new binder -->
+			<!-- fields to add new binder -->
 			<Grid Grid.Row="1"
 				Visibility="{Binding IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
 				<Grid.RowDefinitions>

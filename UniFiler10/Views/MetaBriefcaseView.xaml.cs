@@ -20,96 +20,97 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class MetaBriefcaseView : UserControl
-    {
-        public SettingsVM VM
-        {
-            get { return (SettingsVM)GetValue(VMProperty); }
-            set { SetValue(VMProperty, value); }
-        }
-        public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(SettingsVM), typeof(MetaBriefcaseView), new PropertyMetadata(null));
+	public sealed partial class MetaBriefcaseView : UserControl
+	{
+		public SettingsVM VM
+		{
+			get { return (SettingsVM)GetValue(VMProperty); }
+			set { SetValue(VMProperty, value); }
+		}
+		public static readonly DependencyProperty VMProperty =
+			DependencyProperty.Register("VM", typeof(SettingsVM), typeof(MetaBriefcaseView), new PropertyMetadata(null));
 
 
-        public MetaBriefcaseView()
-        {
-            InitializeComponent();
-        }
-        private void OnCategoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            VM?.UpdateCurrentCategory((sender as ListView)?.SelectedItem as Category);
-        }
-        private void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if ((sender as ListView)?.SelectedItem != null)
-            {
-                VM?.UpdateCurrentFieldDescription((sender as ListView)?.SelectedItem as FieldDescription);
-                AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
-            }
-        }
-        private void OnAssignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if ((sender as ListView)?.SelectedItem != null)
-            {
-                VM?.UpdateCurrentFieldDescription((sender as ListView)?.SelectedItem as FieldDescription);
-                UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
-            }
-        }
+		public MetaBriefcaseView()
+		{
+			InitializeComponent();
+		}
+		private void OnCategoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			VM?.UpdateCurrentCategory((sender as ListView)?.SelectedItem as Category);
+		}
+		private void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
 
-        private void OnAssignFieldToCat_Click(object sender, RoutedEventArgs e)
-        {
-            var newFD = ((sender as FrameworkElement)?.DataContext as FieldDescription);
-            VM?.AssignFieldDescriptionToCategory(newFD, VM?.MetaBriefcase?.CurrentCategory);
-        }
-        private void OnUnassignFieldFromCat_Click(object sender, RoutedEventArgs e)
-        {
-            var newFD = ((sender as FrameworkElement)?.DataContext as FieldDescription);
-            VM?.UnassignFieldDescriptionFromCategory(newFD, VM?.MetaBriefcase?.CurrentCategory);
-        }
+			if (fldDsc != null)
+			{
+				VM?.UpdateCurrentFieldDescription(fldDsc);
+				AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
+			}
+		}
+		private void OnAssignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
+			if (fldDsc != null)
+			{
+				VM?.UpdateCurrentFieldDescription(fldDsc);
+				UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
+			}
+		}
 
-        private void OnAddField_Click(object sender, RoutedEventArgs e)
-        {
-            Task add = VM?.AddFieldDescriptionAsync();
-        }
+		private void OnAssignFieldToCat_Click(object sender, RoutedEventArgs e)
+		{
+			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+			VM?.AssignFieldDescriptionToCategory(fldDsc, VM?.MetaBriefcase?.CurrentCategory);
+		}
+		private void OnUnassignFieldFromCat_Click(object sender, RoutedEventArgs e)
+		{
+			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+			VM?.UnassignFieldDescriptionFromCategory(fldDsc, VM?.MetaBriefcase?.CurrentCategory);
+		}
 
-        private void OnDeleteField_Click(object sender, RoutedEventArgs e)
-        {
-            var fldDsc = ((sender as FrameworkElement)?.DataContext as FieldDescription);
-            Task del = VM?.RemoveFieldDescriptionAsync(fldDsc);
-        }
+		private void OnAddField_Click(object sender, RoutedEventArgs e)
+		{
+			Task add = VM?.AddFieldDescriptionAsync();
+		}
 
-        private void OnAddFieldValue_Click(object sender, RoutedEventArgs e)
-        {
-            VM?.AddPossibleValueToFieldDescription();
-        }
-        private void OnDeletePossibleValue_Click(object sender, RoutedEventArgs e)
-        {
-            var fldVal = ((sender as FrameworkElement)?.DataContext as FieldValue);
-            VM?.RemovePossibleValueFromFieldDescription(fldVal);
-        }
+		private void OnDeleteField_Click(object sender, RoutedEventArgs e)
+		{
+			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+			Task del = VM?.RemoveFieldDescriptionAsync(fldDsc);
+		}
 
-        private void OnAddCategory_Click(object sender, RoutedEventArgs e)
-        {
-            Task add = VM.AddCategoryAsync();
-        }
+		private void OnAddFieldValue_Click(object sender, RoutedEventArgs e)
+		{
+			VM?.AddPossibleValueToFieldDescription();
+		}
+		private void OnDeletePossibleValue_Click(object sender, RoutedEventArgs e)
+		{
+			var fldVal = (sender as FrameworkElement)?.DataContext as FieldValue;
+			VM?.RemovePossibleValueFromFieldDescription(fldVal);
+		}
 
-        private async void OnDeleteCategory_Click(object sender, RoutedEventArgs e)
-        {
-            var cat = ((sender as FrameworkElement)?.DataContext as Category);
-            if (VM != null) await VM.RemoveCategoryAsync(cat).ConfigureAwait(false);
-        }
+		private void OnAddCategory_Click(object sender, RoutedEventArgs e)
+		{
+			Task add = VM.AddCategoryAsync();
+		}
 
-        private void OnUnassignFieldFromCat_Loaded(object sender, RoutedEventArgs e)
-        {
-            var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-            if (fldDsc != null)
-            {
-                if (MetaBriefcase.OpenInstance?.CurrentCategory?.Id != null 
-                    && fldDsc?.JustAssignedToCats?.Contains(MetaBriefcase.OpenInstance?.CurrentCategory?.Id) == true)
-                    (sender as FrameworkElement).Visibility = Visibility.Visible;
-                else
-                    (sender as FrameworkElement).Visibility = Visibility.Collapsed;
-            }
-        }
-    }
+		private async void OnDeleteCategory_Click(object sender, RoutedEventArgs e)
+		{
+			var cat = (sender as FrameworkElement)?.DataContext as Category;
+			if (VM != null) await VM.RemoveCategoryAsync(cat).ConfigureAwait(false);
+		}
+
+		private void OnUnassignFieldFromCat_Loaded(object sender, RoutedEventArgs e)
+		{
+			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+			string currCatId = MetaBriefcase.OpenInstance?.CurrentCategory?.Id;
+
+			if (fldDsc != null && !string.IsNullOrEmpty(currCatId) && fldDsc.JustAssignedToCats?.Contains(currCatId) == true)
+				(sender as FrameworkElement).Visibility = Visibility.Visible;
+			else
+				(sender as FrameworkElement).Visibility = Visibility.Collapsed;
+		}
+	}
 }

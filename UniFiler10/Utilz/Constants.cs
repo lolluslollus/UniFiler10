@@ -9,7 +9,7 @@ namespace UniFiler10.Utilz
 {
     public static class ConstantData
     {
-        public const String DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
+        public const string DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
         public const string MYMAIL = "lollus@hotmail.co.uk";
         public const string APPNAME = "PapierKrieger for Windows 10";
         public const string APPNAME_ALL_IN_ONE = "PapierKrieger";

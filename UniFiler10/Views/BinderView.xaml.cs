@@ -26,9 +26,15 @@ namespace UniFiler10.Views
 		{
 			if (DataContext is Binder)
 			{
-				_vm = new BinderVM(DataContext as Binder);
-				await _vm.OpenAsync().ConfigureAwait(false);
-				RaisePropertyChanged_UI(nameof(VM));
+				if (_vm == null || _vm.Binder != (DataContext as Binder))
+				{
+					await _vm?.CloseAsync();
+					_vm?.Dispose();
+
+					_vm = new BinderVM(DataContext as Binder);
+					await _vm.OpenAsync().ConfigureAwait(false);
+					RaisePropertyChanged_UI(nameof(VM));
+				}
 
 				RegisterBackEventHandlers();
 
@@ -53,7 +59,7 @@ namespace UniFiler10.Views
 			try
 			{
 				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
-				if (args != null)
+				if (args != null && IsOpen)
 				{
 					var newBinder = args.NewValue as Binder;
 					if (newBinder == null)
@@ -99,7 +105,7 @@ namespace UniFiler10.Views
 			_vm?.OpenCover();
 		}
 
-		protected override void GoBack()
+		protected override void GoBackMustOverride()
 		{
 			_vm?.GoBack();
 		}

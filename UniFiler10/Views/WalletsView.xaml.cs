@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
 using Utilz;
@@ -20,57 +21,39 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class WalletsView : UserControl
-    {
-        public BinderVM VM
-        {
-            get { return (BinderVM)GetValue(VMProperty); }
-            set { SetValue(VMProperty, value); }
-        }
-        public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(BinderVM), typeof(WalletsView), new PropertyMetadata(null));
+	public sealed partial class WalletsView : UserControl
+	{
+		public BinderVM VM
+		{
+			get { return (BinderVM)GetValue(VMProperty); }
+			set { SetValue(VMProperty, value); }
+		}
+		public static readonly DependencyProperty VMProperty =
+			DependencyProperty.Register("VM", typeof(BinderVM), typeof(WalletsView), new PropertyMetadata(null));
 
-        public WalletsView()
-        {
-            InitializeComponent();
-        }
+		public WalletsView()
+		{
+			InitializeComponent();
+		}
 
-        private async void OnAdd_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Folder)
-                await VM.AddWalletToFolderAsync(DataContext as Folder).ConfigureAwait(false);
-        }
+		private void OnAdd_Click(object sender, RoutedEventArgs e)
+		{
+			Task add = VM?.AddWalletToFolderAsync(DataContext as Folder);
+		}
 
-        //private async void OnItemDelete_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (VM != null
-        //        && DataContext is Folder
-        //        && sender is FrameworkElement && (sender as FrameworkElement).DataContext is Wallet)
-        //        await VM.RemoveWalletFromFolderAsync(DataContext as Folder, (sender as FrameworkElement).DataContext as Wallet).ConfigureAwait(false);
-        //}
+		private void OnShoot_Click(object sender, RoutedEventArgs e)
+		{
+			Task shoot = VM?.ShootAsync(DataContext as Folder);
+		}
 
-        private async void OnShoot_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Folder)
-                await VM.ShootAsync(DataContext as Folder).ConfigureAwait(false);
-        }
+		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
+		{
+			Task openFile = VM?.LoadMediaFileAsync(DataContext as Folder);
+		}
 
-        private async void OnOpenFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Folder)
-                await VM.LoadMediaFileAsync(DataContext as Folder).ConfigureAwait(false);
-        }
-
-        private async void OnRecordSound_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Folder)
-                await VM.RecordAudioAsync(DataContext as Folder).ConfigureAwait(false);
-        }
-
-        //private void OnStopRecordingSound_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (VM != null)
-        //        VM.EndRecordSound();
-        //}
-    }
+		private void OnRecordSound_Click(object sender, RoutedEventArgs e)
+		{
+			Task record = VM?.RecordAudioAsync(DataContext as Folder);
+		}
+	}
 }

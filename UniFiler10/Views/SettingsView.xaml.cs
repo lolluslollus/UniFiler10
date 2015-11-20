@@ -26,14 +26,11 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class SettingsView : BackableOpenableObservableControl
+	public sealed partial class SettingsView : BackableOpenableObservableControl
 	{
-        #region properties
-        private SettingsVM _vm = null;
-        public SettingsVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
+		#region properties
+		private SettingsVM _vm = null;
+		public SettingsVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 
 		public BriefcaseVM BriefcaseVM
 		{
@@ -47,30 +44,36 @@ namespace UniFiler10.Views
 
 		#region construct dispose open close
 		public SettingsView()
-        {
+		{
 			OpenCloseWhenLoadedUnloaded = false;
-            InitializeComponent();
-			//Task open = TryOpenAsync();
-        }
+			InitializeComponent();
+		}
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			RegisterBackEventHandlers();
 			UpdateVm(DataContext as MetaBriefcase);
+
 			await Task.CompletedTask;
 			return true;
 		}
+		protected override Task CloseMayOverrideAsync()
+		{
+			UnregisterBackEventHandlers();
+			return Task.CompletedTask;
+		}
 		private void UpdateVm(MetaBriefcase metaBriefcase)
-        {
-			RunInUiThread(delegate 
+		{
+			RunInUiThread(delegate
 			{
-				if (_vm == null || _vm.MetaBriefcase != metaBriefcase)
+				var vm = _vm;
+				if (vm == null || vm.MetaBriefcase != metaBriefcase)
 				{
 					VM = new SettingsVM(metaBriefcase);
 				}
 			});
-        }
+		}
 
-		protected override void GoBack()
+		protected override void GoBackMustOverride()
 		{
 			BriefcaseVM?.ShowCover();
 		}

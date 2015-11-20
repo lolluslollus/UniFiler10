@@ -12,6 +12,8 @@ namespace UniFiler10.Controlz
 {
 	public abstract class BackableOpenableObservableControl : OpenableObservableControl
 	{
+		private bool _isBackHandlersRegistered = false;
+
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			RegisterBackEventHandlers();
@@ -30,13 +32,18 @@ namespace UniFiler10.Controlz
 		{
 			RunInUiThread(delegate 
 			{
-				if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+				if (!_isBackHandlersRegistered)
 				{
-					HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-				}
-				SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
+					_isBackHandlersRegistered = true;
 
-				//_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
+					if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+					{
+						HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+					}
+					SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
+
+					//_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
+				}
 			});
 		}
 
@@ -55,21 +62,23 @@ namespace UniFiler10.Controlz
 				SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 
 				//_systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
+
+				_isBackHandlersRegistered = false;
 			});
 		}
 
 		public void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task back = RunFunctionWhileOpenAsyncA(GoBack);
+			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
 		}
 		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
-			Task back = RunFunctionWhileOpenAsyncA(GoBack);
+			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
 		}
 		private void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
 		{
-			Task back = RunFunctionWhileOpenAsyncA(GoBack);
+			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
 		}
-		protected abstract void GoBack();
+		protected abstract void GoBackMustOverride();
 	}
 }

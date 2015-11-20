@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
@@ -22,59 +23,47 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class WalletView : UserControl
-    {
-        public BinderVM VM
-        {
-            get { return (BinderVM)GetValue(VMProperty); }
-            set { SetValue(VMProperty, value); }
-        }
-        public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(BinderVM), typeof(WalletView), new PropertyMetadata(null));
+	public sealed partial class WalletView : UserControl
+	{
+		public BinderVM VM
+		{
+			get { return (BinderVM)GetValue(VMProperty); }
+			set { SetValue(VMProperty, value); }
+		}
+		public static readonly DependencyProperty VMProperty =
+			DependencyProperty.Register("VM", typeof(BinderVM), typeof(WalletView), new PropertyMetadata(null));
 
-        public Folder Folder
-        {
-            get { return (Folder)GetValue(FolderProperty); }
-            set { SetValue(FolderProperty, value); }
-        }
-        public static readonly DependencyProperty FolderProperty =
-            DependencyProperty.Register("Folder", typeof(Folder), typeof(WalletView), new PropertyMetadata(null));
+		public Folder Folder
+		{
+			get { return (Folder)GetValue(FolderProperty); }
+			set { SetValue(FolderProperty, value); }
+		}
+		public static readonly DependencyProperty FolderProperty =
+			DependencyProperty.Register("Folder", typeof(Folder), typeof(WalletView), new PropertyMetadata(null));
 
-        public WalletView()
-        {
-            InitializeComponent();
-        }
+		public WalletView()
+		{
+			InitializeComponent();
+		}
 
-        private async void OnAdd_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Wallet)
-                await VM.AddEmptyDocumentToWalletAsync(DataContext as Wallet).ConfigureAwait(false);
-        }
+		private void OnAdd_Click(object sender, RoutedEventArgs e)
+		{
+			Task add = VM?.AddEmptyDocumentToWalletAsync(DataContext as Wallet);
+		}
 
-        private async void OnShoot_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Wallet)
-                await VM.ShootAsync(DataContext as Wallet).ConfigureAwait(false);
-        }
+		private void OnShoot_Click(object sender, RoutedEventArgs e)
+		{
+			Task shoot = VM?.ShootAsync(DataContext as Wallet);
+		}
 
-        private async void OnOpenFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Wallet)
-                await VM.LoadMediaFileAsync(DataContext as Wallet).ConfigureAwait(false);
-        }
+		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
+		{
+			Task openFile = VM?.LoadMediaFileAsync(DataContext as Wallet);
+		}
 
-        private async void OnItemDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (VM != null && DataContext is Wallet && Folder != null)
-                await VM.RemoveWalletFromFolderAsync(Folder, DataContext as Wallet).ConfigureAwait(false);
-        }
-
-        //private async void OnItemDelete_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (VM != null
-        //        && DataContext is Wallet
-        //        && sender is FrameworkElement && (sender as FrameworkElement).DataContext is Document)
-        //        await VM.RemoveDocumentFromWalletAsync(DataContext as Wallet, (sender as FrameworkElement).DataContext as Document).ConfigureAwait(false);
-        //}
-    }
+		private void OnItemDelete_Click(object sender, RoutedEventArgs e)
+		{
+			Task del = VM?.RemoveWalletFromFolderAsync(Folder, DataContext as Wallet);
+		}
+	}
 }

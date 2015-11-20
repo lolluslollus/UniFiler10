@@ -48,21 +48,21 @@ namespace UniFiler10.Views
         //    }
         //}
 
-        private void OnDynamicFieldValueSelectComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var cb = sender as ComboBox;
-            if (cb != null && cb.DataContext is DynamicField && cb.SelectedItem is FieldValue)
-            {
-                (cb.DataContext as DynamicField).FieldValueId = (cb.SelectedItem as FieldValue).Id;
-            }
-        }
+        //private void OnDynamicFieldValueSelectComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        //{
+        //    var cb = sender as ComboBox;
+        //    if (cb != null && cb.DataContext is DynamicField && cb.SelectedItem is FieldValue)
+        //    {
+        //        (cb.DataContext as DynamicField).FieldValueId = (cb.SelectedItem as FieldValue).Id;
+        //    }
+        //}
 
         private void OnVaalue_LostFocus(object sender, RoutedEventArgs e)
         {
             var textBox = sender as TextBox;
             if (textBox != null)
             {
-                Task setVal = VM?.ChangeFieldValueAsync(textBox?.DataContext as DynamicField, textBox?.Text);
+                Task setVal = VM?.ChangeFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
             }
         }
 
