@@ -55,7 +55,7 @@ namespace UniFiler10.Views
 				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
 				if (args != null)
 				{
-					var newBinder = args.NewValue as Data.Model.Binder;
+					var newBinder = args.NewValue as Binder;
 					if (newBinder == null)
 					{
 						await CloseAsync().ConfigureAwait(false);

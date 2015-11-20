@@ -673,7 +673,6 @@ namespace UniFiler10.ViewModels
 			var opener = _binder?.ParentPaneOpener;
 			if (opener != null)
 			{
-				// _binder.SetIsCoverOpen(false);
 				opener.IsShowingCover = true;
 			}
 
@@ -684,7 +683,6 @@ namespace UniFiler10.ViewModels
 			var opener = _binder?.ParentPaneOpener;
 			if (opener != null)
 			{
-				_binder.SetIsCoverOpen(false);
 				opener.IsShowingSettings = true;
 			}
 		}

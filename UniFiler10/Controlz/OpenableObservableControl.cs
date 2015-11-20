@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
@@ -48,7 +49,7 @@ namespace UniFiler10.Controlz
 		public static readonly DependencyProperty OpenCloseWhenVisibleCollapsedProperty =
 			DependencyProperty.Register("OpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
 
-		//protected bool _isLoaded = false;
+		private bool _isLoaded = false;
 		private bool _isOpenBeforeSuspending = false;
 		#endregion properties
 
@@ -83,7 +84,7 @@ namespace UniFiler10.Controlz
 
 		private void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
 		{
-			//_isLoaded = true;
+			_isLoaded = true;
 			if (OpenCloseWhenLoadedUnloaded)
 			{
 				//await CloseAsync().ConfigureAwait(false); LOLLO TODO why did I have this?
@@ -93,7 +94,7 @@ namespace UniFiler10.Controlz
 
 		private void OnUnloaded(object sender, RoutedEventArgs e)
 		{
-			//_isLoaded = false;
+			_isLoaded = false;
 			if (OpenCloseWhenLoadedUnloaded)
 			{
 				Task close = CloseAsync();
@@ -134,7 +135,7 @@ namespace UniFiler10.Controlz
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						if (Visibility == Visibility.Visible || !OpenCloseWhenVisibleCollapsed)
+						if ((Visibility == Visibility.Visible || !OpenCloseWhenVisibleCollapsed) && (_isLoaded || !OpenCloseWhenLoadedUnloaded))
 						{
 							if (await OpenMayOverrideAsync().ConfigureAwait(false))
 							{
@@ -145,7 +146,10 @@ namespace UniFiler10.Controlz
 						}
 						else
 						{
-							await Logger.AddAsync("TryOpenAsync() called when the control is collapsed", Logger.ForegroundLogFilename);
+							if (GetType() != typeof(AudioRecorderView))
+							{
+								// await Logger.AddAsync("TryOpenAsync() called when the control is collapsed or unloaded", Logger.ForegroundLogFilename).ConfigureAwait(false);
+							}
 						}
 					}
 				}

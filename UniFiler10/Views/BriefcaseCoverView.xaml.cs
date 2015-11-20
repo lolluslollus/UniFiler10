@@ -97,10 +97,9 @@ namespace UniFiler10.Views
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			var vm = _vm; if (vm == null) return;
-			var briefcase = _vm.Briefcase; if (briefcase == null) return;
+			var briefcase = vm.Briefcase; if (briefcase == null) return;
 
 			bool isOpen = vm.OpenBinder(e?.ClickedItem?.ToString()) == true;
-			if (isOpen) briefcase.IsShowingBinder=true;
 		}
 
 		private void OnAddBinderStep0_Tapped(object sender, TappedRoutedEventArgs e)

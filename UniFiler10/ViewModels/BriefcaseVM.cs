@@ -58,7 +58,6 @@ namespace UniFiler10.ViewModels
 			if (isDbNameOk)
 			{
 				OpenBinder(_newDbName);
-				briefcase.IsShowingBinder = true;
 			}
 
 			return isDbNameOk;

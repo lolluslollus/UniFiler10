@@ -195,15 +195,6 @@ namespace UniFiler10.Data.Model
 		private string _newDbName = string.Empty;
 		[DataMember]
 		public string NewDbName { get { return _newDbName; } set { if (_newDbName != value) { _newDbName = value; RaisePropertyChanged_UI(); } } }
-
-		//private bool _isCoverOpen = true;
-		//[DataMember]
-		//public bool IsCoverOpen { get { return _isCoverOpen; } set { if (_isCoverOpen != value) { _isCoverOpen = value; RaisePropertyChanged_UI(); } } }
-		//public void SetIsCoverOpen(bool newValue)
-		//{
-		//	IsCoverOpen = newValue;
-		//}
-
 		#endregion properties
 
 		#region loaded methods
@@ -211,6 +202,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (!string.IsNullOrWhiteSpace(dbName))
 			{
+				IsShowingBinder = true;
 				CurrentBinderName = dbName;
 				return true;
 			}
