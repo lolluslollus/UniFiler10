@@ -19,7 +19,8 @@
 			<RowDefinition />
 		</Grid.RowDefinitions>
 
-		<Button 
+		<Button
+			Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
             Tapped="OnBackButton_Tapped"
             Width="{StaticResource LandscapeLargeItemWidth}"
 			HorizontalAlignment="Left"

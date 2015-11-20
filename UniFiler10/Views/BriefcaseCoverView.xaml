@@ -70,84 +70,95 @@
 
 				<Button 
                     Tapped="OnAddBinderStep0_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="Add"/>
-						<TextBlock Grid.Column="2" x:Uid="AddBinderT" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+						<SymbolIcon Symbol="Add"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<TextBlock Grid.Column="2" x:Uid="AddBinderT"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
 				<Button 
                     Tapped="OnRestoreButton_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="OpenFile"/>
-						<TextBlock Grid.Column="2" x:Uid="RestoreBinder" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+						<SymbolIcon Symbol="OpenLocal"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<TextBlock Grid.Column="2" x:Uid="RestoreBinder"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
 				<Button 
                     Tapped="OnSettingsButton_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="Setting"/>
-						<TextBlock Grid.Column="2" x:Uid="Settings1" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+						<SymbolIcon Symbol="Setting"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<TextBlock Grid.Column="2" x:Uid="Settings1"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
 				<!--<Button 
                     Tapped="OnBackButton_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="Back"/>
-						<TextBlock Grid.Column="2" x:Uid="Back" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+						<SymbolIcon Symbol="Back"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<TextBlock Grid.Column="2" x:Uid="Back"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>-->
-
 			</VariableSizedWrapGrid>
 
 			<!-- fields to add new binder -->

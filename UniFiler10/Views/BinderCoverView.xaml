@@ -59,47 +59,6 @@
                 <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
             </DoubleAnimationUsingKeyFrames>-->
 		</Storyboard>
-
-		<ItemsPanelTemplate x:Key="FolderItemPanel">
-			<ItemsWrapGrid Orientation="Horizontal"/>
-		</ItemsPanelTemplate>
-
-		<DataTemplate x:Key="FolderItemTemplate">
-			<Grid>
-				<Grid.RowDefinitions>
-					<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
-				</Grid.RowDefinitions>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
-				</Grid.ColumnDefinitions>
-
-				<Viewbox Canvas.ZIndex="200"
-        			Stretch="Uniform" StretchDirection="DownOnly"
-        			VerticalAlignment="Bottom" HorizontalAlignment="Center"
-        			MaxHeight="{StaticResource MiniatureQuarterHeight}">
-					<TextBlock
-        				Text="{Binding FolderName}"
-        				Foreground="{StaticResource FlashyForeground}" 
-        				HorizontalAlignment="Stretch"
-        				TextWrapping="Wrap"
-        				MaxWidth="{StaticResource MiniatureWidth}"/>
-				</Viewbox>
-
-				<local:DocumentView Canvas.ZIndex="100"
-        			IsDeleteEnabled="False"
-        			DataContext="{Binding Document, Mode=OneWay}"/>
-
-				<AppBarButton Icon="Delete"
-                    Tapped="OnDeleteFolder_Tapped"
-                    Canvas.ZIndex="200"
-                    Style="{StaticResource AppBarButtonRecoloured}"
-                    IsCompact="True"
-                    Foreground="{StaticResource FlashyForeground}"
-                    Opacity="1"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"/>
-
-			</Grid>
-		</DataTemplate>
 	</ctl:OpenableObservableControl.Resources>
 
 	<ScrollViewer>
@@ -156,16 +115,17 @@
 
 				<Button 
                     Tapped="OnAddFolder_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="Add"/>
+						<SymbolIcon Symbol="Add"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"/>
 						<TextBlock Grid.Column="2" x:Uid="AddFolderT" 
 							MaxWidth="{StaticResource LandscapeItemWidth}"
 							TextWrapping="Wrap" 
@@ -175,16 +135,17 @@
 
 				<Button 
                     Tapped="OnAddOpenFolder_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="NewFolder"/>
+						<SymbolIcon Symbol="NewFolder"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"/>
 						<TextBlock Grid.Column="2" x:Uid="AddOpenFolderT"
 							MaxWidth="{StaticResource LandscapeItemWidth}"
 							TextWrapping="Wrap" 
@@ -194,35 +155,42 @@
 
 				<Button 
                     Tapped="OnSettingsButton_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="Setting"/>
+						<SymbolIcon Symbol="Setting"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"/>
 						<TextBlock Grid.Column="2" x:Uid="Settings1" 
 							MaxWidth="{StaticResource LandscapeItemWidth}"
 							TextWrapping="Wrap" 
 							HorizontalAlignment="Left"/>
 					</Grid>
 				</Button>
-				
-				<Button 
+
+				<!-- LOLLO TODO 
+				Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
+				would be nice but it screws with the VariableSizedWrapGrid -->
+
+				<Button
+					Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
                     Tapped="OnBackButton_Tapped"
-                    Width="{StaticResource LandscapeLargeItemWidth}"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
-						<SymbolIcon Symbol="Back"/>
+						<SymbolIcon Symbol="Back"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"/>
 						<TextBlock Grid.Column="2" x:Uid="Back"
 							MaxWidth="{StaticResource LandscapeItemWidth}"
 							TextWrapping="Wrap" 
@@ -240,24 +208,28 @@
 
 					<Grid>
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon 
                             Symbol="View"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
                             Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
                             Symbol="Up" 
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
                             Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
 						<TextBlock Grid.Column="2" 
-                            x:Uid="RecentFolders" 
-							Width="{StaticResource LandscapeItemHeight}"
+                            x:Uid="RecentFolders"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
                             HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
@@ -270,24 +242,28 @@
 						Style="{StaticResource ToggleButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon 
                             Symbol="View"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"							
                             Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
                             Symbol="Up"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"							
                             Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
 						<TextBlock Grid.Column="2" 
-                            x:Uid="AllFolders" 
-							Width="{StaticResource LandscapeItemHeight}"
+                            x:Uid="AllFolders"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
                             HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
@@ -301,28 +277,31 @@
 
 					<Grid>
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition />
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon 
 							Symbol="View" 
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
 							Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
 							Symbol="Up"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
 							Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
-						<TextBlock Grid.Column="2" 
-							Width="{StaticResource LandscapeItemWidth}"
+						<TextBlock Grid.Column="2"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByCatFolders" 
                             TextWrapping="Wrap"
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
-
 					</Grid>
 				</ToggleButton>
 
@@ -333,28 +312,31 @@
 
 					<Grid>
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition />
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 						</Grid.ColumnDefinitions>
 
 						<SymbolIcon 
 							Symbol="View" 
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
 							Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
 							Symbol="Up"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
 							Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
-						<TextBlock Grid.Column="2" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
+						<TextBlock Grid.Column="2"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByFldFolders" 
                             TextWrapping="Wrap"
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
-
 					</Grid>
 				</ToggleButton>
 			</VariableSizedWrapGrid>
@@ -477,9 +459,50 @@
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
                 ItemClick="OnFolderPreviews_ItemClick"
-                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
-				ItemTemplate="{StaticResource FolderItemTemplate}"
-				ItemsPanel="{StaticResource FolderItemPanel}"/>
+                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<ItemsWrapGrid Orientation="Horizontal"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
+							</Grid.ColumnDefinitions>
+
+							<Viewbox Canvas.ZIndex="200"
+        						Stretch="Uniform" StretchDirection="DownOnly"
+        						VerticalAlignment="Bottom" HorizontalAlignment="Center"
+        						MaxHeight="{StaticResource MiniatureQuarterHeight}">
+								<TextBlock
+        							Text="{Binding FolderName}"
+        							Foreground="{StaticResource FlashyForeground}" 
+        							HorizontalAlignment="Stretch"
+        							TextWrapping="Wrap"
+        							MaxWidth="{StaticResource MiniatureWidth}"/>
+							</Viewbox>
+
+							<local:DocumentView Canvas.ZIndex="100"
+        						IsDeleteEnabled="False"
+        						DataContext="{Binding Document, Mode=OneWay}"/>
+
+							<AppBarButton Icon="Delete"
+								Tapped="OnDeleteFolder_Tapped"
+								Canvas.ZIndex="200"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								IsCompact="True"
+								Foreground="{StaticResource FlashyForeground}"
+								Opacity="1"
+								HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ctl:TolerantListView>
 		</Grid>
 	</ScrollViewer>
 </ctl:BackableOpenableObservableControl>

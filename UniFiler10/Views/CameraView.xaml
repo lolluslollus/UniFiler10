@@ -1,5 +1,6 @@
 ﻿<ctl:BackableOpenableObservableControl
     x:Class="UniFiler10.Views.CameraView"
+	x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
@@ -46,7 +47,9 @@
                 </Grid>
             </Button>
 
-            <Button Tapped="OnBackButton_Tapped">
+            <Button
+				Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
+				Tapped="OnBackButton_Tapped">
                 <Viewbox MaxHeight="40" MaxWidth="40">
                     <SymbolIcon Symbol="Back"/>
                 </Viewbox>

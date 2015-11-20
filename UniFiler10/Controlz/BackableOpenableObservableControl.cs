@@ -14,6 +14,8 @@ namespace UniFiler10.Controlz
 	{
 		private bool _isBackHandlersRegistered = false;
 
+		private bool _isBackButtonAvailable = false;
+		public bool IsBackButtonAvailable { get { return _isBackButtonAvailable; } private set { _isBackButtonAvailable = value; RaisePropertyChanged_UI(); } }
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			RegisterBackEventHandlers();
@@ -39,9 +41,10 @@ namespace UniFiler10.Controlz
 					if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
 					{
 						HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+						IsBackButtonAvailable = true;
 					}
 					SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
-
+					IsBackButtonAvailable = SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility == AppViewBackButtonVisibility.Visible;
 					//_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
 				}
 			});

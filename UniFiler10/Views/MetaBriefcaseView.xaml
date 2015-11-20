@@ -23,16 +23,23 @@
         <ScrollViewer Grid.Column="0"
             VerticalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
-                <StackPanel Orientation="Horizontal"
-                    Width="{StaticResource MetaItemWidth}"
-                    Height="{StaticResource MetaItemHeight}">
-                    <TextBlock x:Uid="Categories"
-                        VerticalAlignment="Center"/>
-                    <AppBarButton Icon="Add"
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+
+					<TextBlock x:Uid="Categories"
+                        VerticalAlignment="Center"
+						Width="{StaticResource MetaItemTextWidth}"
+						TextWrapping="Wrap"/>
+                    <AppBarButton Grid.Column="2"
+						Icon="Add"
                         IsCompact="True"
                         Click="OnAddCategory_Click"
                         VerticalAlignment="Center"/>
-                </StackPanel>
+                </Grid>
 
                 <!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
                 <ctl:TolerantListView
@@ -51,18 +58,26 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal"
-                                Width="{StaticResource MetaItemWidth}"
-                                Height="{StaticResource MetaItemHeight}">
-                                <TextBox Text="{Binding Name, Mode=TwoWay}"
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="Auto"/>
+								</Grid.ColumnDefinitions>
+
+                                <TextBox 
+									Text="{Binding Name, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
-                                    VerticalAlignment="Center"/>
-                                <AppBarButton Icon="Delete"
+                                    VerticalAlignment="Center"
+									Width="{StaticResource MetaItemTextWidth}"
+									TextWrapping="Wrap"/>
+                                <AppBarButton Grid.Column="2"
+									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
                                     VerticalAlignment="Center"/>
-                            </StackPanel>
+							</Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ctl:TolerantListView>
@@ -74,12 +89,25 @@
             Visibility="{Binding CurrentCategory, Converter={StaticResource IsNotNullToVisible}}"
             VerticalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
-                <StackPanel Orientation="Horizontal"
-                    Width="{StaticResource MetaItemWidth}"
-                    Height="{StaticResource MetaItemHeight}">
-                    <TextBlock x:Uid="FieldDescrsAssignedToCat"
-                        VerticalAlignment="Center"/>
-                </StackPanel>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+
+					<TextBlock x:Uid="FieldDescrsAssignedToCat"
+                        VerticalAlignment="Center"
+						Width="{StaticResource MetaItemTextWidth}"
+						TextWrapping="Wrap"/>
+					<!-- LOLLO BODGE the following is only to ensure the same height as the other objects -->
+					<Rectangle Grid.Column="2" Height="48" Width="68" StrokeThickness="0"/>
+					<!--<AppBarButton Grid.Column="2"
+						Icon="Stop"
+                        IsCompact="True"
+                        VerticalAlignment="Center"
+						IsEnabled="False"/>-->
+				</Grid>
 
                 <!-- assigned field descriptions -->
                 <!--SelectedIndexTolerant="{Binding CurrentFieldDescriptionIndex, Mode=OneWay}" 
@@ -100,37 +128,54 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal"
-                                Width="{StaticResource MetaItemWidth}"
-                                Height="{StaticResource MetaItemHeight}">
-                                <TextBox Text="{Binding Caption, Mode=TwoWay}"
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="Auto"/>
+									<ColumnDefinition Width="Auto"/>
+								</Grid.ColumnDefinitions>
+
+								<TextBox 
+									Text="{Binding Caption, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
-                                    VerticalAlignment="Center"/>
-                                <AppBarButton Icon="Remove"
+                                    VerticalAlignment="Center"
+									Width="{StaticResource MetaItemTextWidth}"
+									TextWrapping="Wrap"/>
+								<AppBarButton Grid.Column="2"
+									Icon="Remove"
                                     IsCompact="True"
                                     Loaded="OnUnassignFieldFromCat_Loaded"                                         
                                     Click="OnUnassignFieldFromCat_Click"
                                     VerticalAlignment="Center"/>
-                                <AppBarButton Icon="Delete"
+                                <AppBarButton Grid.Column="3"
+									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
                                     VerticalAlignment="Center"/>
-                            </StackPanel>
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ctl:TolerantListView>
 
-                <StackPanel Orientation="Horizontal"
-                    Width="{StaticResource MetaItemWidth}"
-                    Height="{StaticResource MetaItemHeight}">
-                    <TextBlock x:Uid="FieldDescrsNotAssignedToCat"
-                        VerticalAlignment="Center"/>
-                    <AppBarButton Icon="Add"
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+
+					<TextBlock x:Uid="FieldDescrsNotAssignedToCat"
+                        VerticalAlignment="Center"
+						Width="{StaticResource MetaItemTextWidth}"
+						TextWrapping="Wrap"/>
+					<AppBarButton Grid.Column="2"
+						Icon="Add"
                         IsCompact="True"
                         Click="OnAddField_Click"
                         VerticalAlignment="Center"/>
-                </StackPanel>
+                </Grid>
 
                 <!-- unassigned field descriptions -->
                 <ctl:TolerantListView
@@ -149,22 +194,32 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal"
-                                Width="{StaticResource MetaItemWidth}"
-                                Height="{StaticResource MetaItemHeight}">
-                                <TextBox Text="{Binding Caption, Mode=TwoWay}"
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="Auto"/>
+									<ColumnDefinition Width="Auto"/>
+								</Grid.ColumnDefinitions>
+
+								<TextBox 
+									Text="{Binding Caption, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
-                                    VerticalAlignment="Center"/>
-                                <AppBarButton Icon="Accept"
+                                    VerticalAlignment="Center"
+									Width="{StaticResource MetaItemTextWidth}"
+									TextWrapping="Wrap"/>
+								<AppBarButton Grid.Column="2"
+									Icon="Accept"
                                     IsCompact="True"
                                     Click="OnAssignFieldToCat_Click"
                                     VerticalAlignment="Center"/>
-                                <AppBarButton Icon="Delete"
+                                <AppBarButton Grid.Column="3"
+									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
                                     VerticalAlignment="Center"/>
-                            </StackPanel>
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ctl:TolerantListView>
@@ -176,18 +231,25 @@
             Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}"
             VerticalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
-                <StackPanel Orientation="Horizontal"
-                    Width="{StaticResource MetaItemWidth}"
-                    Height="{StaticResource MetaItemHeight}">
-                    <TextBlock x:Uid="PossibleFieldValues"
-                        VerticalAlignment="Center"/>
-                    <AppBarButton Icon="Add"
-                            IsCompact="True"
-                            Click="OnAddFieldValue_Click"
-                            VerticalAlignment="Center"/>
-                </StackPanel>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
 
-                <CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
+					<TextBlock x:Uid="PossibleFieldValues"
+                        VerticalAlignment="Center"
+						Width="{StaticResource MetaItemTextWidth}"
+						TextWrapping="Wrap"/>
+					<AppBarButton Grid.Column="2"
+						Icon="Add"
+                        IsCompact="True"
+                        Click="OnAddFieldValue_Click"
+                        VerticalAlignment="Center"/>
+                </Grid>
+
+				<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
                     IsEnabled="{Binding CurrentFieldDescription.IsJustAdded}"
                     x:Uid="AllowAllFieldValues"
                     VerticalAlignment="Center"
@@ -208,18 +270,26 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal"
-                                Width="{StaticResource MetaItemWidth}"
-                                Height="{StaticResource MetaItemHeight}">
-                                <TextBox Text="{Binding Vaalue, Mode=TwoWay}"
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="Auto"/>
+								</Grid.ColumnDefinitions>
+
+								<TextBox 
+									Text="{Binding Vaalue, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
-                                    VerticalAlignment="Center"/>
-                                <AppBarButton Icon="Delete"
+                                    VerticalAlignment="Center"
+									Width="{StaticResource MetaItemTextWidth}"
+									TextWrapping="Wrap"/>
+								<AppBarButton Grid.Column="2"
+									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeletePossibleValue_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
                                     VerticalAlignment="Center"/>
-                            </StackPanel>
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ctl:TolerantListView>

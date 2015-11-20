@@ -48,6 +48,7 @@
     <x:Int32 x:Key="MaxFolderDescrLength">2000</x:Int32>
     <x:Int32 x:Key="MaxTagLength">50</x:Int32>
     <x:Double x:Key="MetaItemWidth">200</x:Double>
+	<x:Double x:Key="MetaItemTextWidth">150</x:Double>
     <x:Double x:Key="MetaItemHeight">50</x:Double>
 
     <LinearGradientBrush x:Key="DiagonalNESWBrush" EndPoint="0.0,1.0" StartPoint="1.0,0.0">

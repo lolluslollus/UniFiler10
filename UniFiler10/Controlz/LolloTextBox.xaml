@@ -77,8 +77,8 @@
 						</Grid.Resources>-->
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="Auto"/>
-							<ColumnDefinition Width="*"/>
 							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="*"/>
 							<ColumnDefinition Width="Auto"/>
 						</Grid.ColumnDefinitions>
 						<Grid.RowDefinitions>
@@ -171,25 +171,47 @@
 								<VisualState x:Name="ButtonCollapsed"/>
 							</VisualStateGroup>-->
 						</VisualStateManager.VisualStateGroups>
-						<Border x:Name="BackgroundElement"
-                            Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
-                            Margin="{TemplateBinding BorderThickness}" Opacity="{ThemeResource TextControlBackgroundRestOpacity}" />
-						<!--<Border x:Name="BorderElement" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Grid.ColumnSpan="2" Grid.Row="1" Grid.RowSpan="1"/>-->
-						<!--<Border x:Name="BorderElement" BorderThickness="{TemplateBinding BorderThickness}" Grid.ColumnSpan="2" Grid.RowSpan="2" BorderBrush="{StaticResource VerticalWBrush}"/>-->
 						<Border x:Name="BorderElement" 
                             Grid.ColumnSpan="4" Grid.RowSpan="2"
 							Background="Transparent"
                             BorderThickness="{TemplateBinding BorderThickness}" 
                             BorderBrush="{TemplateBinding BorderBrush}"/>
-						<!--<ContentPresenter x:Name="HeaderContentPresenter" Grid.ColumnSpan="2" ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}" FontWeight="Normal" Margin="0,0,0,8" Grid.Row="0" Visibility="Collapsed" x:DeferLoadStrategy="Lazy"/>-->
 						<ContentPresenter x:Name="HeaderContentPresenter" 
 							Grid.ColumnSpan="4" 
                             ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" 
 							Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}" FontWeight="Normal" 
 							Padding="4,2,4,8" 
 							Visibility="Collapsed" x:DeferLoadStrategy="Lazy"/>
+						<!--<Button x:Name="DeleteButton" BorderThickness="{TemplateBinding BorderThickness}" 
+                            Grid.Row="1" Grid.Column="2"
+                            FontSize="{TemplateBinding FontSize}" 
+							Margin="{ThemeResource HelperButtonThemePadding}" 
+							MinWidth="{StaticResource LTBDecorationsSize}"
+							Style="{StaticResource DeleteButtonStyle}" 
+							Visibility="Collapsed" VerticalAlignment="Stretch"/>-->
+						<SymbolIcon x:Name="EditableIcon"
+                            Grid.Column="0" Grid.Row="1"
+                            MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
+							HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Symbol="Edit"
+                            Visibility="{TemplateBinding EditableDecoratorVisibility}"/>
+						<Border x:Name="DropDownBorder" Grid.Column="1" Grid.Row="1" 
+							Background="Transparent"
+							Visibility="{TemplateBinding DropDownVisibility}">
+							<SymbolIcon x:Name="DropDownGlyph"
+								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
+								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"								
+                                Symbol="List"
+                                IsHitTestVisible="False"
+								HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                AutomationProperties.AccessibilityView="Raw"/>
+						</Border>
+						<Border x:Name="BackgroundElement"
+                            Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="1"
+                            Margin="{TemplateBinding BorderThickness}" Opacity="{ThemeResource TextControlBackgroundRestOpacity}" />
 						<ScrollViewer x:Name="ContentElement" 
-                            Grid.Row="1" Grid.Column="1" 
+                            Grid.Column="2" Grid.Row="1"
                             AutomationProperties.AccessibilityView="Raw" 
 							IsTabStop="False"
 							HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}" IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
@@ -201,7 +223,7 @@
 							HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"/>
 						<ContentControl x:Name="PlaceholderTextContentPresenter" 
-                            Grid.Row="1" Grid.Column="1"
+                            Grid.Column="2" Grid.Row="1"
 							VerticalAlignment="Center"
 							HorizontalAlignment="Stretch"
 							VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -209,19 +231,11 @@
                             Content="{TemplateBinding PlaceholderText}" 
 							Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
 							IsHitTestVisible="False" IsTabStop="False" 
-							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" />
-						<!--<Button x:Name="DeleteButton" BorderThickness="{TemplateBinding BorderThickness}" 
-                            Grid.Row="1" Grid.Column="2"
-                            FontSize="{TemplateBinding FontSize}" 
-							Margin="{ThemeResource HelperButtonThemePadding}" 
-							MinWidth="{StaticResource LTBDecorationsSize}"
-							Style="{StaticResource DeleteButtonStyle}" 
-							Visibility="Collapsed" VerticalAlignment="Stretch"/>-->
-						<Border x:Name="DeleteBorder" Grid.Column="2" Grid.Row="1" 
+							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"/>
+						<Border x:Name="DeleteBorder" Grid.Column="3" Grid.Row="1" 
 							Background="Transparent"
 							Visibility="{TemplateBinding DeleteButtonVisibility}">
 							<SymbolIcon x:Name="DeleteGlyph"
-								Grid.Column="2" Grid.Row="1"
 								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
 								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"								
                                 Symbol="Clear"
@@ -230,52 +244,6 @@
                                 VerticalAlignment="Center"
                                 AutomationProperties.AccessibilityView="Raw"/>
 						</Border>
-						<SymbolIcon x:Name="EditableIcon"
-                            Grid.Column="0" Grid.Row="1"
-                            MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
-							HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Symbol="Edit"
-                            Visibility="{TemplateBinding EditableDecoratorVisibility}"/>
-						<Border x:Name="DropDownBorder" Grid.Column="3" Grid.Row="1" 
-							Background="Transparent"
-							Visibility="{TemplateBinding DropDownVisibility}">
-							<SymbolIcon x:Name="DropDownGlyph"
-								Grid.Column="3" Grid.Row="1"
-								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
-								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"								
-                                Symbol="List"
-                                IsHitTestVisible="False"
-								HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                AutomationProperties.AccessibilityView="Raw"/>
-						</Border>
-						<!--<Popup x:Name="Popup" IsLightDismissEnabled="True">
-							--><!--Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"--><!--
-							<Border x:Name="PopupBorder"
-                                Background="{ThemeResource SystemControlBackgroundChromeWhiteBrush}"
-                                HorizontalAlignment="Stretch">
-								--><!--MinWidth="{ThemeResource ComboBoxPopupThemeMinWidth}"--><!--
-								<ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled">
-									<ListView x:Name="PopupListView"
-									IsItemClickEnabled="True"
-									IsMultiSelectCheckBoxEnabled="False"
-									VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
-									HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-										--><!--ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Enabled" 
-									ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollMode="Disabled" IsActiveView="True">--><!--
-										<ItemsControl.ItemsPanel>
-											<ItemsPanelTemplate>
-												--><!--<CarouselPanel CanVerticallyScroll="True"/>-->
-												<!--<ItemsWrapGrid Orientation="Vertical"
-												ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Enabled"
-												ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollMode="Enabled"/>--><!--
-												<ItemsStackPanel Orientation="Vertical"/>
-											</ItemsPanelTemplate>
-										</ItemsControl.ItemsPanel>
-									</ListView>
-								</ScrollViewer>
-							</Border>
-						</Popup>-->
 						<FlyoutBase.AttachedFlyout>
 							<Flyout Placement="Right" x:Name="Flyout">
 								<Flyout.FlyoutPresenterStyle>
@@ -286,9 +254,6 @@
 										<Setter Property="Template">
 											<Setter.Value>
 												<ControlTemplate TargetType="FlyoutPresenter">
-													<!--Margin="{TemplateBinding Padding}"-->
-													<!--HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-														 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"-->
 													<ContentPresenter Background="{TemplateBinding Background}"
 														BorderThickness="0"
 														Content="{TemplateBinding Content}"
