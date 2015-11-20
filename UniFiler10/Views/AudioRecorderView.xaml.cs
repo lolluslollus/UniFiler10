@@ -15,86 +15,91 @@ using Windows.UI.Xaml.Input;
 
 namespace UniFiler10.Views
 {
-    /// <summary>
-    /// This control is supposed to run inside a Popup.
-    /// Showing or hiding the popup will open or close the control.
-    /// </summary>
-    public sealed partial class AudioRecorderView : BackableOpenableObservableControl, IMessageWriter
-    {
-        public BinderVM VM
-        {
-            get { return (BinderVM)GetValue(VMProperty); }
-            set { SetValue(VMProperty, value); }
-        }
-        public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(BinderVM), typeof(AudioRecorderView), new PropertyMetadata(null, OnVMChanged));
-        /// <summary>
-        /// LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="args"></param>
-        private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-        {
-            var instance = obj as AudioRecorderView;
-            if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
-            {
-                await instance.CloseAsync().ConfigureAwait(false);
-                await instance.TryOpenAsync().ConfigureAwait(false);
-            }
-        }
+	/// <summary>
+	/// This control is supposed to run inside a Popup.
+	/// Showing or hiding the popup will open or close the control.
+	/// </summary>
+	public sealed partial class AudioRecorderView : BackableOpenableObservableControl, IMessageWriter
+	{
+		public BinderVM VM
+		{
+			get { return (BinderVM)GetValue(VMProperty); }
+			set { SetValue(VMProperty, value); }
+		}
+		public static readonly DependencyProperty VMProperty =
+			DependencyProperty.Register("VM", typeof(BinderVM), typeof(AudioRecorderView), new PropertyMetadata(null, OnVMChanged));
+		/// <summary>
+		/// LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <param name="args"></param>
+		private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as AudioRecorderView;
+			//if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
+			if (instance != null && args.NewValue is BinderVM && args.NewValue != args.OldValue)
+			{
+				await instance.CloseAsync().ConfigureAwait(false);
+				await instance.TryOpenAsync().ConfigureAwait(false);
+			}
+			else if (instance != null && args.NewValue == null)
+			{
+				await instance.CloseAsync().ConfigureAwait(false);
+			}
+		}
 
 
-        private AudioRecorder _audioRecorder = null;
+		private AudioRecorder _audioRecorder = null;
 
-        private string _lastMessage = string.Empty;
-        public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
+		private string _lastMessage = string.Empty;
+		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
 
-        // Prevent the screen from sleeping while the camera is running
-        //private readonly DisplayRequest _displayRequest = new DisplayRequest();
+		// Prevent the screen from sleeping while the camera is running
+		//private readonly DisplayRequest _displayRequest = new DisplayRequest();
 
-        // For listening to media property changes
-        //private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
+		// For listening to media property changes
+		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
 
-        public AudioRecorderView()
-        {
-            OpenCloseWhenLoadedUnloaded = true;
-            IsEnabled = false;
-            InitializeComponent();
-        }
+		public AudioRecorderView()
+		{
+			OpenCloseWhenLoadedUnloaded = true;
+			IsEnabled = false;
+			InitializeComponent();
+		}
 
-        protected override async Task<bool> OpenMayOverrideAsync()
-        {
-            if (VM != null)
-            {
-                _audioRecorder = new AudioRecorder(this, VM);
-                await _audioRecorder.OpenAsync();
+		protected override async Task<bool> OpenMayOverrideAsync()
+		{
+			if (VM != null)
+			{
+				_audioRecorder = new AudioRecorder(this, VM);
+				await _audioRecorder.OpenAsync();
 
 				await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
 
 				RegisterBackEventHandlers();
 				return true;
-            }
-            return false;
-        }
-        protected override async Task CloseMayOverrideAsync()
-        {
+			}
+			return false;
+		}
+		protected override async Task CloseMayOverrideAsync()
+		{
 			UnregisterBackEventHandlers();
 
 			await StopRecordingAsync().ConfigureAwait(false);
 
-            _audioRecorder?.Dispose();
-            _audioRecorder = null;
-        }
+			_audioRecorder?.Dispose();
+			_audioRecorder = null;
+		}
 
-        private async Task StopRecordingAsync()
-        {
-            if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
-            VM?.EndRecordAudio();
-        }
-        protected override void CloseMe()
-        {
+		private async Task StopRecordingAsync()
+		{
+			if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
+			VM?.EndRecordAudio();
+		}
+		protected override void GoBack()
+		{
 			var vm = VM; if (vm == null) return;
-            vm.IsAudioRecorderOverlayOpen = false;
-        }
-    }
+			vm.IsAudioRecorderOverlayOpen = false;
+		}
+	}
 }

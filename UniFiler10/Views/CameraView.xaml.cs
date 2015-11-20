@@ -214,7 +214,7 @@ namespace UniFiler10.Views
         //{
         //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         //}
-        protected override void CloseMe()
+        protected override void GoBack()
         {
 			var vm = VM; if (vm == null) return;
             vm.IsCameraOverlayOpen = false;

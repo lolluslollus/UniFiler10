@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
+using System;
 
 namespace UniFiler10.Data.Model
 {
@@ -25,16 +26,26 @@ namespace UniFiler10.Data.Model
 			set
 			{
 				string newValue = value ?? DEFAULT_ID; // this property may be null or empty at any time
-				if (_fieldValueId != newValue)
+				string oldValue = _fieldValueId;
+				if (newValue != oldValue)
 				{
 					_fieldValueId = newValue;
-					RefreshDynamicValues(MetaBriefcase.OpenInstance);
 					RaisePropertyChanged_UI();
-					Task upd = UpdateDbAsync();
+					UpdateDynamicValues();
+
+					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					{
+						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
+						{
+							_fieldValueId = oldValue;
+							RaisePropertyChanged_UI();
+							UpdateDynamicValues();
+						}
+					});
 				}
 				else if (_fieldValue == null)
 				{
-					RefreshDynamicValues(MetaBriefcase.OpenInstance);
+					UpdateDynamicValues();
 				}
 			}
 		}
@@ -51,21 +62,33 @@ namespace UniFiler10.Data.Model
 			get { return _fieldDescriptionId; }
 			set
 			{
-				if (_fieldDescriptionId != value)
+				string newValue = value ?? DEFAULT_ID; // this property may be null or empty at any time
+				string oldValue = _fieldDescriptionId;
+				if (newValue != oldValue)
 				{
-					_fieldDescriptionId = value;
-					RefreshDynamicValues(MetaBriefcase.OpenInstance);
+					_fieldDescriptionId = newValue;
 					RaisePropertyChanged_UI();
-					Task upd = UpdateDbAsync();
+					UpdateDynamicValues();
+
+					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					{
+						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
+						{
+							_fieldDescriptionId = oldValue;
+							RaisePropertyChanged_UI();
+							UpdateDynamicValues();
+						}
+					});
 				}
 				else if (_fieldDescription == null)
 				{
-					RefreshDynamicValues(MetaBriefcase.OpenInstance);
+					UpdateDynamicValues();
 				}
 			}
 		}
-		private void RefreshDynamicValues(MetaBriefcase metaBriefcase)
+		private void UpdateDynamicValues()
 		{
+			var metaBriefcase = MetaBriefcase.OpenInstance;
 			if (metaBriefcase != null && metaBriefcase.IsOpen && metaBriefcase.FieldDescriptions != null && !string.IsNullOrEmpty(_fieldDescriptionId))
 			{
 				FieldDescription = metaBriefcase.FieldDescriptions.FirstOrDefault(fldDsc => fldDsc.Id == _fieldDescriptionId);
@@ -74,6 +97,7 @@ namespace UniFiler10.Data.Model
 			{
 				FieldDescription = null;
 			}
+
 			if (string.IsNullOrEmpty(_fieldValueId) || _fieldDescription == null || _fieldDescription.PossibleValues == null)
 			{
 				FieldValue = null;
@@ -85,11 +109,17 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion properties
 
-		protected override async Task<bool> UpdateDbMustOverrideAsync()
+		protected override bool UpdateDbMustOverride()
 		{
-			if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateDynamicFieldsAsync(this).ConfigureAwait(false);
+			var ins = DBManager.OpenInstance;
+			if (ins != null) return ins.UpdateDynamicFields(this);
 			else return false;
 		}
+		//protected override async Task<bool> UpdateDbMustOverrideAsync()
+		//{
+		//	if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateDynamicFieldsAsync(this).ConfigureAwait(false);
+		//	else return false;
+		//}
 
 		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
 		{
@@ -115,17 +145,17 @@ namespace UniFiler10.Data.Model
 			bool result = _id != DEFAULT_ID && _parentId != DEFAULT_ID && _fieldDescriptionId != DEFAULT_ID && IsValueAllowed();
 			return result;
 		}
-		protected override void CopyMustOverride(ref DbBoundObservableData target)
-		{
-			var tgt = target as DynamicField;
+		//protected override void CopyMustOverride(ref DbBoundObservableData target)
+		//{
+		//	var tgt = target as DynamicField;
 
-			tgt.FieldValueId = _fieldValueId;
-			tgt.FieldDescriptionId = _fieldDescriptionId;
-		}
+		//	tgt.FieldValueId = _fieldValueId;
+		//	tgt.FieldDescriptionId = _fieldDescriptionId;
+		//}
 
 		public Task<bool> SetFieldValueAsync(string newValue)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate 
+			return RunFunctionWhileOpenAsyncB(delegate
 			{
 				var availableFldVal = _fieldDescription.GetValueFromPossibleValues(newValue);
 				if (availableFldVal != null)

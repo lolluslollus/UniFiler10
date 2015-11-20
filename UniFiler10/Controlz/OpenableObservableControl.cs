@@ -15,276 +15,306 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Controlz
 {
-    public abstract class OpenableObservableControl : ObservableControl //, IDisposable
-    {
-        //#region IDisposable
-        //protected volatile bool _isDisposed = false;
-        //public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //}
-        //protected virtual void Dispose(bool isDisposing)
-        //{
-        //    _isDisposed = true;
-        //    CloseAsync().Wait();
-        //    ClearListeners();
-        //}
-        //#endregion IDisposable
+	public abstract class OpenableObservableControl : ObservableControl //, IDisposable
+	{
+		//#region IDisposable
+		//protected volatile bool _isDisposed = false;
+		//public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
+		//public void Dispose()
+		//{
+		//    Dispose(true);
+		//}
+		//protected virtual void Dispose(bool isDisposing)
+		//{
+		//    _isDisposed = true;
+		//    CloseAsync().Wait();
+		//    ClearListeners();
+		//}
+		//#endregion IDisposable
+
+		#region properties
+		public bool OpenCloseWhenLoadedUnloaded
+		{
+			get { return (bool)GetValue(OpenCloseWhenLoadedUnloadedProperty); }
+			set { SetValue(OpenCloseWhenLoadedUnloadedProperty, value); }
+		}
+		public static readonly DependencyProperty OpenCloseWhenLoadedUnloadedProperty =
+			DependencyProperty.Register("OpenCloseWhenLoadedUnloaded", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+		public bool OpenCloseWhenVisibleCollapsed
+		{
+			get { return (bool)GetValue(OpenCloseWhenVisibleCollapsedProperty); }
+			set { SetValue(OpenCloseWhenVisibleCollapsedProperty, value); }
+		}
+		public static readonly DependencyProperty OpenCloseWhenVisibleCollapsedProperty =
+			DependencyProperty.Register("OpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+
+		//protected bool _isLoaded = false;
+		private bool _isOpenBeforeSuspending = false;
+		#endregion properties
 
 
-        public bool OpenCloseWhenLoadedUnloaded
-        {
-            get { return (bool)GetValue(OpenCloseWhenLoadedUnloadedProperty); }
-            set { SetValue(OpenCloseWhenLoadedUnloadedProperty, value); }
-        }
-        public static readonly DependencyProperty OpenCloseWhenLoadedUnloadedProperty =
-            DependencyProperty.Register("OpenCloseWhenLoadedUnloaded", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+		#region construct
+		public OpenableObservableControl()
+		{
+			Application.Current.Suspending += OnSuspending; // LOLLO TODO check these event handlers. Do they fire enough? Do they fire too much?
+			Application.Current.Resuming += OnResuming;
+			Loaded += OnLoaded;
+			Unloaded += OnUnloaded;
+			//this.LayoutUpdated+=
+			RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
+		}
+		#endregion construct
 
-        #region load unload
-        public OpenableObservableControl()
-        {
-            Application.Current.Suspending += OnSuspending; // LOLLO TODO check these event handlers
-            Application.Current.Resuming += OnResuming;
-            Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
-        }
-        private async void OnSuspending(object sender, SuspendingEventArgs e)
-        {
-            var deferral = e.SuspendingOperation.GetDeferral();
-            await CloseAsync().ConfigureAwait(false);
-            deferral.Complete();
-        }
 
-        private async void OnResuming(object sender, object o)
-        {
-            if (_isLoaded) await TryOpenAsync().ConfigureAwait(false);
-        }
+		#region event handlers
+		private async void OnSuspending(object sender, SuspendingEventArgs e)
+		{
+			var deferral = e.SuspendingOperation.GetDeferral();
+			_isOpenBeforeSuspending = _isOpen;
+			await CloseAsync().ConfigureAwait(false);
+			deferral.Complete();
+		}
 
-        private async void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
-        {
-            if (OpenCloseWhenLoadedUnloaded)
-            {
-                _isLoaded = true;
-                await CloseAsync().ConfigureAwait(false);
-                await TryOpenAsync().ConfigureAwait(false);
-            }
-        }
+		private async void OnResuming(object sender, object o)
+		{
+			//if (_isLoaded) await TryOpenAsync().ConfigureAwait(false);
+			if (_isOpenBeforeSuspending) await TryOpenAsync().ConfigureAwait(false);
+		}
 
-        private async void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            if (OpenCloseWhenLoadedUnloaded)
-            {
-                _isLoaded = false;
-                await CloseAsync().ConfigureAwait(false);
-            }
-        }
+		private void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
+		{
+			//_isLoaded = true;
+			if (OpenCloseWhenLoadedUnloaded)
+			{
+				//await CloseAsync().ConfigureAwait(false); LOLLO TODO why did I have this?
+				Task open = TryOpenAsync();
+			}
+		}
 
-        protected bool _isLoaded = false;
-        #endregion load unload
+		private void OnUnloaded(object sender, RoutedEventArgs e)
+		{
+			//_isLoaded = false;
+			if (OpenCloseWhenLoadedUnloaded)
+			{
+				Task close = CloseAsync();
+			}
+		}
 
-        #region openable
-        protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
+		private static void OnVisibilityChanged(DependencyObject obj, DependencyProperty prop)
+		{
+			OpenableObservableControl instance = obj as OpenableObservableControl;
+			if (instance != null && instance.OpenCloseWhenVisibleCollapsed)
+			{
+				if (instance.Visibility == Visibility.Collapsed)
+				{
+					Task close = instance.CloseAsync();
+				}
+				else if (instance.Visibility == Visibility.Visible)
+				{
+					Task open = instance.TryOpenAsync();
+				}
+			}
+		}
+		#endregion event handlers
 
-        protected volatile bool _isOpen = false;
-        public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
-        protected void SetIsEnabled(bool newValue)
-        {
-            if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-            {
-                IsEnabled = newValue;
-            }
-            else
-            {
-                IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                {
-                    IsEnabled = newValue;
-                });
-            }
-        }
+		#region open close
+		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
-        public async Task<bool> TryOpenAsync(bool enable = true)
-        {
-            if (!_isOpen)
-            {
-                if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-                    if (!_isOpen)
-                    {
-                        if (await OpenMayOverrideAsync().ConfigureAwait(false))
-                        {
-                            IsOpen = true;
-                            if (enable) SetIsEnabled(true);
-                            return true;
-                        }
-                    }
-                }
-                catch (Exception exc)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
-            return false;
-        }
+		protected volatile bool _isOpen = false;
+		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
-        protected virtual async Task<bool> OpenMayOverrideAsync()
-        {
-            await Task.CompletedTask; // avoid warning
-            return true;
-        }
+		protected async Task<bool> TryOpenAsync(bool enable = true)
+		{
+			if (!_isOpen)
+			{
+				if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+				try
+				{
+					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					if (!_isOpen)
+					{
+						if (Visibility == Visibility.Visible || !OpenCloseWhenVisibleCollapsed)
+						{
+							if (await OpenMayOverrideAsync().ConfigureAwait(false))
+							{
+								IsOpen = true;
+								if (enable) RunInUiThread(delegate { IsEnabled = true; });
+								return true;
+							}
+						}
+						else
+						{
+							await Logger.AddAsync("TryOpenAsync() called when the control is collapsed", Logger.ForegroundLogFilename);
+						}
+					}
+				}
+				catch (Exception exc)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
+			return false;
+		}
 
-        public async Task<bool> CloseAsync()
-        {
-            if (_isOpen)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-                    if (_isOpen)
-                    {
-                        //ClearListeners();
-                        SetIsEnabled(false);
-                        IsOpen = false;
+		protected virtual async Task<bool> OpenMayOverrideAsync()
+		{
+			await Task.CompletedTask; // avoid warning
+			return true;
+		}
 
-                        await CloseMayOverrideAsync().ConfigureAwait(false);
+		protected async Task<bool> CloseAsync()
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					if (_isOpen)
+					{
+						//ClearListeners();
+						RunInUiThread(delegate { IsEnabled = false; });
+						IsOpen = false;
 
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
-                    _isOpenSemaphore = null;
-                }
-            }
-            return false;
-        }
+						await CloseMayOverrideAsync().ConfigureAwait(false);
+
+						return true;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
+					_isOpenSemaphore = null;
+				}
+			}
+			return false;
+		}
 #pragma warning disable 1998
-        protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
+		protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
 #pragma warning restore 1998
+		#endregion open close
 
-        public async Task<bool> SetIsEnabledAsync(bool enable)
-        {
-            if (_isOpen && IsEnabled != enable)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-                    if (_isOpen && IsEnabled != enable)
-                    {
-                        SetIsEnabled(enable);
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            return false;
-        }
 
-        protected async Task RunFunctionWhileOpenAsyncA(Action func)
-        {
-            if (_isOpen && IsEnabled)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && IsEnabled) func();
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-        }
+		#region while open
+		protected async Task<bool> SetIsEnabledAsync(bool enable)
+		{
+			if (_isOpen && IsEnabled != enable)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					if (_isOpen && IsEnabled != enable)
+					{
+						RunInUiThread(delegate { IsEnabled = enable; });
+						return true;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return false;
+		}
+
+		protected async Task RunFunctionWhileOpenAsyncA(Action func)
+		{
+			if (_isOpen && IsEnabled)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen && IsEnabled) func();
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
-        {
-            if (_isOpen && IsEnabled)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && IsEnabled) return func();
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            return false;
-        }
+		{
+			if (_isOpen && IsEnabled)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen && IsEnabled) return func();
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return false;
+		}
 		protected async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
-        {
-            if (_isOpen && IsEnabled)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && IsEnabled) await funcAsync().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-        }
+		{
+			if (_isOpen && IsEnabled)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen && IsEnabled) await funcAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
-        {
-            if (_isOpen && IsEnabled)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && IsEnabled) return await funcAsync().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            return false;
-        }
-        #endregion openable
-    }
+		{
+			if (_isOpen && IsEnabled)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen && IsEnabled) return await funcAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return false;
+		}
+		#endregion while open
+	}
 }

@@ -60,16 +60,16 @@ namespace UniFiler10.Controlz
 
 		public void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task back = RunFunctionWhileOpenAsyncA(CloseMe);
+			Task back = RunFunctionWhileOpenAsyncA(GoBack);
 		}
 		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
-			Task back = RunFunctionWhileOpenAsyncA(CloseMe);
+			Task back = RunFunctionWhileOpenAsyncA(GoBack);
 		}
 		private void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
 		{
-			Task back = RunFunctionWhileOpenAsyncA(CloseMe);
+			Task back = RunFunctionWhileOpenAsyncA(GoBack);
 		}
-		protected abstract void CloseMe();
+		protected abstract void GoBack();
 	}
 }

@@ -219,7 +219,7 @@
 							Visibility="Collapsed" VerticalAlignment="Stretch"/>-->
 						<Border x:Name="DeleteBorder" Grid.Column="2" Grid.Row="1" 
 							Background="Transparent"
-							Visibility="{TemplateBinding DeleteVisibility}">
+							Visibility="{TemplateBinding DeleteButtonVisibility}">
 							<SymbolIcon x:Name="DeleteGlyph"
 								Grid.Column="2" Grid.Row="1"
 								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"

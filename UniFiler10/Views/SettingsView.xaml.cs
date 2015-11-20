@@ -50,7 +50,7 @@ namespace UniFiler10.Views
         {
 			OpenCloseWhenLoadedUnloaded = false;
             InitializeComponent();
-			Task open = TryOpenAsync();
+			//Task open = TryOpenAsync();
         }
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
@@ -70,7 +70,7 @@ namespace UniFiler10.Views
 			});
         }
 
-		protected override void CloseMe()
+		protected override void GoBack()
 		{
 			BriefcaseVM?.ShowCover();
 		}

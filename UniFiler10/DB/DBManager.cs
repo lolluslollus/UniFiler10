@@ -83,7 +83,7 @@ namespace UniFiler10.Data.DB
 					if (!_isOpen)
 					{
 						var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-						
+
 						if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 						if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 						if (!SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)) _documentsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -161,26 +161,12 @@ namespace UniFiler10.Data.DB
 		#endregion open and close
 
 		#region table methods
-		internal async Task<bool> UpdateDynamicFieldsAsync(DynamicField newRecord)
+		internal bool UpdateDynamicFields(DynamicField newRecord)
 		{
 			bool result = false;
 			try
 			{
-				var oldRecord = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, newRecord.Id).ConfigureAwait(false);
-				if (oldRecord != null && !oldRecord.IsEqualTo(newRecord))
-				{
-					if (DynamicField.Check(newRecord))
-					{
-						result = await LolloSQLiteConnectionMT.UpdateAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _dynamicFieldsSemaphore).ConfigureAwait(false);
-						//// LOLLO remove when done testing
-						//var testRecord = await LolloSQLiteConnectionMT.ReadRecordByDBIndexAsync<DynamicField>(_dynamicFieldsDbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, newRecord.DbIndex).ConfigureAwait(false);
-						//var test = testRecord.Vaalue;
-					}
-					if (!result)
-					{
-						await oldRecord.CopyAsync(newRecord).ConfigureAwait(false);
-					}
-				}
+				result = LolloSQLiteConnectionMT.Update<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _dynamicFieldsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -188,26 +174,13 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> UpdateDynamicCategoriesAsync(DynamicCategory newRecord)
+
+		internal bool UpdateDynamicCategories(DynamicCategory newRecord)
 		{
 			bool result = false;
 			try
 			{
-				var oldRecord = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, newRecord.Id).ConfigureAwait(false);
-				if (oldRecord != null && !oldRecord.IsEqualTo(newRecord))
-				{
-					if (DynamicCategory.Check(newRecord))
-					{
-						result = await LolloSQLiteConnectionMT.UpdateAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-						//// LOLLO remove when done testing
-						//var testRecord = await LolloSQLiteConnectionMT.ReadRecordByDBIndexAsync<DynamicCategory>(_dynamicCategoriesDbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, newRecord.DbIndex).ConfigureAwait(false);
-						//var test = testRecord.CategoryId;
-					}
-					if (!result)
-					{
-						await oldRecord.CopyAsync(newRecord).ConfigureAwait(false);
-					}
-				}
+				result = LolloSQLiteConnectionMT.Update<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _dynamicCategoriesSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -215,23 +188,13 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> UpdateDocumentsAsync(Document newRecord)
+
+		internal bool UpdateDocuments(Document newRecord)
 		{
 			bool result = false;
 			try
 			{
-				var oldRecord = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, newRecord.Id).ConfigureAwait(false);
-				if (oldRecord != null && !oldRecord.IsEqualTo(newRecord))
-				{
-					if (Document.Check(newRecord)) // && await CheckUniqueKeyInDocumentsAsync(newRecord).ConfigureAwait(false))
-					{
-						result = await LolloSQLiteConnectionMT.UpdateAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _documentsSemaphore).ConfigureAwait(false);
-					}
-					if (!result)
-					{
-						await oldRecord.CopyAsync(newRecord).ConfigureAwait(false);
-					}
-				}
+				result = LolloSQLiteConnectionMT.Update<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _documentsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -239,23 +202,13 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> UpdateWalletsAsync(Wallet newRecord)
+
+		internal bool UpdateWallets(Wallet newRecord)
 		{
 			bool result = false;
 			try
 			{
-				var oldRecord = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, newRecord.Id).ConfigureAwait(false);
-				if (oldRecord != null && !oldRecord.IsEqualTo(newRecord))
-				{
-					if (Wallet.Check(newRecord)) // && await CheckUniqueKeyInWalletsAsync(newRecord).ConfigureAwait(false))
-					{
-						result = await LolloSQLiteConnectionMT.UpdateAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _walletsSemaphore).ConfigureAwait(false);
-					}
-					if (!result)
-					{
-						await oldRecord.CopyAsync(newRecord).ConfigureAwait(false);
-					}
-				}
+				result = LolloSQLiteConnectionMT.Update<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _walletsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -263,23 +216,13 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> UpdateFoldersAsync(Folder newRecord)
+
+		internal bool UpdateFolders(Folder newRecord)
 		{
 			bool result = false;
 			try
 			{
-				var oldRecord = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _foldersSemaphore, newRecord.Id).ConfigureAwait(false);
-				if (oldRecord != null && !oldRecord.IsEqualTo(newRecord))
-				{
-					if (Folder.Check(newRecord)) // && await CheckForeignKey_TagsInFolderAsync(newRecord).ConfigureAwait(false))
-					{
-						result = await LolloSQLiteConnectionMT.UpdateAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _foldersSemaphore).ConfigureAwait(false);
-					}
-					if (!result)
-					{
-						await oldRecord.CopyAsync(newRecord).ConfigureAwait(false);
-					}
-				}
+				result = LolloSQLiteConnectionMT.Update<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _foldersSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -474,21 +417,21 @@ namespace UniFiler10.Data.DB
 			}
 			return dynCats;
 		}
-		internal async Task<List<DynamicCategory>> GetDynamicCategoriesAsync()
-		{
-			List<DynamicCategory> dynCats = new List<DynamicCategory>();
-			try
-			{
-				dynCats = await LolloSQLiteConnectionMT.ReadTableAsync<DynamicCategory>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore)
-					.ConfigureAwait(false);
-			}
-			catch (Exception exc)
-			{
-				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-			}
-			return dynCats;
-		}
+		//internal async Task<List<DynamicCategory>> GetDynamicCategoriesAsync()
+		//{
+		//	List<DynamicCategory> dynCats = new List<DynamicCategory>();
+		//	try
+		//	{
+		//		dynCats = await LolloSQLiteConnectionMT.ReadTableAsync<DynamicCategory>
+		//			(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore)
+		//			.ConfigureAwait(false);
+		//	}
+		//	catch (Exception exc)
+		//	{
+		//		Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+		//	}
+		//	return dynCats;
+		//}
 		internal async Task<List<DynamicCategory>> GetDynamicCategoriesByCatIdAsync(string catId)
 		{
 			var dynCats = new List<DynamicCategory>();
@@ -1115,20 +1058,40 @@ namespace UniFiler10.Data.DB
 			/// </summary>
 			internal static void ResetConnection(string connectionString)
 			{
+				if (connectionString == null) return;
+
+				LolloConnection conn = null;
 				try
 				{
 					_connectionsDictSemaphore.Wait();
-					LolloConnection conn;
+
 					if (_connectionsDict.TryGetValue(connectionString, out conn))
 					{
 						conn.Reset();
 						_connectionsDict.Remove(connectionString);
 					}
 				}
-				catch (Exception ex)
+				catch (Exception ex0)
 				{
-					if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					// LOLLO TODO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
+					// I now use close_v2 instead of close, and it looks better.
+					try
+					{
+						Task.Delay(conn.Connection.BusyTimeout.Milliseconds * 3).Wait();
+						if (_connectionsDict.TryGetValue(connectionString, out conn))
+						{
+							conn.Reset();
+							_connectionsDict.Remove(connectionString);
+						}
+					}
+					catch (Exception ex1)
+					{
+						if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+						{
+							Logger.Add_TPL(ex0.ToString(), Logger.ForegroundLogFilename);
+							Logger.Add_TPL(ex1.ToString(), Logger.ForegroundLogFilename);
+						}
+					}
 				}
 				finally
 				{

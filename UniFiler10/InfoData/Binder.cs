@@ -44,6 +44,7 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion construct and dispose
 
+
 		#region open and close
 		public override async Task<bool> SetIsEnabledAsync(bool enable)
 		{
@@ -106,6 +107,7 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion open and close
 
+
 		#region main properties
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
@@ -113,7 +115,7 @@ namespace UniFiler10.Data.Model
 
 		private static Binder _instance = null;
 		[IgnoreDataMember]
-		public static Binder OpenInstance { get { if (_instance != null && _instance._isOpen) return _instance; else return null; } }
+		public static Binder OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
 
 		private string _dbName = string.Empty;
 		[DataMember]
@@ -208,16 +210,36 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion main properties
 
+
 		#region filter properties
 		public enum Filters { All, Recent, Cat, Field };
 		private const int HOW_MANY_IN_RECENT = 10;
+
+		public class FolderPreview : ObservableData
+		{
+			protected string _folderId = string.Empty;
+			public string FolderId { get { return _folderId; } set { if (_folderId != value) { _folderId = value; RaisePropertyChanged_UI(); } } }
+
+			private string _folderName = string.Empty;
+			public string FolderName { get { return _folderName; } set { if (_folderName != value) { _folderName = value; RaisePropertyChanged_UI(); } } }
+
+			private string _documentUri0 = string.Empty;
+			public string DocumentUri0 { get { return _documentUri0; } set { if (_documentUri0 != value) { _documentUri0 = value; RaisePropertyChanged_UI(); } } }
+
+			private Document _document = null;
+			public Document Document { get { return _document; } set { _document = value; RaisePropertyChanged_UI(); } }
+		}
 
 		private string _catIdForCatFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForCatFilter // the setter is only for serialising and copying
 		{
 			get { return _catIdForCatFilter; }
-			set { string newValue = value ?? DEFAULT_ID; if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; RaisePropertyChanged(); } }
+			set
+			{
+				string newValue = value ?? DEFAULT_ID;
+				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; RaisePropertyChanged(); }
+			}
 		}
 		public Task SetIdsForCatFilterAsync(string catId)
 		{
@@ -232,7 +254,11 @@ namespace UniFiler10.Data.Model
 		public string CatIdForFldFilter // the setter is only for serialising and copying
 		{
 			get { return _catIdForFldFilter; }
-			set { string newValue = value ?? DEFAULT_ID; if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; RaisePropertyChanged(); } }
+			set
+			{
+				string newValue = value ?? DEFAULT_ID;
+				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; RaisePropertyChanged(); }
+			}
 		}
 
 		private string _fldDscIdForFldFilter = DEFAULT_ID;
@@ -240,7 +266,11 @@ namespace UniFiler10.Data.Model
 		public string FldDscIdForFldFilter // the setter is only for serialising and copying
 		{
 			get { return _fldDscIdForFldFilter; }
-			set { string newValue = value ?? DEFAULT_ID; if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; RaisePropertyChanged(); } }
+			set
+			{
+				string newValue = value ?? DEFAULT_ID;
+				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; RaisePropertyChanged(); }
+			}
 		}
 
 		private string _fldValIdForFldFilter = DEFAULT_ID;
@@ -248,7 +278,11 @@ namespace UniFiler10.Data.Model
 		public string FldValIdForFldFilter // the setter is only for serialising and copying
 		{
 			get { return _fldValIdForFldFilter; }
-			set { string newValue = value ?? DEFAULT_ID; if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; RaisePropertyChanged(); } }
+			set
+			{
+				string newValue = value ?? DEFAULT_ID;
+				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; RaisePropertyChanged(); }
+			}
 		}
 		public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
 		{
@@ -403,6 +437,7 @@ namespace UniFiler10.Data.Model
 
 		#endregion loading methods
 
+
 		#region closed static methods
 		/// <summary>
 		/// I need this semaphore for the static operations such as backup, restore, etc
@@ -512,6 +547,7 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion closed static methods
 
+
 		#region while open methods
 		public Task<bool> AddFolderAsync(Folder folder)
 		{
@@ -521,8 +557,6 @@ namespace UniFiler10.Data.Model
 				{
 					folder.ParentId = Id;
 					folder.Name = ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFolder/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-
-					folder.Date0 = DateTime.Now;
 
 					folder.DateCreated = DateTime.Now;
 
@@ -571,9 +605,16 @@ namespace UniFiler10.Data.Model
 					CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
 					return isOK;
 				}
+				else
+				{
+					Debugger.Break();
+				}
 			}
 			return false;
 		}
+		#endregion while open methods
+
+
 		#region while open filter methods
 		public async Task<List<FolderPreview>> GetAllFolderPreviewsAsync()
 		{
@@ -669,33 +710,21 @@ namespace UniFiler10.Data.Model
 
 			return folderPreviews;
 		}
-		public class FolderPreview : ObservableData
-		{
-			protected string _folderId = string.Empty;
-			public string FolderId { get { return _folderId; } set { if (_folderId != value) { _folderId = value; RaisePropertyChanged_UI(); } } }
-
-			private string _folderName = string.Empty;
-			public string FolderName { get { return _folderName; } set { if (_folderName != value) { _folderName = value; RaisePropertyChanged_UI(); } } }
-
-			private string _documentUri0 = string.Empty;
-			public string DocumentUri0 { get { return _documentUri0; } set { if (_documentUri0 != value) { _documentUri0 = value; RaisePropertyChanged_UI(); } } }
-
-			private Document _document = null;
-			public Document Document { get { return _document; } set { _document = value; RaisePropertyChanged_UI(); } }
-		}
-
 		#endregion while open filter methods
-		#endregion while open methods        
 
-		protected override Task<bool> UpdateDbMustOverrideAsync()
+		protected override bool UpdateDbMustOverride()
 		{
-			throw new NotImplementedException("ERROR in Binder: UpdateDbWithinSemaphoreMustOverride() was called but it must not. ");
+			throw new NotImplementedException();
 		}
+		//protected override Task<bool> UpdateDbMustOverrideAsync()
+		//{
+		//	throw new NotImplementedException("ERROR in Binder: UpdateDbWithinSemaphoreMustOverride() was called but it must not. ");
+		//}
 
-		protected override void CopyMustOverride(ref DbBoundObservableData target)
-		{
-			throw new NotImplementedException("ERROR in Binder: CopyNoDbMustOverride() was called but it must not. ");
-		}
+		//protected override void CopyMustOverride(ref DbBoundObservableData target)
+		//{
+		//	throw new NotImplementedException("ERROR in Binder: CopyNoDbMustOverride() was called but it must not. ");
+		//}
 
 		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
 		{

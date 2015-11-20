@@ -13,49 +13,42 @@ namespace UniFiler10.Data.Model
     [DataContract]
     public class Wallet : DbBoundObservableData
     {
-        #region properties
-        private string _name = string.Empty;
+		#region properties
+		public string _name = string.Empty;
         [DataMember]
-        public string Name { get { return _name; } set { if (_name != value) { _name = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+        public string Name { get { return _name; } set { SetProperty(value); } }
 
-        private string _descr0 = string.Empty;
+		public string _descr0 = string.Empty;
         [DataMember]
-        public string Descr0 { get { return _descr0; } set { if (_descr0 != value) { _descr0 = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+        public string Descr0 { get { return _descr0; } set { SetProperty(value); } }
 
-        private DateTime _date0 = default(DateTime);
+		public DateTime _date0 = default(DateTime);
         [DataMember]
-        public DateTime Date0 { get { return _date0; } set { if (_date0 != value) { _date0 = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+        public DateTime Date0 { get { return _date0; } set { SetProperty(value); } }
 
-        private bool _isSelected = false;
+		public bool _isSelected = false;
         [DataMember]
-        public bool IsSelected { get { return _isSelected; } set { if (_isSelected != value) { _isSelected = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+        public bool IsSelected { get { return _isSelected; } set { SetProperty(value); } }
 
-        private bool _isRecordingSound = false;
-        [IgnoreDataMember]
-        [Ignore]
-        public bool IsRecordingSound { get { return _isRecordingSound; } set { if (_isRecordingSound != value) { _isRecordingSound = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+        //private bool _isRecordingSound = false;
+        //[IgnoreDataMember]
+        //[Ignore]
+        //public bool IsRecordingSound { get { return _isRecordingSound; } set { if (_isRecordingSound != value) { _isRecordingSound = value; RaisePropertyChanged_UI(); } } }
 
         private SwitchableObservableCollection<Document> _documents = new SwitchableObservableCollection<Document>();
         [IgnoreDataMember]
         [Ignore]
-        public SwitchableObservableCollection<Document> Documents { get { return _documents; } set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } }
+        public SwitchableObservableCollection<Document> Documents { get { return _documents; } private set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } }
         #endregion properties
 
         protected override async Task OpenMayOverrideAsync()
         {
             if (_documents != null)
             {
-                //if (_documents.Count == 0)
-                //{
-                //    await AddDocument2Async(new Document() { ParentId = Id }).ConfigureAwait(false);
-                //}
-                //else
-                //{
                 foreach (var doc in _documents)
                 {
                     await doc.OpenAsync();
                 }
-                //}
             }
         }
         protected override async Task CloseMayOverrideAsync()
@@ -75,11 +68,17 @@ namespace UniFiler10.Data.Model
             _documents?.Dispose();
             _documents = null;
         }
-        protected override async Task<bool> UpdateDbMustOverrideAsync()
-        {
-            if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateWalletsAsync(this).ConfigureAwait(false);
-            else return false;
-        }
+		protected override bool UpdateDbMustOverride()
+		{
+			var ins = DBManager.OpenInstance;
+			if (ins != null) return ins.UpdateWallets(this);
+			else return false;
+		}
+		//protected override async Task<bool> UpdateDbMustOverrideAsync()
+  //      {
+  //          if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateWalletsAsync(this).ConfigureAwait(false);
+  //          else return false;
+  //      }
 
         protected override bool IsEqualToMustOverride(DbBoundObservableData that)
         {
@@ -91,16 +90,16 @@ namespace UniFiler10.Data.Model
                 Document.AreEqual(Documents, target.Documents);
         }
 
-        protected override void CopyMustOverride(ref DbBoundObservableData target)
-        {
-            var tgt = (target as Wallet);
+        //protected override void CopyMustOverride(ref DbBoundObservableData target)
+        //{
+        //    var tgt = (target as Wallet);
 
-            tgt.Date0 = Date0;
-            tgt.Descr0 = Descr0;
-            tgt.IsSelected = IsSelected;
-            tgt.Name = Name;
-            tgt.Documents = Documents;
-        }
+        //    tgt.Date0 = Date0;
+        //    tgt.Descr0 = Descr0;
+        //    tgt.IsSelected = IsSelected;
+        //    tgt.Name = Name;
+        //    tgt.Documents = Documents;
+        //}
 
         protected override bool CheckMeMustOverride()
         {
@@ -141,8 +140,7 @@ namespace UniFiler10.Data.Model
                 await DBManager.OpenInstance?.DeleteFromDocumentsAsync(doc);
 
                 int countBefore = _documents.Count;
-                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess) _documents.Remove(doc);
-                else await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { _documents.Remove(doc); }).AsTask().ConfigureAwait(false);
+				RunInUiThread(delegate { _documents.Remove(doc); });
 
                 try
                 {

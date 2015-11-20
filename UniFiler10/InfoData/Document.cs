@@ -16,20 +16,26 @@ namespace UniFiler10.Data.Model
     public class Document : DbBoundObservableData
     {
         #region properties
-        private string _uri0 = string.Empty;
+        public string _uri0 = string.Empty;
         [DataMember]
-        public string Uri0 { get { return _uri0; } set { if (_uri0 != value) { _uri0 = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
+        public string Uri0 { get { return _uri0; } set { SetProperty(value); } }
 
-        private bool _isSelected = false;
+		public bool _isSelected = false;
         [DataMember]
-        public bool IsSelected { get { return _isSelected; } set { if (_isSelected != value) { _isSelected = value; RaisePropertyChanged_UI(); Task upd = UpdateDbAsync(); } } }
-        #endregion properties
+        public bool IsSelected { get { return _isSelected; } set { SetProperty(value); } }
+		#endregion properties
 
-        protected override async Task<bool> UpdateDbMustOverrideAsync()
-        {
-            if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateDocumentsAsync(this).ConfigureAwait(false);
-            else return false;
-        }
+		protected override bool UpdateDbMustOverride()
+		{
+			var ins = DBManager.OpenInstance;
+			if (ins != null) return ins.UpdateDocuments(this);
+			else return false;
+		}
+		//protected override async Task<bool> UpdateDbMustOverrideAsync()
+  //      {
+  //          if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateDocumentsAsync(this).ConfigureAwait(false);
+  //          else return false;
+  //      }
 
         protected override bool IsEqualToMustOverride(DbBoundObservableData that)
         {
@@ -37,13 +43,13 @@ namespace UniFiler10.Data.Model
 
             return Uri0 == target.Uri0;
         }
-        protected override void CopyMustOverride(ref DbBoundObservableData target)
-        {
-            var tgt = target as Document;
+        //protected override void CopyMustOverride(ref DbBoundObservableData target)
+        //{
+        //    var tgt = target as Document;
 
-            tgt.IsSelected = IsSelected;
-            tgt.Uri0 = Uri0;
-        }
+        //    tgt.IsSelected = IsSelected;
+        //    tgt.Uri0 = Uri0;
+        //}
         protected override bool CheckMeMustOverride()
         {
             return _id != DEFAULT_ID && _parentId != DEFAULT_ID;

@@ -12,8 +12,7 @@
     mc:Ignorable="d"
     d:DesignHeight="500"
     d:DesignWidth="300"
-	d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
-    IsEnabled="{Binding IsEnabled}">
+	d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}">
 
 	<ctl:ObservableControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >

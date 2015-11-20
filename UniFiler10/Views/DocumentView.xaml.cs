@@ -396,7 +396,7 @@ namespace UniFiler10.Views
         private async void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
         {
             e.Handled = true;
-            if (IsDeleteEnabled)
+            if (IsDeleteEnabled && BinderVM != null)
             {
                 if (await BinderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
                 {

@@ -53,7 +53,7 @@ namespace UniFiler10.Data.Model
                         await OpenMayOverrideAsync().ConfigureAwait(false);
 
                         IsOpen = true;
-                        if (enable) IsEnabled = true;
+						if (enable) IsEnabled = true;
                         return true;
                     }
                 }
@@ -153,6 +153,26 @@ namespace UniFiler10.Data.Model
                 }
             }
         }
+		protected async Task RunFunctionWhileOpenAsyncA_MT(Action func)
+		{
+			if (_isOpen && _isEnabled)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen && _isEnabled) await Task.Run(func).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
         {
             if (_isOpen && _isEnabled)

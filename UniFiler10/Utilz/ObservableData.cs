@@ -32,10 +32,14 @@ namespace Utilz
 		/// <param name="propertyName"></param>
 		protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
-			RunInUiThread(delegate { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); });
+			RunInUiThread(delegate { RaisePropertyChanged(propertyName); });
 		}
-        #region UIThread
-        public void RunInUiThread(DispatchedHandler action)
+		//protected void RaisePropertyChanged_QUI([CallerMemberName] string propertyName = "")
+		//{
+		//	IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate { RaisePropertyChanged(propertyName); });
+		//}
+		#region UIThread
+		public void RunInUiThread(DispatchedHandler action)
         {
             try
             {

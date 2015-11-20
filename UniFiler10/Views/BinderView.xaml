@@ -17,13 +17,13 @@
 
     <Grid>
         <local:BinderCoverView
-            Visibility="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
+            Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
             DataContext="{Binding}"/>
 		<!--ClosedPaneLength="{StaticResource CompactPaneLength}"
             OpenPaneLength="{StaticResource OpenPaneLength}"
 		IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"-->
 		<ctl:LolloSplitView x:Name="LayoutRoot"
-            Visibility="{x:Bind VM.Binder.IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
+            Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
             IsPaneOpen="True"
             IsEnabled="{Binding IsEnabled, Mode=OneWay, FallbackValue=False}"
             ClosedPaneLength="{StaticResource CompactPaneLength}"
@@ -92,32 +92,17 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <!--<Grid>-->
-                                            <!--<Grid.RowDefinitions>
-                                                <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
-                                                <RowDefinition Height="{StaticResource ButtonBarItemSizeLarge_ForGrid}"/>
-                                                <RowDefinition MaxHeight="{StaticResource ButtonBarItemSizeLarge}"/>
-                                            </Grid.RowDefinitions>-->
-                                            <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly"
-												Height="{StaticResource CompactPaneLength}"
-												Width="{StaticResource CompactPaneLength}">
-                                                <TextBlock Grid.Row="0"
-                                                    MaxWidth="{StaticResource CompactPaneLength}"
-                                                    Text="{Binding Name, Mode=OneWay}"
-                                                    TextAlignment="Center"
-                                                    TextWrapping="Wrap"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"/>
-                                            </Viewbox>
-											<!--<AppBarButton Grid.Row="1"
-                                                Icon="Delete"
-                                                x:Uid="DeleteFolder"
-                                                Click="OnDeleteFolder_Click"
-												Width="{StaticResource CompactPaneLength}"
-												HorizontalAlignment="Center"
-												VerticalAlignment="Center"/>-->
-                                            <!-- LOLLO TODO add a miniature of the first document in the first wallet -->
-                                        <!--</Grid>-->
+                                        <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly"
+											Height="{StaticResource CompactPaneLength}"
+											Width="{StaticResource CompactPaneLength}">
+                                            <TextBlock Grid.Row="0"
+                                                MaxWidth="{StaticResource CompactPaneLength}"
+                                                Text="{Binding Name, Mode=OneWay}"
+                                                TextAlignment="Center"
+                                                TextWrapping="Wrap"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"/>
+                                        </Viewbox>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ctl:TolerantListView>

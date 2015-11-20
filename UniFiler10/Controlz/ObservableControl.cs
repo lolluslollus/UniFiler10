@@ -19,7 +19,7 @@ namespace UniFiler10.Controlz
     {
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void ClearListeners()
+        protected void ClearListeners() // we could use this inside a Dispose
         {
             PropertyChanged = null;
         }
@@ -31,17 +31,7 @@ namespace UniFiler10.Controlz
         {
             try
             {
-                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
-                else
-                {
-                    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                    {
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                    });
-                }
+				RunInUiThread(delegate { RaisePropertyChanged(propertyName); });
             }
             catch (Exception ex)
             {
