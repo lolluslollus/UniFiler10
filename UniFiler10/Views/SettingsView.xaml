@@ -16,6 +16,7 @@
 	<Grid x:Name="LayoutRoot" Background="AntiqueWhite">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition />
 		</Grid.RowDefinitions>
 
@@ -65,10 +66,75 @@
 						VerticalAlignment="Center"/>
 				</Grid>
 			</Button>
+
+			<ToggleButton 
+                    IsChecked="{Binding ElementName=me, Path=VM.IsElevated, Mode=TwoWay}"
+                    Style="{StaticResource ToggleButtonLolloStyle}"
+					Tapped="OnToggleElevated_Tapped">
+
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+					</Grid.ColumnDefinitions>
+
+					<SymbolIcon 
+                            Symbol="Important"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"
+                            Visibility="{Binding ElementName=me, Path=VM.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+					<SymbolIcon 
+                            Symbol="Emoji2" 
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"
+                            Visibility="{Binding ElementName=me, Path=VM.IsElevated, Converter={StaticResource BooleanToVisibleConverter}}"/>
+					<TextBlock Grid.Column="2" 
+                            x:Uid="GotoElevated"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"
+							Visibility="{Binding ElementName=me, Path=VM.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+					<TextBlock Grid.Column="2" 
+                            x:Uid="GotoSafe"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"
+							Visibility="{Binding ElementName=me, Path=VM.IsElevated, Converter={StaticResource BooleanToVisibleConverter}}"/>
+				</Grid>
+			</ToggleButton>
 		</VariableSizedWrapGrid>
 
-		<local:MetaBriefcaseView Grid.Row="1"
-            DataContext="{Binding}"
+		<Border Grid.Row="1"
+			Visibility="{Binding ElementName=me, Path=VM.IsElevated, Converter={StaticResource BooleanToVisibleConverter}}"
+			BorderBrush="{StaticResource FlashyForeground}"
+			BorderThickness="{StaticResource Thickness2222}"
+			Padding="{StaticResource PanelPadding8282}">
+			<TextBlock x:Uid="ElevatedMode"
+				VerticalAlignment="Stretch"
+				HorizontalAlignment="Stretch"
+				Foreground="{StaticResource FlashyForeground}"
+				TextWrapping="Wrap"/>
+		</Border>
+
+		<Border Grid.Row="1"
+			Visibility="{Binding ElementName=me, Path=VM.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}}"
+			BorderThickness="{StaticResource Thickness2222}"
+			Padding="{StaticResource PanelPadding8282}">
+			<TextBlock x:Uid="SafeMode"
+				VerticalAlignment="Stretch"
+				HorizontalAlignment="Stretch"
+				TextWrapping="Wrap"/>
+		</Border>
+
+		<local:MetaBriefcaseView Grid.Row="2"
+			x:Name="MBView"            
             VM="{x:Bind VM, Mode=OneWay}"/>
 		
 	</Grid>

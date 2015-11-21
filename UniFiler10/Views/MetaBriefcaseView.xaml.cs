@@ -107,7 +107,7 @@ namespace UniFiler10.Views
 			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
 			string currCatId = MetaBriefcase.OpenInstance?.CurrentCategory?.Id;
 
-			if (fldDsc != null && !string.IsNullOrEmpty(currCatId) && fldDsc.JustAssignedToCats?.Contains(currCatId) == true)
+			if (fldDsc != null && !string.IsNullOrEmpty(currCatId) && (fldDsc.JustAssignedToCats?.Contains(currCatId) == true || SettingsVM.GetIsElevated()))
 				(sender as FrameworkElement).Visibility = Visibility.Visible;
 			else
 				(sender as FrameworkElement).Visibility = Visibility.Collapsed;

@@ -7,8 +7,9 @@
 
     <Thickness x:Key="PanelMarginZero">0, 0, 0, 0</Thickness>
     <Thickness x:Key="PanelPadding8282">8, 2, 8, 2</Thickness>
+	<Thickness x:Key="Thickness2222">2</Thickness>
 
-    <GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
+	<GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Medium">20</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Large">40</GridLength>
 
@@ -128,20 +129,18 @@
     <FontFamily x:Key="BaseMessageStyleFontFamily">Segoe WP Semilight</FontFamily>
     <!--<x:Double x:Key="BaseMessageStyleFontSize">14.667</x:Double>-->
     <x:Double x:Key="BaseMessageStyleFontSize">16</x:Double>
-    <Thickness x:Key="BaseMessageStyleMargin">2</Thickness>
-    <Thickness x:Key="TightMargin">1</Thickness>
 
     <Style x:Key="BaseMessageStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2222}"/>
         <!--<Setter Property="Margin" Value="0,0,0,5"/>-->
     </Style>
 
     <Style x:Key="BaseTightMessageStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2222}"/>
         <Setter Property="FontStretch" Value="UltraCondensed"/>
         <!--<Setter Property="Margin" Value="0,0,0,5"/>-->
     </Style>
@@ -149,7 +148,7 @@
     <Style x:Key="BaseTextBoxStyle" TargetType="TextBox">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2222}"/>
         <!--<Setter Property="Background" Value="{ThemeResource TextBoxForegroundThemeBrush}"/>
         <Setter Property="Foreground" Value="{ThemeResource TextBoxBackgroundThemeBrush}"/>-->
         <!--<Setter Property="Margin" Value="0,0,0,5"/>-->
@@ -502,7 +501,7 @@
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2222}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="AppBarButton">
@@ -649,7 +648,7 @@
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2222}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="AppBarToggleButton">

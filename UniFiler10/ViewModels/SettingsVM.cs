@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
 using Utilz;
 using Windows.ApplicationModel.Resources.Core;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Data;
 
 namespace UniFiler10.ViewModels
 {
@@ -15,9 +17,20 @@ namespace UniFiler10.ViewModels
         private MetaBriefcase _metaBriefcase = null;
         public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
-        public SettingsVM(MetaBriefcase metaBriefcase)
+		private bool _isElevated = false;
+		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
+
+		public static bool GetIsElevated()
+		{
+			if (_instance != null) return _instance.IsElevated;
+			else return false;
+		}
+
+		private static SettingsVM _instance = null;
+		public SettingsVM(MetaBriefcase metaBriefcase)
         {
             MetaBriefcase = metaBriefcase;
+			_instance = this;
         }
 
 		public void Dispose()
@@ -86,7 +99,7 @@ namespace UniFiler10.ViewModels
 			if (mb == null || fldDsc == null || toCat == null) return false;
 
             var cat = mb.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
-            if (cat?.Id != null && fldDsc.JustAssignedToCats.Contains(cat.Id))
+            if (cat?.Id != null && (fldDsc.JustAssignedToCats.Contains(cat.Id) || IsElevated))
             {
                 if (cat.RemoveFieldDescription(fldDsc))
                 {
@@ -120,13 +133,13 @@ namespace UniFiler10.ViewModels
         }
         public bool RemovePossibleValueFromFieldDescription(FieldValue fldVal)
         {
-            if (fldVal == null || !fldVal.IsJustAdded) return false;
+            if (fldVal == null || (!fldVal.IsJustAdded && !IsElevated)) return false;
             return RemovePossibleValueFromFieldDescription(fldVal, _metaBriefcase?.CurrentFieldDescription);
         }
         public bool RemovePossibleValueFromFieldDescription(FieldValue fldVal, FieldDescription toFldDesc)
         {
 			var mb = _metaBriefcase;
-			if (mb == null || fldVal == null || toFldDesc == null || !fldVal.IsJustAdded) return false;
+			if (mb == null || fldVal == null || toFldDesc == null || (!fldVal.IsJustAdded && !IsElevated)) return false;
 
             var fldDesc = mb.FieldDescriptions?.FirstOrDefault(fd => fd.Id == toFldDesc.Id);
             if (fldDesc != null)
@@ -165,5 +178,33 @@ namespace UniFiler10.ViewModels
 			var mb = _metaBriefcase;
             if (mb != null && newItem != null) mb.CurrentFieldDescriptionId = newItem.Id;
         }
+	}
+
+	public class BooleanAndElevated : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return false;
+			bool output = (bool)value || SettingsVM.GetIsElevated();
+			return output;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+	public class BooleanAndElevatedToVisible : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return Visibility.Collapsed;
+			bool output = (bool)value || SettingsVM.GetIsElevated();
+			if (output) return Visibility.Visible;
+			else return Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
 	}
 }

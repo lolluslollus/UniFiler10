@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10"
     xmlns:conv="using:UniFiler10.Converters"
+	xmlns:vms="using:UniFiler10.ViewModels"
     RequestedTheme="Light">
     <Application.Resources>
         <ResourceDictionary>
@@ -26,6 +27,8 @@
             <conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>
             <conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
             <conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
-        </ResourceDictionary>
+			<vms:BooleanAndElevated x:Key="BooleanAndElevated"/>
+			<vms:BooleanAndElevatedToVisible x:Key="BooleanAndElevatedToVisible"/>
+		</ResourceDictionary>
     </Application.Resources>
 </Application>

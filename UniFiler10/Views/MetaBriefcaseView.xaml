@@ -12,17 +12,22 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid Background="AntiqueWhite">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
+	<ScrollViewer
+        VerticalScrollBarVisibility="Auto"
+		VerticalScrollMode="Enabled"
+		HorizontalScrollBarVisibility="Auto"
+		HorizontalScrollMode="Enabled"
+		ZoomMode="Disabled">
 
-        <!-- categories -->
-        <ScrollViewer Grid.Column="0"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel Orientation="Vertical">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="1*"/>
+			</Grid.ColumnDefinitions>
+
+			<!-- categories -->
+			<StackPanel Orientation="Vertical" Grid.Column="0">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -34,30 +39,29 @@
                         VerticalAlignment="Center"
 						Width="{StaticResource MetaItemTextWidth}"
 						TextWrapping="Wrap"/>
-                    <AppBarButton Grid.Column="2"
+					<AppBarButton Grid.Column="2"
 						Icon="Add"
                         IsCompact="True"
                         Click="OnAddCategory_Click"
                         VerticalAlignment="Center"/>
-                </Grid>
+				</Grid>
 
-                <!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
-                <ctl:TolerantListView
+				<!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
+				<ctl:TolerantListView
                     ItemsSource="{Binding Categories, Mode=OneWay}"
-                    IsMultiSelectCheckBoxEnabled="False" 
-                    IsItemClickEnabled="True"
                     SelectedItem="{Binding CurrentCategory, Mode=OneWay}"
-                    SelectionChanged="OnCategoryListView_SelectionChanged"
-                    IsHoldingEnabled="False" 
-                    IsDoubleTapEnabled="False"
-                    IsRightTapEnabled="False">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsStackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+					SelectionChanged="OnCategoryListView_SelectionChanged"
+					IsMultiSelectCheckBoxEnabled="False" 
+                    IsItemClickEnabled="True"
+					ScrollViewer.VerticalScrollBarVisibility="Disabled"
+					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsStackPanel Orientation="Vertical"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
@@ -65,30 +69,27 @@
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 
-                                <TextBox 
+								<TextBox 
 									Text="{Binding Name, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									Width="{StaticResource MetaItemTextWidth}"
 									TextWrapping="Wrap"/>
-                                <AppBarButton Grid.Column="2"
+								<AppBarButton Grid.Column="2"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
-                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
 							</Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ctl:TolerantListView>
-            </StackPanel>
-        </ScrollViewer>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ctl:TolerantListView>
+			</StackPanel>
 
-        <!-- field descriptions-->
-        <ScrollViewer Grid.Column="1"
-            Visibility="{Binding CurrentCategory, Converter={StaticResource IsNotNullToVisible}}"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel Orientation="Vertical">
+			<!-- field descriptions-->
+			<StackPanel Orientation="Vertical" Grid.Column="1"
+					Visibility="{Binding CurrentCategory, Converter={StaticResource IsNotNullToVisible}}">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -97,37 +98,34 @@
 					</Grid.ColumnDefinitions>
 
 					<TextBlock x:Uid="FieldDescrsAssignedToCat"
-                        VerticalAlignment="Center"
-						Width="{StaticResource MetaItemTextWidth}"
-						TextWrapping="Wrap"/>
+							VerticalAlignment="Center"
+							Width="{StaticResource MetaItemTextWidth}"
+							TextWrapping="Wrap"/>
 					<!-- LOLLO BODGE the following is only to ensure the same height as the other objects -->
 					<Rectangle Grid.Column="2" Height="48" Width="68" StrokeThickness="0"/>
-					<!--<AppBarButton Grid.Column="2"
-						Icon="Stop"
-                        IsCompact="True"
-                        VerticalAlignment="Center"
-						IsEnabled="False"/>-->
 				</Grid>
 
-                <!-- assigned field descriptions -->
-                <!--SelectedIndexTolerant="{Binding CurrentFieldDescriptionIndex, Mode=OneWay}" 
+				<!-- assigned field descriptions -->
+				<!--SelectedIndexTolerant="{Binding CurrentFieldDescriptionIndex, Mode=OneWay}" 
                 LOLLO binding to the index makes trouble, better bind to the item. 
                 Here, you have two lists that should look like one and have only one selected line
                 between the two of them, so no selected item binding whatsoever:
                 we need to do it in the code behind. -->
-                <ctl:TolerantListView
+				<ctl:TolerantListView
                     x:Name="AssignedLV"
                     ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
-                    IsMultiSelectCheckBoxEnabled="False" 
+					SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged"
+                    IsMultiSelectCheckBoxEnabled="False"
                     IsItemClickEnabled="True"
-                    SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsStackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+					ScrollViewer.VerticalScrollBarVisibility="Disabled"
+					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsStackPanel Orientation="Vertical"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
@@ -148,16 +146,16 @@
                                     Loaded="OnUnassignFieldFromCat_Loaded"                                         
                                     Click="OnUnassignFieldFromCat_Click"
                                     VerticalAlignment="Center"/>
-                                <AppBarButton Grid.Column="3"
+								<AppBarButton Grid.Column="3"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
-                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ctl:TolerantListView>
+							</Grid>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ctl:TolerantListView>
 
 				<Grid>
 					<Grid.ColumnDefinitions>
@@ -175,25 +173,24 @@
                         IsCompact="True"
                         Click="OnAddField_Click"
                         VerticalAlignment="Center"/>
-                </Grid>
+				</Grid>
 
-                <!-- unassigned field descriptions -->
-                <ctl:TolerantListView
+				<!-- unassigned field descriptions -->
+				<ctl:TolerantListView
                     x:Name="UnassignedLV"
                     ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
+					SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
-                    SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"
-                    IsHoldingEnabled="False" 
-                    IsDoubleTapEnabled="False"
-                    IsRightTapEnabled="False">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsStackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+					ScrollViewer.VerticalScrollBarVisibility="Disabled"
+					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsStackPanel Orientation="Vertical"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
@@ -213,24 +210,21 @@
                                     IsCompact="True"
                                     Click="OnAssignFieldToCat_Click"
                                     VerticalAlignment="Center"/>
-                                <AppBarButton Grid.Column="3"
+								<AppBarButton Grid.Column="3"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
-                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ctl:TolerantListView>
-            </StackPanel>
-        </ScrollViewer>
+							</Grid>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ctl:TolerantListView>
+			</StackPanel>
 
-        <!-- field values -->
-        <ScrollViewer Grid.Column="2"
-            Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel Orientation="Vertical">
+			<!-- field values -->
+			<StackPanel Orientation="Vertical" Grid.Column="2"
+					Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -247,29 +241,28 @@
                         IsCompact="True"
                         Click="OnAddFieldValue_Click"
                         VerticalAlignment="Center"/>
-                </Grid>
+				</Grid>
 
 				<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
-                    IsEnabled="{Binding CurrentFieldDescription.IsJustAdded}"
+                    IsEnabled="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource BooleanAndElevated}}"
                     x:Uid="AllowAllFieldValues"
                     VerticalAlignment="Center"
                     Width="{StaticResource MetaItemWidth}"
                     Height="{StaticResource MetaItemHeight}"/>
 
-                <ctl:TolerantListView
+				<ctl:TolerantListView
                     ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
-                    IsHoldingEnabled="False" 
-                    IsDoubleTapEnabled="False"
-                    IsRightTapEnabled="False">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsStackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+					ScrollViewer.VerticalScrollBarVisibility="Disabled"
+					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsStackPanel Orientation="Vertical"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
@@ -287,13 +280,13 @@
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeletePossibleValue_Click"
-                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanToVisibleConverter}}"
+                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ctl:TolerantListView>
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+							</Grid>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ctl:TolerantListView>
+			</StackPanel>
+		</Grid>
+	</ScrollViewer>
 </UserControl>

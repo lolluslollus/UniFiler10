@@ -47,7 +47,7 @@ namespace UniFiler10.Views
 		public SettingsView()
 		{
 			OpenCloseWhenLoadedUnloaded = false;
-			InitializeComponent();
+			InitializeComponent();			
 		}
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
@@ -58,6 +58,8 @@ namespace UniFiler10.Views
 				{
 					_vm = new SettingsVM(mb);
 					RaisePropertyChanged_UI(nameof(VM));
+
+					MBView.DataContext = DataContext;
 				}
 
 				//RegisterBackEventHandlers();
@@ -118,6 +120,12 @@ namespace UniFiler10.Views
 		private void OnGoToBriefcase_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			BriefcaseVM?.ShowCover();
+		}
+
+		private void OnToggleElevated_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			MBView.DataContext = null;
+			MBView.DataContext = DataContext;
 		}
 		#endregion user actions
 	}

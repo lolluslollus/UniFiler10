@@ -203,7 +203,7 @@
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
 							BorderBrush="{StaticResource FlashyForeground}"
-							BorderThickness="{StaticResource BaseMessageStyleMargin}"
+							BorderThickness="{StaticResource Thickness2222}"
 							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 					</Border>
 				</Grid>

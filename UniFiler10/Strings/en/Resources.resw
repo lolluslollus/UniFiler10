@@ -189,6 +189,9 @@
   <data name="EditCategories.Label" xml:space="preserve">
     <value>Categories</value>
   </data>
+  <data name="ElevatedMode.Text" xml:space="preserve">
+    <value>You are in elevated mode. This allows changing many things, but be careful: you may affect your data if you delete the wrong things.</value>
+  </data>
   <data name="Expand.Label" xml:space="preserve">
     <value>Expand</value>
   </data>
@@ -200,6 +203,12 @@
   </data>
   <data name="Go.Text" xml:space="preserve">
     <value>Go</value>
+  </data>
+  <data name="GotoElevated.Text" xml:space="preserve">
+    <value>Go to elevated mode</value>
+  </data>
+  <data name="GotoSafe.Text" xml:space="preserve">
+    <value>Go to safe mode</value>
   </data>
   <data name="Name.Text" xml:space="preserve">
     <value>Name</value>
@@ -251,6 +260,9 @@
   </data>
   <data name="RestoreBinder1.Label" xml:space="preserve">
     <value>Restore binder</value>
+  </data>
+  <data name="SafeMode.Text" xml:space="preserve">
+    <value>You are in safe mode. This forbids deleting and changing certain things, to protect your data.</value>
   </data>
   <data name="Settings.Label" xml:space="preserve">
     <value>Settings</value>
