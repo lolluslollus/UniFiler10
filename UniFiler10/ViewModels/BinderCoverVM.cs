@@ -20,7 +20,7 @@ namespace UniFiler10.ViewModels
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
 		private const int REFRESH_INTERVAL_SHORT_MSEC = 25;
 		IAnimationStarter _animationStarter = null;
-		private int _refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
+		//private int _refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
 		#endregion fields
 
 
@@ -322,7 +322,7 @@ namespace UniFiler10.ViewModels
 
 		private async Task UpdatePaneContentAsync(int waitMsec)
 		{
-			_refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
+			//_refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
 
 			if (IsNeedRefresh && IsOpen)
 			{
@@ -386,13 +386,7 @@ namespace UniFiler10.ViewModels
 			if (_metaBriefcase == null) Debugger.Break(); // LOLLO this must never happen, check it
 			_animationStarter = animationStarter;
 
-			UpdateOpenClose();
-		}
-
-		protected override Task OpenMayOverrideAsync()
-		{
-			_binder.PropertyChanged += OnBinder_PropertyChanged; // throws if _binder is null
-			RegisterFoldersChanged();
+			_runAsSoonAsOpen = delegate{ return UpdatePaneContentAsync(0); };
 
 			UpdateDataForCatFilter();
 			UpdateDataForFldFilter();
@@ -401,13 +395,18 @@ namespace UniFiler10.ViewModels
 			SetIsDirty(true);
 			UpdateIsPaneOpen();
 
+			_binder.PropertyChanged += OnBinder_PropertyChanged;
+			UpdateOpenClose();
+		}
+
+		protected override Task OpenMayOverrideAsync()
+		{
+			RegisterFoldersChanged();
 			return Task.CompletedTask;
 		}
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			var binder = _binder;
-			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 			UnregisterFoldersChanged();
 			return Task.CompletedTask;
 		}
@@ -415,6 +414,9 @@ namespace UniFiler10.ViewModels
 		protected override void Dispose(bool isDisposing)
 		{
 			base.Dispose(isDisposing);
+
+			var binder = _binder;
+			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 
 			_folderPreviews?.Dispose();
 			_folderPreviews = null;
@@ -432,7 +434,7 @@ namespace UniFiler10.ViewModels
 		{
 			if (_binder?.IsOpen == true)
 			{
-				Task open = OpenAsync().ContinueWith(delegate { Task upd = UpdatePaneContentAsync(0); });
+				Task open = OpenAsync(); //.ContinueWith(delegate { Task upd = UpdatePaneContentAsync(0); });
 			}
 			else
 			{
@@ -477,6 +479,7 @@ namespace UniFiler10.ViewModels
 			{
 				_folderPreviews?.Clear();
 				_folderPreviews?.AddRange(folderPreviews);
+				Debug.WriteLine("BinderCoverVM has refreshed the folder previews");
 			}).AsTask();
 		}
 		#endregion binder data methods
@@ -647,7 +650,7 @@ namespace UniFiler10.ViewModels
 
 		public async Task AddFolderAsync()
 		{
-			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
+			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var binder = _binder;
 			if (binder != null) await binder.AddFolderAsync(new Folder()).ConfigureAwait(false);
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
@@ -655,7 +658,7 @@ namespace UniFiler10.ViewModels
 
 		public async Task AddOpenFolderAsync()
 		{
-			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
+			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var newFolder = new Folder();
 			var binder = _binder;
 			if (binder != null)
@@ -669,7 +672,7 @@ namespace UniFiler10.ViewModels
 
 		public async Task DeleteFolderAsync(Binder.FolderPreview fp)
 		{
-			_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
+			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var binder = _binder;
 			if (binder != null) await binder.RemoveFolderAsync(fp?.FolderId).ConfigureAwait(false);
 		}

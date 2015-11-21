@@ -13,7 +13,8 @@ namespace UniFiler10.Data.Model
     [DataContract]
     public abstract class OpenableObservableData : ObservableData, IDisposable
     {
-        protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
+		protected Func<Task> _runAsSoonAsOpen = null;
+		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
         protected volatile bool _isOpen = false;
         [IgnoreDataMember]
@@ -29,6 +30,7 @@ namespace UniFiler10.Data.Model
         [IgnoreDataMember]
         [Ignore]
         public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
+
         public void Dispose()
         {
             Dispose(true);
@@ -44,6 +46,7 @@ namespace UniFiler10.Data.Model
         {
             if (!_isOpen)
             {
+				bool isJustOpen = false;
                 if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
                 try
                 {
@@ -54,6 +57,7 @@ namespace UniFiler10.Data.Model
 
                         IsOpen = true;
 						if (enable) IsEnabled = true;
+						isJustOpen = true;						
                         return true;
                     }
                 }
@@ -65,7 +69,8 @@ namespace UniFiler10.Data.Model
                 finally
                 {
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
+					if (isJustOpen && _runAsSoonAsOpen != null) await _runAsSoonAsOpen();
+				}
             }
             if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
             return false;

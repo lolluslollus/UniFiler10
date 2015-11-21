@@ -19,39 +19,32 @@ namespace UniFiler10.ViewModels
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
-		//private SaveMedia _media = null;
-		//public SaveMedia Media { get { return _media; } }
 
 		#region construct dispose open close
 		public BinderVM(Binder binder)
 		{
 			if (binder == null) throw new ArgumentNullException("BinderVM ctor: binder may not be null");
 
-			//_media = new SaveMedia(this);
 			Binder = binder;
 			RuntimeData = RuntimeData.Instance;
+
 			UpdateCurrentFolderCategories();
-			UpdateOpenClose();
-		}
-		protected override Task OpenMayOverrideAsync()
-		{
+
 			_binder.PropertyChanged += OnBinder_PropertyChanged;
-			return Task.CompletedTask;
+			UpdateOpenClose();
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
-			if (_binder != null) _binder.PropertyChanged -= OnBinder_PropertyChanged;
-
 			EndRecordAudio();
 			EndShoot();
-
-			//_media?.Dispose();
-			//_media = null;
 			return Task.CompletedTask;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
 			base.Dispose(isDisposing);
+
+			var binder = _binder;
+			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 
 			_folderCategorySelector?.Dispose();
 			_folderCategorySelector = null;
@@ -69,7 +62,7 @@ namespace UniFiler10.ViewModels
 		}
 		private void UpdateOpenClose()
 		{
-			if (_binder.IsOpen)
+			if (_binder?.IsOpen == true)
 			{
 				Task open = OpenAsync();
 			}
@@ -129,19 +122,6 @@ namespace UniFiler10.ViewModels
 		#endregion actions
 
 		#region save media
-		//public sealed class SaveMedia : ObservableData, IAudioFileGetter, IDisposable
-		//{
-		//    private BinderVM _vm = null;
-		//    internal SaveMedia(BinderVM vm)
-		//    {
-		//        _vm = vm;
-		//    }
-		//    public void Dispose()
-		//    {
-		//        EndRecordAudio();
-		//        EndShoot();
-		//    }
-
 		private bool _isCameraOverlayOpen = false;
 		public bool IsCameraOverlayOpen
 		{

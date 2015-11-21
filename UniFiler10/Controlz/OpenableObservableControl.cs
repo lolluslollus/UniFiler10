@@ -13,6 +13,7 @@ using Windows.Foundation;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.Controlz
 {
@@ -48,6 +49,21 @@ namespace UniFiler10.Controlz
 		}
 		public static readonly DependencyProperty OpenCloseWhenVisibleCollapsedProperty =
 			DependencyProperty.Register("OpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+		public OpenableObservableControl OpenableObservableParent
+		{
+			get { return (OpenableObservableControl)GetValue(OpenableObservableParentProperty); }
+			set { SetValue(OpenableObservableParentProperty, value); }
+		}
+		public static readonly DependencyProperty OpenableObservableParentProperty =
+			DependencyProperty.Register("OpenableObservableParent", typeof(OpenableObservableControl), typeof(OpenableObservableControl), new PropertyMetadata(null, OnParentChanged));
+		private static void OnParentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as OpenableObservableControl;
+			if (instance != null && instance.OpenableObservableParent != null)
+			{
+				instance.OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, instance.OnParentVisibilityChanged);
+			}
+		}
 
 		private bool _isLoaded = false;
 		private bool _isOpenBeforeSuspending = false;
@@ -61,7 +77,8 @@ namespace UniFiler10.Controlz
 			Application.Current.Resuming += OnResuming;
 			Loaded += OnLoaded;
 			Unloaded += OnUnloaded;
-			//this.LayoutUpdated+=
+
+			if (OpenableObservableParent != null) OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
 			RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
 		}
 		#endregion construct
@@ -82,12 +99,11 @@ namespace UniFiler10.Controlz
 			if (_isOpenBeforeSuspending) await TryOpenAsync().ConfigureAwait(false);
 		}
 
-		private void OnLoaded(object sender, RoutedEventArgs e) // LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
+		private void OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_isLoaded = true;
 			if (OpenCloseWhenLoadedUnloaded)
 			{
-				//await CloseAsync().ConfigureAwait(false); LOLLO TODO why did I have this?
 				Task open = TryOpenAsync();
 			}
 		}
@@ -100,7 +116,27 @@ namespace UniFiler10.Controlz
 				Task close = CloseAsync();
 			}
 		}
-
+		/// <summary>
+		/// If the parent is made invisible, the child is not necessarily made invisible, so it could stay open.
+		/// This method makes the child open and close, if it must, whenever the parent becomes visible or invisible.
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <param name="prop"></param>
+		private void OnParentVisibilityChanged(DependencyObject obj, DependencyProperty prop)
+		{
+			OpenableObservableControl parent = obj as OpenableObservableControl;
+			if (OpenCloseWhenVisibleCollapsed)
+			{
+				if (parent.Visibility == Visibility.Collapsed)
+				{
+					Task close = CloseAsync();
+				}
+				else if (parent.Visibility == Visibility.Visible)
+				{
+					Task open = TryOpenAsync();
+				}
+			}
+		}
 		private static void OnVisibilityChanged(DependencyObject obj, DependencyProperty prop)
 		{
 			OpenableObservableControl instance = obj as OpenableObservableControl;

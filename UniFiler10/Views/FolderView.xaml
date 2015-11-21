@@ -36,41 +36,36 @@
                 </Grid.RowDefinitions>
 
                 <!-- basic data -->
-                <VariableSizedWrapGrid Grid.Row="0" Orientation="Horizontal" 
-					ItemWidth="{StaticResource LandscapeItemWidth}">
-
+                <!--<VariableSizedWrapGrid Grid.Row="0" Orientation="Horizontal" 
+					ItemWidth="{StaticResource LandscapeItemWidth}"
+					ItemHeight="{StaticResource LandscapeItemHeight}">-->
+				<ctl:UniversalWrapPanel Orientation="Horizontal">
+					<!--VariableSizedWrapGrid.ColumnSpan="2"
+						VariableSizedWrapGrid.RowSpan="2"-->
 					<ctl:LolloTextBox
-						Width="{StaticResource LandscapeItemWidth}"
-						Height="{StaticResource LandscapeItemHeight}"
-						VerticalAlignment="Top"
-						HorizontalContentAlignment="Stretch"
-						VerticalContentAlignment="Stretch"
-						TextWrapping="Wrap"
+						MinWidth="{StaticResource LandscapeLargeItemWidth}"
 						MaxLength="{StaticResource MaxFolderNameLength}"
 						Text="{Binding Name, Mode=TwoWay}"
-						Style="{StaticResource LolloTextBoxFieldValueStyle}">
+						Style="{StaticResource LolloTextBoxGrowsInHeightStyle}">
 						<TextBox.Header>
                             <TextBlock x:Uid="Name"/>
                         </TextBox.Header>
                     </ctl:LolloTextBox>
-					
+
+					<!--VariableSizedWrapGrid.ColumnSpan="3"
+						VariableSizedWrapGrid.RowSpan="3"-->
 					<ctl:LolloTextBox
-						VariableSizedWrapGrid.ColumnSpan="2"
-						VariableSizedWrapGrid.RowSpan="2"
-                        VerticalAlignment="Top"
-						HorizontalContentAlignment="Stretch"
-						VerticalContentAlignment="Stretch"
-						TextWrapping="Wrap"
+						MinWidth="{StaticResource LandscapeLargeItemWidth}"
 						MaxLength="{StaticResource MaxFolderDescrLength}"
 						AcceptsReturn="True"
-						PlaceholderText="..."
 						Text="{Binding Descr0, Mode=TwoWay}"
-						Style="{StaticResource LolloTextBoxFieldValueStyle}">
+						Style="{StaticResource LolloTextBoxGrowsInHeightStyle}">
                         <TextBox.Header>
                             <TextBlock x:Uid="Remarks"/>
                         </TextBox.Header>
                     </ctl:LolloTextBox>
-                </VariableSizedWrapGrid>
+				</ctl:UniversalWrapPanel>
+				<!--</VariableSizedWrapGrid>-->
 
                 <!-- dynamic categories -->
                 <Grid Grid.Row="2" >
@@ -121,28 +116,26 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-							<Grid x:Name="DFGrid">
-
-                                <ctl:LolloTextBox
-									x:Name="VaalueTB"
+							<Grid>
+								<ctl:LolloTextBox
 									Width="{StaticResource LandscapeItemWidth}"
-									Height="{StaticResource LandscapeItemHeight}"
-									VerticalAlignment="Center"
+									Height="{StaticResource LandscapeLargeItemHeight}"
 									Text="{Binding FieldValue.Vaalue, Mode=OneWay}"                                    
 									LostFocus="OnVaalue_LostFocus"
 									MaxLength="{StaticResource MaxFolderDescrLength}"
 									Header="{Binding FieldDescription.Caption, Mode=OneWay}"
-									TextWrapping="Wrap"
-									PlaceholderText="..."
 									IsReadOnly="{Binding FieldDescription.IsAnyValueAllowed, Converter={StaticResource TrueToFalseConverter}}"
-									Style="{StaticResource LolloTextBoxFieldValueStyle}"
+									Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
 									DisplayMemberPath="Vaalue"
 									ItemsSource="{Binding FieldDescription.PossibleValues}">
 									<ctl:LolloTextBox.ListItemTemplate>
-										<DataTemplate >
-											<TextBlock Text="{Binding Vaalue}" 
-												MaxWidth="{StaticResource LandscapeThreeQuartersItemWidth}"
-												TextWrapping="Wrap"/>
+										<DataTemplate>
+											<Grid Width="{StaticResource LandscapeItemWidth}">
+												<TextBlock Text="{Binding Vaalue}"
+													MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+													Margin="{StaticResource PanelPadding}"
+													TextWrapping="Wrap"/>
+											</Grid>
 										</DataTemplate>
 									</ctl:LolloTextBox.ListItemTemplate>
                                     <!--<TextBox.Header>

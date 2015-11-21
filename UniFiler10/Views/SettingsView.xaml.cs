@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Metadata;
 using UniFiler10.ViewModels;
+using Utilz;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Foundation.Metadata;
@@ -26,7 +27,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-	public sealed partial class SettingsView : BackableOpenableObservableControl
+	public sealed partial class SettingsView : OpenableObservableControl
 	{
 		#region properties
 		private SettingsVM _vm = null;
@@ -50,33 +51,74 @@ namespace UniFiler10.Views
 		}
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
-			RegisterBackEventHandlers();
-			UpdateVm(DataContext as MetaBriefcase);
+			var mb = DataContext as MetaBriefcase;
+			if (mb != null)
+			{
+				if (_vm == null || _vm.MetaBriefcase != mb)
+				{
+					_vm = new SettingsVM(mb);
+					RaisePropertyChanged_UI(nameof(VM));
+				}
 
-			await Task.CompletedTask;
-			return true;
+				//RegisterBackEventHandlers();
+
+				return true;
+			}
+			else
+			{
+				await Task.CompletedTask;
+				return false;
+			}
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
-			UnregisterBackEventHandlers();
+			//UnregisterBackEventHandlers();
+			_vm?.Dispose();
+			VM = null;
 			return Task.CompletedTask;
 		}
-		private void UpdateVm(MetaBriefcase metaBriefcase)
+
+		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			RunInUiThread(delegate
+			try
 			{
-				var vm = _vm;
-				if (vm == null || vm.MetaBriefcase != metaBriefcase)
+				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+
+				var mb = DataContext as MetaBriefcase;
+				if (mb == null)
 				{
-					VM = new SettingsVM(metaBriefcase);
+					await CloseAsync().ConfigureAwait(false);
 				}
-			});
+				else if (_vm == null || _vm.MetaBriefcase != mb)
+				{
+					await CloseAsync().ConfigureAwait(false);
+					await TryOpenAsync().ConfigureAwait(false);
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+			}
 		}
 
-		protected override void GoBackMustOverride()
+		//protected override void GoBackMustOverride()
+		//{
+		//	BriefcaseVM?.ShowCover();
+		//}
+		#endregion construct dispose open close
+
+
+		#region user actions
+		private void OnGoToBinder_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			BriefcaseVM?.ShowBinder();
+		}
+
+		private void OnGoToBriefcase_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			BriefcaseVM?.ShowCover();
 		}
-		#endregion construct dispose open close
+		#endregion user actions
 	}
 }

@@ -21,6 +21,7 @@ namespace UniFiler10.Views
 	/// </summary>
 	public sealed partial class AudioRecorderView : BackableOpenableObservableControl, IMessageWriter
 	{
+		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		public BinderVM VM
 		{
 			get { return (BinderVM)GetValue(VMProperty); }
@@ -35,31 +36,40 @@ namespace UniFiler10.Views
 		/// <param name="args"></param>
 		private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			var instance = obj as AudioRecorderView;
-			//if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
-
-			if (instance != null && args.NewValue is BinderVM && args.NewValue != args.OldValue)
+			try
 			{
-				await instance.CloseAsync().ConfigureAwait(false);
-				await instance.TryOpenAsync().ConfigureAwait(false);
-			}
-			else if (instance != null && args.NewValue == null)
-			{
-				await instance.CloseAsync().ConfigureAwait(false);
-			}
+				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
 
-			//if (instance != null && instance.IsOpen)
-			//{
-			//	if (args.NewValue is BinderVM && args.NewValue != args.OldValue)
-			//	{
-			//		await instance.CloseAsync().ConfigureAwait(false);
-			//		await instance.TryOpenAsync().ConfigureAwait(false);
-			//	}
-			//	else if (args.NewValue == null)
-			//	{
-			//		await instance.CloseAsync().ConfigureAwait(false);
-			//	}
-			//}
+				var instance = obj as AudioRecorderView;
+				//if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)
+
+				if (instance != null && args.NewValue is BinderVM && args.NewValue != args.OldValue)
+				{
+					await instance.CloseAsync().ConfigureAwait(false);
+					await instance.TryOpenAsync().ConfigureAwait(false);
+				}
+				else if (instance != null && args.NewValue == null)
+				{
+					await instance.CloseAsync().ConfigureAwait(false);
+				}
+
+				//if (instance != null && instance.IsOpen)
+				//{
+				//	if (args.NewValue is BinderVM && args.NewValue != args.OldValue)
+				//	{
+				//		await instance.CloseAsync().ConfigureAwait(false);
+				//		await instance.TryOpenAsync().ConfigureAwait(false);
+				//	}
+				//	else if (args.NewValue == null)
+				//	{
+				//		await instance.CloseAsync().ConfigureAwait(false);
+				//	}
+				//}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+			}
 		}
 
 

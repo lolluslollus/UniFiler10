@@ -5,7 +5,7 @@
 
 	<x:Double x:Key="LTBDecorationsSize">34</x:Double>
 
-	<Style x:Key="LolloTextBoxFieldValueStyle" TargetType="ctl:LolloTextBox">
+	<Style x:Key="LolloTextBoxGrowsInHeightAndWidthStyle" TargetType="ctl:LolloTextBox">
 		<Setter Property="MinWidth" Value="{ThemeResource TextControlThemeMinWidth}"/>
 		<Setter Property="MinHeight" Value="{ThemeResource TextControlThemeMinHeight}"/>
 		<Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
@@ -20,13 +20,15 @@
 		<Setter Property="HorizontalAlignment" Value="Stretch"/>
 		<Setter Property="VerticalAlignment" Value="Stretch"/>
 		<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-		<Setter Property="VerticalContentAlignment" Value="Stretch"/>
-		<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden"/>
-		<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+		<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
 		<Setter Property="ScrollViewer.IsDeferredScrollingEnabled" Value="False"/>
 		<Setter Property="Padding" Value="{ThemeResource TextControlThemePadding}"/>
 		<Setter Property="IsEditableDecoratorVisible" Value="True"/>
 		<Setter Property="IsDropDownButtonVisible" Value="True"/>
+		<Setter Property="TextWrapping" Value="Wrap"/>
+		<Setter Property="PlaceholderText" Value="..."/>
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="ctl:LolloTextBox">
@@ -245,7 +247,7 @@
                                 AutomationProperties.AccessibilityView="Raw"/>
 						</Border>
 						<FlyoutBase.AttachedFlyout>
-							<Flyout Placement="Right" x:Name="Flyout">
+							<Flyout Placement="Bottom" x:Name="Flyout">
 								<Flyout.FlyoutPresenterStyle>
 									<Style TargetType="FlyoutPresenter">
 										<Setter Property="Margin" Value="0"/>
@@ -305,8 +307,8 @@
 		</Setter>
 	</Style>
 
-	<Style x:Key="LolloTextBoxStyle" TargetType="ctl:LolloTextBox" BasedOn="{StaticResource LolloTextBoxFieldValueStyle}">
-		<Setter Property="HorizontalAlignment" Value="Left"/>
+	<Style x:Key="LolloTextBoxGrowsInHeightStyle" TargetType="ctl:LolloTextBox" BasedOn="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}">
+		<!--<Setter Property="HorizontalAlignment" Value="Left"/>-->
 		<Setter Property="VerticalAlignment" Value="Top"/>
 	</Style>
 </ResourceDictionary>

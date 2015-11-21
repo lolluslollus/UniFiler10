@@ -1,4 +1,4 @@
-﻿<ctl:BackableOpenableObservableControl
+﻿<ctl:OpenableObservableControl
     x:Class="UniFiler10.Views.SettingsView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -8,10 +8,10 @@
 	xmlns:utilz="using:Utilz"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"    
-    mc:Ignorable="d">
-	<!--DataContextChanged="OnDataContextChanged">-->
+    mc:Ignorable="d"
+	DataContextChanged="OnDataContextChanged">
 
-    <!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
+	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
 
 	<Grid x:Name="LayoutRoot" Background="AntiqueWhite">
 		<Grid.RowDefinitions>
@@ -19,30 +19,57 @@
 			<RowDefinition />
 		</Grid.RowDefinitions>
 
-		<Button
-			Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
-            Tapped="OnBackButton_Tapped"
-            Width="{StaticResource LandscapeLargeItemWidth}"
-			HorizontalAlignment="Left"
-            Style="{StaticResource ButtonLolloStyle}">
-			<Grid>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-					<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-					<ColumnDefinition/>
-				</Grid.ColumnDefinitions>
+		<VariableSizedWrapGrid Orientation="Horizontal">
+			<Button 
+				Tapped="OnGoToBriefcase_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+					</Grid.ColumnDefinitions>
 
-				<SymbolIcon Symbol="Back"/>
-				<TextBlock Grid.Column="2" x:Uid="Back"
-					MaxWidth="{StaticResource LandscapeItemWidth}"
-					TextWrapping="Wrap" 
-					HorizontalAlignment="Left"/>
-			</Grid>
-		</Button>
+					<SymbolIcon Symbol="Page"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>
+					<TextBlock Grid.Column="2" x:Uid="Briefcase"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+						TextWrapping="Wrap"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+
+			<Button
+				Tapped="OnGoToBinder_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+					</Grid.ColumnDefinitions>
+
+					<SymbolIcon Symbol="Page2"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>
+					<TextBlock Grid.Column="2" x:Uid="Binder"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                        TextWrapping="Wrap"
+                        HorizontalAlignment="Left"
+						VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+		</VariableSizedWrapGrid>
 
 		<local:MetaBriefcaseView Grid.Row="1"
             DataContext="{Binding}"
             VM="{x:Bind VM, Mode=OneWay}"/>
 		
 	</Grid>
-</ctl:BackableOpenableObservableControl>
+</ctl:OpenableObservableControl>

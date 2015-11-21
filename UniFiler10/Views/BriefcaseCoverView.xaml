@@ -173,7 +173,7 @@
 					<ColumnDefinition Width="Auto"/>
 				</Grid.ColumnDefinitions>
 				<ctl:LolloTextBox Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-					Style="{StaticResource LolloTextBoxStyle}"
+					Style="{StaticResource LolloTextBoxGrowsInHeightStyle}"
 					Height="{StaticResource LandscapeItemHeight}"
 					Width="{StaticResource LandscapeLargeItemWidth}"
 					VerticalAlignment="Center"/>

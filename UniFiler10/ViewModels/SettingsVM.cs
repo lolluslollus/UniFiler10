@@ -10,8 +10,8 @@ using Windows.ApplicationModel.Resources.Core;
 
 namespace UniFiler10.ViewModels
 {
-    public class SettingsVM : ObservableData
-    {// LOLLO TODO make disposable ?
+    public sealed class SettingsVM : ObservableData, IDisposable
+    {
         private MetaBriefcase _metaBriefcase = null;
         public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
@@ -20,7 +20,13 @@ namespace UniFiler10.ViewModels
             MetaBriefcase = metaBriefcase;
         }
 
-        public Task<bool> AddCategoryAsync()
+		public void Dispose()
+		{
+			_unassignedFields?.Dispose();
+			_unassignedFields = null;
+		}
+
+		public Task<bool> AddCategoryAsync()
         {          
             return _metaBriefcase?.AddCategoryAsync();
         }
@@ -159,5 +165,5 @@ namespace UniFiler10.ViewModels
 			var mb = _metaBriefcase;
             if (mb != null && newItem != null) mb.CurrentFieldDescriptionId = newItem.Id;
         }
-    }
+	}
 }

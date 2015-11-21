@@ -16,9 +16,11 @@
     d:DataContext="{d:DesignInstance vm:BinderVM, IsDesignTimeCreatable=True}">
 
     <Grid>
+		<!--DataContext="{Binding}"-->
         <local:BinderCoverView
             Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
-            DataContext="{Binding}"/>
+            DataContext="{Binding}"
+			OpenableObservableParent="{x:Bind Path='', Mode=OneWay}"/>
 		<!--ClosedPaneLength="{StaticResource CompactPaneLength}"
             OpenPaneLength="{StaticResource OpenPaneLength}"
 		IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"-->

@@ -190,7 +190,7 @@ namespace UniFiler10.Controlz
 		#region construct and init
 		public LolloTextBox() : base()
 		{
-			DefaultStyleKey = "LolloTextBoxFieldValueStyle";
+			DefaultStyleKey = "LolloTextBoxGrowsInHeightAndWidthStyle";
 
 			RegisterPropertyChangedCallback(TextBox.IsReadOnlyProperty, OnIsReadOnlyChanged);
 			RegisterPropertyChangedCallback(TextBox.IsEnabledProperty, OnIsEnabledChanged);

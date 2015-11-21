@@ -82,7 +82,7 @@
 				PlaceholderText="..."
 				Width="{StaticResource LandscapeItemWidth}"
 				Height="{StaticResource LandscapeItemHeight}"
-				Style="{StaticResource LolloTextBoxFieldValueStyle}"
+				Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
 				VerticalContentAlignment="Bottom"
 				VerticalAlignment="Top"/>-->
 
@@ -172,10 +172,6 @@
 							HorizontalAlignment="Left"/>
 					</Grid>
 				</Button>
-
-				<!-- LOLLO TODO 
-				Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
-				would be nice but it screws with the VariableSizedWrapGrid -->
 
 				<Button
 					Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
@@ -347,13 +343,10 @@
 				HorizontalAlignment="Left"
 				BorderThickness="0"
 				Width="{StaticResource LandscapeItemWidth}"
-				Height="{StaticResource LandscapeItemHeight}"
-				VerticalContentAlignment="Center"
-				Style="{StaticResource LolloTextBoxFieldValueStyle}"
+				Height="{StaticResource LandscapeLargeItemHeight}"
+				Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
 				IsReadOnly="True"
 				IsEmptyValueAllowedEvenIfNotInList="False"
-				TextWrapping="Wrap"
-				PlaceholderText="..."
 				Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
 				DisplayMemberPath="Name"
@@ -378,13 +371,10 @@
 				<ctl:LolloTextBox
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"
-					VerticalContentAlignment="Center"
-					Style="{StaticResource LolloTextBoxFieldValueStyle}"
+					Height="{StaticResource LandscapeLargeItemHeight}"
+					Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
-					TextWrapping="Wrap"
-					PlaceholderText="..."
 					ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
 					DisplayMemberPath="Name"
 					Text="{Binding CatNameForFldFilter, Mode=TwoWay}">
@@ -404,13 +394,10 @@
 				<ctl:LolloTextBox
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"						
-					VerticalContentAlignment="Center"						
-					Style="{StaticResource LolloTextBoxFieldValueStyle}"
+					Height="{StaticResource LandscapeLargeItemHeight}"
+					Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
-					TextWrapping="Wrap"
-					PlaceholderText="..."
 					ItemsSource="{Binding FldDscsInCat, Mode=OneWay}"
 					DisplayMemberPath="Caption"
 					Text="{Binding FldDscCaptionForFldFilter, Mode=TwoWay}">
@@ -430,13 +417,10 @@
 				<ctl:LolloTextBox
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
-					Height="{StaticResource LandscapeItemHeight}"							
-					VerticalContentAlignment="Center"
-					Style="{StaticResource LolloTextBoxFieldValueStyle}"
+					Height="{StaticResource LandscapeLargeItemHeight}"
+					Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
-					TextWrapping="Wrap"
-					PlaceholderText="..."
 					ItemsSource="{Binding FldValsInFldDscs, Mode=OneWay}"
 					DisplayMemberPath="Vaalue"
 					Text="{Binding FldValVaalueForFldFilter, Mode=TwoWay}">

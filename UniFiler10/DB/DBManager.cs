@@ -1073,7 +1073,7 @@ namespace UniFiler10.Data.DB
 				}
 				catch (Exception ex0)
 				{
-					// LOLLO TODO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
+					// LOLLO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
 					// I now use close_v2 instead of close, and it looks better.
 					try
 					{

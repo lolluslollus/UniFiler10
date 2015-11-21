@@ -119,27 +119,29 @@ namespace UniFiler10.Data.Metadata
                 return _instance;
             }
         }
-        private MetaBriefcase() { }
-        #endregion construct and dispose
 
-        #region open and close
-        protected override async Task OpenMayOverrideAsync()
+        private MetaBriefcase() { }
+
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_categories?.Dispose();
+			_categories = null;
+
+			_fieldDescriptions?.Dispose();
+			_fieldDescriptions = null;
+		}
+		#endregion construct and dispose
+
+		#region open and close
+		protected override async Task OpenMayOverrideAsync()
         {
             await LoadAsync().ConfigureAwait(false);
         }
         protected override async Task CloseMayOverrideAsync()
         {
             await Save2Async().ConfigureAwait(false);
-        }
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            _categories?.Dispose();
-            _categories = null;
-
-            _fieldDescriptions?.Dispose();
-            _fieldDescriptions = null;
         }
         #endregion open and close
 
@@ -329,7 +331,7 @@ namespace UniFiler10.Data.Metadata
 
                 if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
                 {
-                    Categories.Add(newCat);
+                    _categories.Add(newCat);
                     return true;
                 }
                 return false;
@@ -341,7 +343,7 @@ namespace UniFiler10.Data.Metadata
             {
                 if (cat != null && cat.IsJustAdded)
                 {
-                    return Categories.Remove(cat);
+                    return _categories.Remove(cat);
                 }
                 else
                 {

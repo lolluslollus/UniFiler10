@@ -24,11 +24,12 @@ namespace UniFiler10.Views
 		}
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
-			if (DataContext is Binder)
+			var binder = DataContext as Binder;
+			if (binder != null)
 			{
-				if (_vm == null || _vm.Binder != (DataContext as Binder))
+				if (_vm == null || _vm.Binder != binder)
 				{
-					_vm = new BinderVM(DataContext as Binder);
+					_vm = new BinderVM(binder);
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
 				}
@@ -60,18 +61,16 @@ namespace UniFiler10.Views
 			try
 			{
 				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
-				if (args != null)
+
+				var newBinder = DataContext as Binder;
+				if (newBinder == null)
 				{
-					var newBinder = args.NewValue as Binder;
-					if (newBinder == null)
-					{
-						await CloseAsync().ConfigureAwait(false);
-					}
-					else if (_vm == null || _vm.Binder != newBinder)
-					{
-						await CloseAsync().ConfigureAwait(false);
-						await TryOpenAsync().ConfigureAwait(false);
-					}
+					await CloseAsync().ConfigureAwait(false);
+				}
+				else if (_vm == null || _vm.Binder != newBinder)
+				{
+					await CloseAsync().ConfigureAwait(false);
+					await TryOpenAsync().ConfigureAwait(false);
 				}
 			}
 			finally

@@ -111,6 +111,7 @@
     <Compile Include="Controlz\LolloTextBox.cs" />
     <Compile Include="Controlz\ObservableControl.cs" />
     <Compile Include="Controlz\OpenableObservableControl.cs" />
+    <Compile Include="Controlz\UniversalWrapPanel.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="InfoData\DynamicCategory.cs" />
     <Compile Include="InfoData\DynamicField.cs" />

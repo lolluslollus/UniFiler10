@@ -72,14 +72,19 @@ namespace UniFiler10.Controlz
 
 		public void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
+			e.Handled = true;
 			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
 		}
 		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
+			e.Handled = true;
 			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
 		}
 		private void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
 		{
+			e.Handled = true; 
+			// LOLLO TODO test what happens when back is pressed and a backable control is hosted in another backable control: 
+			// which one responds first?
 			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
 		}
 		protected abstract void GoBackMustOverride();

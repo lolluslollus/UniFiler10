@@ -660,7 +660,7 @@ namespace UniFiler10.Views
             }
             finally
             {
-                if (VM != null) VM.EndShoot();
+                VM?.EndShoot();
             }
         }
         #endregion Helper functions
