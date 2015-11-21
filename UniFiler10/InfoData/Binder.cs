@@ -607,7 +607,7 @@ namespace UniFiler10.Data.Model
 				}
 				else
 				{
-					Debugger.Break();
+					Debugger.Break(); // LOLLO this must never happen, check it
 				}
 			}
 			return false;

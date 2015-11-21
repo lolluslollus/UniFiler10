@@ -47,7 +47,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		protected void SetProperty(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
+		protected async void SetProperty(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
 		{
 			string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
 			var fieldInfo = GetType().GetField(attributeName);
@@ -56,16 +56,15 @@ namespace UniFiler10.Data.Model
 			if (newValue != oldValue || !onlyIfDifferent)
 			{
 				fieldInfo.SetValue(this, newValue);
-				RaisePropertyChanged_UI(propertyName);
 
-				Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+				await RunFunctionWhileOpenAsyncA_MT(delegate
 				{
 					if (UpdateDbMustOverride() == false)
 					{
 						fieldInfo.SetValue(this, oldValue);
-						RaisePropertyChanged_UI(propertyName);
 					}
 				});
+				RaisePropertyChanged_UI(propertyName);
 			}
 		}
 		#endregion properties

@@ -231,11 +231,17 @@
   <data name="NoFolder.Text" xml:space="preserve">
     <value>Select or add a folder</value>
   </data>
+  <data name="OpenFile.Label" xml:space="preserve">
+    <value>Add file</value>
+  </data>
   <data name="PossibleFieldValues.Text" xml:space="preserve">
     <value>Possible values</value>
   </data>
   <data name="RecentFolders.Text" xml:space="preserve">
     <value>Recent folders</value>
+  </data>
+  <data name="RecordAudio.Label" xml:space="preserve">
+    <value>Voice note</value>
   </data>
   <data name="Remarks.Text" xml:space="preserve">
     <value>Remarks</value>
@@ -251,6 +257,9 @@
   </data>
   <data name="Settings1.Text" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="Shoot.Label" xml:space="preserve">
+    <value>Shoot a pic</value>
   </data>
   <data name="Shrink.Label" xml:space="preserve">
     <value>Shrink</value>

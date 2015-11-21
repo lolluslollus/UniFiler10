@@ -30,17 +30,17 @@ namespace UniFiler10.Data.Model
 				if (newValue != oldValue)
 				{
 					_fieldValueId = newValue;
-					RaisePropertyChanged_UI();
-					UpdateDynamicValues();
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
 							_fieldValueId = oldValue;
-							RaisePropertyChanged_UI();
-							UpdateDynamicValues();
 						}
+					}).ContinueWith(delegate 
+					{
+						RaisePropertyChanged_UI();
+						UpdateDynamicValues();
 					});
 				}
 				else if (_fieldValue == null)
@@ -67,17 +67,17 @@ namespace UniFiler10.Data.Model
 				if (newValue != oldValue)
 				{
 					_fieldDescriptionId = newValue;
-					RaisePropertyChanged_UI();
-					UpdateDynamicValues();
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
 							_fieldDescriptionId = oldValue;
-							RaisePropertyChanged_UI();
-							UpdateDynamicValues();
 						}
+					}).ContinueWith(delegate 
+					{
+						RaisePropertyChanged_UI();
+						UpdateDynamicValues();
 					});
 				}
 				else if (_fieldDescription == null)

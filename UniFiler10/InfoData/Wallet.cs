@@ -71,8 +71,9 @@ namespace UniFiler10.Data.Model
 		protected override bool UpdateDbMustOverride()
 		{
 			var ins = DBManager.OpenInstance;
-			if (ins != null) return ins.UpdateWallets(this);
-			else return false;
+			bool output = false;
+			if (ins != null) output = ins.UpdateWallets(this);
+			return output;
 		}
 		//protected override async Task<bool> UpdateDbMustOverrideAsync()
   //      {

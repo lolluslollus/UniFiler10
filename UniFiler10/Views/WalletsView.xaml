@@ -14,26 +14,38 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
-            <RowDefinition Height="{StaticResource ButtonBarItemSizeMedium_ForGrid}"/>
+            <RowDefinition Height="Auto"/>
             <!-- LOLLO Height="Auto" screws with the (automatic or not) scroll viewers within -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <AppBarButton
+			<AppBarButton
                 Icon="Camera"
                 VerticalAlignment="Center"
+				HorizontalAlignment="Center"
+				Width="{StaticResource LandscapeItemHeight}"
+				Height="{StaticResource LandscapeItemHeight}"
                 IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable}"
-                Click="OnShoot_Click"/>
+                Click="OnShoot_Click"
+				x:Uid="Shoot"/>
             <AppBarButton
                 Icon="Microphone"
                 VerticalAlignment="Center"
+				HorizontalAlignment="Center"
+				Width="{StaticResource LandscapeItemHeight}"
+				Height="{StaticResource LandscapeItemHeight}"
                 IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsMicrophoneAvailable}"
-                Click="OnRecordSound_Click"/>
+                Click="OnRecordSound_Click"
+				x:Uid="RecordAudio"/>
             <AppBarButton
                 Icon="OpenFile"
                 VerticalAlignment="Center"
-                Click="OnOpenFile_Click"/>
+				HorizontalAlignment="Center"
+				Width="{StaticResource LandscapeItemHeight}"
+				Height="{StaticResource LandscapeItemHeight}"
+                Click="OnOpenFile_Click"
+				x:Uid="OpenFile"/>
         </StackPanel>
 
         <!--<Border BorderBrush="DarkRed" BorderThickness="3" Grid.Row="1">-->
@@ -54,38 +66,15 @@
                 <DataTemplate>
                     <!--<Border BorderBrush="Red" BorderThickness="3">-->
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <!--<RowDefinition Height="{StaticResource ButtonBarItemSizeMedium_ForGrid}"/>-->
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
-                        </Grid.RowDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+						</Grid.RowDefinitions>
 
-                        <!--<VariableSizedWrapGrid Orientation="Horizontal">
-                                <TextBox Text="{Binding Name, Mode=TwoWay}"
-                                    Width="{StaticResource LandscapeItemWidth}"
-                                    Height="{StaticResource LandscapeItemHeight}"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="Wrap"
-                                    MaxLength="{StaticResource MaxFolderDescrLength}" />
-                                <TextBox Text="{Binding Descr0, Mode=TwoWay}"
-                                    Width="{StaticResource LandscapeItemWidth}"
-                                    Height="{StaticResource LandscapeItemHeight}"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="Wrap"
-                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                                <TextBox Text="{Binding Date0, Mode=TwoWay}"
-                                    Width="{StaticResource LandscapeItemWidth}"
-                                    Height="{StaticResource LandscapeItemHeight}"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="Wrap"
-                                    MaxLength="{StaticResource MaxFolderDescrLength}"/>
-                            </VariableSizedWrapGrid>-->
-
-                        <!--Grid.Row="1"-->
-                        <local:WalletView 
-                                VM="{Binding ElementName=me, Path=VM}"
-                                DataContext="{Binding}"
-                                Folder="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
+                        <local:WalletView
+                            VM="{Binding ElementName=me, Path=VM}"
+                            DataContext="{Binding}"
+                            Folder="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
                     </Grid>
                     <!--</Border>-->
                 </DataTemplate>

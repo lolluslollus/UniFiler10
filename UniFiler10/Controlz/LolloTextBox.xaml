@@ -182,7 +182,7 @@
 							Grid.ColumnSpan="4" 
                             ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" 
 							Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}" FontWeight="Normal" 
-							Padding="4,2,4,8" 
+							Padding="4,2,4,8" TextWrapping="Wrap"
 							Visibility="Collapsed" x:DeferLoadStrategy="Lazy"/>
 						<!--<Button x:Name="DeleteButton" BorderThickness="{TemplateBinding BorderThickness}" 
                             Grid.Row="1" Grid.Column="2"

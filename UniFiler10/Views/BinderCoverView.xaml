@@ -70,22 +70,6 @@
 				<RowDefinition/>
 			</Grid.RowDefinitions>
 
-			<!-- test -->
-			<!--<ctl:LolloTextBox
-				Text="text"
-				Header="header"
-				BorderBrush="Red"
-				BorderThickness="2"
-				IsReadOnly="True"
-				IsEmptyValueAllowedEvenIfNotInList="False"
-				TextWrapping="Wrap"
-				PlaceholderText="..."
-				Width="{StaticResource LandscapeItemWidth}"
-				Height="{StaticResource LandscapeItemHeight}"
-				Style="{StaticResource LolloTextBoxStyle}"
-				VerticalContentAlignment="Bottom"
-				VerticalAlignment="Top"/>-->
-
 			<!-- animation for refresh -->
 			<Viewbox
                 Width="{StaticResource LandscapeItemHeight}"
@@ -343,7 +327,7 @@
 				HorizontalAlignment="Left"
 				BorderThickness="0"
 				Width="{StaticResource LandscapeItemWidth}"
-				Height="{StaticResource LandscapeLargeItemHeight}"
+				MinHeight="{StaticResource LandscapeItemHeight}"
 				Style="{StaticResource LolloTextBoxStyle}"
 				IsReadOnly="True"
 				IsEmptyValueAllowedEvenIfNotInList="False"
@@ -356,7 +340,7 @@
 						<Grid Width="{StaticResource LandscapeItemWidth}">
 							<TextBlock Text="{Binding Name}"
 								MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-								Margin="{StaticResource PanelPadding}"
+								Margin="{StaticResource PanelPadding8282}"
 								TextWrapping="Wrap"/>
 						</Grid>
 					</DataTemplate>
@@ -371,7 +355,7 @@
 				<ctl:LolloTextBox
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
-					Height="{StaticResource LandscapeLargeItemHeight}"
+					MinHeight="{StaticResource LandscapeItemHeight}"
 					Style="{StaticResource LolloTextBoxStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
@@ -383,7 +367,7 @@
 							<Grid Width="{StaticResource LandscapeItemWidth}">
 								<TextBlock Text="{Binding Name}"
 									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-									Margin="{StaticResource PanelPadding}"
+									Margin="{StaticResource PanelPadding8282}"
 									TextWrapping="Wrap"/>
 							</Grid>
 						</DataTemplate>
@@ -394,7 +378,7 @@
 				<ctl:LolloTextBox
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
-					Height="{StaticResource LandscapeLargeItemHeight}"
+					MinHeight="{StaticResource LandscapeItemHeight}"
 					Style="{StaticResource LolloTextBoxStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
@@ -406,7 +390,7 @@
 							<Grid Width="{StaticResource LandscapeItemWidth}">
 								<TextBlock Text="{Binding Caption}"
 									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-									Margin="{StaticResource PanelPadding}"
+									Margin="{StaticResource PanelPadding8282}"
 									TextWrapping="Wrap"/>
 							</Grid>
 						</DataTemplate>
@@ -417,7 +401,7 @@
 				<ctl:LolloTextBox
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
-					Height="{StaticResource LandscapeLargeItemHeight}"
+					MinHeight="{StaticResource LandscapeItemHeight}"
 					Style="{StaticResource LolloTextBoxStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
@@ -429,7 +413,7 @@
 							<Grid Width="{StaticResource LandscapeItemWidth}">
 								<TextBlock Text="{Binding Vaalue}"
 									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-									Margin="{StaticResource PanelPadding}"
+									Margin="{StaticResource PanelPadding8282}"
 									TextWrapping="Wrap"/>
 							</Grid>
 						</DataTemplate>

@@ -36,14 +36,10 @@
                 </Grid.RowDefinitions>
 
                 <!-- basic data -->
-                <!--<VariableSizedWrapGrid Grid.Row="0" Orientation="Horizontal" 
-					ItemWidth="{StaticResource LandscapeItemWidth}"
-					ItemHeight="{StaticResource LandscapeItemHeight}">-->
 				<ctl:UniversalWrapPanel Orientation="Horizontal">
-					<!--VariableSizedWrapGrid.ColumnSpan="2"
-						VariableSizedWrapGrid.RowSpan="2"-->
 					<ctl:LolloTextBox
-						MinWidth="{StaticResource LandscapeLargeItemWidth}"
+						MinWidth="{StaticResource LandscapeItemWidth}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
 						MaxLength="{StaticResource MaxFolderNameLength}"
 						Text="{Binding Name, Mode=TwoWay}"
 						Style="{StaticResource LolloTextBoxStyle}">
@@ -52,13 +48,10 @@
                         </TextBox.Header>
                     </ctl:LolloTextBox>
 
-					<!--VariableSizedWrapGrid.ColumnSpan="3"
-						VariableSizedWrapGrid.RowSpan="3"-->
-
-					<!--VerticalContentAlignment="Stretch"-->
 					<ctl:LolloTextBox
 						x:Name="Test"
-						MinWidth="{StaticResource LandscapeLargeItemWidth}"
+						MinWidth="{StaticResource LandscapeItemWidth}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
 						MaxLength="{StaticResource MaxFolderDescrLength}"
 						AcceptsReturn="True"
 						Text="{Binding Descr0, Mode=TwoWay}"						
@@ -68,7 +61,6 @@
                         </TextBox.Header>
                     </ctl:LolloTextBox>
 				</ctl:UniversalWrapPanel>
-				<!--</VariableSizedWrapGrid>-->
 
                 <!-- dynamic categories -->
                 <Grid Grid.Row="2" >
@@ -83,7 +75,7 @@
 						Height="{StaticResource LandscapeItemHeight}"						
                         VerticalAlignment="Top"
 						IsChecked="{Binding IsEditingCategories, Mode=TwoWay}"
-						Icon="Edit"
+						Icon="View"
 						x:Uid="EditCategories"/>
                         
                     <ItemsControl Grid.Column="2"
@@ -114,15 +106,16 @@
 					ItemsSource="{Binding DynamicFields}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <ItemsWrapGrid Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
+                            <!--<ItemsWrapGrid Orientation="Horizontal"/>-->
+							<ctl:UniversalWrapPanel Orientation="Horizontal"/>
+						</ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
 							<Grid>
 								<ctl:LolloTextBox
 									Width="{StaticResource LandscapeItemWidth}"
-									Height="{StaticResource LandscapeLargeItemHeight}"
+									MinHeight="{StaticResource LandscapeItemHeight}"
 									Text="{Binding FieldValue.Vaalue, Mode=OneWay}"                                    
 									LostFocus="OnVaalue_LostFocus"
 									MaxLength="{StaticResource MaxFolderDescrLength}"
@@ -136,7 +129,7 @@
 											<Grid Width="{StaticResource LandscapeItemWidth}">
 												<TextBlock Text="{Binding Vaalue}"
 													MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-													Margin="{StaticResource PanelPadding}"
+													Margin="{StaticResource PanelPadding8282}"
 													TextWrapping="Wrap"/>
 											</Grid>
 										</DataTemplate>

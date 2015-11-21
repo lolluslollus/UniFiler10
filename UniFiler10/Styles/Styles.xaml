@@ -5,9 +5,8 @@
     xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:media="using:Windows.UI.Xaml.Media">
 
-    <Thickness x:Key="PanelMargin">0, 0, 0, 0</Thickness>
-    <Thickness x:Key="PanelMargin2">0, 4, 0, 4</Thickness>
-    <Thickness x:Key="PanelPadding">8, 2, 8, 2</Thickness>
+    <Thickness x:Key="PanelMarginZero">0, 0, 0, 0</Thickness>
+    <Thickness x:Key="PanelPadding8282">8, 2, 8, 2</Thickness>
 
     <GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Medium">20</GridLength>
@@ -15,7 +14,6 @@
 
     <SolidColorBrush x:Key="FlashyForeground" Color="Red" />
     <SolidColorBrush x:Key="EmailForeground" Color="Blue" />
-    <SolidColorBrush x:Key="ObjectInOverlayForegroundBrush" Color="Red" />
     <media:FontFamily x:Key="DefaultFontFamily">Segoe WP</media:FontFamily>
 
     <GridLength x:Key="MiniatureWidth_ForGrid">200</GridLength>
@@ -24,30 +22,20 @@
     <x:Double x:Key="MiniatureHeight">200</x:Double>
     <x:Double x:Key="MiniatureQuarterHeight">50</x:Double>
 
-    <GridLength x:Key="ButtonBarItemSizeLarge_ForGrid">100</GridLength>
-    <GridLength x:Key="ButtonBarItemSizeMedium_ForGrid">64</GridLength>
-    <x:Double x:Key="ButtonBarItemSizeLarge">100</x:Double>
-    <x:Double x:Key="ButtonBarItemSizeMedium">64</x:Double>
-    <x:Double x:Key="LandscapeLargeItemWidth">300</x:Double>
     <x:Double x:Key="LandscapeItemWidth">200</x:Double>
 	<x:Double x:Key="LandscapeItemWidthMinusPanelPadding">184</x:Double>
-	<x:Double x:Key="LandscapeThreeQuartersItemWidth">150</x:Double>
     <x:Double x:Key="LandscapeItemHeight">80</x:Double>
-	<x:Double x:Key="LandscapeLargeItemHeight">120</x:Double>
-    <GridLength x:Key="LandscapeLargeItemWidth_ForGrid">300</GridLength>
     <GridLength x:Key="LandscapeItemWidth_ForGrid">200</GridLength>
 	<GridLength x:Key="LandscapeItemHeight_ForGrid">80</GridLength>
 
 	<GridLength x:Key="CompactPaneLength_ForGrid">64</GridLength>
     <x:Double x:Key="CompactPaneLength">64</x:Double>
-    <x:Double x:Key="CompactPaneHalfLength">32</x:Double>
-    <x:Double x:Key="CompactPaneThirdOfLength">20</x:Double>
-    <x:Double x:Key="OpenPaneLength">160</x:Double>
-    <x:Double x:Key="PaneHeight">320</x:Double>
+	
     <x:Int32 x:Key="MaxDbNameLength">50</x:Int32>
     <x:Int32 x:Key="MaxFolderNameLength">100</x:Int32>
     <x:Int32 x:Key="MaxFolderDescrLength">2000</x:Int32>
     <x:Int32 x:Key="MaxTagLength">50</x:Int32>
+	
     <x:Double x:Key="MetaItemWidth">200</x:Double>
 	<x:Double x:Key="MetaItemTextWidth">150</x:Double>
     <x:Double x:Key="MetaItemHeight">50</x:Double>

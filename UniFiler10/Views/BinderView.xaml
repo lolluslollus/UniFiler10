@@ -21,9 +21,6 @@
             Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
             DataContext="{Binding}"
 			OpenableObservableParent="{x:Bind Path='', Mode=OneWay}"/>
-		<!--ClosedPaneLength="{StaticResource CompactPaneLength}"
-            OpenPaneLength="{StaticResource OpenPaneLength}"
-		IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay, FallbackValue=False}"-->
 		<ctl:LolloSplitView x:Name="LayoutRoot"
             Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
             IsPaneOpen="True"
@@ -110,53 +107,7 @@
                             </ctl:TolerantListView>
                         </Grid>
                     </ScrollViewer>
-                    
-                     <!--closed pane--> 
-                    <!--<Grid Visibility="{Binding IsPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <AppBarButton Grid.Row="0"
-								Height="{StaticResource CompactPaneLength}"
-								Width="{StaticResource CompactPaneLength}"
-								HorizontalAlignment="Center"
-								VerticalAlignment="Center"
-                                Icon="Forward"
-                                x:Uid="Expand"
-                                Click="OnTogglePaneOpen"/>
-
-                        <AppBarButton Grid.Row="1"
-								Height="{StaticResource CompactPaneLength}"
-								Width="{StaticResource CompactPaneLength}"
-								HorizontalAlignment="Center"
-								VerticalAlignment="Center"									  
-                                Icon="ViewAll"
-                                x:Uid="Cover"
-                                Click="OnOpenCover_Click"/>
-
-                        <utilz:LayoutTransformer Grid.Row="2"
-							Width="{StaticResource CompactPaneLength}"
-                            HorizontalAlignment="Center">
-                            <utilz:LayoutTransformer.LayoutTransform>
-                                <RotateTransform Angle="-90"/>
-                            </utilz:LayoutTransformer.LayoutTransform>
-                            <Grid>
-                                <TextBlock
-                                    Text="{Binding CurrentFolder.Name, Mode=OneWay}"                                    
-                                    Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToCollapsedConverter}}"
-									TextWrapping="Wrap"
-                                    MaxWidth="{StaticResource PaneHeight}"/>
-                                <TextBlock
-                                    x:Uid="NoFolder"
-                                    Visibility="{Binding CurrentFolder.Name, Mode=OneWay, Converter={StaticResource TextEmptyToVisibleConverter}}"
-									TextWrapping="Wrap"
-                                    MaxWidth="{StaticResource PaneHeight}"/>
-							</Grid>
-                        </utilz:LayoutTransformer>
-                    </Grid>-->
+                     
                 </Grid>
             </ctl:LolloSplitView.PaneContent>
         </ctl:LolloSplitView>

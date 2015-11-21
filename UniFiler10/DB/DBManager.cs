@@ -171,6 +171,7 @@ namespace UniFiler10.Data.DB
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+				result = false;
 			}
 			return result;
 		}
@@ -185,6 +186,7 @@ namespace UniFiler10.Data.DB
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+				result = false;
 			}
 			return result;
 		}
@@ -199,6 +201,7 @@ namespace UniFiler10.Data.DB
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+				result = false;
 			}
 			return result;
 		}
@@ -213,6 +216,7 @@ namespace UniFiler10.Data.DB
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+				result = false;
 			}
 			return result;
 		}
@@ -227,6 +231,7 @@ namespace UniFiler10.Data.DB
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+				result = false;
 			}
 			return result;
 		}
@@ -606,7 +611,7 @@ namespace UniFiler10.Data.DB
 
 		private class LolloSQLiteConnectionMT
 		{
-			public static Task<List<T>> ReadTableAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : new()
+			public static Task<List<T>> ReadTableAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : new()
 			{
 				return Task.Run<List<T>>(() =>
 				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
@@ -614,7 +619,7 @@ namespace UniFiler10.Data.DB
 					return ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease);
 				});
 			}
-			public static List<T> ReadTable<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static List<T> ReadTable<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				if (!_isOpen) return null;
 
@@ -661,7 +666,7 @@ namespace UniFiler10.Data.DB
 					return DeleteRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId);
 				});
 			}
-			public static bool DeleteRecordsWithParentId<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId) where T : new()
+			public static bool DeleteRecordsWithParentId<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId) where T : new()
 			{
 				if (!_isOpen) return false;
 
@@ -700,7 +705,7 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
+			public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
 			{
 				return Task.Run<List<T>>(() =>
 				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
@@ -708,7 +713,7 @@ namespace UniFiler10.Data.DB
 					return ReadRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
 				});
 			}
-			public static List<T> ReadRecordsWithParentId<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
+			public static List<T> ReadRecordsWithParentId<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
 			{
 				if (!_isOpen) return null;
 
@@ -747,7 +752,7 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<T> ReadRecordByIdAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
+			public static Task<T> ReadRecordByIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
 			{
 				return Task.Run<T>(() =>
 				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
@@ -755,7 +760,7 @@ namespace UniFiler10.Data.DB
 					return ReadRecordById<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, primaryKey);
 				});
 			}
-			public static T ReadRecordById<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
+			public static T ReadRecordById<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
 			{
 				if (!_isOpen) return default(T);
 
@@ -793,14 +798,14 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<bool> DeleteAllAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore)
+			public static Task<bool> DeleteAllAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore)
 			{
 				return Task.Run(() =>
 				{
 					return DeleteAll<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
 				});
 			}
-			public static bool DeleteAll<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore)
+			public static bool DeleteAll<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore)
 			{
 				if (!_isOpen) return false;
 				bool result = false;
@@ -838,14 +843,14 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<bool> InsertAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static Task<bool> InsertAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				return Task.Run(() =>
 				{
 					return Insert<T>(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
 				});
 			}
-			public static bool Insert<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static bool Insert<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				if (!_isOpen) return false;
 				bool result = false;
@@ -859,7 +864,7 @@ namespace UniFiler10.Data.DB
 						//{
 						//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
 						//    {
-						//        String aaa = i.ToString();
+						//        string aaa = i.ToString();
 						//    }
 						//}
 
@@ -902,14 +907,14 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<bool> DeleteAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static Task<bool> DeleteAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				return Task.Run(() =>
 				{
 					return Delete<T>(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
 				});
 			}
-			public static bool Delete<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static bool Delete<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				if (!_isOpen) return false;
 
@@ -924,7 +929,7 @@ namespace UniFiler10.Data.DB
 						//{
 						//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
 						//    {
-						//        String aaa = i.ToString();
+						//        string aaa = i.ToString();
 						//    }
 						//}
 
@@ -957,17 +962,19 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<bool> UpdateAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static Task<bool> UpdateAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				return Task.Run(() =>
 				{
 					return Update<T>(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
 				});
 			}
-			public static bool Update<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static bool Update<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				if (!_isOpen) return false;
 				bool result = false;
+				int updateResult = 0;
+
 				try
 				{
 					semaphore.Wait();
@@ -979,8 +986,8 @@ namespace UniFiler10.Data.DB
 						{
 							int aResult = conn.CreateTable(typeof(T));
 							{
-								int updateResult = conn.Update(item);
-								result = (updateResult > 0);
+								updateResult = conn.Update(item);
+								result = true;  //(updateResult > 0);
 							}
 						}
 						finally
@@ -1000,6 +1007,16 @@ namespace UniFiler10.Data.DB
 				finally
 				{
 					SemaphoreSlimSafeRelease.TryRelease(semaphore);
+					//if (updateResult < 1)
+					//{
+					//	Debugger.Break();
+					//	List<T> test = ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
+
+					//	T itemTyped = (T)item;
+
+					//	bool check = test.Contains(itemTyped);
+					//}
+
 				}
 				return result;
 			}

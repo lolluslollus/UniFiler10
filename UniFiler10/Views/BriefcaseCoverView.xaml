@@ -175,8 +175,8 @@
 						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
 						Style="{StaticResource LolloTextBoxStyle}"
 						MaxLength="{StaticResource MaxDbNameLength}"
-						MinHeight="{StaticResource LandscapeItemHeight}"
 						Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
 						VerticalAlignment="Center">
 						<ctl:LolloTextBox.Header>
 							<TextBlock x:Uid="NewBinderName"/>
@@ -191,7 +191,7 @@
 							TextWrapping="Wrap"
 							HorizontalAlignment="Left"
 							Foreground="{StaticResource FlashyForeground}"
-							MaxWidth="{StaticResource LandscapeLargeItemWidth}"
+							MaxWidth="{StaticResource LandscapeItemWidth}"
 							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 					</StackPanel>
 
