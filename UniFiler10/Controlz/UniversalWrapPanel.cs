@@ -45,6 +45,7 @@ namespace UniFiler10.Controlz
 
                     if ((point.X + child.DesiredSize.Width) > availableSize.Width)
                     {
+						// start new row
                         point.X = 0;
                         point.Y = point.Y + largestHeight;
                         largestHeight = 0.0;

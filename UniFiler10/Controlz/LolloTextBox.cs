@@ -25,6 +25,8 @@ namespace UniFiler10.Controlz
 	[TemplatePart(Name = "PopupBorder", Type = typeof(Border))]
 	[TemplatePart(Name = "Flyout", Type = typeof(Flyout))]
 	[TemplatePart(Name = "PopupListView", Type = typeof(ListView))]
+	[TemplatePart(Name = "ContentElement", Type = typeof(ScrollViewer))]
+	[TemplatePart(Name = "HeaderContentPresenter", Type =typeof(ContentPresenter))]
 	public class LolloTextBox : TextBox
 	{
 		#region fields
@@ -34,6 +36,8 @@ namespace UniFiler10.Controlz
 		Border _popupBorder = null;
 		Flyout _flyout = null;
 		ListView _listView = null;
+		ScrollViewer _contentElement = null;
+		ContentPresenter _headerContentPresenter = null;
 		#endregion fields
 
 
@@ -190,7 +194,7 @@ namespace UniFiler10.Controlz
 		#region construct and init
 		public LolloTextBox() : base()
 		{
-			DefaultStyleKey = "LolloTextBoxGrowsInHeightAndWidthStyle";
+			DefaultStyleKey = "LolloTextBoxStyle";
 
 			RegisterPropertyChangedCallback(TextBox.IsReadOnlyProperty, OnIsReadOnlyChanged);
 			RegisterPropertyChangedCallback(TextBox.IsEnabledProperty, OnIsEnabledChanged);
@@ -221,6 +225,10 @@ namespace UniFiler10.Controlz
 			{
 				_listView.SelectionChanged += OnListView_SelectionChanged;
 			}
+
+			_contentElement = GetTemplateChild("ContentElement") as ScrollViewer;
+
+			_headerContentPresenter = GetTemplateChild("HeaderContentPresenter") as ContentPresenter;
 
 			UpdateEDV();
 			UpdateDropDownButtonVisibility();
@@ -297,5 +305,40 @@ namespace UniFiler10.Controlz
 			ClearValue(TextProperty);
 		}
 		#endregion user actions
+
+		protected override Size MeasureOverride(Size availableSize)
+		{
+			//bool stop = false;
+			//if (Name == "Test" && stop) Debugger.Break();
+
+			//_contentElement.Measure(availableSize);
+			//_headerContentPresenter.Measure(availableSize);
+
+			// foreach(var child in Chi)
+			var measure = base.MeasureOverride(availableSize);
+			Size output = Size.Empty;
+
+			if (HorizontalContentAlignment == HorizontalAlignment.Stretch && !double.IsPositiveInfinity(availableSize.Width))
+			{
+				output.Width = availableSize.Width;
+			}
+			else
+			{
+				output.Width = measure.Width;
+			}
+			if (VerticalContentAlignment == VerticalAlignment.Stretch && !double.IsPositiveInfinity(availableSize.Height))
+			{
+				output.Height = availableSize.Height;
+			}
+			else
+			{
+				output.Height = measure.Height;
+			}
+			return output;
+		}
+		//protected override Size ArrangeOverride(Size finalSize)
+		//{
+		//	return base.ArrangeOverride(finalSize);
+		//}
 	}
 }

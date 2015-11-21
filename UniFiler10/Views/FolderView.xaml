@@ -46,7 +46,7 @@
 						MinWidth="{StaticResource LandscapeLargeItemWidth}"
 						MaxLength="{StaticResource MaxFolderNameLength}"
 						Text="{Binding Name, Mode=TwoWay}"
-						Style="{StaticResource LolloTextBoxGrowsInHeightStyle}">
+						Style="{StaticResource LolloTextBoxStyle}">
 						<TextBox.Header>
                             <TextBlock x:Uid="Name"/>
                         </TextBox.Header>
@@ -54,12 +54,15 @@
 
 					<!--VariableSizedWrapGrid.ColumnSpan="3"
 						VariableSizedWrapGrid.RowSpan="3"-->
+
+					<!--VerticalContentAlignment="Stretch"-->
 					<ctl:LolloTextBox
+						x:Name="Test"
 						MinWidth="{StaticResource LandscapeLargeItemWidth}"
 						MaxLength="{StaticResource MaxFolderDescrLength}"
 						AcceptsReturn="True"
-						Text="{Binding Descr0, Mode=TwoWay}"
-						Style="{StaticResource LolloTextBoxGrowsInHeightStyle}">
+						Text="{Binding Descr0, Mode=TwoWay}"						
+						Style="{StaticResource LolloTextBoxStyle}">
                         <TextBox.Header>
                             <TextBlock x:Uid="Remarks"/>
                         </TextBox.Header>
@@ -125,7 +128,7 @@
 									MaxLength="{StaticResource MaxFolderDescrLength}"
 									Header="{Binding FieldDescription.Caption, Mode=OneWay}"
 									IsReadOnly="{Binding FieldDescription.IsAnyValueAllowed, Converter={StaticResource TrueToFalseConverter}}"
-									Style="{StaticResource LolloTextBoxGrowsInHeightAndWidthStyle}"
+									Style="{StaticResource LolloTextBoxStyle}"
 									DisplayMemberPath="Vaalue"
 									ItemsSource="{Binding FieldDescription.PossibleValues}">
 									<ctl:LolloTextBox.ListItemTemplate>

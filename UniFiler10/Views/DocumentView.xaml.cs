@@ -138,7 +138,11 @@ namespace UniFiler10.Views
                 {
                     await RenderFirstPDFPageAsync().ConfigureAwait(false);
                 }
-                else if (DocumentExtensions.IMAGE_EXTENSIONS.Contains(ext))
+				//else if (ext == DocumentExtensions.TXT_EXTENSION)
+				//{
+				//	await RenderFirstTxtPageAsync().ConfigureAwait(false);
+				//}
+				else if (DocumentExtensions.IMAGE_EXTENSIONS.Contains(ext))
                 {
                     await RenderImageMiniatureAsync().ConfigureAwait(false);
                 }
@@ -233,7 +237,7 @@ namespace UniFiler10.Views
         {
             try
             {
-                var imgFile = await StorageFile.GetFileFromPathAsync((DataContext as Document).Uri0).AsTask().ConfigureAwait(false);
+                var imgFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
                 if (imgFile != null)
                 {
                     using (IRandomAccessStream stream = await imgFile.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false))
@@ -251,7 +255,7 @@ namespace UniFiler10.Views
         {
             try
             {
-                var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document).Uri0).AsTask().ConfigureAwait(false);
+                var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
                 var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile).AsTask().ConfigureAwait(false);
                 if (pdfDocument?.PageCount > 0)
                 {
@@ -276,12 +280,44 @@ namespace UniFiler10.Views
                 await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
             }
         }
-        private async Task RenderFirstPDFPageWithFileCacheAsync()
+		//private async Task RenderFirstTxtPageAsync()
+		//{
+		//	try
+		//	{
+		//		var txtFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
+
+		//		string txt = await DocumentExtensions.GetTextFromFileAsync((DataContext as Document)?.Uri0).ConfigureAwait(false);
+
+		//		var pdfDocument = await PdfDocument.LoadFromFileAsync(txtFile).AsTask().ConfigureAwait(false);
+		//		if (pdfDocument?.PageCount > 0)
+		//		{
+		//			using (var pdfPage = pdfDocument.GetPage(0))
+		//			{
+		//				var renderOptions = GetPdfRenderOptions(pdfPage);
+		//				if (renderOptions != null)
+		//				{
+		//					IsMultiPage = pdfDocument.PageCount > 1; // LOLLO TODO maybe deal with multi pages with tiff too ?
+		//					using (var stream = new InMemoryRandomAccessStream())
+		//					{
+		//						await pdfPage.RenderToStreamAsync(stream, renderOptions).AsTask().ConfigureAwait(false);
+		//						await stream.FlushAsync().AsTask().ConfigureAwait(false);
+		//						await DisplayImageFileAsync(stream).ConfigureAwait(false);
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+		//	}
+		//}
+		private async Task RenderFirstPDFPageWithFileCacheAsync()
         {
             // LOLLO TODO this could be useful if we could reuse it across different documents, ie we must reference the file to check if it already exists
             try
             {
-                var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document).Uri0).AsTask().ConfigureAwait(false);
+                var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
 
                 var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
 

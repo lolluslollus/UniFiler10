@@ -125,10 +125,11 @@ namespace UniFiler10.ViewModels
 
         public async Task<bool> BackupDbAsync(string dbName)
         {
-            if (string.IsNullOrWhiteSpace(dbName) || _briefcase == null || !_briefcase.DbNames.Contains(dbName)) return false;
+			var bc = _briefcase;
+            if (string.IsNullOrWhiteSpace(dbName) || bc == null || !bc.DbNames.Contains(dbName)) return false;
 
             var toParentStorageFolder = await PickFolderAsync();
-            return await _briefcase.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
+            return await bc.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
         }
 
         private async Task<StorageFolder> PickFolderAsync()
@@ -150,33 +151,20 @@ namespace UniFiler10.ViewModels
             //return false;
         }
 
-		//public void OpenCover()
-		//{
-		//	_briefcase?.SetIsCoverOpen(true);
-		//}
 		public void ShowBinder()
 		{
 			var briefcase = _briefcase;
-			if (briefcase != null)
-			{
-				briefcase.IsShowingBinder = true;
-			}
+			if (briefcase != null) briefcase.IsShowingBinder = true;
 		}
 		public void ShowCover()
 		{
 			var briefcase = _briefcase;
-			if (briefcase != null)
-			{
-				briefcase.IsShowingCover = true;
-			}
+			if (briefcase != null) briefcase.IsShowingCover = true;
 		}
 		public void ShowSettings()
 		{
 			var briefcase = _briefcase;
-			if (briefcase != null)
-			{
-				briefcase.IsShowingSettings = true;
-			}
+			if (briefcase != null) briefcase.IsShowingSettings = true;
 		}
 	}
 }

@@ -69,6 +69,7 @@
                 HorizontalAlignment="Stretch">
 
 				<Button 
+					x:Name="AButton"
                     Tapped="OnAddBinderStep0_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
@@ -162,36 +163,76 @@
 			</VariableSizedWrapGrid>
 
 			<!-- fields to add new binder -->
-			<Grid Grid.Row="1"
-				Visibility="{Binding IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
-				<Grid.RowDefinitions>
-					<RowDefinition/>
-					<RowDefinition/>
-				</Grid.RowDefinitions>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="Auto"/>
-					<ColumnDefinition Width="Auto"/>
-				</Grid.ColumnDefinitions>
-				<ctl:LolloTextBox Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-					Style="{StaticResource LolloTextBoxGrowsInHeightStyle}"
-					Height="{StaticResource LandscapeItemHeight}"
-					Width="{StaticResource LandscapeLargeItemWidth}"
-					VerticalAlignment="Center"/>
-				<TextBlock Grid.Row="1"
-					x:Uid="NameAlreadyInUse"
-					TextWrapping="Wrap"
-					HorizontalAlignment="Left"
-					Foreground="{StaticResource FlashyForeground}"
-					MaxWidth="{StaticResource LandscapeLargeItemWidth}"
-					Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
-				<AppBarButton Grid.Column="1" Icon="Go"
-					Tapped="OnAddBinderStep1_Tapped"
-					Height="{StaticResource LandscapeItemHeight}"
-					Width="{StaticResource LandscapeItemHeight}"
-					VerticalAlignment="Center"
+			<ctl:UniversalWrapPanel Orientation="Horizontal" Grid.Row="1">
+				<Grid Grid.Row="1"
+					Visibility="{Binding IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					
+					<ctl:LolloTextBox
+						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+						Style="{StaticResource LolloTextBoxStyle}"
+						MaxLength="{StaticResource MaxDbNameLength}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
+						Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"
+						VerticalAlignment="Center">
+						<ctl:LolloTextBox.Header>
+							<TextBlock x:Uid="NewBinderName"/>
+						</ctl:LolloTextBox.Header>
+					</ctl:LolloTextBox>
+
+					<StackPanel Grid.Row="1"
+						VerticalAlignment="Center"					
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+						<TextBlock
+							x:Uid="NameAlreadyInUse"
+							TextWrapping="Wrap"
+							HorizontalAlignment="Left"
+							Foreground="{StaticResource FlashyForeground}"
+							MaxWidth="{StaticResource LandscapeLargeItemWidth}"
+							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+					</StackPanel>
+
+					<Border Grid.RowSpan="2"
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+						<Border
+							VerticalAlignment="Stretch"
+							HorizontalAlignment="Stretch"
+							BorderBrush="{StaticResource FlashyForeground}"
+							BorderThickness="{StaticResource BaseMessageStyleMargin}"
+							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+					</Border>
+				</Grid>
+
+				<Button
+                    Tapped="OnAddBinderStep1_Tapped"
+                    Style="{StaticResource ButtonLolloStyle}"
 					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
-			</Grid>
+					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+						</Grid.ColumnDefinitions>
+
+						<SymbolIcon Symbol="Go"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<TextBlock Grid.Column="2" x:Uid="Go"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
+					</Grid>
+				</Button>
+			</ctl:UniversalWrapPanel>
 
 			<!-- "all binders" header -->
 			<Grid Grid.Row="2">

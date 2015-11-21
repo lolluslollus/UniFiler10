@@ -25,7 +25,7 @@ namespace UniFiler10.Views
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			var binder = DataContext as Binder;
-			if (binder != null)
+			if (binder != null && !binder.IsDisposed)
 			{
 				if (_vm == null || _vm.Binder != binder)
 				{

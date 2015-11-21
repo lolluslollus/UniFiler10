@@ -17,8 +17,9 @@ namespace UniFiler10.Services
         public static readonly string[] HTML_EXTENSIONS = new string[] { ".htm", ".html", ".mht" };
         public static readonly string PDF_EXTENSION = ".pdf";
         public static readonly string[] IMAGE_EXTENSIONS = new string[] { ".bmp", ".gif", ".giff", ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
+		//public static readonly string TXT_EXTENSION = ".txt";
 
-        internal static async Task<StorageFile> PickMediaFileAsync()
+		internal static async Task<StorageFile> PickMediaFileAsync()
         {
             FileOpenPicker openPicker = new FileOpenPicker();
             openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
@@ -37,14 +38,15 @@ namespace UniFiler10.Services
             {
                 openPicker.FileTypeFilter.Add(ext);
             }
-            //openPicker.FileTypeFilter.Add(".jpg");
-            //openPicker.FileTypeFilter.Add(".jpeg");
-            //openPicker.FileTypeFilter.Add(".png");
-            //openPicker.FileTypeFilter.Add(".bmp");
-            //openPicker.FileTypeFilter.Add(".tif");
-            //openPicker.FileTypeFilter.Add(".tiff");
+			//openPicker.FileTypeFilter.Add(TXT_EXTENSION);
+			//openPicker.FileTypeFilter.Add(".jpg");
+			//openPicker.FileTypeFilter.Add(".jpeg");
+			//openPicker.FileTypeFilter.Add(".png");
+			//openPicker.FileTypeFilter.Add(".bmp");
+			//openPicker.FileTypeFilter.Add(".tif");
+			//openPicker.FileTypeFilter.Add(".tiff");
 
-            var file = await openPicker.PickSingleFileAsync();
+			var file = await openPicker.PickSingleFileAsync();
             return file;
         }
 
@@ -59,6 +61,7 @@ namespace UniFiler10.Services
                     {
                         using (StreamReader streamReader = new StreamReader(stream.AsStreamForRead()))
                         {
+							// LOLLO TODO allow reading the first n characters
                             string ssss = await streamReader.ReadToEndAsync().ConfigureAwait(false);
                             // await stream.AsStreamForRead().FlushAsync().ConfigureAwait(false); // LOLLO TODO this is new, check it // probably useless, I have taken it out already
                             return ssss;

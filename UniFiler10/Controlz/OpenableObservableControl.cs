@@ -19,20 +19,11 @@ namespace UniFiler10.Controlz
 {
 	public abstract class OpenableObservableControl : ObservableControl //, IDisposable
 	{
-		//#region IDisposable
-		//protected volatile bool _isDisposed = false;
-		//public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
-		//public void Dispose()
-		//{
-		//    Dispose(true);
-		//}
-		//protected virtual void Dispose(bool isDisposing)
-		//{
-		//    _isDisposed = true;
-		//    CloseAsync().Wait();
-		//    ClearListeners();
-		//}
-		//#endregion IDisposable
+		#region events
+		public event EventHandler Opened;
+		public event EventHandler Closing;
+		#endregion events
+
 
 		#region properties
 		public bool OpenCloseWhenLoadedUnloaded
@@ -49,6 +40,11 @@ namespace UniFiler10.Controlz
 		}
 		public static readonly DependencyProperty OpenCloseWhenVisibleCollapsedProperty =
 			DependencyProperty.Register("OpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+		/// <summary>
+		/// If the parent is made invisible, the child is not necessarily made invisible, so it could stay open.
+		/// Use this property on a child to make it open and close, whenever the parent does.
+		/// Leave it blank if there is no OpenableControl parent or if you have special needs.
+		/// </summary>
 		public OpenableObservableControl OpenableObservableParent
 		{
 			get { return (OpenableObservableControl)GetValue(OpenableObservableParentProperty); }
@@ -59,10 +55,8 @@ namespace UniFiler10.Controlz
 		private static void OnParentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
 			var instance = obj as OpenableObservableControl;
-			if (instance != null && instance.OpenableObservableParent != null)
-			{
-				instance.OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, instance.OnParentVisibilityChanged);
-			}
+			instance?.UnregisterParentHandlers(args?.OldValue as OpenableObservableControl);
+			instance?.RegisterParentHandlers();
 		}
 
 		private bool _isLoaded = false;
@@ -70,18 +64,90 @@ namespace UniFiler10.Controlz
 		#endregion properties
 
 
-		#region construct
+		#region construct and dispose
+		private long _visibilityChangedToken = default(long);
 		public OpenableObservableControl()
 		{
-			Application.Current.Suspending += OnSuspending; // LOLLO TODO check these event handlers. Do they fire enough? Do they fire too much?
-			Application.Current.Resuming += OnResuming;
+			RegisterApplicationHandlers();
 			Loaded += OnLoaded;
 			Unloaded += OnUnloaded;
 
-			if (OpenableObservableParent != null) OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
-			RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
+			RegisterParentHandlers();
+			_visibilityChangedToken = RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
 		}
-		#endregion construct
+		// LOLLO NOTE check the interaction behaviour at http://stackoverflow.com/questions/502761/disposing-wpf-user-controls if you really want to make this disposable.
+		// LOLLO NOTE also this is interesting: http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/
+
+		//protected volatile bool _isDisposed = false;
+		//public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
+		//public void Dispose()
+		//{
+		//	Dispose(true);
+
+		//	GC.SuppressFinalize(this);
+		//}
+		//protected virtual void Dispose(bool isDisposing)
+		//{
+		//	if (_isDisposed) return;
+		//	_isDisposed = true;
+
+		//	UnregisterApplicationHandlers();
+		//	Loaded -= OnLoaded;
+		//	Unloaded -= OnUnloaded;
+
+		//	UnregisterParentHandlers(OpenableObservableParent);
+		//	UnregisterPropertyChangedCallback(VisibilityProperty, _visibilityChangedToken);
+
+		//	CloseAsync().Wait();
+		//	ClearListeners();
+		//}
+		//~OpenableObservableControl()
+		//{
+		//	Dispose(false);
+		//}
+		#endregion construct and dispose
+
+
+		#region event helpers
+		private bool _isApplicationHandlersRegistered = false;
+		private void RegisterApplicationHandlers()
+		{
+			if (!_isApplicationHandlersRegistered)
+			{
+				_isApplicationHandlersRegistered = true;
+				Application.Current.Suspending += OnSuspending; // LOLLO TODO check these event handlers. Do they fire enough? Do they fire too much? Do the handlers stick around too long, preventing GC?
+				Application.Current.Resuming += OnResuming;
+			}
+		}
+		private void UnregisterApplicationHandlers() // lollo todo the application will always hold an instance of this, even if it is not used anymore...
+		{
+			Application.Current.Suspending -= OnSuspending;
+			Application.Current.Resuming -= OnResuming;
+			_isApplicationHandlersRegistered = false;
+		}
+
+		private bool _isParentHandlersRegistered = false;
+		private void RegisterParentHandlers()
+		{
+			if (!_isParentHandlersRegistered && OpenableObservableParent != null)
+			{
+				_isParentHandlersRegistered = true;
+				// OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
+				OpenableObservableParent.Opened += OnOpenableObservableParent_Opened;
+				OpenableObservableParent.Closing += OnOpenableObservableParent_Closing;
+			}
+		}
+		private void UnregisterParentHandlers(OpenableObservableControl parent)
+		{
+			if (parent != null)
+			{
+				// parent.UnregisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
+				parent.Opened -= OnOpenableObservableParent_Opened;
+				parent.Closing -= OnOpenableObservableParent_Closing;
+				_isParentHandlersRegistered = false;
+			}
+		}
+		#endregion event helpers
 
 
 		#region event handlers
@@ -102,41 +168,46 @@ namespace UniFiler10.Controlz
 		private void OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_isLoaded = true;
-			if (OpenCloseWhenLoadedUnloaded)
-			{
-				Task open = TryOpenAsync();
-			}
+			if (OpenCloseWhenLoadedUnloaded) { Task open = TryOpenAsync(); }
 		}
 
 		private void OnUnloaded(object sender, RoutedEventArgs e)
 		{
 			_isLoaded = false;
-			if (OpenCloseWhenLoadedUnloaded)
-			{
-				Task close = CloseAsync();
-			}
+			if (OpenCloseWhenLoadedUnloaded) { Task close = CloseAsync(); }
 		}
-		/// <summary>
-		/// If the parent is made invisible, the child is not necessarily made invisible, so it could stay open.
-		/// This method makes the child open and close, if it must, whenever the parent becomes visible or invisible.
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <param name="prop"></param>
-		private void OnParentVisibilityChanged(DependencyObject obj, DependencyProperty prop)
+
+		private void OnOpenableObservableParent_Closing(object sender, EventArgs e)
 		{
-			OpenableObservableControl parent = obj as OpenableObservableControl;
-			if (OpenCloseWhenVisibleCollapsed)
-			{
-				if (parent.Visibility == Visibility.Collapsed)
-				{
-					Task close = CloseAsync();
-				}
-				else if (parent.Visibility == Visibility.Visible)
-				{
-					Task open = TryOpenAsync();
-				}
-			}
+			Task close = CloseAsync();
 		}
+
+		private void OnOpenableObservableParent_Opened(object sender, EventArgs e)
+		{
+			Task open = TryOpenAsync();
+		}
+
+		///// <summary>
+		///// If the parent is made invisible, the child is not necessarily made invisible, so it could stay open.
+		///// This method makes the child open and close, if it must, whenever the parent becomes visible or invisible.
+		///// </summary>
+		///// <param name="obj"></param>
+		///// <param name="prop"></param>
+		//private void OnParentVisibilityChanged(DependencyObject obj, DependencyProperty prop)
+		//{
+		//	OpenableObservableControl parent = obj as OpenableObservableControl;
+		//	if (OpenCloseWhenVisibleCollapsed)
+		//	{
+		//		if (parent.Visibility == Visibility.Collapsed)
+		//		{
+		//			Task close = CloseAsync();
+		//		}
+		//		else if (parent.Visibility == Visibility.Visible)
+		//		{
+		//			Task open = TryOpenAsync();
+		//		}
+		//	}
+		//}
 		private static void OnVisibilityChanged(DependencyObject obj, DependencyProperty prop)
 		{
 			OpenableObservableControl instance = obj as OpenableObservableControl;
@@ -177,6 +248,7 @@ namespace UniFiler10.Controlz
 							{
 								IsOpen = true;
 								if (enable) RunInUiThread(delegate { IsEnabled = true; });
+								Opened?.Invoke(this, EventArgs.Empty);
 								return true;
 							}
 						}
@@ -218,6 +290,7 @@ namespace UniFiler10.Controlz
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen)
 					{
+						Closing?.Invoke(this, EventArgs.Empty);
 						//ClearListeners();
 						RunInUiThread(delegate { IsEnabled = false; });
 						IsOpen = false;
@@ -356,5 +429,45 @@ namespace UniFiler10.Controlz
 			return false;
 		}
 		#endregion while open
+	}
+
+
+	public class DisposeTest : IDisposable
+	{
+
+		#region IDisposable Support
+		private bool isDisposed = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!isDisposed)
+			{
+				if (disposing)
+				{
+					// TODO: dispose managed state (managed objects).
+				}
+
+				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+				// TODO: set large fields to null.
+
+				isDisposed = true;
+			}
+		}
+
+		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+		// ~DisposeTest() {
+		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		//   Dispose(false);
+		// }
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// TODO: uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

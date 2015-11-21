@@ -263,13 +263,11 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> BackupBinderAsync(string dbName, StorageFolder intoStorageFolder)
 		{
-			bool wasCurrentBinder = false;
-
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName) || intoStorageFolder == null) return false;
 
-
+				bool wasCurrentBinder = false;
 				// close the current binder if it is the one to be backed up
 				if (_currentBinderName == dbName)
 				{
@@ -320,15 +318,16 @@ namespace UniFiler10.Data.Model
 		}
 		private async Task UpdateEnableDisableMetadata2Async()
 		{
+			var mb = _metaBriefcase; if (mb == null) return;
 			if (_isShowingSettings)
 			{
-				await _metaBriefcase.SetIsEnabledAsync(true).ConfigureAwait(false);
+				await mb.SetIsEnabledAsync(true).ConfigureAwait(false);
 			}
 			else
 			{
-				if (await _metaBriefcase.SetIsEnabledAsync(false).ConfigureAwait(false))
+				if (await mb.SetIsEnabledAsync(false).ConfigureAwait(false))
 				{
-					await _metaBriefcase.SaveAsync().ConfigureAwait(false);
+					await mb.SaveAsync().ConfigureAwait(false);
 				}
 			}
 		}
@@ -358,10 +357,11 @@ namespace UniFiler10.Data.Model
 		}
 		private async Task<bool> CloseCurrentBinderAsync()
 		{
-			if (_currentBinder != null)
+			var cb = _currentBinder;
+			if (cb != null)
 			{
-				await _currentBinder.CloseAsync().ConfigureAwait(false);
-				_currentBinder?.Dispose();
+				await cb.CloseAsync().ConfigureAwait(false);
+				cb.Dispose();
 				_currentBinder = null;
 				return true;
 			}

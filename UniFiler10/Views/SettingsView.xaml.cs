@@ -52,7 +52,7 @@ namespace UniFiler10.Views
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			var mb = DataContext as MetaBriefcase;
-			if (mb != null)
+			if (mb != null && !mb.IsDisposed)
 			{
 				if (_vm == null || _vm.MetaBriefcase != mb)
 				{
