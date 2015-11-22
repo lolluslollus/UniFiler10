@@ -141,7 +141,7 @@
   <data name="AllFolders.Text" xml:space="preserve">
     <value>All folders</value>
   </data>
-  <data name="AllowAllFieldValues.Content" xml:space="preserve">
+  <data name="AllowAllFieldValues.Text" xml:space="preserve">
     <value>Allow all values</value>
   </data>
   <data name="Back.Text" xml:space="preserve">
@@ -217,7 +217,7 @@
     <value>Name already in use</value>
   </data>
   <data name="NewBinderName.Text" xml:space="preserve">
-    <value>New binder name</value>
+    <value>Give your binder a name:</value>
   </data>
   <data name="NewCategory.Text" xml:space="preserve">
     <value>New category</value>

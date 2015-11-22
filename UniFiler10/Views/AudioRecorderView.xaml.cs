@@ -93,24 +93,21 @@ namespace UniFiler10.Views
 
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
-			if (VM != null)
+			if (await base.OpenMayOverrideAsync() && VM != null)
 			{
 				_audioRecorder = new AudioRecorder(this, VM);
 				await _audioRecorder.OpenAsync();
-
 				await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
 
-				RegisterBackEventHandlers();
 				return true;
 			}
 			return false;
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			UnregisterBackEventHandlers();
+			await base.CloseMayOverrideAsync();
 
 			await StopRecordingAsync().ConfigureAwait(false);
-
 			_audioRecorder?.Dispose();
 			_audioRecorder = null;
 		}

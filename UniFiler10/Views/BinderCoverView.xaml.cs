@@ -35,7 +35,7 @@ namespace UniFiler10.Views
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
-		#region construct, dispose, open, close
+		#region construct, open, close
 		public BinderCoverView()
 		{
 			OpenCloseWhenLoadedUnloaded = false;
@@ -45,7 +45,7 @@ namespace UniFiler10.Views
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			var binder = DataContext as Data.Model.Binder;
-			if (binder != null && !binder.IsDisposed)
+			if (await base.OpenMayOverrideAsync() && binder != null && !binder.IsDisposed)
 			{
 				if (_vm == null || _vm.Binder != binder)
 				{
@@ -53,9 +53,6 @@ namespace UniFiler10.Views
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
 				}
-
-				RegisterBackEventHandlers();
-
 				return true;
 			}
 			else
@@ -65,7 +62,7 @@ namespace UniFiler10.Views
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			UnregisterBackEventHandlers();
+			await base.CloseMayOverrideAsync();
 
 			var vm = _vm;
 			if (vm != null)
@@ -99,7 +96,7 @@ namespace UniFiler10.Views
 				SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
 			}
 		}
-		#endregion construct, dispose, open, close
+		#endregion construct, open, close
 
 		#region event handlers
 		protected override void GoBackMustOverride()

@@ -159,7 +159,7 @@
 
 				<Button
 					Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
-                    Tapped="OnBackButton_Tapped"
+                    Tapped="OnOwnBackButton_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
@@ -334,6 +334,7 @@
 				Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
 				DisplayMemberPath="Name"
+				MaxLength="{StaticResource MaxTagLength}"
 				Text="{Binding CatNameForCatFilter, Mode=TwoWay}">
 				<ctl:LolloTextBox.ListItemTemplate>
 					<DataTemplate>
@@ -361,6 +362,7 @@
 					IsEmptyValueAllowedEvenIfNotInList="False"
 					ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
 					DisplayMemberPath="Name"
+					MaxLength="{StaticResource MaxTagLength}"
 					Text="{Binding CatNameForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>
@@ -384,6 +386,7 @@
 					IsEmptyValueAllowedEvenIfNotInList="False"
 					ItemsSource="{Binding FldDscsInCat, Mode=OneWay}"
 					DisplayMemberPath="Caption"
+					MaxLength="{StaticResource MaxTagLength}"
 					Text="{Binding FldDscCaptionForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>
@@ -407,6 +410,7 @@
 					IsEmptyValueAllowedEvenIfNotInList="False"
 					ItemsSource="{Binding FldValsInFldDscs, Mode=OneWay}"
 					DisplayMemberPath="Vaalue"
+					MaxLength="{StaticResource MaxVaalueLength}"
 					Text="{Binding FldValVaalueForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>

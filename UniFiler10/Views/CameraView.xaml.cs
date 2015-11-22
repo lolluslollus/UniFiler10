@@ -77,12 +77,21 @@ namespace UniFiler10.Views
 
         protected override async Task<bool> OpenMayOverrideAsync()
         {
-            await SetupUiAsync();
-            bool isOk = await InitializeCameraAsync().ConfigureAwait(false);
-            return isOk;
+			if (await base.OpenMayOverrideAsync())
+			{
+				await SetupUiAsync();
+				bool isOk = await InitializeCameraAsync().ConfigureAwait(false);
+				return isOk;
+			}
+			else
+			{
+				return false;
+			}
         }
         protected override async Task CloseMayOverrideAsync()
         {
+			await base.CloseMayOverrideAsync();
+
             VM?.EndShoot(); // LOLLO TODO check this
             await CleanupCameraAsync();
             await CleanupUiAsync().ConfigureAwait(false);
@@ -202,7 +211,7 @@ namespace UniFiler10.Views
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
         }
 
-        //private async void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+        //private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
         //{
         //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
         //}
@@ -570,7 +579,6 @@ namespace UniFiler10.Views
         /// </summary>
         private void RegisterEventHandlers()
         {
-			RegisterBackEventHandlers();
 			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
             {
                 HardwareButtons.CameraPressed += OnHardwareButtons_CameraPressed;
@@ -593,7 +601,6 @@ namespace UniFiler10.Views
         /// </summary>
         private void UnregisterEventHandlers()
         {
-			UnregisterBackEventHandlers();
 			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
             {
                 HardwareButtons.CameraPressed -= OnHardwareButtons_CameraPressed;

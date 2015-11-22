@@ -44,6 +44,9 @@
                         IsCompact="True"
                         Click="OnAddCategory_Click"
                         VerticalAlignment="Center"/>
+					<Rectangle Grid.Column="2"
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
 				<!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
@@ -69,18 +72,22 @@
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 
-								<TextBox 
+								<ctl:LolloTextBox
 									Text="{Binding Name, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
+									BorderThickness="0"
 									Width="{StaticResource MetaItemTextWidth}"
-									TextWrapping="Wrap"/>
+									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
+								<Rectangle Grid.Column="2"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
@@ -95,14 +102,19 @@
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
 						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 
 					<TextBlock x:Uid="FieldDescrsAssignedToCat"
-							VerticalAlignment="Center"
-							Width="{StaticResource MetaItemTextWidth}"
-							TextWrapping="Wrap"/>
-					<!-- LOLLO BODGE the following is only to ensure the same height as the other objects -->
-					<Rectangle Grid.Column="2" Height="48" Width="68" StrokeThickness="0"/>
+						VerticalAlignment="Center"
+						Width="{StaticResource MetaItemTextWidth}"
+						TextWrapping="Wrap"/>
+					<Rectangle Grid.Column="2"
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
+					<Rectangle Grid.Column="3"
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
 				<!-- assigned field descriptions -->
@@ -134,12 +146,13 @@
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 
-								<TextBox 
+								<ctl:LolloTextBox
 									Text="{Binding Caption, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
+									BorderThickness="0"
 									Width="{StaticResource MetaItemTextWidth}"
-									TextWrapping="Wrap"/>
+									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Remove"
                                     IsCompact="True"
@@ -152,6 +165,12 @@
                                     Click="OnDeleteField_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
+								<Rectangle Grid.Column="2"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
+								<Rectangle Grid.Column="3"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
@@ -161,6 +180,7 @@
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 
@@ -173,6 +193,12 @@
                         IsCompact="True"
                         Click="OnAddField_Click"
                         VerticalAlignment="Center"/>
+					<Rectangle Grid.Column="2"
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
+					<Rectangle Grid.Column="3"
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
 				<!-- unassigned field descriptions -->
@@ -199,12 +225,13 @@
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 
-								<TextBox 
+								<ctl:LolloTextBox
 									Text="{Binding Caption, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
+									BorderThickness="0"
 									Width="{StaticResource MetaItemTextWidth}"
-									TextWrapping="Wrap"/>
+									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Accept"
                                     IsCompact="True"
@@ -216,6 +243,12 @@
                                     Click="OnDeleteField_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
+								<Rectangle Grid.Column="2"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
+								<Rectangle Grid.Column="3"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
@@ -224,7 +257,7 @@
 
 			<!-- field values -->
 			<StackPanel Orientation="Vertical" Grid.Column="2"
-					Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}">
+				Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -241,14 +274,31 @@
                         IsCompact="True"
                         Click="OnAddFieldValue_Click"
                         VerticalAlignment="Center"/>
+					<Rectangle Grid.Column="2"
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
+
 				</Grid>
 
-				<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
-                    IsEnabled="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource BooleanAndElevated}}"
-                    x:Uid="AllowAllFieldValues"
-                    VerticalAlignment="Center"
-                    Width="{StaticResource MetaItemWidth}"
-                    Height="{StaticResource MetaItemHeight}"/>
+				<Grid>
+					<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
+						IsEnabled="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource BooleanAndElevated}}"                   
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						VerticalContentAlignment="Center"
+						BorderThickness="0"
+						Style="{StaticResource CheckBoxLolloStyle}"
+						Width="{StaticResource MetaItemTextWidth}">
+						<CheckBox.Content>
+							<TextBlock x:Uid="AllowAllFieldValues"
+							MaxWidth="{StaticResource MetaItemShortTextWidth}"
+							TextWrapping="Wrap"/>
+						</CheckBox.Content>
+					</CheckBox>
+					<Rectangle
+						Width="{StaticResource MetaItemHeight}"
+						Height="{StaticResource MetaItemHeight}"/>
+				</Grid>
 
 				<ctl:TolerantListView
                     ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
@@ -270,18 +320,22 @@
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 
-								<TextBox 
+								<ctl:LolloTextBox
 									Text="{Binding Vaalue, Mode=TwoWay}"
-                                    MaxLength="{StaticResource MaxTagLength}"
+                                    MaxLength="{StaticResource MaxVaalueLength}"
                                     VerticalAlignment="Center"
+									BorderThickness="0"
 									Width="{StaticResource MetaItemTextWidth}"
-									TextWrapping="Wrap"/>
+									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeletePossibleValue_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
+								<Rectangle Grid.Column="2"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>

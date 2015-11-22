@@ -89,14 +89,13 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <CheckBox
+								<CheckBox
 									Width="{StaticResource LandscapeItemWidth}"
 									Height="{StaticResource LandscapeItemHeight}"
 									IsChecked="{Binding IsOn, Mode=TwoWay}"
                                     Style="{StaticResource CheckBoxLolloStyle}"
-									Content="{Binding Name, Mode=OneWay}">
-                                </CheckBox>
-                            </DataTemplate>
+									Content="{Binding Name, Mode=OneWay}"/>
+							</DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
@@ -117,12 +116,12 @@
 									Width="{StaticResource LandscapeItemWidth}"
 									MinHeight="{StaticResource LandscapeItemHeight}"
 									Text="{Binding FieldValue.Vaalue, Mode=OneWay}"                                    
-									LostFocus="OnVaalue_LostFocus"
-									MaxLength="{StaticResource MaxFolderDescrLength}"
+									LostFocus="OnVaalue_LostFocus"									
 									Header="{Binding FieldDescription.Caption, Mode=OneWay}"
 									IsReadOnly="{Binding FieldDescription.IsAnyValueAllowed, Converter={StaticResource TrueToFalseConverter}}"
 									Style="{StaticResource LolloTextBoxStyle}"
 									DisplayMemberPath="Vaalue"
+									MaxLength="{StaticResource MaxVaalueLength}"
 									ItemsSource="{Binding FieldDescription.PossibleValues}">
 									<ctl:LolloTextBox.ListItemTemplate>
 										<DataTemplate>

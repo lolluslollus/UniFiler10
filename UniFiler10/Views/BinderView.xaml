@@ -17,10 +17,10 @@
 
     <Grid>
 		<!--DataContext="{Binding}"-->
-        <local:BinderCoverView
+		<local:BinderCoverView
             Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
-            DataContext="{Binding}"
-			OpenableObservableParent="{x:Bind Path='', Mode=OneWay}"/>
+            DataContext="{Binding}"/>
+		<!--OpenableObservableParent="{x:Bind Path='', Mode=OneWay}"/>-->
 		<ctl:LolloSplitView x:Name="LayoutRoot"
             Visibility="{Binding IsCoverOpen, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
             IsPaneOpen="True"
@@ -114,16 +114,18 @@
 
         <Popup
             IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay}">
-            <local:CameraView 
+			<local:CameraView 
                 VM="{x:Bind VM, Mode=OneWay}"
                 DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
+			<!--OpenableObservableParent="{x:Bind Path='', Mode=OneWay}"/>-->
         </Popup>
 
         <Popup
             IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay}">
-            <local:AudioRecorderView
+			<local:AudioRecorderView
                 VM="{x:Bind VM, Mode=OneWay}"
                 DataContext="{Binding CurrentFolder, Mode=OneWay}"/>
+			<!--OpenableObservableParent="{x:Bind Path='', Mode=OneWay}"/>-->
         </Popup>
 
     </Grid>

@@ -109,7 +109,6 @@ namespace UniFiler10.ViewModels
 			{
 				opener.IsShowingCover = true;
 			}
-
 		}
 		public Task SelectFolderAsync(string folderId)
 		{

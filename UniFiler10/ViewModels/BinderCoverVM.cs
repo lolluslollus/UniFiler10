@@ -14,7 +14,7 @@ using Windows.UI.Core;
 
 namespace UniFiler10.ViewModels
 {
-	public class BinderCoverVM : OpenableObservableData
+	public sealed class BinderCoverVM : OpenableObservableData
 	{
 		#region fields
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;

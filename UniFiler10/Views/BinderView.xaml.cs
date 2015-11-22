@@ -16,7 +16,7 @@ namespace UniFiler10.Views
 		private BinderVM _vm = null;
 		public BinderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
-		#region construct, dispose, open, close
+		#region construct, open, close
 		public BinderView()
 		{
 			OpenCloseWhenLoadedUnloaded = false;
@@ -25,7 +25,7 @@ namespace UniFiler10.Views
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			var binder = DataContext as Binder;
-			if (binder != null && !binder.IsDisposed)
+			if (await base.OpenMayOverrideAsync() && binder != null && !binder.IsDisposed)
 			{
 				if (_vm == null || _vm.Binder != binder)
 				{
@@ -33,9 +33,6 @@ namespace UniFiler10.Views
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
 				}
-
-				RegisterBackEventHandlers();
-
 				return true;
 			}
 			else
@@ -45,7 +42,7 @@ namespace UniFiler10.Views
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			UnregisterBackEventHandlers();
+			await base.CloseMayOverrideAsync();
 
 			var vm = _vm;
 			if (vm != null)
@@ -78,7 +75,7 @@ namespace UniFiler10.Views
 				SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
 			}
 		}
-		#endregion construct, dispose, open, close
+		#endregion construct, open, close
 
 		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{

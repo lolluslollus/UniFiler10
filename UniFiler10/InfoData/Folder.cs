@@ -245,7 +245,9 @@ namespace UniFiler10.Data.Model
 				}
 				else
 				{
-
+					// LOLLO TODO the category is empty sometimes. Reloading the folder fixes it, I presume the problem lies in the Get, which is not as clever as the Set,
+					// which, in turn, is slow.
+					// We don't want to slow down the Get as well, so we live with it for now.
 				}
 			}
 			// remove obsolete fields

@@ -138,14 +138,18 @@ namespace UniFiler10.Data.Model
             return false;
         }
 
-		protected async Task RunFunctionWhileOpenAsyncA(Action func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
         {
             if (_isOpen && _isEnabled)
             {
                 try
                 {
                     await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && _isEnabled) func();
+					if (_isOpen && _isEnabled)
+					{
+						func();
+						return true;
+					}
                 }
                 catch (Exception ex)
                 {
@@ -157,15 +161,20 @@ namespace UniFiler10.Data.Model
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
                 }
             }
+			return false;
         }
-		protected async Task RunFunctionWhileOpenAsyncA_MT(Action func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncA_MT(Action func)
 		{
 			if (_isOpen && _isEnabled)
 			{
 				try
 				{
 					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-					if (_isOpen && _isEnabled) await Task.Run(func).ConfigureAwait(false);
+					if (_isOpen && _isEnabled)
+					{
+						await Task.Run(func).ConfigureAwait(false);
+						return true;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -177,6 +186,7 @@ namespace UniFiler10.Data.Model
 					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
 				}
 			}
+			return false;
 		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
         {
@@ -199,14 +209,18 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
-		protected async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
         {
             if (_isOpen && _isEnabled)
             {
                 try
                 {
                     await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && _isEnabled) await funcAsync().ConfigureAwait(false);
+					if (_isOpen && _isEnabled)
+					{
+						await funcAsync().ConfigureAwait(false);
+						return true;
+					}
                 }
                 catch (Exception ex)
                 {
@@ -218,6 +232,7 @@ namespace UniFiler10.Data.Model
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
                 }
             }
+			return false;
         }
         protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
         {

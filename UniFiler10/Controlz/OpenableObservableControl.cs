@@ -41,23 +41,25 @@ namespace UniFiler10.Controlz
 		public static readonly DependencyProperty OpenCloseWhenVisibleCollapsedProperty =
 			DependencyProperty.Register("OpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
 		/// <summary>
-		/// If the parent is made invisible, the child is not necessarily made invisible, so it could stay open.
+		/// If the parent is made invisible, the child is not necessarily made invisible, so CloseAsync() may not fire.
 		/// Use this property on a child to make it open and close, whenever the parent does.
 		/// Leave it blank if there is no OpenableControl parent or if you have special needs.
 		/// </summary>
-		public OpenableObservableControl OpenableObservableParent
-		{
-			get { return (OpenableObservableControl)GetValue(OpenableObservableParentProperty); }
-			set { SetValue(OpenableObservableParentProperty, value); }
-		}
-		public static readonly DependencyProperty OpenableObservableParentProperty =
-			DependencyProperty.Register("OpenableObservableParent", typeof(OpenableObservableControl), typeof(OpenableObservableControl), new PropertyMetadata(null, OnParentChanged));
-		private static void OnParentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			var instance = obj as OpenableObservableControl;
-			instance?.UnregisterParentHandlers(args?.OldValue as OpenableObservableControl);
-			instance?.RegisterParentHandlers();
-		}
+		//public OpenableObservableControl OpenableObservableParent
+		//{
+		//	get { return (OpenableObservableControl)GetValue(OpenableObservableParentProperty); }
+		//	set { SetValue(OpenableObservableParentProperty, value); }
+		//}
+		//public static readonly DependencyProperty OpenableObservableParentProperty =
+		//	DependencyProperty.Register("OpenableObservableParent", typeof(OpenableObservableControl), typeof(OpenableObservableControl), new PropertyMetadata(null, OnParentChanged));
+		//private static void OnParentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		//{
+		//	var instance = obj as OpenableObservableControl;
+		//	if (args?.OldValue is OpenableObservableControl) instance?.UnregisterParentHandlers(args.OldValue as OpenableObservableControl);
+		//	instance?.RegisterParentHandlers();
+		//}
+
+		private OpenableObservableControl _openableObservableParent = null;
 
 		private bool _isLoaded = false;
 		private bool _isOpenBeforeSuspending = false;
@@ -72,11 +74,12 @@ namespace UniFiler10.Controlz
 			Loaded += OnLoaded;
 			Unloaded += OnUnloaded;
 
-			RegisterParentHandlers();
+			//RegisterParentHandlers();
 			_visibilityChangedToken = RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
 		}
 		// LOLLO NOTE check the interaction behaviour at http://stackoverflow.com/questions/502761/disposing-wpf-user-controls if you really want to make this disposable.
 		// LOLLO NOTE also this is interesting: http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/
+		// LOLLO TODO you may want to check VisualTreeHelper.DisconnectChildrenRecursive()
 
 		//protected volatile bool _isDisposed = false;
 		//public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
@@ -129,12 +132,12 @@ namespace UniFiler10.Controlz
 		private bool _isParentHandlersRegistered = false;
 		private void RegisterParentHandlers()
 		{
-			if (!_isParentHandlersRegistered && OpenableObservableParent != null)
+			if (!_isParentHandlersRegistered && _openableObservableParent != null)
 			{
 				_isParentHandlersRegistered = true;
 				// OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
-				OpenableObservableParent.Opened += OnOpenableObservableParent_Opened;
-				OpenableObservableParent.Closing += OnOpenableObservableParent_Closing;
+				_openableObservableParent.Opened += OnOpenableObservableParent_Opened;
+				_openableObservableParent.Closing += OnOpenableObservableParent_Closing;
 			}
 		}
 		private void UnregisterParentHandlers(OpenableObservableControl parent)
@@ -169,12 +172,26 @@ namespace UniFiler10.Controlz
 		{
 			_isLoaded = true;
 			if (OpenCloseWhenLoadedUnloaded) { Task open = TryOpenAsync(); }
+			_openableObservableParent = GetParent();
+			RegisterParentHandlers();
+		}
+
+		private OpenableObservableControl GetParent()
+		{
+			var parent0 = VisualTreeHelper.GetParent(this);
+			while (parent0 != null && !(parent0 is OpenableObservableControl))
+			{
+				var parent1 = VisualTreeHelper.GetParent(parent0);
+				parent0 = parent1;
+			}
+			return parent0 as OpenableObservableControl;
 		}
 
 		private void OnUnloaded(object sender, RoutedEventArgs e)
 		{
 			_isLoaded = false;
 			if (OpenCloseWhenLoadedUnloaded) { Task close = CloseAsync(); }
+			UnregisterParentHandlers(_openableObservableParent);
 		}
 
 		private void OnOpenableObservableParent_Closing(object sender, EventArgs e)
@@ -346,14 +363,18 @@ namespace UniFiler10.Controlz
 			return false;
 		}
 
-		protected async Task RunFunctionWhileOpenAsyncA(Action func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
 		{
 			if (_isOpen && IsEnabled)
 			{
 				try
 				{
 					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-					if (_isOpen && IsEnabled) func();
+					if (_isOpen && IsEnabled)
+					{
+						func();
+						return true;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -365,6 +386,7 @@ namespace UniFiler10.Controlz
 					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
 				}
 			}
+			return false;
 		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
 		{
@@ -387,14 +409,18 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
 		{
 			if (_isOpen && IsEnabled)
 			{
 				try
 				{
 					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-					if (_isOpen && IsEnabled) await funcAsync().ConfigureAwait(false);
+					if (_isOpen && IsEnabled)
+					{
+						await funcAsync().ConfigureAwait(false);
+						return true;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -406,6 +432,7 @@ namespace UniFiler10.Controlz
 					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
 				}
 			}
+			return false;
 		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
 		{
@@ -429,45 +456,5 @@ namespace UniFiler10.Controlz
 			return false;
 		}
 		#endregion while open
-	}
-
-
-	public class DisposeTest : IDisposable
-	{
-
-		#region IDisposable Support
-		private bool isDisposed = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!isDisposed)
-			{
-				if (disposing)
-				{
-					// TODO: dispose managed state (managed objects).
-				}
-
-				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-				// TODO: set large fields to null.
-
-				isDisposed = true;
-			}
-		}
-
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~DisposeTest() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
-		}
-		#endregion
 	}
 }

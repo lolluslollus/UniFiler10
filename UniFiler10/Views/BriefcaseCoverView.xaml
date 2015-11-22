@@ -137,29 +137,6 @@
 							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
-
-				<!--<Button 
-                    Tapped="OnBackButton_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Back"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
-						<TextBlock Grid.Column="2" x:Uid="Back"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>-->
 			</VariableSizedWrapGrid>
 
 			<!-- fields to add new binder -->
@@ -174,6 +151,7 @@
 					<ctl:LolloTextBox
 						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
 						Style="{StaticResource LolloTextBoxStyle}"
+						BorderThickness="0"
 						MaxLength="{StaticResource MaxDbNameLength}"
 						Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"
 						MinHeight="{StaticResource LandscapeItemHeight}"

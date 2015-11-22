@@ -296,7 +296,7 @@ namespace UniFiler10.Views
 		//				var renderOptions = GetPdfRenderOptions(pdfPage);
 		//				if (renderOptions != null)
 		//				{
-		//					IsMultiPage = pdfDocument.PageCount > 1; // LOLLO TODO maybe deal with multi pages with tiff too ?
+		//					IsMultiPage = pdfDocument.PageCount > 1;
 		//					using (var stream = new InMemoryRandomAccessStream())
 		//					{
 		//						await pdfPage.RenderToStreamAsync(stream, renderOptions).AsTask().ConfigureAwait(false);

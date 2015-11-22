@@ -6,33 +6,65 @@ using System.Threading.Tasks;
 using Windows.Foundation.Metadata;
 using Windows.Phone.UI.Input;
 using Windows.UI.Core;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.Controlz
 {
 	public abstract class BackableOpenableObservableControl : OpenableObservableControl
 	{
+		// LOLLO NOTE test what happens when back is pressed and a backable control is hosted in another backable control: 
+		// which one responds first? The host! So a backable control is designed to ignore back pressed, if any backable children are registered. 
+		// LOLLO TODO check the hardware back button as well!
+
 		private bool _isBackHandlersRegistered = false;
 
 		private bool _isBackButtonAvailable = false;
 		public bool IsBackButtonAvailable { get { return _isBackButtonAvailable; } private set { _isBackButtonAvailable = value; RaisePropertyChanged_UI(); } }
+
+		private BackableOpenableObservableControl _backableParent = null;
+		private List<BackableOpenableObservableControl> _backableChildren = new List<BackableOpenableObservableControl>();
+		public void AddBackableChild(BackableOpenableObservableControl child)
+		{
+			if (!_backableChildren.Contains(child)) _backableChildren.Add(child);
+		}
+		public void RemoveBackableChild(BackableOpenableObservableControl child)
+		{
+			_backableChildren.Remove(child);
+		}
+
+
+		#region construct open close
+		public BackableOpenableObservableControl()
+		{
+			Loaded += OnLoaded;
+			Unloaded += OnUnloaded;
+		}
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
-			RegisterBackEventHandlers();
-			await Task.CompletedTask;
-			return true;
+			if (await base.OpenMayOverrideAsync().ConfigureAwait(false))
+			{
+				RegisterBackEventHandlers();
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
-		protected override Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync()
 		{
+			await base.CloseMayOverrideAsync().ConfigureAwait(false);
 			UnregisterBackEventHandlers();
-			return Task.CompletedTask;
 		}
-		/// <summary>
-		/// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
-		/// </summary>
-		protected void RegisterBackEventHandlers()
+		#endregion construct open close
+
+
+		#region event helpers
+		private void RegisterBackEventHandlers()
 		{
-			RunInUiThread(delegate 
+			RunInUiThread(delegate
 			{
 				if (!_isBackHandlersRegistered)
 				{
@@ -44,16 +76,11 @@ namespace UniFiler10.Controlz
 						IsBackButtonAvailable = true;
 					}
 					SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
-					IsBackButtonAvailable = SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility == AppViewBackButtonVisibility.Visible;
-					//_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
+					if (!_isBackButtonAvailable) IsBackButtonAvailable = SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility == AppViewBackButtonVisibility.Visible;
 				}
 			});
 		}
-
-		/// <summary>
-		/// Unregisters event handlers for hardware buttons and orientation sensors
-		/// </summary>
-		protected void UnregisterBackEventHandlers()
+		private void UnregisterBackEventHandlers()
 		{
 			RunInUiThread(delegate
 			{
@@ -64,29 +91,69 @@ namespace UniFiler10.Controlz
 				}
 				SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 
-				//_systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
-
 				_isBackHandlersRegistered = false;
 			});
 		}
+		#endregion event helpers
 
-		public void OnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+
+		#region event handlers
+		private void OnLoaded(object sender, RoutedEventArgs e)
 		{
-			e.Handled = true;
-			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
+			_backableParent = GetParent();
+			_backableParent?.AddBackableChild(this);
 		}
-		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
+		private BackableOpenableObservableControl GetParent()
 		{
-			e.Handled = true;
-			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
+			var parent0 = VisualTreeHelper.GetParent(this);
+			while (parent0 != null && !(parent0 is BackableOpenableObservableControl))
+			{
+				var parent1 = VisualTreeHelper.GetParent(parent0);
+				parent0 = parent1;
+			}
+			return parent0 as BackableOpenableObservableControl;
 		}
-		private void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
+		private void OnUnloaded(object sender, RoutedEventArgs e)
 		{
-			e.Handled = true; 
-			// LOLLO TODO test what happens when back is pressed and a backable control is hosted in another backable control: 
-			// which one responds first?
-			Task back = RunFunctionWhileOpenAsyncA(GoBackMustOverride);
+			_backableParent?.RemoveBackableChild(this);
+		}
+
+		public async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e) // this method is public so XAML can see it
+		{
+			if (!e.Handled) e.Handled = await GoBack();
+		}
+		private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
+		{
+			if (!e.Handled) e.Handled = await GoBack();
+		}
+		private async void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
+		{
+			if (!e.Handled) e.Handled = await GoBack();
+		}
+		#endregion event handlers
+
+
+		#region go back
+		/// <summary>
+		/// Returns true if it goes back or a child went back
+		/// </summary>
+		/// <returns></returns>
+		protected async Task<bool> GoBack()
+		{
+			if (_backableChildren.Count <= 0)
+			{
+				return await RunFunctionWhileOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
+			}
+			else
+			{
+				foreach (var child in _backableChildren)
+				{
+					if (await child.GoBack()) return true;
+				}
+				return await RunFunctionWhileOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
+			}
 		}
 		protected abstract void GoBackMustOverride();
+		#endregion go back
 	}
 }

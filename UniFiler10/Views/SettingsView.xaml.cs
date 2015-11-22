@@ -47,12 +47,12 @@ namespace UniFiler10.Views
 		public SettingsView()
 		{
 			OpenCloseWhenLoadedUnloaded = false;
-			InitializeComponent();			
+			InitializeComponent();
 		}
 		protected override async Task<bool> OpenMayOverrideAsync()
 		{
 			var mb = DataContext as MetaBriefcase;
-			if (mb != null && !mb.IsDisposed)
+			if (await base.OpenMayOverrideAsync() && mb != null && !mb.IsDisposed)
 			{
 				if (_vm == null || _vm.MetaBriefcase != mb)
 				{
@@ -61,23 +61,19 @@ namespace UniFiler10.Views
 
 					MBView.DataContext = DataContext;
 				}
-
-				//RegisterBackEventHandlers();
-
 				return true;
 			}
 			else
 			{
-				await Task.CompletedTask;
 				return false;
 			}
 		}
-		protected override Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync()
 		{
-			//UnregisterBackEventHandlers();
+			await base.CloseMayOverrideAsync();
+
 			_vm?.Dispose();
 			VM = null;
-			return Task.CompletedTask;
 		}
 
 		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);

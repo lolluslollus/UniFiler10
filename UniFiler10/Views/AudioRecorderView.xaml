@@ -37,7 +37,7 @@
 
             <Button
 				Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
-				Tapped="OnBackButton_Tapped">
+				Tapped="OnOwnBackButton_Tapped">
                 <Viewbox MaxHeight="60" MaxWidth="60">
                     <StackPanel Orientation="Vertical">
                         <SymbolIcon Symbol="Back"/>
