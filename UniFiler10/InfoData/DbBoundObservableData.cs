@@ -42,12 +42,13 @@ namespace UniFiler10.Data.Model
 			set
 			{
 				string newValue = value ?? DEFAULT_ID;
-				SetProperty(newValue);
+				SetProperty(ref _parentId, newValue);
 				// if (_parentId != newValue) { _parentId = newValue; RaisePropertyChanged_UI(); /*Task upd = UpdateDbAsync();*/ }
 			}
 		}
-
-		protected async void SetProperty(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
+		// LOLLO TODO the following are various experiments with SetProperty
+		// Atomicity bugs maybe? Also try inserting a big delay and see what happens. A semaphore may fix it.
+		protected async void SetProperty1(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
 		{
 			string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
 			var fieldInfo = GetType().GetField(attributeName);
@@ -57,16 +58,73 @@ namespace UniFiler10.Data.Model
 			{
 				fieldInfo.SetValue(this, newValue);
 
-				await RunFunctionWhileOpenAsyncA_MT(delegate
+				await RunFunctionWhileOpenAsyncA_MT(async delegate
 				{
 					if (UpdateDbMustOverride() == false)
 					{
 						fieldInfo.SetValue(this, oldValue);
+						await Logger.AddAsync(GetType().ToString() + "." + propertyName + " could not be set", Logger.ForegroundLogFilename).ConfigureAwait(false);
 					}
 				});
 				RaisePropertyChanged_UI(propertyName);
 			}
 		}
+
+		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
+		{
+			T oldValue = fldValue;
+			if (!newValue.Equals(oldValue) || !onlyIfDifferent)
+			{
+				fldValue = newValue;
+				RaisePropertyChanged_UI(propertyName);
+
+				Task db = RunFunctionWhileOpenAsyncA_MT(async delegate
+				{
+					if (UpdateDbMustOverride() == false)
+					{
+						//string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
+						//GetType().GetField(attributeName)?.SetValue(this, oldValue);
+						//RaisePropertyChanged_UI(propertyName);
+						await Logger.AddAsync(GetType().ToString() + "." + propertyName + " could not be set", Logger.ForegroundLogFilename).ConfigureAwait(false);
+					}
+				});
+			}
+		}
+
+		//protected Task SetProperty4(ref object fldValue, object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
+		//{
+		//	object oldValue = fldValue;
+		//	if (newValue != oldValue || !onlyIfDifferent)
+		//	{
+		//		fldValue = newValue;
+
+		//		if (_isOpen && _isEnabled)
+		//		{
+		//			try
+		//			{
+		//				_isOpenSemaphore.Wait(); //.ConfigureAwait(false);
+		//				if (_isOpen && _isEnabled)
+		//				{
+		//					if (UpdateDbMustOverride() == false)
+		//					{
+		//						fldValue = oldValue;
+		//					}
+		//				}
+		//			}
+		//			catch (Exception ex)
+		//			{
+		//				if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		//					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//			}
+		//			finally
+		//			{
+		//				SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+		//			}
+		//		}
+		//		RaisePropertyChanged_UI(propertyName);
+		//	}
+		//	return Task.CompletedTask;
+		//}
 		#endregion properties
 
 		#region construct and dispose

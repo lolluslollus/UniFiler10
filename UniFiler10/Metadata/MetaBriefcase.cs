@@ -20,7 +20,7 @@ namespace UniFiler10.Data.Metadata
         #region properties
         private static volatile MetaBriefcase _instance = null;
         [IgnoreDataMember]
-        public static MetaBriefcase OpenInstance { get { if (_instance != null && _instance._isOpen) return _instance; else return null; } }
+        public static MetaBriefcase OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
 
         //private bool _isEditingCategories = true;
         //[DataMember]

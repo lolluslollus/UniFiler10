@@ -86,14 +86,14 @@ namespace UniFiler10.Views
 
 		public AudioRecorderView()
 		{
-			OpenCloseWhenLoadedUnloaded = true;
+			//TriggerOpenCloseWhenLoadedUnloaded = true;
 			IsEnabled = false;
 			InitializeComponent();
 		}
 
-		protected override async Task<bool> OpenMayOverrideAsync()
+		protected override async Task<bool> TryOpenMayOverrideAsync()
 		{
-			if (await base.OpenMayOverrideAsync() && VM != null)
+			if (await base.TryOpenMayOverrideAsync() && VM != null)
 			{
 				_audioRecorder = new AudioRecorder(this, VM);
 				await _audioRecorder.OpenAsync();

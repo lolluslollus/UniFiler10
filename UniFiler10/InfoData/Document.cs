@@ -18,11 +18,11 @@ namespace UniFiler10.Data.Model
         #region properties
         public string _uri0 = string.Empty;
         [DataMember]
-        public string Uri0 { get { return _uri0; } set { SetProperty(value); } }
+        public string Uri0 { get { return _uri0; } set { SetProperty(ref _uri0, value); } }
 
 		public bool _isSelected = false;
         [DataMember]
-        public bool IsSelected { get { return _isSelected; } set { SetProperty(value); } }
+        public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value); } }
 		#endregion properties
 
 		protected override bool UpdateDbMustOverride()

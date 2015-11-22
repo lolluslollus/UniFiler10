@@ -41,7 +41,7 @@ namespace UniFiler10.Views
 		#region construct, dispose, open, close
 		public BriefcaseCoverView()
 		{
-			//OpenCloseWhenLoadedUnloaded = false;
+			//TriggerOpenCloseWhenLoadedUnloaded = false;
 			InitializeComponent();
 		}
 

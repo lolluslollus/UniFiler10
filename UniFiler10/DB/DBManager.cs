@@ -305,11 +305,12 @@ namespace UniFiler10.Data.DB
 		}
 		internal async Task<bool> DeleteFromDynamicCategoriesAsync(DynamicCategory cat, List<string> deletedFieldDescriptionIds)
 		{
+			if (cat == null) return true;
 			bool result = false;
 			try
 			{
 				deletedFieldDescriptionIds.Clear();
-				result = await LolloSQLiteConnectionMT.DeleteAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, cat, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+				result = await LolloSQLiteConnectionMT.DeleteAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, cat.Id, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 				// delete the dynamic fields owned by this category unless they are owned by another category
 				if (result)
 				{
@@ -332,7 +333,7 @@ namespace UniFiler10.Data.DB
 					var dynamicFieldsInCurrentFolder = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicField), cat.ParentId).ConfigureAwait(false);
 					foreach (var fieldToDelete in dynamicFieldsInCurrentFolder.Where(a => a?.FieldDescriptionId != null && !otherFieldDescrIds.Contains(a.FieldDescriptionId)))
 					{
-						if (await LolloSQLiteConnectionMT.DeleteAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, fieldToDelete, _dynamicFieldsSemaphore).ConfigureAwait(false))
+						if (await LolloSQLiteConnectionMT.DeleteAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, fieldToDelete.Id, _dynamicFieldsSemaphore).ConfigureAwait(false))
 						{
 							deletedFieldDescriptionIds.Add(fieldToDelete.FieldDescriptionId);
 						}
@@ -347,10 +348,11 @@ namespace UniFiler10.Data.DB
 		}
 		internal async Task<bool> DeleteFromDynamicFieldsAsync(DynamicField fld)
 		{
+			if (fld == null) return true;
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, fld, _dynamicFieldsSemaphore).ConfigureAwait(false);
+				result = await LolloSQLiteConnectionMT.DeleteAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, fld.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -551,12 +553,13 @@ namespace UniFiler10.Data.DB
 			return folders;
 		}
 
-		internal async Task<bool> DeleteFromDocumentsAsync(Document record)
+		internal async Task<bool> DeleteFromDocumentsAsync(Document doc)
 		{
+			if (doc == null) return true;
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, record, _documentsSemaphore).ConfigureAwait(false);
+				result = await LolloSQLiteConnectionMT.DeleteAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, doc.Id, _documentsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -565,13 +568,19 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<bool> DeleteFromWalletsAsync(Wallet record)
-		{
+		internal async Task<bool> DeleteFromWalletsAsync(Wallet wallet)
+		{// LOLLO TODO check this DeleteFrom... methods
+			if (wallet == null) return true;
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, record, _walletsSemaphore).ConfigureAwait(false);
-				result = result & await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), record.Id).ConfigureAwait(false);
+				result = await LolloSQLiteConnectionMT.DeleteAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, wallet.Id, _walletsSemaphore).ConfigureAwait(false);
+				if (!result)
+				{
+					var nonDeletedObj = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, wallet.Id).ConfigureAwait(false);
+					if (nonDeletedObj == null) result = true;
+				}
+				await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -581,11 +590,11 @@ namespace UniFiler10.Data.DB
 		}
 		internal async Task<bool> DeleteFromFoldersAsync(Folder folder)
 		{
+			if (folder == null) return true;
 			bool result = false;
 			try
 			{
-				// TODO maybe add a new method to delete multiple records with any of the IDs, which are passed in an array
-				result = await LolloSQLiteConnectionMT.DeleteAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, folder, _foldersSemaphore).ConfigureAwait(false);
+				result = await LolloSQLiteConnectionMT.DeleteAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, folder.Id, _foldersSemaphore).ConfigureAwait(false);
 				if (result)
 				{
 					var wallets = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
@@ -907,20 +916,22 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<bool> DeleteAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static Task<bool> DeleteAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				return Task.Run(() =>
 				{
-					return Delete<T>(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
+					return Delete<T>(dbPath, openFlags, storeDateTimeAsTicks, primaryKey, semaphore);
 				});
 			}
-			public static bool Delete<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+			public static bool Delete<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
 			{
 				if (!_isOpen) return false;
 
 				bool result = false;
 				try
 				{
+					object pk_mt = primaryKey;
+
 					semaphore.Wait();
 					if (_isOpen)
 					{
@@ -933,14 +944,17 @@ namespace UniFiler10.Data.DB
 						//    }
 						//}
 
-						object item_mt = item;
 						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
 						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
 						try
 						{
 							int aResult = conn.CreateTable(typeof(T));
-							int deleteResult = conn.Delete(item_mt);
+							int deleteResult = conn.Delete<T>(pk_mt);
 							result = (deleteResult > 0);
+							if (!result)
+							{
+								if (conn.Get<T>(pk_mt) == null) result = true;
+							}
 						}
 						finally
 						{

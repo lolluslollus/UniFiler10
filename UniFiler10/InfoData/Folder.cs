@@ -33,43 +33,43 @@ namespace UniFiler10.Data.Model
 
 		public string _name = string.Empty;
 		[DataMember]					 
-		public string Name { get { return _name; } set { SetProperty(value); } }
+		public string Name { get { return _name; } set { SetProperty(ref _name, value); } }
 
 		public string _descr0 = string.Empty;
 		[DataMember]
-		public string Descr0 { get { return _descr0; } set { SetProperty(value); } }
+		public string Descr0 { get { return _descr0; } set { SetProperty(ref _descr0, value); } }
 
 		public string _descr1 = string.Empty;
 		[DataMember]
-		public string Descr1 { get { return _descr1; } set { SetProperty(value); } }
+		public string Descr1 { get { return _descr1; } set { SetProperty(ref _descr1, value); } }
 
 		public string _descr2 = string.Empty;
 		[DataMember]
-		public string Descr2 { get { return _descr2; } set { SetProperty(value); } }
+		public string Descr2 { get { return _descr2; } set { SetProperty(ref _descr2, value); } }
 
 		public string _descr3 = string.Empty;
 		[DataMember]
-		public string Descr3 { get { return _descr3; } set { SetProperty(value); } }
+		public string Descr3 { get { return _descr3; } set { SetProperty(ref _descr3, value); } }
 
 		public DateTime _dateCreated = default(DateTime);
 		[DataMember]
-		public DateTime DateCreated { get { return _dateCreated; } set { SetProperty(value); } }
+		public DateTime DateCreated { get { return _dateCreated; } set { SetProperty(ref _dateCreated, value); } }
 
 		public DateTime _date0 = default(DateTime);
 		[DataMember]
-		public DateTime Date0 { get { return _date0; } set { SetProperty(value); } }
+		public DateTime Date0 { get { return _date0; } set { SetProperty(ref _date0, value); } }
 
 		public DateTime _date1 = default(DateTime);
 		[DataMember]
-		public DateTime Date1 { get { return _date1; } set { SetProperty(value); } }
+		public DateTime Date1 { get { return _date1; } set { SetProperty(ref _date1, value); } }
 
 		public DateTime _date2 = default(DateTime);
 		[DataMember]
-		public DateTime Date2 { get { return _date2; } set { SetProperty(value); } }
+		public DateTime Date2 { get { return _date2; } set { SetProperty(ref _date2, value); } }
 
 		public DateTime _date3 = default(DateTime);
 		[DataMember]
-		public DateTime Date3 { get { return _date3; } set { SetProperty(value); } }
+		public DateTime Date3 { get { return _date3; } set { SetProperty(ref _date3, value); } }
 
 		private SwitchableObservableCollection<Wallet> _wallets = new SwitchableObservableCollection<Wallet>();
 		[IgnoreDataMember]
@@ -78,11 +78,11 @@ namespace UniFiler10.Data.Model
 
 		public bool _isSelected = false;
 		[DataMember]
-		public bool IsSelected { get { return _isSelected; } set { SetProperty(value); } }
+		public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value); } }
 
 		public bool _isEditingCategories = true;
 		[DataMember]
-		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetProperty(value); } }
+		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetProperty(ref _isEditingCategories, value); } }
 		#endregion properties
 
 		protected override bool UpdateDbMustOverride()
@@ -143,19 +143,19 @@ namespace UniFiler10.Data.Model
 			// populate my collections
 			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
 			{
-				Wallets.Clear();
-				Wallets.AddRange(wallets);
-				foreach (var wallet in Wallets)
+				_wallets.Clear();
+				_wallets.AddRange(wallets);
+				foreach (var wallet in _wallets)
 				{
 					wallet.Documents.Clear();
 					wallet.Documents.AddRange(documents.Where(a => a.ParentId == wallet.Id));
 				}
 
-				DynamicFields.Clear();
-				DynamicFields.AddRange(dynamicFields);
+				_dynamicFields.Clear();
+				_dynamicFields.AddRange(dynamicFields);
 
-				DynamicCategories.Clear();
-				DynamicCategories.AddRange(dynamicCategories);
+				_dynamicCategories.Clear();
+				_dynamicCategories.AddRange(dynamicCategories);
 			}).AsTask().ConfigureAwait(false);
 
 			// refresh dynamic categories and fields if something changed in the metadata since the last save

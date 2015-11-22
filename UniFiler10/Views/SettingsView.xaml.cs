@@ -46,13 +46,13 @@ namespace UniFiler10.Views
 		#region construct dispose open close
 		public SettingsView()
 		{
-			OpenCloseWhenLoadedUnloaded = false;
+			//TriggerOpenCloseWhenLoadedUnloaded = false;
 			InitializeComponent();
 		}
-		protected override async Task<bool> OpenMayOverrideAsync()
+		protected override async Task<bool> TryOpenMayOverrideAsync()
 		{
 			var mb = DataContext as MetaBriefcase;
-			if (await base.OpenMayOverrideAsync() && mb != null && !mb.IsDisposed)
+			if (await base.TryOpenMayOverrideAsync() && mb != null && !mb.IsDisposed)
 			{
 				if (_vm == null || _vm.MetaBriefcase != mb)
 				{

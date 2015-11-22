@@ -26,20 +26,21 @@ namespace UniFiler10.Controlz
 
 
 		#region properties
-		public bool OpenCloseWhenLoadedUnloaded
-		{
-			get { return (bool)GetValue(OpenCloseWhenLoadedUnloadedProperty); }
-			set { SetValue(OpenCloseWhenLoadedUnloadedProperty, value); }
-		}
-		public static readonly DependencyProperty OpenCloseWhenLoadedUnloadedProperty =
-			DependencyProperty.Register("OpenCloseWhenLoadedUnloaded", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
-		public bool OpenCloseWhenVisibleCollapsed
-		{
-			get { return (bool)GetValue(OpenCloseWhenVisibleCollapsedProperty); }
-			set { SetValue(OpenCloseWhenVisibleCollapsedProperty, value); }
-		}
-		public static readonly DependencyProperty OpenCloseWhenVisibleCollapsedProperty =
-			DependencyProperty.Register("OpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+		//public bool TriggerOpenCloseWhenLoadedUnloaded
+		//{
+		//	get { return (bool)GetValue(TriggerOpenCloseWhenLoadedUnloadedProperty); }
+		//	set { SetValue(TriggerOpenCloseWhenLoadedUnloadedProperty, value); }
+		//}
+		//public static readonly DependencyProperty TriggerOpenCloseWhenLoadedUnloadedProperty =
+		//	DependencyProperty.Register("TriggerOpenCloseWhenLoadedUnloaded", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+		//public bool TriggerOpenCloseWhenVisibleCollapsed
+		//{
+		//	get { return (bool)GetValue(TriggerOpenCloseWhenVisibleCollapsedProperty); }
+		//	set { SetValue(TriggerOpenCloseWhenVisibleCollapsedProperty, value); }
+		//}
+		//public static readonly DependencyProperty TriggerOpenCloseWhenVisibleCollapsedProperty =
+		//	DependencyProperty.Register("TriggerOpenCloseWhenVisibleCollapsed", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true));
+
 		/// <summary>
 		/// If the parent is made invisible, the child is not necessarily made invisible, so CloseAsync() may not fire.
 		/// Use this property on a child to make it open and close, whenever the parent does.
@@ -70,11 +71,8 @@ namespace UniFiler10.Controlz
 		private long _visibilityChangedToken = default(long);
 		public OpenableObservableControl()
 		{
-			RegisterApplicationHandlers();
 			Loaded += OnLoaded;
 			Unloaded += OnUnloaded;
-
-			//RegisterParentHandlers();
 			_visibilityChangedToken = RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
 		}
 		// LOLLO NOTE check the interaction behaviour at http://stackoverflow.com/questions/502761/disposing-wpf-user-controls if you really want to make this disposable.
@@ -132,19 +130,19 @@ namespace UniFiler10.Controlz
 		private bool _isParentHandlersRegistered = false;
 		private void RegisterParentHandlers()
 		{
-			if (!_isParentHandlersRegistered && _openableObservableParent != null)
+			var parent = _openableObservableParent;
+			if (!_isParentHandlersRegistered && parent != null)
 			{
 				_isParentHandlersRegistered = true;
-				// OpenableObservableParent.RegisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
-				_openableObservableParent.Opened += OnOpenableObservableParent_Opened;
-				_openableObservableParent.Closing += OnOpenableObservableParent_Closing;
+				parent.Opened += OnOpenableObservableParent_Opened;
+				parent.Closing += OnOpenableObservableParent_Closing;
 			}
 		}
-		private void UnregisterParentHandlers(OpenableObservableControl parent)
+		private void UnregisterParentHandlers()
 		{
+			var parent = _openableObservableParent;
 			if (parent != null)
 			{
-				// parent.UnregisterPropertyChangedCallback(VisibilityProperty, this.OnParentVisibilityChanged);
 				parent.Opened -= OnOpenableObservableParent_Opened;
 				parent.Closing -= OnOpenableObservableParent_Closing;
 				_isParentHandlersRegistered = false;
@@ -164,16 +162,18 @@ namespace UniFiler10.Controlz
 
 		private async void OnResuming(object sender, object o)
 		{
-			//if (_isLoaded) await TryOpenAsync().ConfigureAwait(false);
 			if (_isOpenBeforeSuspending) await TryOpenAsync().ConfigureAwait(false);
 		}
 
 		private void OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_isLoaded = true;
-			if (OpenCloseWhenLoadedUnloaded) { Task open = TryOpenAsync(); }
+
+			RegisterApplicationHandlers();
 			_openableObservableParent = GetParent();
 			RegisterParentHandlers();
+
+			/*if (TriggerOpenCloseWhenLoadedUnloaded) { */Task open = TryOpenAsync(); /*}*/
 		}
 
 		private OpenableObservableControl GetParent()
@@ -190,8 +190,11 @@ namespace UniFiler10.Controlz
 		private void OnUnloaded(object sender, RoutedEventArgs e)
 		{
 			_isLoaded = false;
-			if (OpenCloseWhenLoadedUnloaded) { Task close = CloseAsync(); }
-			UnregisterParentHandlers(_openableObservableParent);
+
+			/*if (TriggerOpenCloseWhenLoadedUnloaded) { */Task close = CloseAsync();/* }*/
+
+			UnregisterApplicationHandlers();
+			UnregisterParentHandlers();
 		}
 
 		private void OnOpenableObservableParent_Closing(object sender, EventArgs e)
@@ -213,7 +216,7 @@ namespace UniFiler10.Controlz
 		//private void OnParentVisibilityChanged(DependencyObject obj, DependencyProperty prop)
 		//{
 		//	OpenableObservableControl parent = obj as OpenableObservableControl;
-		//	if (OpenCloseWhenVisibleCollapsed)
+		//	if (TriggerOpenCloseWhenVisibleCollapsed)
 		//	{
 		//		if (parent.Visibility == Visibility.Collapsed)
 		//		{
@@ -228,7 +231,7 @@ namespace UniFiler10.Controlz
 		private static void OnVisibilityChanged(DependencyObject obj, DependencyProperty prop)
 		{
 			OpenableObservableControl instance = obj as OpenableObservableControl;
-			if (instance != null && instance.OpenCloseWhenVisibleCollapsed)
+			if (instance != null/* && instance.TriggerOpenCloseWhenVisibleCollapsed*/)
 			{
 				if (instance.Visibility == Visibility.Collapsed)
 				{
@@ -259,9 +262,10 @@ namespace UniFiler10.Controlz
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						if ((Visibility == Visibility.Visible || !OpenCloseWhenVisibleCollapsed) && (_isLoaded || !OpenCloseWhenLoadedUnloaded))
+						//if ((Visibility == Visibility.Visible || !TriggerOpenCloseWhenVisibleCollapsed) && (_isLoaded || !TriggerOpenCloseWhenLoadedUnloaded))
+						if (Visibility == Visibility.Visible && _isLoaded)
 						{
-							if (await OpenMayOverrideAsync().ConfigureAwait(false))
+							if (await TryOpenMayOverrideAsync().ConfigureAwait(false))
 							{
 								IsOpen = true;
 								if (enable) RunInUiThread(delegate { IsEnabled = true; });
@@ -271,10 +275,7 @@ namespace UniFiler10.Controlz
 						}
 						else
 						{
-							if (GetType() != typeof(AudioRecorderView))
-							{
-								// await Logger.AddAsync("TryOpenAsync() called when the control is collapsed or unloaded", Logger.ForegroundLogFilename).ConfigureAwait(false);
-							}
+							// await Logger.AddAsync("TryOpenAsync() called when the control is collapsed or unloaded", Logger.ForegroundLogFilename).ConfigureAwait(false);
 						}
 					}
 				}
@@ -292,7 +293,7 @@ namespace UniFiler10.Controlz
 			return false;
 		}
 
-		protected virtual async Task<bool> OpenMayOverrideAsync()
+		protected virtual async Task<bool> TryOpenMayOverrideAsync()
 		{
 			await Task.CompletedTask; // avoid warning
 			return true;

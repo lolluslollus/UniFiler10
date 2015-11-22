@@ -560,23 +560,13 @@ namespace UniFiler10.ViewModels
 				foreach (Folder fol in e.OldItems)
 				{
 					UnregisterFolderChanged(fol);
-					Debug.WriteLine("_isAllFoldersDirty = " + _isAllFoldersDirty);
-					Debug.WriteLine("_isRecentFoldersDirty = " + _isRecentFoldersDirty);
 					isDirty = true;
-					Debug.WriteLine("BinderCoverVM caught folder removed");
-					Debug.WriteLine("_isAllFoldersDirty = " + _isAllFoldersDirty);
-					Debug.WriteLine("_isRecentFoldersDirty = " + _isRecentFoldersDirty);
 				}
 			if (e.NewItems != null)
 				foreach (Folder fol in e.NewItems)
 				{
 					RegisterFolderChanged(fol);
-					Debug.WriteLine("_isAllFoldersDirty = " + _isAllFoldersDirty);
-					Debug.WriteLine("_isRecentFoldersDirty = " + _isRecentFoldersDirty);
 					isDirty = true;
-					Debug.WriteLine("BinderCoverVM caught folder added");
-					Debug.WriteLine("_isAllFoldersDirty = " + _isAllFoldersDirty);
-					Debug.WriteLine("_isRecentFoldersDirty = " + _isRecentFoldersDirty);
 				}
 			if (isDirty) SetIsDirty(true);
 		}

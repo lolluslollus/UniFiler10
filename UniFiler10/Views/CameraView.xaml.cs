@@ -70,14 +70,14 @@ namespace UniFiler10.Views
 
         public CameraView()
         {
-            OpenCloseWhenLoadedUnloaded = true;
+            //TriggerOpenCloseWhenLoadedUnloaded = true;
             InitializeComponent();
             VideoButton.Visibility = Visibility.Collapsed;
         }
 
-        protected override async Task<bool> OpenMayOverrideAsync()
+        protected override async Task<bool> TryOpenMayOverrideAsync()
         {
-			if (await base.OpenMayOverrideAsync())
+			if (await base.TryOpenMayOverrideAsync())
 			{
 				await SetupUiAsync();
 				bool isOk = await InitializeCameraAsync().ConfigureAwait(false);

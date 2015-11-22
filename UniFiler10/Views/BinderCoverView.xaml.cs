@@ -38,14 +38,14 @@ namespace UniFiler10.Views
 		#region construct, open, close
 		public BinderCoverView()
 		{
-			OpenCloseWhenLoadedUnloaded = false;
+			//TriggerOpenCloseWhenLoadedUnloaded = false;
 			InitializeComponent();
 		}
 
-		protected override async Task<bool> OpenMayOverrideAsync()
+		protected override async Task<bool> TryOpenMayOverrideAsync()
 		{
 			var binder = DataContext as Data.Model.Binder;
-			if (await base.OpenMayOverrideAsync() && binder != null && !binder.IsDisposed)
+			if (await base.TryOpenMayOverrideAsync() && binder != null && !binder.IsDisposed)
 			{
 				if (_vm == null || _vm.Binder != binder)
 				{

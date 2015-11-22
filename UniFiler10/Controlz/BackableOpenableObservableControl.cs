@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utilz;
 using Windows.Foundation.Metadata;
 using Windows.Phone.UI.Input;
 using Windows.UI.Core;
@@ -23,6 +24,8 @@ namespace UniFiler10.Controlz
 		private bool _isBackButtonAvailable = false;
 		public bool IsBackButtonAvailable { get { return _isBackButtonAvailable; } private set { _isBackButtonAvailable = value; RaisePropertyChanged_UI(); } }
 
+		private static SemaphoreSlimSafeRelease _backHandlerSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+
 		private BackableOpenableObservableControl _backableParent = null;
 		private List<BackableOpenableObservableControl> _backableChildren = new List<BackableOpenableObservableControl>();
 		public void AddBackableChild(BackableOpenableObservableControl child)
@@ -41,9 +44,9 @@ namespace UniFiler10.Controlz
 			Loaded += OnLoaded;
 			Unloaded += OnUnloaded;
 		}
-		protected override async Task<bool> OpenMayOverrideAsync()
+		protected override async Task<bool> TryOpenMayOverrideAsync()
 		{
-			if (await base.OpenMayOverrideAsync().ConfigureAwait(false))
+			if (await base.TryOpenMayOverrideAsync().ConfigureAwait(false))
 			{
 				RegisterBackEventHandlers();
 				return true;
@@ -120,19 +123,43 @@ namespace UniFiler10.Controlz
 
 		public async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e) // this method is public so XAML can see it
 		{
-			if (!e.Handled) e.Handled = await GoBack();
+			try
+			{
+				await _backHandlerSemaphore.WaitAsync();
+				if (!e.Handled) e.Handled = await GoBack();
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_backHandlerSemaphore);
+			}
 		}
 		private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
-			if (!e.Handled) e.Handled = await GoBack();
+			try
+			{
+				await _backHandlerSemaphore.WaitAsync();
+				if (!e.Handled) e.Handled = await GoBack();
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_backHandlerSemaphore);
+			}
 		}
 		private async void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
 		{
-			if (!e.Handled) e.Handled = await GoBack();
+			try
+			{
+				await _backHandlerSemaphore.WaitAsync();
+				if (!e.Handled) e.Handled = await GoBack();
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_backHandlerSemaphore);
+			}
 		}
 		#endregion event handlers
 
-
+		
 		#region go back
 		/// <summary>
 		/// Returns true if it goes back or a child went back

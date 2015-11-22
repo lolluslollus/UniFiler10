@@ -30,17 +30,17 @@ namespace UniFiler10.Data.Model
 				if (newValue != oldValue)
 				{
 					_categoryId = newValue;
+					RaisePropertyChanged_UI();
+					UpdateCategory();
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicCategories(this) == false)
 						{
 							_categoryId = oldValue;
+							RaisePropertyChanged_UI();
+							UpdateCategory();
 						}
-					}).ContinueWith(delegate 
-					{
-						RaisePropertyChanged_UI();
-						UpdateCategory();
 					});
 				}
 				else if (_category == null)
@@ -52,9 +52,9 @@ namespace UniFiler10.Data.Model
 		private void UpdateCategory()
 		{
 			var metaBriefCase = MetaBriefcase.OpenInstance;
-			if (metaBriefCase != null && metaBriefCase.IsOpen && metaBriefCase.Categories != null && !string.IsNullOrEmpty(CategoryId))
+			if (metaBriefCase != null && metaBriefCase.Categories != null && !string.IsNullOrEmpty(_categoryId))
 			{
-				Category = metaBriefCase.Categories.FirstOrDefault(a => a.Id == CategoryId);
+				Category = metaBriefCase.Categories.FirstOrDefault(a => a.Id == _categoryId);
 			}
 			else
 			{
