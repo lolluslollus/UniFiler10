@@ -17,17 +17,18 @@
 		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
 
 		<local:BriefcaseCoverView
+			HorizontalAlignment="Left" VerticalAlignment="Top"
 			Visibility="{x:Bind VM.Briefcase.IsShowingCover, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Visible, Mode=OneWay}"
             VM="{x:Bind VM, Mode=OneWay}"/>
+		<!--DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"-->
 		<local:SettingsView
             HorizontalAlignment="Left" VerticalAlignment="Top"
             Visibility="{x:Bind VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
-            DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"
 			BriefcaseVM="{x:Bind VM, Mode=OneWay}"/>
-		<local:BinderView
+		<local:BriefcaseContentView
             HorizontalAlignment="Left" VerticalAlignment="Top"
             Visibility="{x:Bind VM.Briefcase.IsShowingBinder, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
-            DataContext="{x:Bind VM.Briefcase.CurrentBinder, Mode=OneWay}"/>
-
+            DataContext="{x:Bind VM.Briefcase.CurrentBinder, Mode=OneWay}"
+			BriefcaseVM="{x:Bind VM, Mode=OneWay}"/>
 	</Grid>
 </Page>

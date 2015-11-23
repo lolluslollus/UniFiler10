@@ -169,7 +169,7 @@ namespace UniFiler10.Controlz
 		{
 			if (_backableChildren.Count <= 0)
 			{
-				return await RunFunctionWhileOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
+				return await RunFunctionWhileEnabledAsyncA(GoBackMustOverride).ConfigureAwait(false);
 			}
 			else
 			{
@@ -177,7 +177,7 @@ namespace UniFiler10.Controlz
 				{
 					if (await child.GoBack()) return true;
 				}
-				return await RunFunctionWhileOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
+				return await RunFunctionWhileEnabledAsyncA(GoBackMustOverride).ConfigureAwait(false);
 			}
 		}
 		protected abstract void GoBackMustOverride();

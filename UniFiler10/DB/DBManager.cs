@@ -569,7 +569,7 @@ namespace UniFiler10.Data.DB
 		}
 
 		internal async Task<bool> DeleteFromWalletsAsync(Wallet wallet)
-		{// LOLLO TODO check this DeleteFrom... methods
+		{
 			if (wallet == null) return true;
 			bool result = false;
 			try

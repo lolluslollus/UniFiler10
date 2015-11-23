@@ -22,10 +22,6 @@ namespace UniFiler10.Data.Metadata
         [IgnoreDataMember]
         public static MetaBriefcase OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
 
-        //private bool _isEditingCategories = true;
-        //[DataMember]
-        //public bool IsEditingCategories { get { return _isEditingCategories; } set { if (_isEditingCategories != value) { _isEditingCategories = value; RaisePropertyChanged_UI(); } } }
-
         private string _currentCategoryId = null;
         [DataMember]
         public string CurrentCategoryId
@@ -36,17 +32,17 @@ namespace UniFiler10.Data.Metadata
                 if (_currentCategoryId != value)
                 {
                     _currentCategoryId = value;
-                    RefreshCurrentCategory();
+                    UpdateCurrentCategory();
                     RaisePropertyChanged_UI();
                 }
                 else if (_currentCategory == null)
                 {
-                    RefreshCurrentCategory();
+                    UpdateCurrentCategory();
                 }
             }
         }
 
-        private void RefreshCurrentCategory()
+        private void UpdateCurrentCategory()
         {
             if (_categories != null && _currentCategoryId != null)
             {
@@ -72,16 +68,16 @@ namespace UniFiler10.Data.Metadata
                 if (_currentFieldDescriptionId != value)
                 {
                     _currentFieldDescriptionId = value;
-                    RefreshCurrentFieldDescription();
+                    UpdateCurrentFieldDescription();
                     RaisePropertyChanged_UI();
                 }
                 else if (_currentFieldDescription == null)
                 {
-                    RefreshCurrentFieldDescription();
+                    UpdateCurrentFieldDescription();
                 }
             }
         }
-        private void RefreshCurrentFieldDescription()
+        private void UpdateCurrentFieldDescription()
         {
             if (_fieldDescriptions != null && _currentFieldDescriptionId != null)
             {
@@ -141,71 +137,11 @@ namespace UniFiler10.Data.Metadata
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            await Save2Async().ConfigureAwait(false);
+            await SaveAsync().ConfigureAwait(false);
         }
         #endregion open and close
 
-        //private async Task LoadAsync()
-        //{
-        //    var fieldValue00 = new FieldValue() { Vaalue = "2015" };
-        //    var fieldValue01 = new FieldValue() { Vaalue = "2016" };
-        //    var fieldValue02 = new FieldValue() { Vaalue = "2017" };
 
-        //    var fieldDescription0 = new FieldDescription();
-        //    fieldDescription0.Id = "0";
-        //    fieldDescription0.Caption = "Saldo for year";
-        //    fieldDescription0.PossibleValues = new SwitchableObservableCollection<FieldValue>();
-        //    fieldDescription0.PossibleValues.Add(fieldValue00);
-        //    fieldDescription0.PossibleValues.Add(fieldValue01);
-        //    fieldDescription0.PossibleValues.Add(fieldValue02);
-
-
-        //    var fieldValue10 = new FieldValue() { Vaalue = "Commerzbank" };
-        //    var fieldValue11 = new FieldValue() { Vaalue = "RaboBank" };
-        //    var fieldValue12 = new FieldValue() { Vaalue = "Volksbank" };
-
-        //    var fieldDescription1 = new FieldDescription();
-        //    fieldDescription1.Id = "1";
-        //    fieldDescription1.Caption = "Bank name";
-        //    fieldDescription1.PossibleValues = new SwitchableObservableCollection<FieldValue>();
-        //    fieldDescription1.PossibleValues.Add(fieldValue10);
-        //    fieldDescription1.PossibleValues.Add(fieldValue11);
-        //    fieldDescription1.PossibleValues.Add(fieldValue12);
-
-
-        //    var fieldValue100 = new FieldValue() { Vaalue = "Ming" };
-        //    var fieldValue101 = new FieldValue() { Vaalue = "Chan" };
-        //    var fieldValue102 = new FieldValue() { Vaalue = "Li" };
-
-        //    var fieldDescription2 = new FieldDescription();
-        //    fieldDescription2.Id = "2";
-        //    fieldDescription2.Caption = "Dynasty";
-        //    fieldDescription2.PossibleValues = new SwitchableObservableCollection<FieldValue>();
-        //    fieldDescription2.PossibleValues.Add(fieldValue100);
-        //    fieldDescription2.PossibleValues.Add(fieldValue101);
-        //    fieldDescription2.PossibleValues.Add(fieldValue102);
-
-        //    FieldDescriptions.Add(fieldDescription0);
-        //    FieldDescriptions.Add(fieldDescription1);
-        //    FieldDescriptions.Add(fieldDescription2);
-
-        //    var category0 = new Category();
-        //    category0.Id = "0";
-        //    category0.Name = "Banks";
-        //    category0.FieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
-        //    category0.FieldDescriptions.Add(fieldDescription0);
-        //    category0.FieldDescriptions.Add(fieldDescription1);
-
-        //    var category1 = new Category();
-        //    category1.Id = "1";
-        //    category1.Name = "Vases";
-        //    category1.FieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
-        //    category1.FieldDescriptions.Add(fieldDescription1);
-        //    category1.FieldDescriptions.Add(fieldDescription2);
-
-        //    Categories.Add(category0);
-        //    Categories.Add(category1);
-        //}
         #region loading methods
         private const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
         private async Task LoadAsync()
@@ -256,7 +192,7 @@ namespace UniFiler10.Data.Metadata
 
             Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
         }
-        private async Task Save2Async()
+        public async Task SaveAsync()
         {
             MetaBriefcase metaBriefcaseClone = Clone();
             //for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
@@ -293,8 +229,6 @@ namespace UniFiler10.Data.Metadata
         {
             if (source == null) return false;
 
-            //IsEditingCategories = source.IsEditingCategories;
-
             FieldDescription.Copy(source.FieldDescriptions, FieldDescriptions);
             RaisePropertyChanged_UI(nameof(FieldDescriptions));
             Category.Copy(source.Categories, Categories, FieldDescriptions);
@@ -310,7 +244,6 @@ namespace UniFiler10.Data.Metadata
             // However, they are only called when IsOpen == false, so we are good.
             MetaBriefcase target = new MetaBriefcase();
 
-            //target.IsEditingCategories = _isEditingCategories;
             target.CurrentCategoryId = _currentCategoryId;
             target.CurrentFieldDescriptionId = _currentFieldDescriptionId;
             target.Categories = _categories;
@@ -320,10 +253,11 @@ namespace UniFiler10.Data.Metadata
         }
         #endregion loading methods
 
+
         #region loaded methods
         public Task<bool> AddCategoryAsync()
         {
-            return RunFunctionWhileOpenAsyncB(delegate
+            return RunFunctionWhileEnabledAsyncB(delegate
             {
                 string name = ResourceManager.Current.MainResourceMap
                     .GetValue("Resources/NewCategory/Text", ResourceContext.GetForCurrentView()).ValueAsString;
@@ -339,7 +273,7 @@ namespace UniFiler10.Data.Metadata
         }
         public Task<bool> RemoveCategoryAsync(Category cat)
         {
-            return RunFunctionWhileOpenAsyncB(delegate
+            return RunFunctionWhileEnabledAsyncB(delegate
             {
                 if (cat != null && cat.IsJustAdded)
                 {
@@ -354,7 +288,7 @@ namespace UniFiler10.Data.Metadata
 
         public Task<bool> AddFieldDescriptionAsync()
         {
-            return RunFunctionWhileOpenAsyncB(delegate
+            return RunFunctionWhileEnabledAsyncB(delegate
             {
                 string name = ResourceManager.Current.MainResourceMap
                     .GetValue("Resources/NewFieldDescription/Text", ResourceContext.GetForCurrentView()).ValueAsString;
@@ -371,7 +305,7 @@ namespace UniFiler10.Data.Metadata
 
         public Task<bool> RemoveFieldDescription(FieldDescription fldDesc)
         {
-            return RunFunctionWhileOpenAsyncB(delegate
+            return RunFunctionWhileEnabledAsyncB(delegate
             {
                 if (fldDesc != null && fldDesc.IsJustAdded)
                 {
@@ -383,10 +317,6 @@ namespace UniFiler10.Data.Metadata
                 }
                 else return false;
             });
-        }
-        public Task SaveAsync()
-        {
-            return RunFunctionWhileOpenAsyncT(Save2Async);
         }
         #endregion loaded methods
     }

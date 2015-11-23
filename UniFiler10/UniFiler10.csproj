@@ -111,6 +111,7 @@
     <Compile Include="Controlz\LolloTextBox.cs" />
     <Compile Include="Controlz\ObservableControl.cs" />
     <Compile Include="Controlz\OpenableObservableControl.cs" />
+    <Compile Include="Controlz\ScalingTextBlock.cs" />
     <Compile Include="Controlz\UniversalWrapPanel.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="InfoData\DynamicCategory.cs" />
@@ -173,8 +174,8 @@
     <Compile Include="Views\BriefcasePage.xaml.cs">
       <DependentUpon>BriefcasePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BinderView.xaml.cs">
-      <DependentUpon>BinderView.xaml</DependentUpon>
+    <Compile Include="Views\BriefcaseContentView.xaml.cs">
+      <DependentUpon>BriefcaseContentView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilz\Logger.cs" />
@@ -277,7 +278,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\BinderView.xaml">
+    <Page Include="Views\BriefcaseContentView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

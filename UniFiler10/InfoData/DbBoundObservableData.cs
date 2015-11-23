@@ -48,37 +48,38 @@ namespace UniFiler10.Data.Model
 		}
 		// LOLLO TODO the following are various experiments with SetProperty
 		// Atomicity bugs maybe? Also try inserting a big delay and see what happens. A semaphore may fix it.
-		protected async void SetProperty1(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
-		{
-			string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
-			var fieldInfo = GetType().GetField(attributeName);
+		//protected async void SetProperty1(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
+		//{
+		//	string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
+		//	var fieldInfo = GetType().GetField(attributeName);
 
-			object oldValue = fieldInfo.GetValue(this);
-			if (newValue != oldValue || !onlyIfDifferent)
-			{
-				fieldInfo.SetValue(this, newValue);
+		//	object oldValue = fieldInfo.GetValue(this);
+		//	if (newValue != oldValue || !onlyIfDifferent)
+		//	{
+		//		fieldInfo.SetValue(this, newValue);
 
-				await RunFunctionWhileOpenAsyncA_MT(async delegate
-				{
-					if (UpdateDbMustOverride() == false)
-					{
-						fieldInfo.SetValue(this, oldValue);
-						await Logger.AddAsync(GetType().ToString() + "." + propertyName + " could not be set", Logger.ForegroundLogFilename).ConfigureAwait(false);
-					}
-				});
-				RaisePropertyChanged_UI(propertyName);
-			}
-		}
+		//		await RunFunctionWhileEnabledAsyncA_MT(async delegate
+		//		{
+		//			if (UpdateDbMustOverride() == false)
+		//			{
+		//				fieldInfo.SetValue(this, oldValue);
+		//				await Logger.AddAsync(GetType().ToString() + "." + propertyName + " could not be set", Logger.ForegroundLogFilename).ConfigureAwait(false);
+		//			}
+		//		});
+		//		RaisePropertyChanged_UI(propertyName);
+		//	}
+		//}
 
 		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
 		{
+			// LOLLO TODO if you stick to this, which seems the best, you can make the private sides of the properties private again
 			T oldValue = fldValue;
 			if (!newValue.Equals(oldValue) || !onlyIfDifferent)
 			{
 				fldValue = newValue;
 				RaisePropertyChanged_UI(propertyName);
 
-				Task db = RunFunctionWhileOpenAsyncA_MT(async delegate
+				Task db = RunFunctionWhileEnabledAsyncA_MT(async delegate
 				{
 					if (UpdateDbMustOverride() == false)
 					{

@@ -75,11 +75,6 @@ namespace UniFiler10.Data.Model
 			if (ins != null) output = ins.UpdateWallets(this);
 			return output;
 		}
-		//protected override async Task<bool> UpdateDbMustOverrideAsync()
-  //      {
-  //          if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateWalletsAsync(this).ConfigureAwait(false);
-  //          else return false;
-  //      }
 
         protected override bool IsEqualToMustOverride(DbBoundObservableData that)
         {
@@ -90,17 +85,6 @@ namespace UniFiler10.Data.Model
                 Name == target.Name &&
                 Document.AreEqual(Documents, target.Documents);
         }
-
-        //protected override void CopyMustOverride(ref DbBoundObservableData target)
-        //{
-        //    var tgt = (target as Wallet);
-
-        //    tgt.Date0 = Date0;
-        //    tgt.Descr0 = Descr0;
-        //    tgt.IsSelected = IsSelected;
-        //    tgt.Name = Name;
-        //    tgt.Documents = Documents;
-        //}
 
         protected override bool CheckMeMustOverride()
         {
@@ -130,7 +114,7 @@ namespace UniFiler10.Data.Model
         }
         public Task<bool> AddDocumentAsync(Document doc)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileEnabledAsyncTB(async delegate
             {
                 return await AddDocument2Async(doc).ConfigureAwait(false);
             });
@@ -168,14 +152,14 @@ namespace UniFiler10.Data.Model
         }
         public Task<bool> RemoveDocumentAsync(Document doc)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileEnabledAsyncTB(async delegate
             {
                 return await RemoveDocument2Async(doc).ConfigureAwait(false);
             });
         }
         public Task<bool> RemoveAllDocumentsAsync()
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileEnabledAsyncTB(async delegate
             {
                 bool isOk = true;
                 while (_documents.Count > 0) // do not use foreach to avoid error with enumeration
@@ -189,7 +173,7 @@ namespace UniFiler10.Data.Model
 
         public Task<bool> ImportMediaFileAsync(StorageFile file, bool copyFile)
         {
-            return RunFunctionWhileOpenAsyncTB(async delegate
+            return RunFunctionWhileEnabledAsyncTB(async delegate
             {
                 if (Binder.OpenInstance != null && file != null)
                 {

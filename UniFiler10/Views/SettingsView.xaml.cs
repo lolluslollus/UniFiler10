@@ -39,7 +39,16 @@ namespace UniFiler10.Views
 			set { SetValue(BriefcaseVMProperty, value); }
 		}
 		public static readonly DependencyProperty BriefcaseVMProperty =
-			DependencyProperty.Register("BriefcaseVM", typeof(BriefcaseVM), typeof(SettingsView), new PropertyMetadata(null));
+			DependencyProperty.Register("BriefcaseVM", typeof(BriefcaseVM), typeof(SettingsView), new PropertyMetadata(null, OnBriefcaseVMChanged));
+		private static void OnBriefcaseVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as SettingsView;
+			if (instance != null && args != null && args.NewValue != args.OldValue)
+			{
+				instance.UpdateDataContext();
+				Task upd = instance.UpdateOpenCloseAsync();
+			}
+		}
 		#endregion properties
 
 
@@ -47,12 +56,14 @@ namespace UniFiler10.Views
 		public SettingsView()
 		{
 			//TriggerOpenCloseWhenLoadedUnloaded = false;
+			UpdateDataContext();
 			InitializeComponent();
+			//Task upd = UpdateOpenCloseAsync();
 		}
 		protected override async Task<bool> TryOpenMayOverrideAsync()
 		{
 			var mb = DataContext as MetaBriefcase;
-			if (await base.TryOpenMayOverrideAsync() && mb != null && !mb.IsDisposed)
+			if (mb != null && !mb.IsDisposed && await base.TryOpenMayOverrideAsync())
 			{
 				if (_vm == null || _vm.MetaBriefcase != mb)
 				{
@@ -77,7 +88,16 @@ namespace UniFiler10.Views
 		}
 
 		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		//private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		//{
+		//	Task upd = UpdateOpenCloseAsync();
+		//}
+
+		private void UpdateDataContext()
+		{
+			DataContext = BriefcaseVM?.Briefcase?.MetaBriefcase;
+		}
+		private async Task UpdateOpenCloseAsync()
 		{
 			try
 			{
@@ -99,7 +119,6 @@ namespace UniFiler10.Views
 				SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
 			}
 		}
-
 		//protected override void GoBackMustOverride()
 		//{
 		//	BriefcaseVM?.ShowCover();

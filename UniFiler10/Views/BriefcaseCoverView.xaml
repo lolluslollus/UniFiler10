@@ -42,12 +42,13 @@
 				<RowDefinition/>
 			</Grid.RowDefinitions>
 
+			<!-- animation for refresh -->
 			<Viewbox
-                    Width="{StaticResource LandscapeItemHeight}"
-                    Height="{StaticResource LandscapeItemHeight}"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Stretch="Uniform">
+                Width="{StaticResource LandscapeItemHeight}"
+                Height="{StaticResource LandscapeItemHeight}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Stretch="Uniform">
 				<SymbolIcon x:Name="RefreshIcon" 
                             Symbol="Sync"
                             RenderTransformOrigin=".5, .5" 
@@ -252,7 +253,21 @@
 								<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
 							</Grid.ColumnDefinitions>
 
-							<Viewbox Canvas.ZIndex="200"
+							<ctl:TextBlockScaler Canvas.ZIndex="200"
+                                VerticalAlignment="Bottom" HorizontalAlignment="Center"
+								Padding="{StaticResource Thickness2222}"
+                                Height="{StaticResource MiniatureQuarterHeight}"
+								Width="{StaticResource MiniatureWidth}">
+								<ctl:TextBlockScaler.TextBlock>
+									<TextBlock
+										Text="{Binding}"
+										Foreground="{StaticResource FlashyForeground}" 
+										HorizontalAlignment="Stretch"
+										TextWrapping="Wrap"/>
+									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
+								</ctl:TextBlockScaler.TextBlock>
+							</ctl:TextBlockScaler>
+							<!--<Viewbox Canvas.ZIndex="200"
                                 Stretch="Uniform" StretchDirection="DownOnly"
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
                                 MaxHeight="{StaticResource MiniatureQuarterHeight}">
@@ -262,7 +277,7 @@
                                     HorizontalAlignment="Stretch"
                                     TextWrapping="Wrap"
                                     MaxWidth="{StaticResource MiniatureWidth}"/>
-							</Viewbox>
+							</Viewbox>-->
 
 							<Border Height="{StaticResource MiniatureHeight}"
 								Width="{StaticResource MiniatureWidth}"

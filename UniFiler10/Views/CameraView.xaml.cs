@@ -167,17 +167,17 @@ namespace UniFiler10.Views
 
         private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
+            await RunFunctionWhileEnabledAsyncT(TakePhotoAsync).ConfigureAwait(false);
         }
 
         private async void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
         {
-            await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
+            await RunFunctionWhileEnabledAsyncT(TakePhotoAsync).ConfigureAwait(false);
         }
 
         private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await RunFunctionWhileOpenAsyncT(async delegate
+            await RunFunctionWhileEnabledAsyncT(async delegate
             {
                 if (!_isRecordingVideo)
                 {
@@ -211,18 +211,6 @@ namespace UniFiler10.Views
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
         }
 
-        //private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
-        //{
-        //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        //}
-        //private async void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-        //{
-        //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        //}
-        //private async void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
-        //{
-        //    await RunFunctionWhileOpenAsyncA(CloseMe).ConfigureAwait(false);
-        //}
         protected override void GoBackMustOverride()
         {
 			var vm = VM; if (vm == null) return;

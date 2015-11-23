@@ -77,7 +77,9 @@ namespace UniFiler10.Data.Model
 
 			await LoadNonDbPropertiesAsync().ConfigureAwait(false);
 			await LoadFoldersWithoutContentAsync().ConfigureAwait(false);
-			await UpdateCurrentFolder2Async().ConfigureAwait(false);
+
+			_runAsSoonAsOpen = delegate { return UpdateCurrentFolderAsync(); };
+			//await UpdateCurrentFolder2Async().ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
@@ -156,7 +158,7 @@ namespace UniFiler10.Data.Model
 				{
 					item.IsSelected = false;
 				}
-				if (_folders != null && _currentFolderId != null)
+				if (_currentFolderId != null)
 				{
 					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
 					if (_currentFolder != null) await _currentFolder.SetIsEnabledAsync(false).ConfigureAwait(false);
@@ -169,20 +171,20 @@ namespace UniFiler10.Data.Model
 				}
 				if (_currentFolder != null)
 				{
-					await _currentFolder.OpenAsync(_dbManager).ConfigureAwait(false);
-					_currentFolder.IsSelected = true;
-					RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
+					await _currentFolder.OpenAsync().ConfigureAwait(false);
+					_currentFolder.IsSelected = true;					
 				}
+				RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
 			}
 		}
 		private Task UpdateCurrentFolderAsync()
 		{
-			return RunFunctionWhileOpenAsyncT(UpdateCurrentFolder2Async);
+			return RunFunctionWhileEnabledAsyncT(UpdateCurrentFolder2Async);
 		}
 
 		public Task SetCurrentFolderIdAsync(string newValue)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate { CurrentFolderId = newValue; });
+			return RunFunctionWhileEnabledAsyncA(delegate { CurrentFolderId = newValue; });
 		}
 
 		private Folder _currentFolder = null;
@@ -243,7 +245,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task SetIdsForCatFilterAsync(string catId)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			return RunFunctionWhileEnabledAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
 			{
 				CatIdForCatFilter = catId;
 			});
@@ -286,7 +288,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			return RunFunctionWhileEnabledAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
 			{
 				CatIdForFldFilter = catId;
 				FldDscIdForFldFilter = fldDscId;
@@ -551,7 +553,7 @@ namespace UniFiler10.Data.Model
 		#region while open methods
 		public Task<bool> AddFolderAsync(Folder folder)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				if (folder != null)
 				{
@@ -565,7 +567,7 @@ namespace UniFiler10.Data.Model
 						if (await _dbManager.InsertIntoFoldersAsync(folder, true))
 						{
 							Folders.Add(folder);
-							await folder.OpenAsync(_dbManager);
+							await folder.OpenAsync();
 							CurrentFolderId = folder.Id;
 							return true;
 						}
@@ -576,14 +578,14 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionWhileEnabledAsyncTB(delegate
 			{
 				return RemoveFolder2Async(folderId);
 			});
 		}
 		public Task<bool> RemoveFolderAsync(Folder folder)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionWhileEnabledAsyncTB(delegate
 			{
 				return RemoveFolder2Async(folder);
 			});
@@ -619,7 +621,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetAllFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionWhileEnabledAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.All) return;
 
@@ -635,7 +637,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetRecentFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionWhileEnabledAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Recent) return;
 
@@ -651,7 +653,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetByCatFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionWhileEnabledAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Cat || _dbManager == null || _catIdForCatFilter == null || _catIdForCatFilter == DEFAULT_ID) return;
 
@@ -669,7 +671,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetByFldFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionWhileEnabledAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null) return;
 

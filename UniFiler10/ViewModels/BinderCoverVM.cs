@@ -332,7 +332,7 @@ namespace UniFiler10.ViewModels
 					await Task.Delay(waitMsec).ConfigureAwait(false);
 					Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
-					await RunFunctionWhileOpenAsyncT(async delegate
+					await RunFunctionWhileEnabledAsyncT(async delegate
 					{
 						if (IsNeedRefresh)
 						{

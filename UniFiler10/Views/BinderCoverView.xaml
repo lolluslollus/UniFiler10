@@ -447,7 +447,21 @@
 								<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
 							</Grid.ColumnDefinitions>
 
-							<Viewbox Canvas.ZIndex="200"
+							<ctl:TextBlockScaler Canvas.ZIndex="200"
+        						VerticalAlignment="Bottom" HorizontalAlignment="Center"
+								Padding="{StaticResource Thickness2222}"
+								Height="{StaticResource MiniatureQuarterHeight}"
+								Width="{StaticResource MiniatureWidth}">
+								<ctl:TextBlockScaler.TextBlock>
+									<TextBlock
+        								Text="{Binding FolderName}"
+        								Foreground="{StaticResource FlashyForeground}" 
+        								HorizontalAlignment="Stretch"
+        								TextWrapping="Wrap"/>
+									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
+								</ctl:TextBlockScaler.TextBlock>
+							</ctl:TextBlockScaler>
+							<!--<Viewbox Canvas.ZIndex="200"
         						Stretch="Uniform" StretchDirection="DownOnly"
         						VerticalAlignment="Bottom" HorizontalAlignment="Center"
         						MaxHeight="{StaticResource MiniatureQuarterHeight}">
@@ -457,7 +471,7 @@
         							HorizontalAlignment="Stretch"
         							TextWrapping="Wrap"
         							MaxWidth="{StaticResource MiniatureWidth}"/>
-							</Viewbox>
+							</Viewbox>-->
 
 							<local:DocumentView Canvas.ZIndex="100"
         						IsDeleteEnabled="False"

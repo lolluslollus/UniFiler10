@@ -331,13 +331,13 @@ namespace UniFiler10.ViewModels
 			{
 				var oldValue = dynFld.FieldValue.Vaalue;
 
-				isOk = await dynFld.SetFieldValueAsync(newValue);
+				isOk = await dynFld.SetFieldValueIdAsync(newValue);
 
 				if (!isOk) dynFld.FieldValue.Vaalue = oldValue;
 			}
 			else if (dynFld.FieldValue == null)
 			{
-				isOk = await dynFld.SetFieldValueAsync(newValue);
+				isOk = await dynFld.SetFieldValueIdAsync(newValue);
 			}
 			return isOk;
 		}

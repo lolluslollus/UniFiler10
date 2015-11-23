@@ -60,24 +60,30 @@ namespace UniFiler10.Controlz
 		//	instance?.RegisterParentHandlers();
 		//}
 
-		private OpenableObservableControl _openableObservableParent = null;
+		private volatile bool _isLoaded = false;
+		private volatile bool _isOpenBeforeSuspending = false;
 
-		private bool _isLoaded = false;
-		private bool _isOpenBeforeSuspending = false;
+		private OpenableObservableControl _openableObservableParent = null;
+		private long _visibilityChangedToken = default(long);
+		private bool _isApplicationHandlersRegistered = false;
+		private bool _isParentHandlersRegistered = false;
+
+		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
+
+		protected volatile bool _isOpen = false;
+		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 		#endregion properties
 
 
 		#region construct and dispose
-		private long _visibilityChangedToken = default(long);
 		public OpenableObservableControl()
 		{
 			Loaded += OnLoaded;
 			Unloaded += OnUnloaded;
 			_visibilityChangedToken = RegisterPropertyChangedCallback(VisibilityProperty, OnVisibilityChanged);
 		}
-		// LOLLO NOTE check the interaction behaviour at http://stackoverflow.com/questions/502761/disposing-wpf-user-controls if you really want to make this disposable.
+		// LOLLO TODO NOTE check the interaction behaviour at http://stackoverflow.com/questions/502761/disposing-wpf-user-controls if you really want to make this disposable.
 		// LOLLO NOTE also this is interesting: http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/
-		// LOLLO TODO you may want to check VisualTreeHelper.DisconnectChildrenRecursive()
 
 		//protected volatile bool _isDisposed = false;
 		//public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
@@ -110,7 +116,6 @@ namespace UniFiler10.Controlz
 
 
 		#region event helpers
-		private bool _isApplicationHandlersRegistered = false;
 		private void RegisterApplicationHandlers()
 		{
 			if (!_isApplicationHandlersRegistered)
@@ -127,7 +132,6 @@ namespace UniFiler10.Controlz
 			_isApplicationHandlersRegistered = false;
 		}
 
-		private bool _isParentHandlersRegistered = false;
 		private void RegisterParentHandlers()
 		{
 			var parent = _openableObservableParent;
@@ -160,9 +164,9 @@ namespace UniFiler10.Controlz
 			deferral.Complete();
 		}
 
-		private async void OnResuming(object sender, object o)
+		private void OnResuming(object sender, object o)
 		{
-			if (_isOpenBeforeSuspending) await TryOpenAsync().ConfigureAwait(false);
+			if (_isOpenBeforeSuspending) { Task open = TryOpenAsync(); }
 		}
 
 		private void OnLoaded(object sender, RoutedEventArgs e)
@@ -173,7 +177,8 @@ namespace UniFiler10.Controlz
 			_openableObservableParent = GetParent();
 			RegisterParentHandlers();
 
-			/*if (TriggerOpenCloseWhenLoadedUnloaded) { */Task open = TryOpenAsync(); /*}*/
+			/*if (TriggerOpenCloseWhenLoadedUnloaded) { */
+			Task open = TryOpenAsync(); /*}*/
 		}
 
 		private OpenableObservableControl GetParent()
@@ -191,10 +196,11 @@ namespace UniFiler10.Controlz
 		{
 			_isLoaded = false;
 
-			/*if (TriggerOpenCloseWhenLoadedUnloaded) { */Task close = CloseAsync();/* }*/
-
 			UnregisterApplicationHandlers();
 			UnregisterParentHandlers();
+
+			/*if (TriggerOpenCloseWhenLoadedUnloaded) { */
+			Task close = CloseAsync();/* }*/
 		}
 
 		private void OnOpenableObservableParent_Closing(object sender, EventArgs e)
@@ -247,35 +253,24 @@ namespace UniFiler10.Controlz
 
 
 		#region open close
-		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
-
-		protected volatile bool _isOpen = false;
-		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
-
 		protected async Task<bool> TryOpenAsync(bool enable = true)
 		{
 			if (!_isOpen)
 			{
+				bool isJustOpen = false;
 				if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 				try
 				{
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-					if (!_isOpen)
+					if (!_isOpen && Visibility == Visibility.Visible && _isLoaded)
 					{
 						//if ((Visibility == Visibility.Visible || !TriggerOpenCloseWhenVisibleCollapsed) && (_isLoaded || !TriggerOpenCloseWhenLoadedUnloaded))
-						if (Visibility == Visibility.Visible && _isLoaded)
+						if (await TryOpenMayOverrideAsync().ConfigureAwait(false))
 						{
-							if (await TryOpenMayOverrideAsync().ConfigureAwait(false))
-							{
-								IsOpen = true;
-								if (enable) RunInUiThread(delegate { IsEnabled = true; });
-								Opened?.Invoke(this, EventArgs.Empty);
-								return true;
-							}
-						}
-						else
-						{
-							// await Logger.AddAsync("TryOpenAsync() called when the control is collapsed or unloaded", Logger.ForegroundLogFilename).ConfigureAwait(false);
+							IsOpen = true;
+							if (enable) RunInUiThread(delegate { IsEnabled = true; });
+							isJustOpen = true;
+							return true;
 						}
 					}
 				}
@@ -287,6 +282,7 @@ namespace UniFiler10.Controlz
 				finally
 				{
 					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+					if (isJustOpen) Opened?.Invoke(this, EventArgs.Empty);
 				}
 			}
 			if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
@@ -309,7 +305,6 @@ namespace UniFiler10.Controlz
 					if (_isOpen)
 					{
 						Closing?.Invoke(this, EventArgs.Empty);
-						//ClearListeners();
 						RunInUiThread(delegate { IsEnabled = false; });
 						IsOpen = false;
 
@@ -364,7 +359,7 @@ namespace UniFiler10.Controlz
 			return false;
 		}
 
-		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncA(Action func)
 		{
 			if (_isOpen && IsEnabled)
 			{
@@ -389,7 +384,7 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncB(Func<bool> func)
 		{
 			if (_isOpen && IsEnabled)
 			{
@@ -410,7 +405,7 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncT(Func<Task> funcAsync)
 		{
 			if (_isOpen && IsEnabled)
 			{
@@ -435,7 +430,7 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncTB(Func<Task<bool>> funcAsync)
 		{
 			if (_isOpen && IsEnabled)
 			{

@@ -84,14 +84,15 @@
 						ItemsSource="{Binding VM.FolderCategorySelector, ElementName=me}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-								<ItemsWrapGrid Orientation="Horizontal"/>
+								<ctl:UniversalWrapPanel Orientation="Horizontal"/>
+								<!--<ItemsWrapGrid Orientation="Horizontal"/>-->
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
 								<CheckBox
 									Width="{StaticResource LandscapeItemWidth}"
-									Height="{StaticResource LandscapeItemHeight}"
+									MinHeight="{StaticResource LandscapeItemHeight}"
 									IsChecked="{Binding IsOn, Mode=TwoWay}"
                                     Style="{StaticResource CheckBoxLolloStyle}"
 									Content="{Binding Name, Mode=OneWay}"/>

@@ -33,7 +33,7 @@ namespace UniFiler10.Data.Model
 					RaisePropertyChanged_UI();
 					UpdateDynamicValues();
 
-					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					Task upd = RunFunctionWhileEnabledAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
@@ -70,7 +70,7 @@ namespace UniFiler10.Data.Model
 					RaisePropertyChanged_UI();
 					UpdateDynamicValues();
 
-					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					Task upd = RunFunctionWhileEnabledAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
@@ -145,17 +145,10 @@ namespace UniFiler10.Data.Model
 			bool result = _id != DEFAULT_ID && _parentId != DEFAULT_ID && _fieldDescriptionId != DEFAULT_ID && IsValueAllowed();
 			return result;
 		}
-		//protected override void CopyMustOverride(ref DbBoundObservableData target)
-		//{
-		//	var tgt = target as DynamicField;
 
-		//	tgt.FieldValueId = _fieldValueId;
-		//	tgt.FieldDescriptionId = _fieldDescriptionId;
-		//}
-
-		public Task<bool> SetFieldValueAsync(string newValue)
+		public Task<bool> SetFieldValueIdAsync(string newValue)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionWhileEnabledAsyncB(delegate
 			{
 				var availableFldVal = _fieldDescription.GetValueFromPossibleValues(newValue);
 				if (availableFldVal != null)

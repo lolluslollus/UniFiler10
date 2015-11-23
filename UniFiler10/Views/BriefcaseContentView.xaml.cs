@@ -11,13 +11,22 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Views
 {
-	public sealed partial class BinderView : BackableOpenableObservableControl
+	public sealed partial class BriefcaseContentView : BackableOpenableObservableControl
 	{
 		private BinderVM _vm = null;
 		public BinderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
+		public BriefcaseVM BriefcaseVM
+		{
+			get { return (BriefcaseVM)GetValue(BriefcaseVMProperty); }
+			set { SetValue(BriefcaseVMProperty, value); }
+		}
+		public static readonly DependencyProperty BriefcaseVMProperty =
+			DependencyProperty.Register("BriefcaseVM", typeof(BriefcaseVM), typeof(BriefcaseContentView), new PropertyMetadata(null));
+
+
 		#region construct, open, close
-		public BinderView()
+		public BriefcaseContentView()
 		{
 			//TriggerOpenCloseWhenLoadedUnloaded = false;
 			InitializeComponent();
@@ -25,7 +34,7 @@ namespace UniFiler10.Views
 		protected override async Task<bool> TryOpenMayOverrideAsync()
 		{
 			var binder = DataContext as Binder;
-			if (await base.TryOpenMayOverrideAsync() && binder != null && !binder.IsDisposed)
+			if (binder != null && !binder.IsDisposed && await base.TryOpenMayOverrideAsync())
 			{
 				if (_vm == null || _vm.Binder != binder)
 				{
@@ -52,8 +61,9 @@ namespace UniFiler10.Views
 				VM = null;
 			}
 		}
+
 		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		private async Task UpdateOpenCloseAsync()
 		{
 			try
 			{
@@ -76,6 +86,13 @@ namespace UniFiler10.Views
 			}
 		}
 		#endregion construct, open, close
+
+
+		#region event handlers
+		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		{
+			Task upd = UpdateOpenCloseAsync();
+		}
 
 		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
@@ -106,5 +123,16 @@ namespace UniFiler10.Views
 		{
 			_vm?.GoBack();
 		}
+
+		private void OnOpenBriefcaseCover_Click(object sender, RoutedEventArgs e)
+		{
+			_vm?.GoBack();
+		}
+
+		private void OnBinderListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			BriefcaseVM?.OpenBinder((sender as ListView)?.SelectedItem.ToString());
+		}
+		#endregion event handlers
 	}
 }

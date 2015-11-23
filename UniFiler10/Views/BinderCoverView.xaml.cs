@@ -74,7 +74,7 @@ namespace UniFiler10.Views
 		}
 
 		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		private async Task UpdateOpenCloseAsync()
 		{
 			try
 			{
@@ -98,7 +98,13 @@ namespace UniFiler10.Views
 		}
 		#endregion construct, open, close
 
+
 		#region event handlers
+		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		{
+			Task upd = UpdateOpenCloseAsync();
+		}
+
 		protected override void GoBackMustOverride()
 		{
 			_vm?.GoBack();

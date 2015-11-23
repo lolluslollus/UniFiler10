@@ -197,6 +197,7 @@ namespace UniFiler10.Data.Model
 		public string NewDbName { get { return _newDbName; } set { if (_newDbName != value) { _newDbName = value; RaisePropertyChanged_UI(); } } }
 		#endregion properties
 
+
 		#region loaded methods
 		public bool OpenBinder(string dbName)
 		{
@@ -214,7 +215,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddBinderAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				return await AddBinder2Async(dbName).ConfigureAwait(false);
 			});
@@ -237,7 +238,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> DeleteBinderAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName)) return false;
 
@@ -263,7 +264,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> BackupBinderAsync(string dbName, StorageFolder intoStorageFolder)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName) || intoStorageFolder == null) return false;
 
@@ -287,7 +288,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> RestoreBinderAsync(StorageFolder fromStorageFolder)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				if (fromStorageFolder == null) return false;
 
@@ -314,7 +315,7 @@ namespace UniFiler10.Data.Model
 
 		private Task UpdateEnableDisableMetadataAsync()
 		{
-			return RunFunctionWhileOpenAsyncT(UpdateEnableDisableMetadata2Async);
+			return RunFunctionWhileEnabledAsyncT(UpdateEnableDisableMetadata2Async);
 		}
 		private async Task UpdateEnableDisableMetadata2Async()
 		{
@@ -337,7 +338,7 @@ namespace UniFiler10.Data.Model
 		}
 		private Task UpdateCurrentBinderAsync()
 		{
-			return RunFunctionWhileOpenAsyncT(UpdateCurrentBinder2Async);
+			return RunFunctionWhileEnabledAsyncT(UpdateCurrentBinder2Async);
 		}
 		private async Task UpdateCurrentBinder2Async()
 		{

@@ -32,7 +32,7 @@ namespace UniFiler10.Data.Model
 		public SwitchableObservableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } set { if (_dynamicFields != value) { _dynamicFields = value; RaisePropertyChanged_UI(); } } }
 
 		public string _name = string.Empty;
-		[DataMember]					 
+		[DataMember]
 		public string Name { get { return _name; } set { SetProperty(ref _name, value); } }
 
 		public string _descr0 = string.Empty;
@@ -120,14 +120,16 @@ namespace UniFiler10.Data.Model
 		}
 
 		#region loading methods
-		private DBManager _dbManager = null;
-		public async Task OpenAsync(DBManager dbManager)
-		{
-			_dbManager = dbManager;
-			await OpenAsync().ConfigureAwait(false);
-		}
+		//private DBManager _dbManager = null;
+		//public async Task OpenAsync(DBManager dbManager)
+		//{
+		//	_dbManager = dbManager;
+		//	await OpenAsync().ConfigureAwait(false);
+		//}
 		protected override async Task OpenMayOverrideAsync()
 		{
+			var _dbManager = DBManager.OpenInstance; if (_dbManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
+
 			// read children from db
 			var wallets = await _dbManager.GetWalletsAsync(Id).ConfigureAwait(false);
 			var documents = new List<Document>();
@@ -300,7 +302,7 @@ namespace UniFiler10.Data.Model
 		#region loaded methods
 		public Task<bool> AddWalletAsync(Wallet wallet)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				return await AddWallet2Async(wallet).ConfigureAwait(false);
 			});
@@ -311,7 +313,6 @@ namespace UniFiler10.Data.Model
 			if (wallet != null)
 			{
 				wallet.ParentId = Id;
-				wallet.Date0 = DateTime.Now;
 
 				if (Wallet.Check(wallet))
 				{
@@ -334,7 +335,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveWalletAsync(Wallet wallet)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				return await RemoveWallet2Async(wallet).ConfigureAwait(false);
 			});
@@ -359,7 +360,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddDynamicCategoryAsync(string catId)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
@@ -391,7 +392,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDynamicCategoryAsync(string catId)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				return await RemoveDynamicCategory2Async(catId).ConfigureAwait(false);
 			});
@@ -429,7 +430,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileEnabledAsyncTB(async delegate
 			{
 				if (Binder.OpenInstance != null && file != null)
 				{

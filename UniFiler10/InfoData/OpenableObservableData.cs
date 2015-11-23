@@ -138,7 +138,7 @@ namespace UniFiler10.Data.Model
             return false;
         }
 
-		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncA(Action func)
         {
             if (_isOpen && _isEnabled)
             {
@@ -163,7 +163,7 @@ namespace UniFiler10.Data.Model
             }
 			return false;
         }
-		protected async Task<bool> RunFunctionWhileOpenAsyncA_MT(Action func)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncA_MT(Action func)
 		{
 			if (_isOpen && _isEnabled)
 			{
@@ -188,7 +188,7 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncB(Func<bool> func)
         {
             if (_isOpen && _isEnabled)
             {
@@ -209,7 +209,7 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
-		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task<bool> RunFunctionWhileEnabledAsyncT(Func<Task> funcAsync)
         {
             if (_isOpen && _isEnabled)
             {
@@ -234,7 +234,7 @@ namespace UniFiler10.Data.Model
             }
 			return false;
         }
-        protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
+        protected async Task<bool> RunFunctionWhileEnabledAsyncTB(Func<Task<bool>> funcAsync)
         {
             if (_isOpen && _isEnabled)
             {
