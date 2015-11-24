@@ -106,8 +106,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (_isAllFoldersDirty != value)
 				{
-					_isAllFoldersDirty = value; RaisePropertyChanged_UI();
-					if (_isAllFoldersDirty) { Task upd = UpdatePaneContentAsync(REFRESH_INTERVAL_LONG_MSEC); }
+					_isAllFoldersDirty = value; RaisePropertyChanged_UI();					
 				}
 			}
 		}
@@ -120,22 +119,22 @@ namespace UniFiler10.ViewModels
 				if (_isRecentFoldersDirty != value)
 				{
 					_isRecentFoldersDirty = value; RaisePropertyChanged_UI();
-					if (_isRecentFoldersDirty) { Task upd = UpdatePaneContentAsync(REFRESH_INTERVAL_LONG_MSEC); }
 				}
 			}
 		}
-		private void SetIsDirty(bool newValue, bool scheduleUpdate)
+		private void SetIsDirty(bool newValue, bool scheduleUpdate, int withinMsec)
 		{
+			IsAllFoldersDirty = newValue;
+			IsRecentFoldersDirty = newValue;
+
 			if (scheduleUpdate)
 			{
-				IsAllFoldersDirty = newValue;
-				IsRecentFoldersDirty = newValue;
+				if (_isAllFoldersDirty || _isRecentFoldersDirty)
+				{
+					Task upd = UpdatePaneContentAsync(withinMsec);
+				}
 			}
-			else
-			{
-				_isAllFoldersDirty = newValue;
-				_isRecentFoldersDirty = newValue;
-			}
+
 			//IsByCatFoldersDirty = newValue; // we don't use these variables to avoid catching all sorts of data changes
 			//IsByFldFoldersDirty = newValue; // we don't use these variables to avoid catching all sorts of data changes
 
@@ -348,23 +347,27 @@ namespace UniFiler10.ViewModels
 							{
 								await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
 								IsAllFoldersDirty = false;
+								IsRecentFoldersDirty = true;
 							}
 							if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
 							{
 								await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
+								IsAllFoldersDirty = true;
 								IsRecentFoldersDirty = false;
 							}
 							if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
 							{
 								await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
 								//IsByCatFoldersDirty = false;
-								SetIsDirty(true, false);
+								IsAllFoldersDirty = true;
+								IsRecentFoldersDirty = true;
 							}
 							if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
 							{
 								await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
 								//IsByFldFoldersDirty = false;
-								SetIsDirty(true, false);
+								IsAllFoldersDirty = true;
+								IsRecentFoldersDirty = true;
 							}
 						}
 					});
@@ -401,8 +404,6 @@ namespace UniFiler10.ViewModels
 			UpdateDataForCatFilter();
 			UpdateDataForFldFilter();
 
-			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
-			//SetIsDirty(true);
 			UpdateIsPaneOpen();
 
 			_binder.PropertyChanged += OnBinder_PropertyChanged;
@@ -530,7 +531,7 @@ namespace UniFiler10.ViewModels
 		}
 		private void UnregisterFoldersChanged()
 		{
-			SetIsDirty(false, true);
+			SetIsDirty(false, false, 0);
 
 			if (_binder?.Folders != null)
 			{
@@ -578,7 +579,7 @@ namespace UniFiler10.ViewModels
 					RegisterFolderChanged(fol);
 					isDirty = true;
 				}
-			if (isDirty) SetIsDirty(true, true);
+			if (isDirty) SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 		}
 
 		private void OnFolWal_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -596,14 +597,14 @@ namespace UniFiler10.ViewModels
 					RegisterWalletChanged(wal);
 					isDirty = true;
 				}
-			if (isDirty) SetIsDirty(true, true);
+			if (isDirty) SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 		}
 
 		private void OnFol_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Folder.DateCreated) || e.PropertyName == nameof(Folder.Name))
 			{
-				SetIsDirty(true, true);
+				SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 			}
 		}
 		private void OnFolWalDoc_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -621,14 +622,14 @@ namespace UniFiler10.ViewModels
 					RegisterDocumentChanged(doc);
 					isDirty = true;
 				}
-			if (isDirty) SetIsDirty(true, true);
+			if (isDirty) SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 		}
 
 		private void OnFolWalDoc_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Document.Uri0))
 			{
-				SetIsDirty(true, true);
+				SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 			}
 		}
 		#endregion binder data events
@@ -655,7 +656,7 @@ namespace UniFiler10.ViewModels
 			if (binder != null)
 			{
 				await binder.AddFolderAsync(false).ConfigureAwait(false);
-				Task upd = UpdatePaneContentAsync(0);
+				SetIsDirty(true, true, 0);
 			}
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
 		}
@@ -670,7 +671,7 @@ namespace UniFiler10.ViewModels
 				if (newFolder != null)
 				{
 					await SelectFolderAsync(newFolder.Id).ConfigureAwait(false);
-					Task upd = UpdatePaneContentAsync(0);
+					SetIsDirty(true, true, 0);
 				}
 			}
 		}
@@ -682,7 +683,7 @@ namespace UniFiler10.ViewModels
 			if (binder != null)
 			{
 				await binder.RemoveFolderAsync(fp?.FolderId).ConfigureAwait(false);
-				Task upd = UpdatePaneContentAsync(0);
+				SetIsDirty(true, true, 0);
 			}
 		}
 
