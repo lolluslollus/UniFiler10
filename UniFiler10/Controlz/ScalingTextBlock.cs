@@ -24,7 +24,7 @@ namespace UniFiler10.Controlz
 
 		public TextBlockScaler()
 		{
-			Loading += OnLoading;
+			//Loading += OnLoading;
 		}
 
 
@@ -76,10 +76,10 @@ namespace UniFiler10.Controlz
 			UpdateTB();
 		}
 
-		private void OnLoading(FrameworkElement sender, object args)
-		{
-			UpdateTB();
-		}
+		//private void OnLoading(FrameworkElement sender, object args)
+		//{
+		//	UpdateTB();
+		//}
 		#endregion event handlers
 
 		private void UpdateTB()

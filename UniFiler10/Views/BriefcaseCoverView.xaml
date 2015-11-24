@@ -255,14 +255,13 @@
 
 							<ctl:TextBlockScaler Canvas.ZIndex="200"
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
-								Padding="{StaticResource Thickness2222}"
+								Padding="{StaticResource Thickness4444}"
                                 Height="{StaticResource MiniatureQuarterHeight}"
 								Width="{StaticResource MiniatureWidth}">
 								<ctl:TextBlockScaler.TextBlock>
 									<TextBlock
 										Text="{Binding}"
-										Foreground="{StaticResource FlashyForeground}" 
-										HorizontalAlignment="Stretch"
+										Foreground="{StaticResource FlashyForeground}"
 										TextWrapping="Wrap"/>
 									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
 								</ctl:TextBlockScaler.TextBlock>
@@ -281,6 +280,7 @@
 
 							<Border Height="{StaticResource MiniatureHeight}"
 								Width="{StaticResource MiniatureWidth}"
+								Margin="0" Padding="0"
 								Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
 
 							<AppBarButton Icon="Save"

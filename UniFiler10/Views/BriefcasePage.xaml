@@ -18,7 +18,7 @@
 
 		<local:BriefcaseCoverView
 			HorizontalAlignment="Left" VerticalAlignment="Top"
-			Visibility="{x:Bind VM.Briefcase.IsShowingCover, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Visible, Mode=OneWay}"
+			Visibility="{x:Bind VM.Briefcase.IsShowingCover, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
             VM="{x:Bind VM, Mode=OneWay}"/>
 		<!--DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"-->
 		<local:SettingsView

@@ -177,10 +177,10 @@
 							HorizontalAlignment="Left"/>
 					</Grid>
 				</Button>
-			</VariableSizedWrapGrid>
+			<!--</VariableSizedWrapGrid>
 
-			<!-- filter choosers -->
-			<VariableSizedWrapGrid Grid.Row="1" Orientation="Horizontal">
+			--><!-- filter choosers --><!--
+			<VariableSizedWrapGrid Grid.Row="1" Orientation="Horizontal">-->
 				<!-- recent folders header -->
 				<ToggleButton 
                     IsChecked="{Binding IsRecentFoldersPaneOpen, Mode=TwoWay}"
@@ -198,15 +198,15 @@
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
-                            Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<!--Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
                             Symbol="Up" 
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
-                            Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
+                            Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2" 
                             x:Uid="RecentFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -232,15 +232,15 @@
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"							
-                            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<!--Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
                             Symbol="Up"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"							
-                            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
+                            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2" 
                             x:Uid="AllFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -267,15 +267,15 @@
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
-							Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<!--Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
 							Symbol="Up"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
-							Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
+							Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByCatFolders" 
@@ -302,15 +302,15 @@
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
-							Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+							Height="{StaticResource LandscapeItemHeight}"/>
+						<!--Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 						<SymbolIcon 
 							Symbol="Up"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
-							Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>
+							Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByFldFolders" 
@@ -323,7 +323,7 @@
 
 			<!-- cat filter parameters -->
 			<!--VerticalAlignment="Center"-->
-			<ctl:LolloTextBox Grid.Row="2"
+			<ctl:LolloTextBox Grid.Row="1"
 				HorizontalAlignment="Left"
 				BorderThickness="0"
 				Width="{StaticResource LandscapeItemWidth}"
@@ -449,14 +449,13 @@
 
 							<ctl:TextBlockScaler Canvas.ZIndex="200"
         						VerticalAlignment="Bottom" HorizontalAlignment="Center"
-								Padding="{StaticResource Thickness2222}"
+								Padding="{StaticResource Thickness4444}"
 								Height="{StaticResource MiniatureQuarterHeight}"
 								Width="{StaticResource MiniatureWidth}">
 								<ctl:TextBlockScaler.TextBlock>
 									<TextBlock
         								Text="{Binding FolderName}"
-        								Foreground="{StaticResource FlashyForeground}" 
-        								HorizontalAlignment="Stretch"
+        								Foreground="{StaticResource FlashyForeground}"
         								TextWrapping="Wrap"/>
 									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
 								</ctl:TextBlockScaler.TextBlock>

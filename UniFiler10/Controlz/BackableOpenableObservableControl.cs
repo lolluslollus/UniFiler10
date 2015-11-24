@@ -27,14 +27,81 @@ namespace UniFiler10.Controlz
 		private static SemaphoreSlimSafeRelease _backHandlerSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private BackableOpenableObservableControl _backableParent = null;
-		private List<BackableOpenableObservableControl> _backableChildren = new List<BackableOpenableObservableControl>();
-		public void AddBackableChild(BackableOpenableObservableControl child)
+		private static SemaphoreSlimSafeRelease _backableChildrenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		// private List<BackableOpenableObservableControl> _backableChildren = new List<BackableOpenableObservableControl>();
+		private List<WeakReference<BackableOpenableObservableControl>> _backableChildren = new List<WeakReference<BackableOpenableObservableControl>>();
+		public async Task AddBackableChildAsync(BackableOpenableObservableControl child)
 		{
-			if (!_backableChildren.Contains(child)) _backableChildren.Add(child);
+			try
+			{
+				await _backableChildrenSemaphore.WaitAsync();
+				// if (!_backableChildren.Contains(child)) _backableChildren.Add(child);
+				bool canAdd = true;
+				foreach (var wrch in _backableChildren)
+				{
+					BackableOpenableObservableControl childInLoop = null;
+					if (wrch.TryGetTarget(out childInLoop))
+					{
+						if (childInLoop == child)
+						{
+							canAdd = false;
+							break;
+						}
+					}
+				}
+				if (canAdd) _backableChildren.Add(new WeakReference<BackableOpenableObservableControl>(child));
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_backableChildrenSemaphore);
+			}
 		}
-		public void RemoveBackableChild(BackableOpenableObservableControl child)
+		public async Task RemoveBackableChildAsync(BackableOpenableObservableControl child)
 		{
-			_backableChildren.Remove(child);
+			try
+			{
+				await _backableChildrenSemaphore.WaitAsync();
+				// _backableChildren.Remove(child);
+				WeakReference<BackableOpenableObservableControl> wrch_found = null;
+				foreach (var wrch in _backableChildren)
+				{
+					BackableOpenableObservableControl childInLoop = null;
+					if (wrch.TryGetTarget(out childInLoop))
+					{
+						if (childInLoop == child)
+						{
+							wrch_found = wrch;
+							break;
+						}
+					}
+				}
+				if (wrch_found != null) _backableChildren.Remove(wrch_found);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_backableChildrenSemaphore);
+			}
+		}
+		private async Task<bool> HasBackableChildrenAsync()
+		{
+			try
+			{
+				await _backableChildrenSemaphore.WaitAsync();
+				if (_backableChildren.Count <= 0) return false;
+				BackableOpenableObservableControl child_found = null;
+				foreach (var child in _backableChildren)
+				{
+					if (child.TryGetTarget(out child_found))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_backableChildrenSemaphore);
+			}
 		}
 
 
@@ -104,7 +171,7 @@ namespace UniFiler10.Controlz
 		private void OnLoaded(object sender, RoutedEventArgs e)
 		{
 			_backableParent = GetParent();
-			_backableParent?.AddBackableChild(this);
+			Task add = _backableParent?.AddBackableChildAsync(this);
 		}
 		private BackableOpenableObservableControl GetParent()
 		{
@@ -118,7 +185,7 @@ namespace UniFiler10.Controlz
 		}
 		private void OnUnloaded(object sender, RoutedEventArgs e)
 		{
-			_backableParent?.RemoveBackableChild(this);
+			Task remove = _backableParent?.RemoveBackableChildAsync(this);
 		}
 
 		public async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e) // this method is public so XAML can see it
@@ -159,7 +226,7 @@ namespace UniFiler10.Controlz
 		}
 		#endregion event handlers
 
-		
+
 		#region go back
 		/// <summary>
 		/// Returns true if it goes back or a child went back
@@ -167,7 +234,8 @@ namespace UniFiler10.Controlz
 		/// <returns></returns>
 		protected async Task<bool> GoBack()
 		{
-			if (_backableChildren.Count <= 0)
+			// if (_backableChildren.Count <= 0)
+			if (!(await HasBackableChildrenAsync()))
 			{
 				return await RunFunctionWhileEnabledAsyncA(GoBackMustOverride).ConfigureAwait(false);
 			}
@@ -175,7 +243,12 @@ namespace UniFiler10.Controlz
 			{
 				foreach (var child in _backableChildren)
 				{
-					if (await child.GoBack()) return true;
+					// if (await child.GoBack()) return true;
+					BackableOpenableObservableControl child_found = null;
+					if (child.TryGetTarget(out child_found))
+					{
+						if (await child_found.GoBack()) return true;
+					}
 				}
 				return await RunFunctionWhileEnabledAsyncA(GoBackMustOverride).ConfigureAwait(false);
 			}

@@ -39,8 +39,8 @@
 						</Grid.RowDefinitions>
 
 						<AppBarButton Grid.Row="0"
-                            Icon="ViewAll"
-                            x:Uid="Cover"
+                            Icon="Back"
+                            x:Uid="Back1"
 							Height="{StaticResource CompactPaneLength}"
 							Width="{StaticResource CompactPaneLength}"
 							HorizontalAlignment="Center"
@@ -119,8 +119,8 @@
                         </Grid.RowDefinitions>
                             
                         <AppBarButton Grid.Row="0"
-                            Icon="ViewAll"
-                            x:Uid="Cover"
+                            Icon="Back"
+                            x:Uid="Back1"
 							Height="{StaticResource CompactPaneLength}"
 							Width="{StaticResource CompactPaneLength}"
 							HorizontalAlignment="Center"

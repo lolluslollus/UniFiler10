@@ -147,6 +147,9 @@
   <data name="Back.Text" xml:space="preserve">
     <value>Back</value>
   </data>
+  <data name="Back1.Label" xml:space="preserve">
+    <value>Back</value>
+  </data>
   <data name="Backup.Text" xml:space="preserve">
     <value>Back up</value>
   </data>
@@ -170,9 +173,6 @@
   </data>
   <data name="ConfirmationRequest" xml:space="preserve">
     <value>ConfirmationRequest</value>
-  </data>
-  <data name="Cover.Label" xml:space="preserve">
-    <value>Overview</value>
   </data>
   <data name="Delete.Text" xml:space="preserve">
     <value>Delete</value>
