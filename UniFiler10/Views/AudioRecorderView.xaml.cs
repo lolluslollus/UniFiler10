@@ -38,7 +38,7 @@ namespace UniFiler10.Views
 		{
 			try
 			{
-				await _vmSemaphore.WaitAsync().ConfigureAwait(false);
+				await _vmSemaphore.WaitAsync(); //.ConfigureAwait(false);
 
 				var instance = obj as AudioRecorderView;
 				//if (instance != null && instance._isLoaded && args.NewValue is BinderVM && args.NewValue != args.OldValue)

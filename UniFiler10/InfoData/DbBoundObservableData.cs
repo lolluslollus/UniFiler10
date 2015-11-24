@@ -70,7 +70,7 @@ namespace UniFiler10.Data.Model
 		//	}
 		//}
 
-		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
+		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, bool resetIfDbError = true, [CallerMemberName] string propertyName = "")
 		{
 			// LOLLO TODO if you stick to this, which seems the best, you can make the private sides of the properties private again
 			T oldValue = fldValue;
@@ -83,9 +83,12 @@ namespace UniFiler10.Data.Model
 				{
 					if (UpdateDbMustOverride() == false)
 					{
-						//string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
-						//GetType().GetField(attributeName)?.SetValue(this, oldValue);
-						//RaisePropertyChanged_UI(propertyName);
+						//if (resetIfDbError)
+						//{
+						//	string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
+						//	GetType().GetField(attributeName)?.SetValue(this, oldValue);
+						//	RaisePropertyChanged_UI(propertyName);
+						//}
 						await Logger.AddAsync(GetType().ToString() + "." + propertyName + " could not be set", Logger.ForegroundLogFilename).ConfigureAwait(false);
 					}
 				});

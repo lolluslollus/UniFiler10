@@ -124,10 +124,18 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
-		private void SetIsDirty(bool newValue)
+		private void SetIsDirty(bool newValue, bool scheduleUpdate)
 		{
-			IsAllFoldersDirty = newValue;
-			IsRecentFoldersDirty = newValue;
+			if (scheduleUpdate)
+			{
+				IsAllFoldersDirty = newValue;
+				IsRecentFoldersDirty = newValue;
+			}
+			else
+			{
+				_isAllFoldersDirty = newValue;
+				_isRecentFoldersDirty = newValue;
+			}
 			//IsByCatFoldersDirty = newValue; // we don't use these variables to avoid catching all sorts of data changes
 			//IsByFldFoldersDirty = newValue; // we don't use these variables to avoid catching all sorts of data changes
 
@@ -350,11 +358,13 @@ namespace UniFiler10.ViewModels
 							{
 								await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
 								//IsByCatFoldersDirty = false;
+								SetIsDirty(true, false);
 							}
 							if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
 							{
 								await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
 								//IsByFldFoldersDirty = false;
+								SetIsDirty(true, false);
 							}
 						}
 					});
@@ -520,7 +530,7 @@ namespace UniFiler10.ViewModels
 		}
 		private void UnregisterFoldersChanged()
 		{
-			SetIsDirty(false);
+			SetIsDirty(false, true);
 
 			if (_binder?.Folders != null)
 			{
@@ -568,7 +578,7 @@ namespace UniFiler10.ViewModels
 					RegisterFolderChanged(fol);
 					isDirty = true;
 				}
-			if (isDirty) SetIsDirty(true);
+			if (isDirty) SetIsDirty(true, true);
 		}
 
 		private void OnFolWal_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -586,14 +596,14 @@ namespace UniFiler10.ViewModels
 					RegisterWalletChanged(wal);
 					isDirty = true;
 				}
-			if (isDirty) SetIsDirty(true);
+			if (isDirty) SetIsDirty(true, true);
 		}
 
 		private void OnFol_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Folder.DateCreated) || e.PropertyName == nameof(Folder.Name))
 			{
-				SetIsDirty(true);
+				SetIsDirty(true, true);
 			}
 		}
 		private void OnFolWalDoc_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -611,14 +621,14 @@ namespace UniFiler10.ViewModels
 					RegisterDocumentChanged(doc);
 					isDirty = true;
 				}
-			if (isDirty) SetIsDirty(true);
+			if (isDirty) SetIsDirty(true, true);
 		}
 
 		private void OnFolWalDoc_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Document.Uri0))
 			{
-				SetIsDirty(true);
+				SetIsDirty(true, true);
 			}
 		}
 		#endregion binder data events
@@ -644,7 +654,7 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null)
 			{
-				await binder.AddFolderAsync(new Folder()).ConfigureAwait(false);
+				await binder.AddFolderAsync(false).ConfigureAwait(false);
 				Task upd = UpdatePaneContentAsync(0);
 			}
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
@@ -653,11 +663,11 @@ namespace UniFiler10.ViewModels
 		public async Task AddOpenFolderAsync()
 		{
 			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
-			var newFolder = new Folder();
 			var binder = _binder;
 			if (binder != null)
 			{
-				if (await binder.AddFolderAsync(newFolder))
+				var newFolder = await binder.AddFolderAsync(false);
+				if (newFolder != null)
 				{
 					await SelectFolderAsync(newFolder.Id).ConfigureAwait(false);
 					Task upd = UpdatePaneContentAsync(0);

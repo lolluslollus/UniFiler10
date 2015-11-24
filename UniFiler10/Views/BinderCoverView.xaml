@@ -157,7 +157,7 @@
 					</Grid>
 				</Button>
 
-				<Button
+				<!--<Button
 					Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
                     Tapped="OnOwnBackButton_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
@@ -176,7 +176,7 @@
 							TextWrapping="Wrap" 
 							HorizontalAlignment="Left"/>
 					</Grid>
-				</Button>
+				</Button>-->
 			<!--</VariableSizedWrapGrid>
 
 			--><!-- filter choosers --><!--
@@ -449,13 +449,14 @@
 
 							<ctl:TextBlockScaler Canvas.ZIndex="200"
         						VerticalAlignment="Bottom" HorizontalAlignment="Center"
-								Padding="{StaticResource Thickness4444}"
 								Height="{StaticResource MiniatureQuarterHeight}"
 								Width="{StaticResource MiniatureWidth}">
 								<ctl:TextBlockScaler.TextBlock>
 									<TextBlock
         								Text="{Binding FolderName}"
         								Foreground="{StaticResource FlashyForeground}"
+										HorizontalAlignment="Center"
+										Padding="{StaticResource Thickness4444}"
         								TextWrapping="Wrap"/>
 									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
 								</ctl:TextBlockScaler.TextBlock>
@@ -472,6 +473,15 @@
         							MaxWidth="{StaticResource MiniatureWidth}"/>
 							</Viewbox>-->
 
+							<!-- LOLLO delete after done testing--><!--
+							<TextBlock Canvas.ZIndex="110"
+								Foreground="{StaticResource FlashyForeground}"
+								Opacity="1"
+								TextWrapping="Wrap"
+								VerticalAlignment="Center"
+								Width="{StaticResource MiniatureWidth}"
+								Text="{Binding DocumentUri0, Mode=OneWay}"/>-->
+							
 							<local:DocumentView Canvas.ZIndex="100"
         						IsDeleteEnabled="False"
         						DataContext="{Binding Document, Mode=OneWay}"/>

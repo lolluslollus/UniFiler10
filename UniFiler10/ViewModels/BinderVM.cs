@@ -76,7 +76,7 @@ namespace UniFiler10.ViewModels
 		#region actions
 		public Task AddFolderAsync()
 		{
-			return _binder?.AddFolderAsync(new Folder());
+			return _binder?.AddFolderAsync(true);
 		}
 		public Task DeleteFolderAsync(Folder folder)
 		{

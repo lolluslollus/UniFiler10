@@ -255,13 +255,14 @@
 
 							<ctl:TextBlockScaler Canvas.ZIndex="200"
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
-								Padding="{StaticResource Thickness4444}"
-                                Height="{StaticResource MiniatureQuarterHeight}"
+								Height="{StaticResource MiniatureQuarterHeight}"
 								Width="{StaticResource MiniatureWidth}">
 								<ctl:TextBlockScaler.TextBlock>
 									<TextBlock
 										Text="{Binding}"
 										Foreground="{StaticResource FlashyForeground}"
+										HorizontalAlignment="Center"
+										Padding="{StaticResource Thickness4444}"
 										TextWrapping="Wrap"/>
 									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
 								</ctl:TextBlockScaler.TextBlock>

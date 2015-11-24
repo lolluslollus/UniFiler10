@@ -26,10 +26,10 @@
 
     <!--Background="{StaticResource SystemControlBackgroundBaseLowBrush}"-->
     <Border
-            Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
-            VerticalAlignment="Center" HorizontalAlignment="Center" 
-            Canvas.ZIndex="100"
-            BorderThickness="0">
+        Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
+        VerticalAlignment="Center" HorizontalAlignment="Center" 
+        Canvas.ZIndex="100"
+        BorderThickness="0">
         <!--<Border.Background>
             <LinearGradientBrush EndPoint="0.5,.5" StartPoint="0.5,0">
                 <GradientStop Color="DarkGray" Offset="0"/>
@@ -39,24 +39,24 @@
 
         <Grid>
             <AppBarButton Icon="FullScreen"
-                    Visibility="{x:Bind DataContext, Converter={StaticResource IsNotNullToVisible}, Mode=OneWay}"
-                    Tapped="OnPreview_Tapped"
-                    Canvas.ZIndex="150"
-                    Style="{StaticResource AppBarButtonRecoloured}"
-                    IsCompact="True"
-                    Foreground="{StaticResource FlashyForeground}"
-                    Opacity="1"
-                    HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                Visibility="{x:Bind DataContext, Converter={StaticResource IsNotNullToVisible}, Mode=OneWay}"
+                Tapped="OnPreview_Tapped"
+                Canvas.ZIndex="150"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                IsCompact="True"
+                Foreground="{StaticResource FlashyForeground}"
+                Opacity="1"
+                HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
             <AppBarButton Icon="Delete" 
-                    Visibility="{x:Bind IsDeleteEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-                    Tapped="OnItemDelete_Tapped"
-                    Canvas.ZIndex="150"
-                    Style="{StaticResource AppBarButtonRecoloured}"
-                    IsCompact="True"
-                    Foreground="{StaticResource FlashyForeground}"
-                    Opacity="1"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                Visibility="{x:Bind IsDeleteEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+                Tapped="OnItemDelete_Tapped"
+                Canvas.ZIndex="150"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                IsCompact="True"
+                Foreground="{StaticResource FlashyForeground}"
+                Opacity="1"
+                HorizontalAlignment="Right" VerticalAlignment="Top"/>
 
             <!--<PathIcon Data="M 0,19 V18 H19 V19 M19,19 V0 H18 V19 M4,16 V15 H16 V16 M16,16 V4 H15 V16 Z"
                     Foreground="{StaticResource FlashyForeground}"
@@ -83,7 +83,7 @@
                 HorizontalAlignment="Right" VerticalAlignment="Bottom">
             </Path>
 
-            <!--<PathIcon Data="M 0,29 V28 H29 V29 M29,29 V0 H28 V29 M10,25 V24 H25 V25 M25,25 V10 H24 V25 Z"
+			<!--<PathIcon Data="M 0,29 V28 H29 V29 M29,29 V0 H28 V29 M10,25 V24 H25 V25 M25,25 V10 H24 V25 Z"
                     Foreground="{StaticResource FlashyForeground}"
                     Visibility="{x:Bind IsMultiPage, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
                     Canvas.ZIndex="150"

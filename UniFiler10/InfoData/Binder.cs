@@ -172,7 +172,7 @@ namespace UniFiler10.Data.Model
 				if (_currentFolder != null)
 				{
 					await _currentFolder.OpenAsync().ConfigureAwait(false);
-					_currentFolder.IsSelected = true;					
+					_currentFolder.IsSelected = true;
 				}
 				RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
 			}
@@ -551,30 +551,32 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
-		public Task<bool> AddFolderAsync(Folder folder)
+		public async Task<Folder> AddFolderAsync(bool setCurrentAndOpen)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			var folder = new Folder();
+
+			bool isOk = await RunFunctionWhileEnabledAsyncTB(async delegate
 			{
-				if (folder != null)
+				folder.ParentId = Id;
+				folder.Name = ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFolder/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				folder.DateCreated = DateTime.Now;
+
+				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
 				{
-					folder.ParentId = Id;
-					folder.Name = ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFolder/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-
-					folder.DateCreated = DateTime.Now;
-
-					if (Check(folder))
+					_folders.Add(folder);
+					if (setCurrentAndOpen)
 					{
-						if (await _dbManager.InsertIntoFoldersAsync(folder, true))
-						{
-							Folders.Add(folder);
-							await folder.OpenAsync();
-							CurrentFolderId = folder.Id;
-							return true;
-						}
+						await folder.OpenAsync();
+						CurrentFolderId = folder.Id;
 					}
+					return true;
 				}
+
 				return false;
 			});
+
+			if (isOk) return folder;
+			else return null;
 		}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
@@ -602,9 +604,12 @@ namespace UniFiler10.Data.Model
 				if (await _dbManager.DeleteFromFoldersAsync(folder))
 				{
 					int previousFolderIndex = Math.Max(0, _folders.IndexOf(folder) - 1);
-					bool isOK = _folders.Remove(folder);
 					await folder.CloseAsync();
-					CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
+					bool isOK = _folders.Remove(folder);
+					if (folder.Id == _currentFolderId)
+					{
+						CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
+					}
 					return isOK;
 				}
 				else

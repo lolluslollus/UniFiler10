@@ -81,10 +81,18 @@ namespace UniFiler10.Views
         public static readonly DependencyProperty FolderProperty =
             DependencyProperty.Register("Folder", typeof(Folder), typeof(DocumentView), new PropertyMetadata(null));
 
-        private bool _isMultiPage = false;
-        public bool IsMultiPage { get { return _isMultiPage; } private set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
+		//public bool IsMultiPage
+		//{
+		//	get { return (bool)GetValue(IsMultiPageProperty); }
+		//	private set { SetValue(IsMultiPageProperty, value); }
+		//}
+		//public static readonly DependencyProperty IsMultiPageProperty =
+		//	DependencyProperty.Register("IsMultiPage", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
-        private uint _height = 0;
+		private bool _isMultiPage = false;
+		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
+
+		private uint _height = 0;
         private uint _width = 0;
         #endregion properties
 
@@ -96,42 +104,49 @@ namespace UniFiler10.Views
 
             InitializeComponent();
         }
-        #endregion construct
+		#endregion construct
 
-        #region render
-        private string _previousUri = null;
 
-        private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		#region render
+		private string _previousUri = null;
+		//public string PreviousUri { get { return _previousUri; } private set { _previousUri = value; RaisePropertyChanged_UI(); } }
+
+        private static SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
         {
             try
             {
-                await _vmSemaphore.WaitAsync().ConfigureAwait(false);
-                if (args != null)
-                {
-                    var newDoc = args.NewValue as Document;
-                    if (newDoc == null)
+				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
+                //if (args != null)
+                //{
+					// var newDoc = args.NewValue as Document;
+					var newDoc = DataContext as Document;
+					if (newDoc == null)
                     {
                         _previousUri = null;
                         Task render = RenderPreviewAsync(newDoc);
-                    }
+						// await RenderPreviewAsync(newDoc).ConfigureAwait(false);
+					}
                     else if (newDoc.Uri0 != _previousUri)
                     {
                         _previousUri = newDoc.Uri0;
                         Task render = RenderPreviewAsync(newDoc);
-                    }
-                }
+						// await RenderPreviewAsync(newDoc).ConfigureAwait(false);
+					}
+                //}
             }
             finally
             {
-                SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
+                SemaphoreSlimSafeRelease.TryRelease(_previousUriSemaphore);
             }
         }
 
         private async Task RenderPreviewAsync(Document doc)
         {
-            string ext = string.Empty;
-            if (doc != null)
+			IsMultiPage = false;
+
+			string ext = string.Empty;
+			if (doc != null)
             {
                 ext = Path.GetExtension(doc.Uri0).ToLower();
                 if (ext == DocumentExtensions.PDF_EXTENSION)
@@ -144,22 +159,22 @@ namespace UniFiler10.Views
 				//}
 				else if (DocumentExtensions.IMAGE_EXTENSIONS.Contains(ext))
                 {
-                    await RenderImageMiniatureAsync().ConfigureAwait(false);
+					await RenderImageMiniatureAsync().ConfigureAwait(false);
                 }
                 else if (DocumentExtensions.HTML_EXTENSIONS.Contains(ext))
                 {
-                    await RenderHtmlMiniatureAsync().ConfigureAwait(false);
+					await RenderHtmlMiniatureAsync().ConfigureAwait(false);
                 }
                 else if (DocumentExtensions.AUDIO_EXTENSIONS.Contains(ext))
                 {
-                    await RenderAudioMiniatureAsync().ConfigureAwait(false);
+					await RenderAudioMiniatureAsync().ConfigureAwait(false);
                 }
             }
             else
             {
                 await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
                 {
-                    ShowImageViewer();
+					ShowImageViewer();
                     ImageViewer.Source = null;
                 }).AsTask().ConfigureAwait(false);
             }
@@ -177,7 +192,7 @@ namespace UniFiler10.Views
 
         private async Task RenderHtmlMiniatureAsync()
         {
-            string ssss = await DocumentExtensions.GetTextFromFileAsync((DataContext as Document)?.Uri0).ConfigureAwait(false);
+			string ssss = await DocumentExtensions.GetTextFromFileAsync((DataContext as Document)?.Uri0).ConfigureAwait(false);
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
             {
                 ShowWebViewer();
@@ -196,7 +211,7 @@ namespace UniFiler10.Views
             // LOLLO the WebView sometimes renders, sometimes not. This is pedestrian but works better than the other method.
             try
             {
-                Uri uri = new Uri((DataContext as Document)?.Uri0);
+				Uri uri = new Uri((DataContext as Document)?.Uri0);
                 if (uri != null)
                 {
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
@@ -222,7 +237,7 @@ namespace UniFiler10.Views
         {
             try
             {
-                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
                 {
                     ShowImageViewer();
                     ImageViewer.Source = _voiceNoteImage;
@@ -237,7 +252,7 @@ namespace UniFiler10.Views
         {
             try
             {
-                var imgFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
+				var imgFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
                 if (imgFile != null)
                 {
                     using (IRandomAccessStream stream = await imgFile.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false))
@@ -461,7 +476,7 @@ namespace UniFiler10.Views
             var doc = DataContext as Document;
             if (doc != null && !string.IsNullOrWhiteSpace(doc.Uri0))
             {
-                var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
+				var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask(); //.ConfigureAwait(false);
                 if (file != null)
                 {
                     bool isOk = false;

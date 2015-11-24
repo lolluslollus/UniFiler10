@@ -78,7 +78,7 @@ namespace UniFiler10.Data.Model
 
 		public bool _isSelected = false;
 		[DataMember]
-		public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value); } }
+		public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value, true, false); } }
 
 		public bool _isEditingCategories = true;
 		[DataMember]
@@ -250,6 +250,7 @@ namespace UniFiler10.Data.Model
 					// LOLLO TODO the category is empty sometimes. Reloading the folder fixes it, I presume the problem lies in the Get, which is not as clever as the Set,
 					// which, in turn, is slow.
 					// We don't want to slow down the Get as well, so we live with it for now.
+					// The problem has not appeared anymore.
 				}
 			}
 			// remove obsolete fields
