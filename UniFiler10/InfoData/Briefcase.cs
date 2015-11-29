@@ -59,7 +59,7 @@ namespace UniFiler10.Data.Model
 		{
 			await SaveAsync().ConfigureAwait(false);
 
-			await CloseCurrentBinderAsync().ConfigureAwait(false);
+			await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 			var rd = _runtimeData;
 			if (rd != null)
@@ -137,7 +137,7 @@ namespace UniFiler10.Data.Model
 		#endregion properties
 
 
-		#region loaded methods
+		#region while open methods
 		public Task<bool> SetCurrentBinderAsync(string dbName)
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
@@ -273,14 +273,14 @@ namespace UniFiler10.Data.Model
 		{
 			if (string.IsNullOrEmpty(_currentBinderName))
 			{
-				await CloseCurrentBinderAsync().ConfigureAwait(false);
+				await CloseCurrentBinder2Async().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(CurrentBinder));
 				return false;
 			}
 			else if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName))
 				|| (_currentBinder != null && _currentBinder.DBName != _currentBinderName))
 			{
-				await CloseCurrentBinderAsync().ConfigureAwait(false);
+				await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 				_currentBinder = Binder.CreateInstance(_currentBinderName);
 				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
@@ -295,7 +295,12 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		public async Task<bool> CloseCurrentBinderAsync()
+
+		public Task CloseCurrentBinderAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(delegate { return CloseCurrentBinder2Async(); });
+		}
+		private async Task<bool> CloseCurrentBinder2Async()
 		{
 			var cb = _currentBinder;
 			if (cb != null)
@@ -307,7 +312,7 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		#endregion loaded methods
+
 		public Task<bool> IsNewDbNameWrongAsync(string newDbName)
 		{
 			return RunFunctionWhileOpenAsyncB(delegate { return IsNewDbNameWrong2(newDbName); });
@@ -323,6 +328,8 @@ namespace UniFiler10.Data.Model
 				return _dbNames.Contains(newDbName);
 			}
 		}
+		#endregion while open methods
+
 
 		#region loading methods
 		private const string FILENAME = "LolloSessionDataBriefcase.xml";
@@ -413,16 +420,8 @@ namespace UniFiler10.Data.Model
 			if (source == null) return false;
 
 			if (source.DbNames != null) DbNames = source.DbNames;
-			//IsPaneOpen = source.IsPaneOpen;
 			NewDbName = source.NewDbName;
-
-			//IsShowingBinder = source.IsShowingBinder;
-			//IsShowingBinderCover = source.IsShowingBinderCover;
-			//IsShowingCover = source.IsShowingCover;
-			//IsShowingSettings = source.IsShowingSettings;
-
-			CurrentBinderName = source.CurrentBinderName; // must be last
-
+			CurrentBinderName = source.CurrentBinderName; // must be last because it triggers updates
 			return true;
 		}
 		private Briefcase CloneNonDbProperties()
@@ -430,23 +429,9 @@ namespace UniFiler10.Data.Model
 			Briefcase target = new Briefcase();
 			target.CurrentBinderName = CurrentBinderName;
 			target.DbNames = DbNames;
-			//target.IsPaneOpen = IsPaneOpen;
-
-			//target.IsShowingBinder = IsShowingBinder;
-			//target.IsShowingBinderCover = IsShowingBinderCover;
-			//target.IsShowingCover = IsShowingCover;
-			//target.IsShowingSettings = IsShowingSettings;
-
 			target.NewDbName = NewDbName;
 			return target;
 		}
 		#endregion loading methods
 	}
-
-	//public interface IPaneOpener
-	//{
-	//	//bool IsPaneOpen { get; set; }
-	//	bool IsShowingSettings { get; set; }
-	//	bool IsShowingCover { get; set; }
-	//}
 }
