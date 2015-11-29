@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utilz;
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.UI.Core;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 
-namespace Utilz
+namespace UniFiler10.Controlz
 {
-	[DataContract]
-	public abstract class ObservableData : INotifyPropertyChanged
+	public abstract class ObservablePage : Page, INotifyPropertyChanged
 	{
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
-		protected void ClearListeners()
+		protected void ClearListeners() // we could use this inside a Dispose
 		{
 			PropertyChanged = null;
 		}
@@ -27,34 +27,33 @@ namespace Utilz
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-		/// <summary>
-		/// Runs in the UI thread if available, otherwise queues the operation in it.
-		/// </summary>
-		/// <param name="propertyName"></param>
 		protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
-		{
-			Task raise = RunInUiThreadAsync(delegate { RaisePropertyChanged(propertyName); });
-		}
-		#endregion INotifyPropertyChanged
-
-
-		#region UIThread
-		public async Task RunInUiThreadAsync(DispatchedHandler action)
 		{
 			try
 			{
-				if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-				{
-					action();
-				}
-				else
-				{
-					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
-				}
+				Task raise = RunInUiThreadAsync(delegate { RaisePropertyChanged(propertyName); });
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+		}
+		#endregion INotifyPropertyChanged
+
+		#region construct dispose
+		public ObservablePage() { }
+		#endregion construct dispose
+
+		#region UIThread
+		public async Task RunInUiThreadAsync(DispatchedHandler action)
+		{
+			if (Dispatcher.HasThreadAccess)
+			{
+				action();
+			}
+			else
+			{
+				await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
 			}
 		}
 		#endregion UIThread

@@ -10,7 +10,8 @@ namespace UniFiler10.Data.Metadata
 {
     [DataContract]
     public sealed class FieldDescription : ObservableData //, IEqualityComparer<FieldDescription>
-    {// LOLLO TODO make disposable ?
+    {
+		// LOLLO TODO make Openable ?
         private static readonly string DEFAULT_ID = string.Empty;
 
         #region properties

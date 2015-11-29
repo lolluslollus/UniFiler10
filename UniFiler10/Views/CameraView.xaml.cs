@@ -27,15 +27,15 @@ using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class CameraView : BackableOpenableObservableControl
+    public sealed partial class CameraView : OpenableObservableControl
     {
-        public BinderVM VM
+        public BinderContentVM VM
         {
-            get { return (BinderVM)GetValue(VMProperty); }
+            get { return (BinderContentVM)GetValue(VMProperty); }
             set { SetValue(VMProperty, value); }
         }
         public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(BinderVM), typeof(CameraView), new PropertyMetadata(null));
+            DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(CameraView), new PropertyMetadata(null));
 
         private string _lastMessage = string.Empty;
         public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
@@ -70,28 +70,56 @@ namespace UniFiler10.Views
 
         public CameraView()
         {
-            //TriggerOpenCloseWhenLoadedUnloaded = true;
-            InitializeComponent();
-            VideoButton.Visibility = Visibility.Collapsed;
-        }
+			Loaded += OnLoaded;
+			Unloaded += OnUnloaded;
+			Application.Current.Resuming += OnResuming;
+			Application.Current.Suspending += OnSuspending;
 
-        protected override async Task<bool> TryOpenMayOverrideAsync()
+			InitializeComponent();
+            VideoButton.Visibility = Visibility.Collapsed;
+		}
+
+		private bool _isLoaded = false;
+		private bool _isLoadedWhenSuspending = false;
+		private async void OnSuspending(object sender, SuspendingEventArgs e)
+		{
+			var deferral = e.SuspendingOperation.GetDeferral();
+
+			_isLoadedWhenSuspending = _isLoaded;
+			await CloseAsync().ConfigureAwait(false);
+
+			deferral.Complete();
+		}
+
+		private async void OnResuming(object sender, object e) // LOLLO TODO test OnSuspending and OnResuming
+		{
+			if (_isLoadedWhenSuspending) await OpenAsync().ConfigureAwait(false);
+		}
+
+		private async void OnLoaded(object sender, RoutedEventArgs e)
+		{
+			_isLoaded = true;
+			await OpenAsync().ConfigureAwait(false);
+		}
+
+		private async void OnUnloaded(object sender, RoutedEventArgs e)
+		{
+			_isLoaded = false;
+			await CloseAsync().ConfigureAwait(false);
+		}
+
+		private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			await CloseAsync().ConfigureAwait(false);
+		}
+
+		protected override async Task OpenMayOverrideAsync()
         {
-			if (await base.TryOpenMayOverrideAsync())
-			{
-				await SetupUiAsync();
-				bool isOk = await InitializeCameraAsync().ConfigureAwait(false);
-				return isOk;
-			}
-			else
-			{
-				return false;
-			}
+			await SetupUiAsync();
+			await InitializeCameraAsync().ConfigureAwait(false);
         }
         protected override async Task CloseMayOverrideAsync()
         {
-			await base.CloseMayOverrideAsync();
-
             VM?.EndShoot(); // LOLLO TODO check this
             await CleanupCameraAsync();
             await CleanupUiAsync().ConfigureAwait(false);
@@ -108,6 +136,7 @@ namespace UniFiler10.Views
         /// <param name="args"></param>
         private async void OnSystemMediaControls_PropertyChanged(SystemMediaTransportControls sender, SystemMediaTransportControlsPropertyChangedEventArgs args)
         {
+			// LOLLO TODO this control has several calls to the dispatcher, which contain awaits. They will not be awaited, check it.
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async delegate
             {
                 // Only handle this event if this page is currently being displayed
@@ -167,17 +196,17 @@ namespace UniFiler10.Views
 
         private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await RunFunctionWhileEnabledAsyncT(TakePhotoAsync).ConfigureAwait(false);
+            await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
         }
 
         private async void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
         {
-            await RunFunctionWhileEnabledAsyncT(TakePhotoAsync).ConfigureAwait(false);
+            await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
         }
 
         private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            await RunFunctionWhileEnabledAsyncT(async delegate
+            await RunFunctionWhileOpenAsyncT(async delegate
             {
                 if (!_isRecordingVideo)
                 {
@@ -210,21 +239,20 @@ namespace UniFiler10.Views
 
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
         }
+		//     protected override void GoBackMustOverride()
+		//     {
+		//var vm = VM; if (vm == null) return;
+		//         vm.IsCameraOverlayOpen = false;
+		//     }
+		#endregion Event handlers
 
-        protected override void GoBackMustOverride()
-        {
-			var vm = VM; if (vm == null) return;
-            vm.IsCameraOverlayOpen = false;
-        }
-        #endregion Event handlers
 
-
-        #region MediaCapture methods
-        /// <summary>
-        /// Initializes the MediaCapture, registers events, gets camera device information for mirroring and rotating, starts preview and unlocks the UI
-        /// </summary>
-        /// <returns></returns>
-        private async Task<bool> InitializeCameraAsync()
+		#region MediaCapture methods
+		/// <summary>
+		/// Initializes the MediaCapture, registers events, gets camera device information for mirroring and rotating, starts preview and unlocks the UI
+		/// </summary>
+		/// <returns></returns>
+		private async Task<bool> InitializeCameraAsync()
         {
             LastMessage = "InitializeCameraAsync";
 
@@ -798,6 +826,6 @@ namespace UniFiler10.Views
             PhotoButton.RenderTransform = transform;
             VideoButton.RenderTransform = transform;
         }
-        #endregion Rotation helpers
-    }
+		#endregion Rotation helpers
+	}
 }

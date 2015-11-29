@@ -46,7 +46,7 @@ namespace UniFiler10.Data.Model
 				// if (_parentId != newValue) { _parentId = newValue; RaisePropertyChanged_UI(); /*Task upd = UpdateDbAsync();*/ }
 			}
 		}
-		// LOLLO TODO the following are various experiments with SetProperty
+		// LOLLO the following are various experiments with SetProperty
 		// Atomicity bugs maybe? Also try inserting a big delay and see what happens. A semaphore may fix it.
 		//protected async void SetProperty1(object newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
 		//{
@@ -58,7 +58,7 @@ namespace UniFiler10.Data.Model
 		//	{
 		//		fieldInfo.SetValue(this, newValue);
 
-		//		await RunFunctionWhileEnabledAsyncA_MT(async delegate
+		//		await RunFunctionWhileOpenAsyncA_MT(async delegate
 		//		{
 		//			if (UpdateDbMustOverride() == false)
 		//			{
@@ -70,7 +70,7 @@ namespace UniFiler10.Data.Model
 		//	}
 		//}
 
-		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, bool resetIfDbError = true, [CallerMemberName] string propertyName = "")
+		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
 		{
 			// LOLLO TODO if you stick to this, which seems the best, you can make the private sides of the properties private again
 			T oldValue = fldValue;
@@ -79,16 +79,13 @@ namespace UniFiler10.Data.Model
 				fldValue = newValue;
 				RaisePropertyChanged_UI(propertyName);
 
-				Task db = RunFunctionWhileEnabledAsyncA_MT(async delegate
+				Task db = RunFunctionWhileOpenAsyncA_MT(async delegate
 				{
 					if (UpdateDbMustOverride() == false)
 					{
-						//if (resetIfDbError)
-						//{
 						//	string attributeName = '_' + propertyName[0].ToString().ToLower() + propertyName.Substring(1); // only works if naming conventions are respected
 						//	GetType().GetField(attributeName)?.SetValue(this, oldValue);
 						//	RaisePropertyChanged_UI(propertyName);
-						//}
 						await Logger.AddAsync(GetType().ToString() + "." + propertyName + " could not be set", Logger.ForegroundLogFilename).ConfigureAwait(false);
 					}
 				});

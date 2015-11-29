@@ -11,8 +11,7 @@
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400"
-    Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}"
-    DataContextChanged="OnDataContextChanged">
+    Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}">
 
     <!--<Grid Width="{StaticResource MiniatureWidth}" Height="{StaticResource MiniatureHeight}" 
         Background="Transparent" Tapped="OnPreview_Tapped">-->

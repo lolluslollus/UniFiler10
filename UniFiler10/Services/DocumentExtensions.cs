@@ -62,7 +62,7 @@ namespace UniFiler10.Services
                         using (StreamReader streamReader = new StreamReader(stream.AsStreamForRead()))
                         {
                             string ssss = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-                            // await stream.AsStreamForRead().FlushAsync().ConfigureAwait(false); // LOLLO TODO this is new, check it // probably useless, I have taken it out already
+                            // await stream.AsStreamForRead().FlushAsync().ConfigureAwait(false);
                             return ssss;
                         }
                     }

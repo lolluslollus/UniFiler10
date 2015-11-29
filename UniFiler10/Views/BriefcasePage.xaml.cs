@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
+using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Popups;
@@ -16,17 +18,8 @@ namespace UniFiler10.Views
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class BriefcasePage : Page, INotifyPropertyChanged
-    {
-        #region INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        //private void ClearListeners() { PropertyChanged = null; }
-        private void RaisePropertyChanged([CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion INotifyPropertyChanged
-
+    public sealed partial class BriefcasePage : OpenableObservablePage
+	{
         #region properties
         private BriefcaseVM _vm = null;
         public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged(); } }
@@ -35,16 +28,23 @@ namespace UniFiler10.Views
         #region construct dispose open close
         public BriefcasePage()
         {
-            Application.Current.Resuming += OnResuming;
-            Application.Current.Suspending += OnSuspending;
-            Loading += OnLoading;
             InitializeComponent();
         }
 
-        private async void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
-        {
-            var deferral = e.SuspendingOperation.GetDeferral();
+		protected override async Task OpenMayOverrideAsync()
+		{
+			if (_vm == null) _vm = new BriefcaseVM();
+			await _vm.OpenAsync().ConfigureAwait(true);
+			RaisePropertyChanged(nameof(VM));
 
+			//RegisterIsShowingBinderHandler();
+			// LOLLO NOTE do not set the datacontext of the whole control or it will alter the dependency properties, if any. 
+			// Instead, set LayoutRoot.DataContext, where LayoutRoot is the main child of the Page or UserControl.
+			// For example:
+			// LayoutRoot.DataContext = VM;
+		}
+		protected override async Task CloseMayOverrideAsync()
+		{
 			var vm = _vm;
 			if (vm != null)
 			{
@@ -52,119 +52,25 @@ namespace UniFiler10.Views
 				vm.Dispose();
 				VM = null;
 			}
+		}
+		#endregion construct dispose open close
 
-            deferral.Complete();
-        }
 
-        private async void OnResuming(object sender, object e)
-        {
-            await ActivateAsync().ConfigureAwait(false);
-        }
-        //protected override async void OnNavigatedTo(NavigationEventArgs e)
-        //{
-        //    await ActivateAsync();
-        //    base.OnNavigatedTo(e);
-        //}
-        private async void OnLoading(FrameworkElement sender, object args) // fires after OnNavigatedTo and before OnLoaded
-        {
-            await ActivateAsync().ConfigureAwait(false);
-        }
+		#region user actions
+		private void OnBriefcaseCoverView_GoToBinderContentRequested(object sender, EventArgs e)
+		{
+			Frame.Navigate(typeof(BriefcaseContentPage));
+		}
 
-        // LOLLO OnUnloaded and OnNavigatingFrom do not fire
-
-        private async Task ActivateAsync()
-        {
-            if (_vm == null) _vm = new BriefcaseVM();
-            await _vm.OpenAsync().ConfigureAwait(true);
-            RaisePropertyChanged(nameof(VM));
-            LayoutRoot.DataContext = VM;
-            // LOLLO do not set the datacontext of the whole control or it will alter the dependency properties, if any. 
-            // Instead, set LayoutRoot.DataContext, where LayoutRoot is the main child of the Page or UserControl.
-            // For example:
-            // LayoutRoot.DataContext = VM;
-        }
-        #endregion construct dispose open close
-
-        //private void OnAddDbName_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
-        //    NewDbNameTB.Visibility = Visibility.Visible;
-        //    UpdateAddDbFields();
-        //}
-        //private void UpdateAddDbFields()
-        //{
-        //    if (!string.IsNullOrWhiteSpace(NewDbNameTB.Text))
-        //    {
-        //        if (_vm != null)
-        //        {
-        //            if (_vm.Briefcase?.CheckNewDbName(NewDbNameTB.Text) == true)
-        //            {
-        //                AddDbButton.Visibility = Visibility.Visible;
-        //                NewDbNameErrorTB.Visibility = Visibility.Collapsed;
-        //            }
-        //            else
-        //            {
-        //                AddDbButton.Visibility = Visibility.Collapsed;
-        //                NewDbNameErrorTB.Visibility = Visibility.Visible;
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        AddDbButton.Visibility = Visibility.Collapsed;
-        //        NewDbNameErrorTB.Visibility = Visibility.Collapsed;
-        //    }
-        //}
-        //private void OnNewDbNameTB_TextChanged(object sender, TextChangedEventArgs e)
-        //{
-        //    UpdateAddDbFields();
-        //}
-        //private async void OnAddDb_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (_vm != null)
-        //    {
-        //        NewDbNameTB.Visibility = Visibility.Collapsed;
-        //        AddDbButton.Visibility = Visibility.Collapsed;
-        //        await _vm.AddDbAsync(NewDbNameTB.Text).ConfigureAwait(false);
-        //    }
-        //}
-
-        //private void OnTogglePaneOpen(object sender, RoutedEventArgs e)
-        //{
-        //    if (_vm != null) VM.Briefcase.IsPaneOpen = !_vm.Briefcase.IsPaneOpen;
-        //}
-
-   //     private void OnDbItemClicked(object sender, SelectionChangedEventArgs e)
-   //     {
-   //         if (_vm != null && e?.AddedItems?.Count > 0)
-   //         {
-   //             _vm.OpenBinder(((sender as ListView).SelectedItem.ToString()));
-   //         }
-   //     }
-
-   //     private void OnDbNameClicked(object sender, ItemClickEventArgs e)
-   //     {
-   //         if (VM != null && VM.Briefcase != null) VM.Briefcase.IsShowingSettings = false;
-   //     }
-
-   //     private void OnRestoreBinder_Click(object sender, RoutedEventArgs e)
-   //     {
-			//Task restore = _vm?.RestoreDbAsync();
-   //     }
-
-   //     private void OnBackupBinder_Click(object sender, RoutedEventArgs e)
-   //     {
-			//Task backup = _vm?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
-   //     }
-
-   //     private void OnDeleteBinder_Click(object sender, RoutedEventArgs e)
-   //     {
-			//Task delete = _vm?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
-   //     }
-
-		//private void OnOpenCover_Click(object sender, RoutedEventArgs e)
-		//{
-		//	_vm?.OpenCover();
-		//}
+		private async void OnBriefcaseCoverView_GoToSettingsRequested(object sender, EventArgs e)
+		{
+			var vm = _vm;
+			if (vm != null)
+			{
+				await vm.CloseBinderAsync();
+			}
+			Frame.Navigate(typeof(SettingsPage));
+		}
+		#endregion user actions
 	}
 }

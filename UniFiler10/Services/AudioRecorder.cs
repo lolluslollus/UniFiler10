@@ -35,16 +35,6 @@ namespace UniFiler10.Services
 			_fileGetter = fileGetter;
 		}
 
-		//public async Task<bool> OpenAsync(StorageFile file)
-		//{
-		//    bool isOk = await OpenAsync().ConfigureAwait(false);
-		//    isOk = isOk && await RunFunctionWhileEnabledAsyncTB(async delegate
-		//    {
-		//        _messageWriter.LastMessage = await SetFileAsync(file).ConfigureAwait(false);
-		//        return string.IsNullOrEmpty(_messageWriter.LastMessage);
-		//    });
-		//    return isOk;
-		//}
 		protected override async Task OpenMayOverrideAsync()
 		{
 			_messageWriter.LastMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
@@ -183,7 +173,7 @@ namespace UniFiler10.Services
 		#region record
 		public Task RecordStartAsync()
 		{
-			return RunFunctionWhileEnabledAsyncA(delegate
+			return RunFunctionWhileOpenAsyncA(delegate
 			{
 				_messageWriter.LastMessage = "Recording...";
 				_audioGraph.Start();
@@ -191,7 +181,7 @@ namespace UniFiler10.Services
 		}
 		public Task<bool> RecordStopAsync()
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				// Good idea to stop the graph to avoid data loss
 				_audioGraph?.Stop();

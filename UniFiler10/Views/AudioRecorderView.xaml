@@ -1,4 +1,4 @@
-﻿<ctl:BackableOpenableObservableControl
+﻿<ctl:OpenableObservableControl
     x:Class="UniFiler10.Views.AudioRecorderView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -8,18 +8,38 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    d:DesignHeight="300"
-    d:DesignWidth="400">
+    d:DesignHeight="500"
+    d:DesignWidth="500">
 
     <UserControl.Resources>
         <SolidColorBrush x:Key="TranslucentBlackBrush" Color="Black" Opacity="0.3"/>
+        <Storyboard x:Name="RecordingStoryboard" RepeatBehavior="Forever">
+			<DoubleAnimation Duration="0:0:0.2" 
+				From="1" To=".8" 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
+				Storyboard.TargetName="viewbox"/>
+			<DoubleAnimation Duration="0:0:0.2" 
+				From="1" To=".8" 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
+				Storyboard.TargetName="viewbox"/>
+			<!--<DoubleAnimation Duration="0:0:0.2" 
+				From="1" To=".8" 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)" 
+				Storyboard.TargetName="viewbox"/>-->
+        </Storyboard>
     </UserControl.Resources>
-    
+
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <!--Audio preview LOLLO TODO check if we can use this -->
-        <!--<CaptureElement Name="PreviewControl" Stretch="Uniform"/>-->
+        <!--Audio preview LOLLO TODO check if we can use this to show the recording level -->
         <Border Width="400" Height="400" Background="Gold">
-            <TextBlock Text="Some animation here" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Viewbox x:Name="viewbox" Width="200" Height="200" 
+				HorizontalAlignment="Center" VerticalAlignment="Center" 
+                RenderTransformOrigin="0.5,0.5">
+                <Viewbox.RenderTransform>
+                    <CompositeTransform/>
+                </Viewbox.RenderTransform>
+                <SymbolIcon Symbol="Microphone"/>
+            </Viewbox>
         </Border>
         <!-- Capture + Record buttons -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -36,7 +56,6 @@
             </StackPanel.Resources>
 
             <Button
-				Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
 				Tapped="OnOwnBackButton_Tapped">
                 <Viewbox MaxHeight="60" MaxWidth="60">
                     <StackPanel Orientation="Vertical">
@@ -52,4 +71,4 @@
             <TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>
-</ctl:BackableOpenableObservableControl>
+</ctl:OpenableObservableControl>

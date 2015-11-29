@@ -23,13 +23,13 @@ namespace UniFiler10.Views
 {
 	public sealed partial class WalletsView : UserControl
 	{
-		public BinderVM VM
+		public BinderContentVM VM
 		{
-			get { return (BinderVM)GetValue(VMProperty); }
+			get { return (BinderContentVM)GetValue(VMProperty); }
 			set { SetValue(VMProperty, value); }
 		}
 		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(BinderVM), typeof(WalletsView), new PropertyMetadata(null));
+			DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(WalletsView), new PropertyMetadata(null));
 
 		public WalletsView()
 		{

@@ -30,22 +30,22 @@ namespace UniFiler10.Data.Model
 				if (newValue != oldValue)
 				{
 					_fieldValueId = newValue;
+					UpdateDynamicValues2();
 					RaisePropertyChanged_UI();
-					UpdateDynamicValues();
 
-					Task upd = RunFunctionWhileEnabledAsyncA_MT(delegate
+					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
 							_fieldValueId = oldValue;
+							UpdateDynamicValues2();
 							RaisePropertyChanged_UI();
-							UpdateDynamicValues();
 						}
 					});
 				}
 				else if (_fieldValue == null)
 				{
-					UpdateDynamicValues();
+					UpdateDynamicValues2();
 				}
 			}
 		}
@@ -67,31 +67,31 @@ namespace UniFiler10.Data.Model
 				if (newValue != oldValue)
 				{
 					_fieldDescriptionId = newValue;
+					UpdateDynamicValues2();
 					RaisePropertyChanged_UI();
-					UpdateDynamicValues();
 
-					Task upd = RunFunctionWhileEnabledAsyncA_MT(delegate
+					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
 							_fieldDescriptionId = oldValue;
+							UpdateDynamicValues2();
 							RaisePropertyChanged_UI();
-							UpdateDynamicValues();
 						}
 					});
 				}
 				else if (_fieldDescription == null)
 				{
-					UpdateDynamicValues();
+					UpdateDynamicValues2();
 				}
 			}
 		}
-		private void UpdateDynamicValues()
+		private void UpdateDynamicValues2()
 		{
-			var metaBriefcase = MetaBriefcase.OpenInstance;
-			if (metaBriefcase != null && metaBriefcase.FieldDescriptions != null && !string.IsNullOrEmpty(_fieldDescriptionId))
+			var mbf = MetaBriefcase.OpenInstance;
+			if (mbf != null && mbf.FieldDescriptions != null && !string.IsNullOrEmpty(_fieldDescriptionId))
 			{
-				FieldDescription = metaBriefcase.FieldDescriptions.FirstOrDefault(fldDsc => fldDsc.Id == _fieldDescriptionId);
+				FieldDescription = mbf.FieldDescriptions.FirstOrDefault(fldDsc => fldDsc.Id == _fieldDescriptionId);
 			}
 			else
 			{
@@ -115,11 +115,6 @@ namespace UniFiler10.Data.Model
 			if (ins != null) return ins.UpdateDynamicFields(this);
 			else return false;
 		}
-		//protected override async Task<bool> UpdateDbMustOverrideAsync()
-		//{
-		//	if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateDynamicFieldsAsync(this).ConfigureAwait(false);
-		//	else return false;
-		//}
 
 		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
 		{
@@ -146,27 +141,55 @@ namespace UniFiler10.Data.Model
 			return result;
 		}
 
-		public Task<bool> SetFieldValueIdAsync(string newValue)
+		public Task<bool> TrySetFieldValueAsync(string newValue)
 		{
-			return RunFunctionWhileEnabledAsyncB(delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				var availableFldVal = _fieldDescription.GetValueFromPossibleValues(newValue);
-				if (availableFldVal != null)
+				if (_fieldDescription == null) return false;
+
+				bool isOk = false;
+
+				if (_fieldValue != null && _fieldValue.Vaalue != newValue)
 				{
-					FieldValueId = availableFldVal.Id;
-					return true;
+					string oldValue = _fieldValue.Vaalue;
+					isOk = await TrySetFieldValueId(newValue);
+					if (!isOk) _fieldValue.Vaalue = oldValue;
 				}
-				else if (_fieldDescription.IsAnyValueAllowed)
+				else if (_fieldValue == null)
 				{
-					var newFldVal = new FieldValue() { IsCustom = true, IsJustAdded = true, Vaalue = newValue };
-					if (_fieldDescription.AddPossibleValue(newFldVal))
+					isOk = await TrySetFieldValueId(newValue);
+				}
+
+				// LOLLO TODO is isOk, save metaBriefcase, in case there is a crash before the next Suspend. 
+				// This problem actually affects all XML-based stuff, because they only save on closing.
+				return isOk;
+			});
+		}
+
+		private async Task<bool> TrySetFieldValueId(string newValue)
+		{
+			if (_fieldDescription == null) return false;
+
+			var availableFldVal = _fieldDescription.GetValueFromPossibleValues(newValue);
+			if (availableFldVal != null)
+			{
+				FieldValueId = availableFldVal.Id;
+				return true;
+			}
+			else if (_fieldDescription.IsAnyValueAllowed)
+			{
+				var newFldVal = new FieldValue() { Vaalue = newValue, IsCustom = true, IsJustAdded = true };
+				var mb = MetaBriefcase.OpenInstance;
+				if (mb != null)
+				{
+					if (await mb.AddPossibleValueToFieldDescriptionAsync(_fieldDescription, newFldVal))
 					{
 						FieldValueId = newFldVal.Id;
 						return true;
 					}
 				}
-				return false;
-			});
+			}
+			return false;
 		}
 
 	}

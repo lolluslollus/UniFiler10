@@ -26,13 +26,13 @@ namespace UniFiler10.Views
 {
     public sealed partial class FolderView : UserControl
     {
-        public BinderVM VM
+        public BinderContentVM VM
         {
-            get { return (BinderVM)GetValue(VMProperty); }
+            get { return (BinderContentVM)GetValue(VMProperty); }
             set { SetValue(VMProperty, value); }
         }
         public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(BinderVM), typeof(FolderView), new PropertyMetadata(null));
+            DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(FolderView), new PropertyMetadata(null));
 
         public FolderView()
         {
@@ -62,7 +62,7 @@ namespace UniFiler10.Views
             var textBox = sender as TextBox;
             if (textBox != null)
             {
-                Task setVal = VM?.ChangeFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
+                Task setVal = VM?.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
             }
         }
 

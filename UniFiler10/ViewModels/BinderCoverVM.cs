@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
@@ -20,7 +21,7 @@ namespace UniFiler10.ViewModels
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
 		private const int REFRESH_INTERVAL_SHORT_MSEC = 25;
 		IAnimationStarter _animationStarter = null;
-		//private int _refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
+		private CancellationTokenSource _cts = null;
 		#endregion fields
 
 
@@ -106,7 +107,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (_isAllFoldersDirty != value)
 				{
-					_isAllFoldersDirty = value; RaisePropertyChanged_UI();					
+					_isAllFoldersDirty = value; RaisePropertyChanged_UI();
 				}
 			}
 		}
@@ -329,48 +330,57 @@ namespace UniFiler10.ViewModels
 
 		private async Task UpdatePaneContentAsync(int waitMsec)
 		{
-			//_refreshIntervalMsec = REFRESH_INTERVAL_LONG_MSEC;
-
 			if (IsNeedRefresh && IsOpen)
 			{
 				try
 				{
 					_animationStarter.StartAnimation();
-					await Task.Delay(waitMsec).ConfigureAwait(false);
-					Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
-					await RunFunctionWhileEnabledAsyncT(async delegate
+					var cts = _cts;
+					if (cts != null)
 					{
-						if (IsNeedRefresh)
+						await Task.Delay(waitMsec, cts.Token).ConfigureAwait(false);
+						Debug.WriteLine("Finished waiting " + waitMsec + " msec");
+
+						await RunFunctionWhileOpenAsyncT(async delegate
 						{
-							if (_isAllFoldersDirty && _isAllFolderPaneOpen)
+							if (IsNeedRefresh)
 							{
-								await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
-								IsAllFoldersDirty = false;
-								IsRecentFoldersDirty = true;
+								if (_isAllFoldersDirty && _isAllFolderPaneOpen)
+								{
+									await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
+									IsAllFoldersDirty = false;
+									IsRecentFoldersDirty = true;
+								}
+								if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
+								{
+									await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
+									IsAllFoldersDirty = true;
+									IsRecentFoldersDirty = false;
+								}
+								if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
+								{
+									await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
+									//IsByCatFoldersDirty = false;
+									IsAllFoldersDirty = true;
+									IsRecentFoldersDirty = true;
+								}
+								if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
+								{
+									await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
+									//IsByFldFoldersDirty = false;
+									IsAllFoldersDirty = true;
+									IsRecentFoldersDirty = true;
+								}
 							}
-							if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
-							{
-								await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
-								IsAllFoldersDirty = true;
-								IsRecentFoldersDirty = false;
-							}
-							if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
-							{
-								await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
-								//IsByCatFoldersDirty = false;
-								IsAllFoldersDirty = true;
-								IsRecentFoldersDirty = true;
-							}
-							if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
-							{
-								await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
-								//IsByFldFoldersDirty = false;
-								IsAllFoldersDirty = true;
-								IsRecentFoldersDirty = true;
-							}
-						}
-					});
+						});
+					}
+				}
+				catch (OperationCanceledException) { } // fired by the cancellation token
+				catch (ObjectDisposedException) { } // fired by the cancellation token
+				catch (Exception ex)
+				{
+					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 				}
 				finally
 				{
@@ -405,13 +415,11 @@ namespace UniFiler10.ViewModels
 			UpdateDataForFldFilter();
 
 			UpdateIsPaneOpen();
-
-			_binder.PropertyChanged += OnBinder_PropertyChanged;
-			UpdateOpenClose();
 		}
 
 		protected override Task OpenMayOverrideAsync()
 		{
+			_cts = new CancellationTokenSource();
 			RegisterFoldersChanged();
 			return Task.CompletedTask;
 		}
@@ -419,6 +427,19 @@ namespace UniFiler10.ViewModels
 		protected override Task CloseMayOverrideAsync()
 		{
 			UnregisterFoldersChanged();
+
+			try
+			{
+				_cts?.Cancel();
+			}
+			catch { }
+			try
+			{
+				_cts?.Dispose();
+			}
+			catch { }
+			_cts = null;
+
 			return Task.CompletedTask;
 		}
 
@@ -426,31 +447,8 @@ namespace UniFiler10.ViewModels
 		{
 			base.Dispose(isDisposing);
 
-			var binder = _binder;
-			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
-
 			_folderPreviews?.Dispose();
 			_folderPreviews = null;
-		}
-
-		private void OnBinder_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(Binder.IsOpen))
-			{
-				UpdateOpenClose();
-			}
-		}
-
-		private void UpdateOpenClose()
-		{
-			if (_binder?.IsOpen == true)
-			{
-				Task open = OpenAsync(); //.ContinueWith(delegate { Task upd = UpdatePaneContentAsync(0); });
-			}
-			else
-			{
-				Task close = CloseAsync();
-			}
 		}
 		#endregion construct dispose open close
 
@@ -486,12 +484,12 @@ namespace UniFiler10.ViewModels
 
 		private Task RefreshFolderPreviewsAsync(List<Binder.FolderPreview> folderPreviews)
 		{
-			return CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			return RunInUiThreadAsync(delegate
 			{
 				_folderPreviews?.Clear();
 				_folderPreviews?.AddRange(folderPreviews);
 				Debug.WriteLine("BinderCoverVM has refreshed the folder previews");
-			}).AsTask();
+			});
 		}
 		#endregion binder data methods
 
@@ -636,7 +634,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region user actions
-		public async Task SelectFolderAsync(string folderId)
+		public async Task<bool> SelectFolderAsync(string folderId)
 		{
 			if (!string.IsNullOrWhiteSpace(folderId))
 			{
@@ -644,71 +642,52 @@ namespace UniFiler10.ViewModels
 				if (binder != null)
 				{
 					await binder.SetCurrentFolderIdAsync(folderId);
-					binder.SetIsCoverOpen(false);
+					return true;
 				}
 			}
+			return false;
 		}
 
 		public async Task AddFolderAsync()
 		{
-			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var binder = _binder;
 			if (binder != null)
 			{
-				await binder.AddFolderAsync(false).ConfigureAwait(false);
-				SetIsDirty(true, true, 0);
+				if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
+				{
+					SetIsDirty(true, true, 0);
+				}
 			}
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
 		}
 
-		public async Task AddOpenFolderAsync()
+		public async Task<bool> AddOpenFolderAsync()
 		{
-			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var binder = _binder;
 			if (binder != null)
 			{
-				var newFolder = await binder.AddFolderAsync(false);
+				var newFolder = await binder.AddFolderAsync();
 				if (newFolder != null)
 				{
-					await SelectFolderAsync(newFolder.Id).ConfigureAwait(false);
-					SetIsDirty(true, true, 0);
+					if (await SelectFolderAsync(newFolder.Id).ConfigureAwait(false))
+					{
+						SetIsDirty(true, true, 0);
+						return true;
+					}
 				}
 			}
+			return false;
 		}
 
 		public async Task DeleteFolderAsync(Binder.FolderPreview fp)
 		{
-			//_refreshIntervalMsec = REFRESH_INTERVAL_SHORT_MSEC;
 			var binder = _binder;
-			if (binder != null)
+			if (binder != null && fp != null)
 			{
-				await binder.RemoveFolderAsync(fp?.FolderId).ConfigureAwait(false);
-				SetIsDirty(true, true, 0);
-			}
-		}
-
-		public void CloseCover()
-		{
-			var binder = _binder;
-			if (binder != null) binder.SetIsCoverOpen(false);
-		}
-
-		public void GoBack()
-		{
-			var opener = _binder?.ParentPaneOpener;
-			if (opener != null)
-			{
-				opener.IsShowingCover = true;
-			}
-
-		}
-
-		public void GoToSettings()
-		{
-			var opener = _binder?.ParentPaneOpener;
-			if (opener != null)
-			{
-				opener.IsShowingSettings = true;
+				if (await binder.RemoveFolderAsync(fp.FolderId).ConfigureAwait(false))
+				{
+					SetIsDirty(true, true, 0);
+				}
 			}
 		}
 		#endregion actions

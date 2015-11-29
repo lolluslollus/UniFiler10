@@ -30,31 +30,31 @@ namespace UniFiler10.Data.Model
 				if (newValue != oldValue)
 				{
 					_categoryId = newValue;
+					UpdateCategory2();
 					RaisePropertyChanged_UI();
-					UpdateCategory();
 
-					Task upd = RunFunctionWhileEnabledAsyncA_MT(delegate
+					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicCategories(this) == false)
 						{
 							_categoryId = oldValue;
+							UpdateCategory2();
 							RaisePropertyChanged_UI();
-							UpdateCategory();
 						}
 					});
 				}
 				else if (_category == null)
 				{
-					UpdateCategory();
+					UpdateCategory2();
 				}
 			}
 		}
-		private void UpdateCategory()
+		private void UpdateCategory2()
 		{
-			var metaBriefCase = MetaBriefcase.OpenInstance;
-			if (metaBriefCase != null && metaBriefCase.Categories != null && !string.IsNullOrEmpty(_categoryId))
+			var mbf = MetaBriefcase.OpenInstance;
+			if (mbf != null && mbf.Categories != null && !string.IsNullOrEmpty(_categoryId))
 			{
-				Category = metaBriefCase.Categories.FirstOrDefault(a => a.Id == _categoryId);
+				Category = mbf.Categories.FirstOrDefault(a => a.Id == _categoryId);
 			}
 			else
 			{

@@ -11,16 +11,14 @@
     x:Name="me"
     mc:Ignorable="d"
     d:DesignHeight="300"
-    d:DesignWidth="400" 
-    d:DataContext="{d:DesignInstance Model:Folder, CreateList=True, IsDesignTimeCreatable=True}">
+    d:DesignWidth="400"
+	d:DataContext="{d:DesignInstance Model:Folder, CreateList=True, IsDesignTimeCreatable=True}">
 
-	<Grid x:Name="LayoutRoot" Background="{StaticResource SystemControlBackgroundBaseLowBrush}">
-        <Grid Visibility="{Binding IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Visible}" >
-            <TextBlock 
-				x:Uid="NoFolder"
-				VerticalAlignment="Center" HorizontalAlignment="Center"/>
-		</Grid>
-		<ScrollViewer Visibility="{Binding IsEnabled, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
+	<!--Background="{StaticResource SystemControlBackgroundBaseLowBrush}"-->
+	<Grid x:Name="LayoutRoot" 
+		Background="#FFDEEADE">
+
+		<ScrollViewer IsEnabled="{Binding IsOpen}"
 			VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
 			HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
 
@@ -48,8 +46,8 @@
                         </TextBox.Header>
                     </ctl:LolloTextBox>
 
+					<!--x:Name="Test"-->
 					<ctl:LolloTextBox
-						x:Name="Test"
 						MinWidth="{StaticResource LandscapeItemWidth}"
 						MinHeight="{StaticResource LandscapeItemHeight}"
 						MaxLength="{StaticResource MaxFolderDescrLength}"

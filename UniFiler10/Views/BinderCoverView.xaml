@@ -1,4 +1,4 @@
-﻿<ctl:BackableOpenableObservableControl
+﻿<ctl:OpenableObservableControl
 	x:Class="UniFiler10.Views.BinderCoverView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -12,8 +12,7 @@
     mc:Ignorable="d"
     d:DesignHeight="800"
     d:DesignWidth="400"
-    d:DataContext="{d:DesignInstance Type=vms:BinderCoverVM, IsDesignTimeCreatable=False}"
-	DataContextChanged="OnDataContextChanged">
+    d:DataContext="{d:DesignInstance Type=vms:BinderCoverVM, IsDesignTimeCreatable=False}">
 
 	<ctl:OpenableObservableControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
@@ -71,10 +70,10 @@
 			</Grid.RowDefinitions>
 
 			<!-- animation for refresh -->
-			<Viewbox
-                Width="{StaticResource LandscapeItemHeight}"
-                Height="{StaticResource LandscapeItemHeight}"
-                HorizontalAlignment="Left"
+			<Viewbox Grid.Row="3"
+                Width="{StaticResource MiniatureHeight}"
+                Height="{StaticResource MiniatureHeight}"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Stretch="Uniform">
 				<SymbolIcon x:Name="RefreshIcon" 
@@ -118,7 +117,7 @@
 				</Button>
 
 				<Button 
-                    Tapped="OnAddOpenFolder_Tapped"
+                    Tapped="OnAddAndOpenFolder_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
@@ -157,30 +156,6 @@
 					</Grid>
 				</Button>
 
-				<!--<Button
-					Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
-                    Tapped="OnOwnBackButton_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Back"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="Back"
-							MaxWidth="{StaticResource LandscapeItemWidth}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
-					</Grid>
-				</Button>-->
-			<!--</VariableSizedWrapGrid>
-
-			--><!-- filter choosers --><!--
-			<VariableSizedWrapGrid Grid.Row="1" Orientation="Horizontal">-->
 				<!-- recent folders header -->
 				<ToggleButton 
                     IsChecked="{Binding IsRecentFoldersPaneOpen, Mode=TwoWay}"
@@ -455,32 +430,11 @@
 									<TextBlock
         								Text="{Binding FolderName}"
         								Foreground="{StaticResource FlashyForeground}"
-										HorizontalAlignment="Center"
+										TextAlignment="Center"
 										Padding="{StaticResource Thickness4444}"
         								TextWrapping="Wrap"/>
-									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
 								</ctl:TextBlockScaler.TextBlock>
 							</ctl:TextBlockScaler>
-							<!--<Viewbox Canvas.ZIndex="200"
-        						Stretch="Uniform" StretchDirection="DownOnly"
-        						VerticalAlignment="Bottom" HorizontalAlignment="Center"
-        						MaxHeight="{StaticResource MiniatureQuarterHeight}">
-								<TextBlock
-        							Text="{Binding FolderName}"
-        							Foreground="{StaticResource FlashyForeground}" 
-        							HorizontalAlignment="Stretch"
-        							TextWrapping="Wrap"
-        							MaxWidth="{StaticResource MiniatureWidth}"/>
-							</Viewbox>-->
-
-							<!-- LOLLO delete after done testing--><!--
-							<TextBlock Canvas.ZIndex="110"
-								Foreground="{StaticResource FlashyForeground}"
-								Opacity="1"
-								TextWrapping="Wrap"
-								VerticalAlignment="Center"
-								Width="{StaticResource MiniatureWidth}"
-								Text="{Binding DocumentUri0, Mode=OneWay}"/>-->
 							
 							<local:DocumentView Canvas.ZIndex="100"
         						IsDeleteEnabled="False"
@@ -500,4 +454,4 @@
 			</ctl:TolerantListView>
 		</Grid>
 	</ScrollViewer>
-</ctl:BackableOpenableObservableControl>
+</ctl:OpenableObservableControl>

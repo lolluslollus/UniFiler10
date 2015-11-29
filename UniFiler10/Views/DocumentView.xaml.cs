@@ -41,29 +41,15 @@ namespace UniFiler10.Views
         public static readonly DependencyProperty IsDeleteEnabledProperty =
             DependencyProperty.Register("IsDeleteEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
-        //public bool IsRedirectTapped
-        //{
-        //    get { return (bool)GetValue(IsRedirectTappedProperty); }
-        //    set { SetValue(IsRedirectTappedProperty, value); }
-        //}
-        //public static readonly DependencyProperty IsRedirectTappedProperty =
-        //    DependencyProperty.Register("IsRedirectTapped", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
-
-        public BinderVM BinderVM
+        public BinderContentVM BinderContentVM
         {
-            get { return (BinderVM)GetValue(BinderVMProperty); }
+            get { return (BinderContentVM)GetValue(BinderVMProperty); }
             set { SetValue(BinderVMProperty, value); }
         }
         public static readonly DependencyProperty BinderVMProperty =
-            DependencyProperty.Register("BinderVM", typeof(BinderVM), typeof(DocumentView), new PropertyMetadata(null));
+            DependencyProperty.Register("BinderContentVM", typeof(BinderContentVM), typeof(DocumentView), new PropertyMetadata(null));
 
         private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
-
-        //private Visibility _imageViewerVisibility = Visibility.Collapsed;
-        //public Visibility ImageViewerVisibility { get { return _imageViewerVisibility; } private set { _imageViewerVisibility = value; RaisePropertyChanged_UI(); } }
-
-        //private Visibility _webViewerVisibility = Visibility.Collapsed;
-        //public Visibility WebViewerVisibility { get { return _webViewerVisibility; } private set { _webViewerVisibility = value; RaisePropertyChanged_UI(); } }
 
         public Wallet Wallet
         {
@@ -81,14 +67,6 @@ namespace UniFiler10.Views
         public static readonly DependencyProperty FolderProperty =
             DependencyProperty.Register("Folder", typeof(Folder), typeof(DocumentView), new PropertyMetadata(null));
 
-		//public bool IsMultiPage
-		//{
-		//	get { return (bool)GetValue(IsMultiPageProperty); }
-		//	private set { SetValue(IsMultiPageProperty, value); }
-		//}
-		//public static readonly DependencyProperty IsMultiPageProperty =
-		//	DependencyProperty.Register("IsMultiPage", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
-
 		private bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
 
@@ -96,11 +74,13 @@ namespace UniFiler10.Views
         private uint _width = 0;
         #endregion properties
 
+
         #region construct
         public DocumentView()
         {
             _height = (uint)(double)Application.Current.Resources["MiniatureHeight"];
             _width = (uint)(double)Application.Current.Resources["MiniatureWidth"];
+			DataContextChanged += OnDataContextChanged;
 
             InitializeComponent();
         }
@@ -116,7 +96,7 @@ namespace UniFiler10.Views
         {
             try
             {
-				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
+				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
                 //if (args != null)
                 //{
 					// var newDoc = args.NewValue as Document;
@@ -447,16 +427,16 @@ namespace UniFiler10.Views
         private async void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
         {
             e.Handled = true;
-            if (IsDeleteEnabled && BinderVM != null)
+            if (IsDeleteEnabled && BinderContentVM != null)
             {
-                if (await BinderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
+                if (await BinderContentVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
                 {
                     // if there are no more documents in the wallet, delete the wallet
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
                         {
                             if (Wallet.Documents.Count <= 0)
                             {
-                                Task del2 = BinderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
+                                Task del2 = BinderContentVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
                             }
                         }).AsTask().ConfigureAwait(false);
                 }

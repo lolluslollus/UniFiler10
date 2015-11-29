@@ -32,116 +32,86 @@ namespace UniFiler10.Views
 {
 	public sealed partial class BriefcaseCoverView : ObservableControl, IAnimationStarter
 	{
+		#region events
+		public event EventHandler GoToBinderContentRequested;
+		public event EventHandler GoToSettingsRequested;
+		#endregion events
+
+
 		#region properties
-		private BriefcaseVM _vm = null;
-		public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
+		public BriefcaseVM VM
+		{
+			get { return (BriefcaseVM)GetValue(VMProperty); }
+			set { SetValue(VMProperty, value); }
+		}
+		public static readonly DependencyProperty VMProperty =
+			DependencyProperty.Register("VM", typeof(BriefcaseVM), typeof(BriefcaseCoverView), new PropertyMetadata(null));
+		//private BriefcaseVM _vm = null;
+		//public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 
 		#region construct, dispose, open, close
 		public BriefcaseCoverView()
 		{
-			//TriggerOpenCloseWhenLoadedUnloaded = false;
 			InitializeComponent();
 		}
-
-		//protected override async Task<bool> OpenMayOverrideAsync()
-		//{
-		//	RunInUiThread(delegate { RegisterEventHandlers(); });
-		//	await Task.CompletedTask;
-		//	return true;
-		//}
-		//protected override Task CloseMayOverrideAsync()
-		//{
-		//	RunInUiThread(delegate { UnregisterEventHandlers(); });
-		//	return Task.CompletedTask;
-		//}
-		//private void RegisterEventHandlers()
-		//{
-		//	if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-		//	{
-		//		HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-		//	}
-		//	SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
-		//}
-		//private void UnregisterEventHandlers()
-		//{
-		//	if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
-		//	{
-		//		HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-		//	}
-		//	SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
-		//}
 		#endregion construct, dispose, open, close
 
 
 		#region event handlers
-		//private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
-		//{
-		//	GoBack();
-		//}
-		//private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-		//{
-		//	GoBack();
-		//}
-		//private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
-		//{
-		//	GoBack();
-		//}
-
-		//private void GoBack()
-		//{
-		//	VM?.Briefcase?.SetIsCoverOpen(false);
-		//}
-
-		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+		private async void OnBinderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			var vm = _vm; if (vm == null) return;
-			var briefcase = vm.Briefcase; if (briefcase == null) return;
-
-			bool isOpen = vm.OpenBinder(e?.ClickedItem?.ToString()) == true;
+			var vm = VM;
+			if (vm != null)
+			{
+				if (await vm.SetCurrentBinderAsync(e?.ClickedItem?.ToString()))
+				{
+					GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
+				}
+			}
 		}
 
 		private void OnAddBinderStep0_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			_vm?.AddDbStep0();
+			VM?.AddDbStep0();
 		}
 		private void OnAddBinderStep1_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			_vm?.AddDbStep1();
+			Task add = VM?.AddDbStep1Async();
 		}
 
 		private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task backup = _vm?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
+			Task backup = VM?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
 		}
 
 		private void OnRestoreButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task restore = _vm?.RestoreDbAsync();
+			Task restore = VM?.RestoreDbAsync();
 		}
 
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task delete = _vm?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+			Task delete = VM?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
 		}
 		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			_vm?.ShowSettings();
+			GoToSettingsRequested?.Invoke(this, EventArgs.Empty);
 		}
 		#endregion event handlers
 
 
 		public void StartAnimation()
 		{
-			RunInUiThread(delegate
+			Task start = RunInUiThreadAsync(delegate
 			{
 				UpdatingStoryboard.Begin();
 			});
 		}
 		public void EndAnimation()
 		{
-			RunInUiThread(delegate
+			Task end = RunInUiThreadAsync(delegate
 			{
 				UpdatingStoryboard.SkipToFill();
 				UpdatingStoryboard.Stop();

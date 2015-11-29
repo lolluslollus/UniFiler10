@@ -1,4 +1,4 @@
-﻿<Page
+﻿<ctl:OpenableObservablePage
     x:Class="UniFiler10.Views.BriefcasePage"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -14,21 +14,13 @@
         <!--DisplayMode="CompactInline"
         CompactPaneLength="{StaticResource CompactPaneLength}"-->
 	<Grid x:Name="LayoutRoot"
-		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
+		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}"
+		DataContext="{x:Bind VM, Mode=OneWay}">
 
 		<local:BriefcaseCoverView
-			HorizontalAlignment="Left" VerticalAlignment="Top"
-			Visibility="{x:Bind VM.Briefcase.IsShowingCover, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
-            VM="{x:Bind VM, Mode=OneWay}"/>
-		<!--DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"-->
-		<local:SettingsView
-            HorizontalAlignment="Left" VerticalAlignment="Top"
-            Visibility="{x:Bind VM.Briefcase.IsShowingSettings, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
-			BriefcaseVM="{x:Bind VM, Mode=OneWay}"/>
-		<local:BriefcaseContentView
-            HorizontalAlignment="Left" VerticalAlignment="Top"
-            Visibility="{x:Bind VM.Briefcase.IsShowingBinder, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed, Mode=OneWay}"
-            DataContext="{x:Bind VM.Briefcase.CurrentBinder, Mode=OneWay}"
-			BriefcaseVM="{x:Bind VM, Mode=OneWay}"/>
+            VM="{x:Bind VM, Mode=OneWay}"
+			GoToBinderContentRequested="OnBriefcaseCoverView_GoToBinderContentRequested"
+			GoToSettingsRequested="OnBriefcaseCoverView_GoToSettingsRequested"
+			IsEnabled="{Binding IsOpen, Mode=OneWay, FallbackValue=False}"/>
 	</Grid>
-</Page>
+</ctl:OpenableObservablePage>

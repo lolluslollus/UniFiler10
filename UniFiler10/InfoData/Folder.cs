@@ -76,10 +76,6 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public SwitchableObservableCollection<Wallet> Wallets { get { return _wallets; } private set { if (_wallets != value) { _wallets = value; RaisePropertyChanged_UI(); } } }
 
-		public bool _isSelected = false;
-		[DataMember]
-		public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value, true, false); } }
-
 		public bool _isEditingCategories = true;
 		[DataMember]
 		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetProperty(ref _isEditingCategories, value); } }
@@ -106,7 +102,6 @@ namespace UniFiler10.Data.Model
 				Descr1 == target.Descr1 &&
 				Descr2 == target.Descr2 &&
 				Descr3 == target.Descr3 &&
-				//IsSelected == target.IsSelected &&
 				Name == target.Name &&
 				Wallet.AreEqual(Wallets, target.Wallets) &&
 				DynamicCategory.AreEqual(DynamicCategories, target.DynamicCategories) &&
@@ -143,7 +138,7 @@ namespace UniFiler10.Data.Model
 			var dynamicCategories = await _dbManager.GetDynamicCategoriesAsync(Id).ConfigureAwait(false);
 
 			// populate my collections
-			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			await RunInUiThreadAsync(delegate
 			{
 				_wallets.Clear();
 				_wallets.AddRange(wallets);
@@ -158,7 +153,7 @@ namespace UniFiler10.Data.Model
 
 				_dynamicCategories.Clear();
 				_dynamicCategories.AddRange(dynamicCategories);
-			}).AsTask().ConfigureAwait(false);
+			}).ConfigureAwait(false);
 
 			// refresh dynamic categories and fields if something changed in the metadata since the last save
 			await RefreshDynamicPropertiesAsync().ConfigureAwait(false);
@@ -184,6 +179,7 @@ namespace UniFiler10.Data.Model
 				foreach (var wallet in _wallets)
 				{
 					await wallet.CloseAsync().ConfigureAwait(false);
+					wallet.Dispose();
 				}
 			}
 			if (_dynamicFields != null)
@@ -191,6 +187,7 @@ namespace UniFiler10.Data.Model
 				foreach (var dynFld in _dynamicFields)
 				{
 					await dynFld.CloseAsync().ConfigureAwait(false);
+					dynFld.Dispose();
 				}
 			}
 			if (_dynamicCategories != null)
@@ -198,9 +195,32 @@ namespace UniFiler10.Data.Model
 				foreach (var dynCat in _dynamicCategories)
 				{
 					await dynCat.CloseAsync().ConfigureAwait(false);
+					dynCat.Dispose();
 				}
 			}
+
+			await RunInUiThreadAsync(delegate
+			{
+				_wallets.Clear();
+				_dynamicFields.Clear();
+				_dynamicCategories.Clear();
+			}).ConfigureAwait(false);
 		}
+
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_wallets?.Dispose();
+			_wallets = null;
+
+			_dynamicCategories?.Dispose();
+			_dynamicCategories = null;
+
+			_dynamicFields?.Dispose();
+			_dynamicFields = null;
+		}
+
 		private async Task RefreshDynamicPropertiesAsync()
 		{
 			// update DynamicCategories if metadata has changed since last db save
@@ -261,10 +281,10 @@ namespace UniFiler10.Data.Model
 				if (DBManager.OpenInstance != null
 					&& await DBManager.OpenInstance.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
 				{
-					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+					await RunInUiThreadAsync(delegate
 					{
 						DynamicFields.Remove(obsoleteDynFld);
-					}).AsTask().ConfigureAwait(false);
+					}).ConfigureAwait(false);
 				}
 			}
 
@@ -276,35 +296,22 @@ namespace UniFiler10.Data.Model
 				if (DBManager.OpenInstance != null
 					&& await DBManager.OpenInstance.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
 				{
-					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+					await RunInUiThreadAsync(delegate
 					{
 						DynamicFields.Add(dynFld);
-					}).AsTask().ConfigureAwait(false);
+					}).ConfigureAwait(false);
 					await dynFld.OpenAsync();
 				}
 			}
 		}
-
-		protected override void Dispose(bool isDisposing)
-		{
-			base.Dispose(isDisposing);
-
-			_wallets?.Dispose();
-			_wallets = null;
-
-			_dynamicCategories?.Dispose();
-			_dynamicCategories = null;
-
-			_dynamicFields?.Dispose();
-			_dynamicFields = null;
-		}
 		#endregion loading methods
 
 		#region loaded methods
-		public Task<bool> AddWalletAsync(Wallet wallet)
+		public Task<bool> AddWalletAsync()
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
+				var wallet = new Wallet();
 				return await AddWallet2Async(wallet).ConfigureAwait(false);
 			});
 		}
@@ -320,7 +327,7 @@ namespace UniFiler10.Data.Model
 					var dbM = DBManager.OpenInstance;
 					if (dbM != null && await dbM.InsertIntoWalletsAsync(wallet, true))
 					{
-						RunInUiThread(delegate { _wallets.Add(wallet); });
+						await RunInUiThreadAsync(delegate { _wallets.Add(wallet); }).ConfigureAwait(false);
 
 						await wallet.OpenAsync().ConfigureAwait(false);
 						return true;
@@ -336,7 +343,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveWalletAsync(Wallet wallet)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				return await RemoveWallet2Async(wallet).ConfigureAwait(false);
 			});
@@ -350,10 +357,12 @@ namespace UniFiler10.Data.Model
 				{
 					await dbM.DeleteFromWalletsAsync(wallet);
 
-					RunInUiThread(delegate { _wallets.Remove(wallet); });
+					await RunInUiThreadAsync(delegate { _wallets.Remove(wallet); }).ConfigureAwait(false);
 
-					return await wallet.RemoveAllDocumentsAsync().ConfigureAwait(false)
-						& await wallet.CloseAsync().ConfigureAwait(false);
+					bool isOk = await wallet.CloseAsync().ConfigureAwait(false);
+					wallet.Dispose();
+
+					return isOk;
 				}
 			}
 			return false;
@@ -361,7 +370,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddDynamicCategoryAsync(string catId)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
@@ -375,12 +384,12 @@ namespace UniFiler10.Data.Model
 						var dbM = DBManager.OpenInstance;
 						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newFields, true))
 						{
-							DynamicCategories.Add(newDynCat);
+							_dynamicCategories.Add(newDynCat);
 							//DynamicFields.AddRange(newFields);
 							await newDynCat.OpenAsync();
 							foreach (var field in newFields)
 							{
-								DynamicFields.Add(field);
+								_dynamicFields.Add(field);
 								await field.OpenAsync();
 							}
 							return true;
@@ -393,7 +402,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDynamicCategoryAsync(string catId)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				return await RemoveDynamicCategory2Async(catId).ConfigureAwait(false);
 			});
@@ -431,7 +440,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (Binder.OpenInstance != null && file != null)
 				{

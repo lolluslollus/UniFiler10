@@ -26,15 +26,6 @@ namespace UniFiler10.Data.Model
         [DataMember]
         public DateTime Date0 { get { return _date0; } set { SetProperty(ref _date0, value); } }
 
-		public bool _isSelected = false;
-        [DataMember]
-        public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value); } }
-
-        //private bool _isRecordingSound = false;
-        //[IgnoreDataMember]
-        //[Ignore]
-        //public bool IsRecordingSound { get { return _isRecordingSound; } set { if (_isRecordingSound != value) { _isRecordingSound = value; RaisePropertyChanged_UI(); } } }
-
         private SwitchableObservableCollection<Document> _documents = new SwitchableObservableCollection<Document>();
         [IgnoreDataMember]
         [Ignore]
@@ -47,7 +38,7 @@ namespace UniFiler10.Data.Model
             {
                 foreach (var doc in _documents)
                 {
-                    await doc.OpenAsync();
+                    await doc.OpenAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -112,10 +103,11 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
-        public Task<bool> AddDocumentAsync(Document doc)
+        public Task<bool> AddDocumentAsync()
         {
-            return RunFunctionWhileEnabledAsyncTB(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
+				var doc = new Document();
                 return await AddDocument2Async(doc).ConfigureAwait(false);
             });
         }
@@ -129,7 +121,7 @@ namespace UniFiler10.Data.Model
 					await dbM.DeleteFromDocumentsAsync(doc);
 
 					int countBefore = _documents.Count;
-					RunInUiThread(delegate { _documents.Remove(doc); });
+					await RunInUiThreadAsync(delegate { _documents.Remove(doc); }).ConfigureAwait(false);
 
 					try
 					{
@@ -152,28 +144,15 @@ namespace UniFiler10.Data.Model
         }
         public Task<bool> RemoveDocumentAsync(Document doc)
         {
-            return RunFunctionWhileEnabledAsyncTB(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 return await RemoveDocument2Async(doc).ConfigureAwait(false);
-            });
-        }
-        public Task<bool> RemoveAllDocumentsAsync()
-        {
-            return RunFunctionWhileEnabledAsyncTB(async delegate
-            {
-                bool isOk = true;
-                while (_documents.Count > 0) // do not use foreach to avoid error with enumeration
-                {
-                    var doc = _documents[0];
-                    isOk = isOk & await RemoveDocument2Async(doc).ConfigureAwait(false);
-                }
-                return isOk;
             });
         }
 
         public Task<bool> ImportMediaFileAsync(StorageFile file, bool copyFile)
         {
-            return RunFunctionWhileEnabledAsyncTB(async delegate
+            return RunFunctionWhileOpenAsyncTB(async delegate
             {
                 if (Binder.OpenInstance != null && file != null)
                 {

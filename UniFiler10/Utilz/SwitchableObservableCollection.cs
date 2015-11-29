@@ -62,7 +62,7 @@ namespace Utilz
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Reset));
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Add, changedItems: newItems, startingIndex: newStartingIndex));
         }
-        protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        protected override async void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
             // if (_isObserving) base.OnCollectionChanged(e); // this was all, it's smarter now
 
@@ -76,10 +76,10 @@ namespace Utilz
                     }
                     else
                     {
-                        IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                         {
                             CollectionChanged?.Invoke(this, e);
-                        });
+                        }).AsTask().ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)

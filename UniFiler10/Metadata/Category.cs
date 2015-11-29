@@ -10,7 +10,8 @@ namespace UniFiler10.Data.Metadata
 {
     [DataContract]
     public sealed class Category : ObservableData
-    {// LOLLO TODO make disposable ?
+    {
+		// LOLLO TODO make Openable ?
         private static readonly string DEFAULT_ID = string.Empty;
 
         #region properties
@@ -85,8 +86,8 @@ namespace UniFiler10.Data.Metadata
         {
             if (newFldDsc != null && !FieldDescriptions.Any(fds => fds.Caption == newFldDsc.Caption || fds.Id == newFldDsc.Id))
             {
-                FieldDescriptions.Add(newFldDsc);
-                FieldDescriptionIds.Add(newFldDsc.Id);
+                _fieldDescriptions.Add(newFldDsc);
+                _fieldDescriptionIds.Add(newFldDsc.Id);
                 newFldDsc.AddToJustAssignedToCats(this);
                 return true;
             }
@@ -98,7 +99,7 @@ namespace UniFiler10.Data.Metadata
             if (fdToBeRemoved != null)
             {
                 fdToBeRemoved.RemoveFromJustAssignedToCats(this);
-                return FieldDescriptions.Remove(fdToBeRemoved) & FieldDescriptionIds.Remove(fdToBeRemoved.Id);
+                return _fieldDescriptions.Remove(fdToBeRemoved) & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
             }
             return false;
         }

@@ -19,10 +19,6 @@ namespace UniFiler10.Data.Model
         public string _uri0 = string.Empty;
         [DataMember]
         public string Uri0 { get { return _uri0; } set { SetProperty(ref _uri0, value); } }
-
-		public bool _isSelected = false;
-        [DataMember]
-        public bool IsSelected { get { return _isSelected; } set { SetProperty(ref _isSelected, value); } }
 		#endregion properties
 
 		protected override bool UpdateDbMustOverride()
@@ -47,7 +43,6 @@ namespace UniFiler10.Data.Model
         //{
         //    var tgt = target as Document;
 
-        //    tgt.IsSelected = IsSelected;
         //    tgt.Uri0 = Uri0;
         //}
         protected override bool CheckMeMustOverride()

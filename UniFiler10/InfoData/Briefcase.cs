@@ -15,11 +15,11 @@ using Windows.Storage.Streams;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public sealed class Briefcase : OpenableObservableData, IPaneOpener
+	public sealed class Briefcase : OpenableObservableData //, IPaneOpener
 	{
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
-		public static Briefcase CreateInstance()
+		public static Briefcase GetOrCreateInstance()
 		{
 			lock (_instanceLock)
 			{
@@ -27,6 +27,13 @@ namespace UniFiler10.Data.Model
 				{
 					_instance = new Briefcase();
 				}
+				return _instance;
+			}
+		}
+		public static Briefcase GetCurrentInstance()
+		{
+			lock (_instanceLock)
+			{
 				return _instance;
 			}
 		}
@@ -46,24 +53,28 @@ namespace UniFiler10.Data.Model
 			await _runtimeData.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
-			UpdateIsShowingWhat();
-			await UpdateCurrentBinder2Async().ConfigureAwait(false);
+			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await SaveAsync().ConfigureAwait(false);
 
-			if (_runtimeData != null) await _runtimeData.CloseAsync();
-			_runtimeData?.Dispose();
-			_runtimeData = null;
-
 			await CloseCurrentBinderAsync().ConfigureAwait(false);
 
-			if (_metaBriefcase != null)
+			var rd = _runtimeData;
+			if (rd != null)
 			{
-				await _metaBriefcase.CloseAsync().ConfigureAwait(false);
-				_metaBriefcase?.Dispose();
-				_metaBriefcase = null;
+				await rd.CloseAsync();
+				rd.Dispose();
+				RuntimeData = null;
+			}
+
+			var mb = _metaBriefcase;
+			if (mb != null)
+			{
+				await mb.CloseAsync().ConfigureAwait(false);
+				mb.Dispose();
+				MetaBriefcase = null;
 			}
 		}
 		protected override void Dispose(bool isDisposing)
@@ -77,9 +88,6 @@ namespace UniFiler10.Data.Model
 
 		#region properties
 		private static Briefcase _instance = null;
-		//[IgnoreDataMember]
-		//public static Briefcase OpenInstance { get { if (_instance != null && _instance._isOpen) return _instance; else return null; } }
-		//public static Briefcase InstanceNeverMindIfClosed { get { return _instance; } }
 
 		private MetaBriefcase _metaBriefcase = null;
 		[IgnoreDataMember]
@@ -93,73 +101,6 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { if (_isAllowMeteredConnection != value) { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } } }
 
-		private bool _isShowingBinder = false;
-		[DataMember]
-		public bool IsShowingBinder
-		{
-			get { return _isShowingBinder; }
-			set
-			{
-				if (_isShowingBinder != value)
-				{
-					_isShowingBinder = value;
-					RaisePropertyChanged_UI();
-					if (_isShowingBinder)
-					{
-						IsShowingCover = false;
-						IsShowingSettings = false;
-					}
-					// Task upd = UpdateEnableDisableMetadataAsync().ContinueWith((prev) => UpdateCurrentBinderAsync());
-					Task upd = UpdateCurrentBinderAsync();
-				}
-				else if (_currentBinder == null)
-				{
-					Task upd = UpdateCurrentBinderAsync();
-				}
-			}
-		}
-
-		private bool _isShowingCover = true;
-		[DataMember]
-		public bool IsShowingCover
-		{
-			get { return _isShowingCover; }
-			set
-			{
-				if (_isShowingCover != value)
-				{
-					_isShowingCover = value;
-					RaisePropertyChanged_UI();
-					if (_isShowingCover)
-					{
-						IsShowingBinder = false;
-						IsShowingSettings = false;
-					}
-				}
-			}
-		}
-
-		private bool _isShowingSettings = false;
-		[DataMember]
-		public bool IsShowingSettings
-		{
-			get { return _isShowingSettings; }
-			set
-			{
-				if (_isShowingSettings != value)
-				{
-					_isShowingSettings = value;
-					RaisePropertyChanged_UI();
-					if (_isShowingSettings)
-					{
-						IsShowingBinder = false;
-						IsShowingCover = false;
-					}
-					Task upd = UpdateEnableDisableMetadataAsync();
-				}
-			}
-		}
-
 		private string _currentBinderName = string.Empty;
 		[DataMember]
 		public string CurrentBinderName
@@ -170,8 +111,10 @@ namespace UniFiler10.Data.Model
 				if (_currentBinderName != value)
 				{
 					_currentBinderName = value;
-					Task upd = UpdateCurrentBinderAsync();
-					RaisePropertyChanged_UI();
+					Task upd = UpdateCurrentBinderAsync().ContinueWith(delegate
+					{
+						RaisePropertyChanged_UI();
+					});
 				}
 				else if (_currentBinder == null)
 				{
@@ -188,10 +131,6 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public SwitchableObservableCollection<string> DbNames { get { return _dbNames; } private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } } }
 
-		//private bool _isPaneOpen = true;
-		//[DataMember]
-		//public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); } } }
-
 		private string _newDbName = string.Empty;
 		[DataMember]
 		public string NewDbName { get { return _newDbName; } set { if (_newDbName != value) { _newDbName = value; RaisePropertyChanged_UI(); } } }
@@ -199,46 +138,58 @@ namespace UniFiler10.Data.Model
 
 
 		#region loaded methods
-		public bool OpenBinder(string dbName)
+		public Task<bool> SetCurrentBinderAsync(string dbName)
 		{
-			if (!string.IsNullOrWhiteSpace(dbName))
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				IsShowingBinder = true;
-				CurrentBinderName = dbName;
-				return true;
-			}
-			else
+				_currentBinderName = dbName;
+				return UpdateCurrentBinder2Async(false);
+			});
+		}
+
+		public Task<bool> OpenCurrentBinderAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				return false;
-			}
+				return UpdateCurrentBinder2Async(true);
+			});
+		}
+
+		public Task<bool> OpenBinderAsync(string dbName)
+		{
+			return RunFunctionWhileOpenAsyncTB(delegate
+			{
+				_currentBinderName = dbName;
+				return UpdateCurrentBinder2Async(true);
+			});
 		}
 
 		public Task<bool> AddBinderAsync(string dbName)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				return await AddBinder2Async(dbName).ConfigureAwait(false);
 			});
 		}
 		private async Task<bool> AddBinder2Async(string dbName)
 		{
-			if (!CheckNewDbName(dbName))
+			if (IsNewDbNameWrong2(dbName))
 			{
 				return false;
 			}
 			else
 			{
-				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+				await RunInUiThreadAsync(delegate
 				{
 					DbNames.Add(dbName);
 					CurrentBinderName = dbName;
-				}).AsTask().ConfigureAwait(false);
+				}).ConfigureAwait(false);
 				return true;
 			}
 		}
 		public Task<bool> DeleteBinderAsync(string dbName)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName)) return false;
 
@@ -264,31 +215,31 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> BackupBinderAsync(string dbName, StorageFolder intoStorageFolder)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName) || intoStorageFolder == null) return false;
 
-				bool wasCurrentBinder = false;
-				// close the current binder if it is the one to be backed up
-				if (_currentBinderName == dbName)
-				{
-					wasCurrentBinder = true;
+				//bool wasCurrentBinder = false;
+				//// close the current binder if it is the one to be backed up
+				//if (_currentBinderName == dbName)
+				//{
+				//	wasCurrentBinder = true;
 
-					await _currentBinder.SetIsEnabledAsync(false).ConfigureAwait(false);
-				}
+				//	await _currentBinder.SetIsEnabledAsync(false).ConfigureAwait(false);
+				//}
 				bool isOk = await Binder.BackupDisabledBinderAsync(dbName, intoStorageFolder).ConfigureAwait(false);
 
-				if (wasCurrentBinder)
-				{
-					await _currentBinder.SetIsEnabledAsync(true).ConfigureAwait(false);
-				}
+				//if (wasCurrentBinder)
+				//{
+				//	await _currentBinder.SetIsEnabledAsync(true).ConfigureAwait(false);
+				//}
 
 				return isOk;
 			});
 		}
 		public Task<bool> RestoreBinderAsync(StorageFolder fromStorageFolder)
 		{
-			return RunFunctionWhileEnabledAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (fromStorageFolder == null) return false;
 
@@ -313,69 +264,64 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
-		private Task UpdateEnableDisableMetadataAsync()
-		{
-			return RunFunctionWhileEnabledAsyncT(UpdateEnableDisableMetadata2Async);
-		}
-		private async Task UpdateEnableDisableMetadata2Async()
-		{
-			var mb = _metaBriefcase; if (mb == null) return;
-			if (_isShowingSettings)
-			{
-				await mb.SetIsEnabledAsync(true).ConfigureAwait(false);
-			}
-			else
-			{
-				if (await mb.SetIsEnabledAsync(false).ConfigureAwait(false))
-				{
-					await mb.SaveAsync().ConfigureAwait(false);
-				}
-			}
-		}
-		private void UpdateIsShowingWhat()
-		{
-			if (!_isShowingBinder && !_isShowingCover && !_isShowingSettings) IsShowingCover = true;
-		}
 		private Task UpdateCurrentBinderAsync()
 		{
-			return RunFunctionWhileEnabledAsyncT(UpdateCurrentBinder2Async);
+			return RunFunctionWhileOpenAsyncT(delegate { return UpdateCurrentBinder2Async(false); });
 		}
-		private async Task UpdateCurrentBinder2Async()
+
+		private async Task<bool> UpdateCurrentBinder2Async(bool openBinder)
 		{
-			if (string.IsNullOrEmpty(_currentBinderName) || _isShowingSettings)
+			if (string.IsNullOrEmpty(_currentBinderName))
 			{
 				await CloseCurrentBinderAsync().ConfigureAwait(false);
+				RaisePropertyChanged_UI(nameof(CurrentBinder));
+				return false;
 			}
-			else if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName) && !_isShowingSettings)
-				|| (_currentBinder != null && _currentBinder.DBName != _currentBinderName && !_isShowingSettings))
+			else if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName))
+				|| (_currentBinder != null && _currentBinder.DBName != _currentBinderName))
 			{
 				await CloseCurrentBinderAsync().ConfigureAwait(false);
 
-				_currentBinder = Binder.CreateInstance(_currentBinderName, this);
-				await _currentBinder.OpenAsync().ConfigureAwait(false);
+				_currentBinder = Binder.CreateInstance(_currentBinderName);
+				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(CurrentBinder)); // notify the UI once the data has been loaded
+				return true;
 			}
+			else if (_currentBinder != null)
+			{
+				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
+				RaisePropertyChanged_UI(nameof(CurrentBinder));
+				return true;
+			}
+			return false;
 		}
-		private async Task<bool> CloseCurrentBinderAsync()
+		public async Task<bool> CloseCurrentBinderAsync()
 		{
 			var cb = _currentBinder;
 			if (cb != null)
 			{
 				await cb.CloseAsync().ConfigureAwait(false);
 				cb.Dispose();
-				_currentBinder = null;
+				_currentBinder = null; // don't use CurrentBinder here, it triggers stuff
 				return true;
 			}
 			return false;
 		}
 		#endregion loaded methods
-
-		public bool CheckNewDbName(string newDbName)
+		public Task<bool> IsNewDbNameWrongAsync(string newDbName)
 		{
-			if (!string.IsNullOrWhiteSpace(newDbName))
-				return !_dbNames.Contains(newDbName);
+			return RunFunctionWhileOpenAsyncB(delegate { return IsNewDbNameWrong2(newDbName); });
+		}
+		private bool IsNewDbNameWrong2(string newDbName)
+		{
+			if (string.IsNullOrWhiteSpace(newDbName))
+			{
+				return true;
+			}
 			else
-				return false;
+			{
+				return _dbNames.Contains(newDbName);
+			}
 		}
 
 		#region loading methods
@@ -470,9 +416,10 @@ namespace UniFiler10.Data.Model
 			//IsPaneOpen = source.IsPaneOpen;
 			NewDbName = source.NewDbName;
 
-			IsShowingBinder = source.IsShowingBinder;
-			IsShowingCover = source.IsShowingCover;
-			IsShowingSettings = source.IsShowingSettings;
+			//IsShowingBinder = source.IsShowingBinder;
+			//IsShowingBinderCover = source.IsShowingBinderCover;
+			//IsShowingCover = source.IsShowingCover;
+			//IsShowingSettings = source.IsShowingSettings;
 
 			CurrentBinderName = source.CurrentBinderName; // must be last
 
@@ -485,9 +432,10 @@ namespace UniFiler10.Data.Model
 			target.DbNames = DbNames;
 			//target.IsPaneOpen = IsPaneOpen;
 
-			target.IsShowingBinder = IsShowingBinder;
-			target.IsShowingCover = IsShowingCover;
-			target.IsShowingSettings = IsShowingSettings;
+			//target.IsShowingBinder = IsShowingBinder;
+			//target.IsShowingBinderCover = IsShowingBinderCover;
+			//target.IsShowingCover = IsShowingCover;
+			//target.IsShowingSettings = IsShowingSettings;
 
 			target.NewDbName = NewDbName;
 			return target;
@@ -495,10 +443,10 @@ namespace UniFiler10.Data.Model
 		#endregion loading methods
 	}
 
-	public interface IPaneOpener
-	{
-		//bool IsPaneOpen { get; set; }
-		bool IsShowingSettings { get; set; }
-		bool IsShowingCover { get; set; }
-	}
+	//public interface IPaneOpener
+	//{
+	//	//bool IsPaneOpen { get; set; }
+	//	bool IsShowingSettings { get; set; }
+	//	bool IsShowingCover { get; set; }
+	//}
 }

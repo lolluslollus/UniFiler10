@@ -23,47 +23,46 @@ namespace UniFiler10.Data.Model
 	{
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
-		internal static Binder CreateInstance(string dbName, IPaneOpener parentPaneOpener)
+		internal static Binder CreateInstance(string dbName)
 		{
 			lock (_instanceLock)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
-					_instance = new Binder(dbName, parentPaneOpener);
+					_instance = new Binder(dbName);
 				}
 				return _instance;
 			}
 		}
-		private Binder(string dbName, IPaneOpener parentPaneOpener)
+		private Binder(string dbName)
 		{
 			if (dbName == null || string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
-			if (parentPaneOpener == null) throw new ArgumentNullException("Binder ctor: parentPaneOpener cannot be null");
 
 			DBName = dbName;
-			ParentPaneOpener = parentPaneOpener;
+			//ParentPaneOpener = parentPaneOpener;
 		}
 		#endregion construct and dispose
 
 
 		#region open and close
-		public override async Task<bool> SetIsEnabledAsync(bool enable)
+		//protected override async Task<bool> SetIsEnabledAsync(bool enable)
+		//{
+		//	try
+		//	{
+		//		await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
+		//		return await base.SetIsEnabledAsync(enable).ConfigureAwait(false);
+		//	}
+		//	finally
+		//	{
+		//		_isClosedSemaphore.Release();
+		//	}
+		//}
+		public override async Task<bool> OpenAsync(/*bool enable = true*/)
 		{
 			try
 			{
 				await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
-				return await base.SetIsEnabledAsync(enable).ConfigureAwait(false);
-			}
-			finally
-			{
-				_isClosedSemaphore.Release();
-			}
-		}
-		public override async Task<bool> OpenAsync(bool enable = true)
-		{
-			try
-			{
-				await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
-				return await base.OpenAsync(enable).ConfigureAwait(false);
+				return await base.OpenAsync(/*enable*/).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -78,8 +77,8 @@ namespace UniFiler10.Data.Model
 			await LoadNonDbPropertiesAsync().ConfigureAwait(false);
 			await LoadFoldersWithoutContentAsync().ConfigureAwait(false);
 
-			_runAsSoonAsOpen = delegate { return UpdateCurrentFolderAsync(); };
-			//await UpdateCurrentFolder2Async().ConfigureAwait(false);
+			//_runAsSoonAsOpen = delegate { return UpdateCurrentFolderAsync(); };
+			await UpdateCurrentFolder2Async().ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
@@ -87,18 +86,40 @@ namespace UniFiler10.Data.Model
 			_dbManager?.Dispose();
 			_dbManager = null;
 
-			foreach (var folder in _folders)
+			Task closeFolders = new Task(delegate
 			{
-				await folder.CloseAsync().ConfigureAwait(false);
-			}
+				Parallel.ForEach(_folders, async (folder) =>
+				{
+					await folder.CloseAsync().ConfigureAwait(false);
+					folder.Dispose();
+				});
+			});
 
-			await SaveNonDbPropertiesAsync().ConfigureAwait(false);
+			Task save = SaveNonDbPropertiesAsync();
 
-			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			closeFolders.Start();
+			// Task.WaitAll(closeFolders, save); // this is not awaitable
+			await Task.WhenAll(closeFolders, save).ConfigureAwait(false);
+
+			await RunInUiThreadAsync(delegate
 			{
 				_folders.Clear();
-				CurrentFolder = null;
-			}).AsTask().ConfigureAwait(false);
+				_currentFolder = null; // don't set CurrentFolder, it triggers stuff
+			}).ConfigureAwait(false);
+
+			//foreach (var folder in _folders)
+			//{
+			//	await folder.CloseAsync().ConfigureAwait(false);
+			//	folder.Dispose();
+			//}
+
+			//await SaveNonDbPropertiesAsync().ConfigureAwait(false);
+
+			//await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			//{
+			//	_folders.Clear();
+			//	CurrentFolder = null;
+			//}).AsTask().ConfigureAwait(false);
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -123,9 +144,9 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
 
-		private IPaneOpener _parentPaneOpener = null;
-		[IgnoreDataMember]
-		public IPaneOpener ParentPaneOpener { get { return _parentPaneOpener; } private set { _parentPaneOpener = value; RaisePropertyChanged_UI(); /*UpdateIsPaneOpen();*/ } }
+		//private IPaneOpener _parentPaneOpener = null;
+		//[IgnoreDataMember]
+		//public IPaneOpener ParentPaneOpener { get { return _parentPaneOpener; } private set { _parentPaneOpener = value; RaisePropertyChanged_UI(); /*UpdateIsPaneOpen();*/ } }
 
 		private SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
 		[IgnoreDataMember]
@@ -141,8 +162,10 @@ namespace UniFiler10.Data.Model
 				if (_currentFolderId != value)
 				{
 					_currentFolderId = value;
-					Task upd = UpdateCurrentFolderAsync();
-					RaisePropertyChanged_UI();
+					Task upd = UpdateCurrentFolderAsync().ContinueWith(delegate
+					{
+						RaisePropertyChanged_UI();
+					});
 				}
 				else if (_currentFolder == null)
 				{
@@ -154,15 +177,9 @@ namespace UniFiler10.Data.Model
 		{
 			if (_folders != null)
 			{
-				foreach (var item in _folders)
-				{
-					item.IsSelected = false;
-				}
 				if (_currentFolderId != null)
 				{
 					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
-					if (_currentFolder != null) await _currentFolder.SetIsEnabledAsync(false).ConfigureAwait(false);
-					//if (_currentFolder != null) await _currentFolder.CloseAsync().ConfigureAwait(false);
 					_currentFolder = _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
 				}
 				else
@@ -172,24 +189,27 @@ namespace UniFiler10.Data.Model
 				if (_currentFolder != null)
 				{
 					await _currentFolder.OpenAsync().ConfigureAwait(false);
-					_currentFolder.IsSelected = true;
 				}
 				RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
 			}
 		}
 		private Task UpdateCurrentFolderAsync()
 		{
-			return RunFunctionWhileEnabledAsyncT(UpdateCurrentFolder2Async);
+			return RunFunctionWhileOpenAsyncT(UpdateCurrentFolder2Async);
 		}
 
 		public Task SetCurrentFolderIdAsync(string newValue)
 		{
-			return RunFunctionWhileEnabledAsyncA(delegate { CurrentFolderId = newValue; });
+			return RunFunctionWhileOpenAsyncA(delegate { CurrentFolderId = newValue; });
 		}
 
 		private Folder _currentFolder = null;
 		[IgnoreDataMember]
-		public Folder CurrentFolder { get { return _currentFolder; } private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } } }
+		public Folder CurrentFolder
+		{
+			get { return _currentFolder; }
+			private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
+		}
 
 		//private bool _isPaneOpen = true;
 		//[DataMember]
@@ -203,13 +223,13 @@ namespace UniFiler10.Data.Model
 		//    IsPaneOpen = !_isPaneOpen;
 		//}
 
-		private bool _isCoverOpen = true;
-		[DataMember]
-		public bool IsCoverOpen { get { return _isCoverOpen; } set { if (_isCoverOpen != value) { _isCoverOpen = value; RaisePropertyChanged_UI(); } } }
-		public void SetIsCoverOpen(bool newValue)
-		{
-			IsCoverOpen = newValue;
-		}
+		//private bool _isCoverOpen = true;
+		//[DataMember]
+		//public bool IsCoverOpen { get { return _isCoverOpen; } set { if (_isCoverOpen != value) { _isCoverOpen = value; RaisePropertyChanged_UI(); } } }
+		//public void SetIsCoverOpen(bool newValue)
+		//{
+		//	IsCoverOpen = newValue;
+		//}
 		#endregion main properties
 
 
@@ -245,7 +265,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task SetIdsForCatFilterAsync(string catId)
 		{
-			return RunFunctionWhileEnabledAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			return RunFunctionWhileOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
 			{
 				CatIdForCatFilter = catId;
 			});
@@ -288,7 +308,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
 		{
-			return RunFunctionWhileEnabledAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			return RunFunctionWhileOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
 			{
 				CatIdForFldFilter = catId;
 				FldDscIdForFldFilter = fldDscId;
@@ -403,7 +423,7 @@ namespace UniFiler10.Data.Model
 		private void CopyNonDbProperties(Binder source)
 		{
 			//IsPaneOpen = source.IsPaneOpen;
-			IsCoverOpen = source.IsCoverOpen;
+			//IsCoverOpen = source.IsCoverOpen;
 			CatIdForFldFilter = source.CatIdForFldFilter;
 			FldDscIdForFldFilter = source.FldDscIdForFldFilter;
 			FldValIdForFldFilter = source.FldValIdForFldFilter;
@@ -414,10 +434,10 @@ namespace UniFiler10.Data.Model
 		}
 		private Binder CloneNonDbProperties()
 		{
-			Binder target = new Binder(DBName, _parentPaneOpener);
+			Binder target = new Binder(DBName); //, _parentPaneOpener);
 			target.CurrentFolderId = _currentFolderId;
 			//target.IsPaneOpen = _isPaneOpen;
-			target.IsCoverOpen = _isCoverOpen;
+			//target.IsCoverOpen = _isCoverOpen;
 			target.CatIdForFldFilter = _catIdForFldFilter;
 			target.FldDscIdForFldFilter = _fldDscIdForFldFilter;
 			target.FldValIdForFldFilter = _fldValIdForFldFilter;
@@ -430,11 +450,11 @@ namespace UniFiler10.Data.Model
 		{
 			var folders = await _dbManager.GetFoldersAsync();
 
-			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			await RunInUiThreadAsync(delegate
 			{
 				Folders.Clear();
 				Folders.AddRange(folders);
-			}).AsTask().ConfigureAwait(false);
+			}).ConfigureAwait(false);
 		}
 
 		#endregion loading methods
@@ -479,7 +499,7 @@ namespace UniFiler10.Data.Model
 			{
 				_isClosedSemaphore.Wait();
 				var openBinder = OpenInstance;
-				if (!string.IsNullOrWhiteSpace(dbName) && into != null && (openBinder == null || openBinder.DBName != dbName || !openBinder.IsEnabled))
+				if (!string.IsNullOrWhiteSpace(dbName) && into != null && (openBinder == null || openBinder.DBName != dbName /*|| !openBinder.IsEnabled*/))
 				{
 					try
 					{
@@ -551,11 +571,11 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
-		public async Task<Folder> AddFolderAsync(bool setCurrentAndOpen)
+		public async Task<Folder> AddFolderAsync()
 		{
 			var folder = new Folder();
 
-			bool isOk = await RunFunctionWhileEnabledAsyncTB(async delegate
+			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				folder.ParentId = Id;
 				folder.Name = ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFolder/Text", ResourceContext.GetForCurrentView()).ValueAsString;
@@ -564,11 +584,11 @@ namespace UniFiler10.Data.Model
 				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
 				{
 					_folders.Add(folder);
-					if (setCurrentAndOpen)
-					{
-						await folder.OpenAsync();
-						CurrentFolderId = folder.Id;
-					}
+					//if (setCurrentAndOpen)
+					//{
+					//	await folder.OpenAsync();
+					//	CurrentFolderId = folder.Id;
+					//}
 					return true;
 				}
 
@@ -580,14 +600,14 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
-			return RunFunctionWhileEnabledAsyncTB(delegate
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
 				return RemoveFolder2Async(folderId);
 			});
 		}
 		public Task<bool> RemoveFolderAsync(Folder folder)
 		{
-			return RunFunctionWhileEnabledAsyncTB(delegate
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
 				return RemoveFolder2Async(folder);
 			});
@@ -626,7 +646,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetAllFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileEnabledAsyncT(async delegate
+			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.All) return;
 
@@ -642,7 +662,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetRecentFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileEnabledAsyncT(async delegate
+			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Recent) return;
 
@@ -658,7 +678,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetByCatFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileEnabledAsyncT(async delegate
+			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Cat || _dbManager == null || _catIdForCatFilter == null || _catIdForCatFilter == DEFAULT_ID) return;
 
@@ -676,7 +696,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetByFldFolderPreviewsAsync()
 		{
 			List<FolderPreview> output = null;
-			await RunFunctionWhileEnabledAsyncT(async delegate
+			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null) return;
 

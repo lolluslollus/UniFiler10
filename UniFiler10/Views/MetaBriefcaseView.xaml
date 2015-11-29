@@ -157,7 +157,7 @@
 									Icon="Remove"
                                     IsCompact="True"
                                     Loaded="OnUnassignFieldFromCat_Loaded"                                         
-                                    Click="OnUnassignFieldFromCat_Click"
+                                    Click="OnUnassignFieldFromCurrentCategory_Click"
                                     VerticalAlignment="Center"/>
 								<AppBarButton Grid.Column="3"
 									Icon="Delete"
@@ -235,7 +235,7 @@
 								<AppBarButton Grid.Column="2"
 									Icon="Accept"
                                     IsCompact="True"
-                                    Click="OnAssignFieldToCat_Click"
+                                    Click="OnAssignFieldToCurrentCat_Click"
                                     VerticalAlignment="Center"/>
 								<AppBarButton Grid.Column="3"
 									Icon="Delete"

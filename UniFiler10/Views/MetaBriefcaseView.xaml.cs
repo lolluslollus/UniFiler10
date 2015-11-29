@@ -42,7 +42,6 @@ namespace UniFiler10.Views
 		private void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
-
 			if (fldDsc != null)
 			{
 				VM?.UpdateCurrentFieldDescription(fldDsc);
@@ -59,15 +58,13 @@ namespace UniFiler10.Views
 			}
 		}
 
-		private void OnAssignFieldToCat_Click(object sender, RoutedEventArgs e)
+		private void OnAssignFieldToCurrentCat_Click(object sender, RoutedEventArgs e)
 		{
-			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-			VM?.AssignFieldDescriptionToCategory(fldDsc, VM?.MetaBriefcase?.CurrentCategory);
+			Task ass = VM?.AssignFieldDescriptionToCurrentCategoryAsync((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
-		private void OnUnassignFieldFromCat_Click(object sender, RoutedEventArgs e)
+		private void OnUnassignFieldFromCurrentCategory_Click(object sender, RoutedEventArgs e)
 		{
-			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-			VM?.UnassignFieldDescriptionFromCategory(fldDsc, VM?.MetaBriefcase?.CurrentCategory);
+			Task una = VM?.UnassignFieldDescriptionFromCurrentCategoryAsync((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
 
 		private void OnAddField_Click(object sender, RoutedEventArgs e)
@@ -77,29 +74,26 @@ namespace UniFiler10.Views
 
 		private void OnDeleteField_Click(object sender, RoutedEventArgs e)
 		{
-			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-			Task del = VM?.RemoveFieldDescriptionAsync(fldDsc);
+			Task del = VM?.RemoveFieldDescriptionAsync((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
 
 		private void OnAddFieldValue_Click(object sender, RoutedEventArgs e)
 		{
-			VM?.AddPossibleValueToFieldDescription();
+			Task add = VM?.AddPossibleValueToCurrentFieldDescriptionAsync();
 		}
 		private void OnDeletePossibleValue_Click(object sender, RoutedEventArgs e)
 		{
-			var fldVal = (sender as FrameworkElement)?.DataContext as FieldValue;
-			VM?.RemovePossibleValueFromFieldDescription(fldVal);
+			Task del = VM?.RemovePossibleValueFromCurrentFieldDescriptionAsync((sender as FrameworkElement)?.DataContext as FieldValue);
 		}
 
 		private void OnAddCategory_Click(object sender, RoutedEventArgs e)
 		{
-			Task add = VM.AddCategoryAsync();
+			Task add = VM?.AddCategoryAsync();
 		}
 
-		private async void OnDeleteCategory_Click(object sender, RoutedEventArgs e)
+		private void OnDeleteCategory_Click(object sender, RoutedEventArgs e)
 		{
-			var cat = (sender as FrameworkElement)?.DataContext as Category;
-			if (VM != null) await VM.RemoveCategoryAsync(cat).ConfigureAwait(false);
+			Task del = VM?.RemoveCategoryAsync((sender as FrameworkElement)?.DataContext as Category);
 		}
 
 		private void OnUnassignFieldFromCat_Loaded(object sender, RoutedEventArgs e)

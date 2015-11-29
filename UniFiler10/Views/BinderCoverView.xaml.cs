@@ -1,35 +1,25 @@
-﻿using Microsoft.CSharp.RuntimeBinder;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+﻿using System;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
+using UniFiler10.Data.Model;
 using UniFiler10.Utilz;
 using UniFiler10.ViewModels;
-using Utilz;
-using Windows.Devices.Sensors;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Foundation.Metadata;
-using Windows.Graphics.Display;
-using Windows.Phone.UI.Input;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace UniFiler10.Views
 {
-	public sealed partial class BinderCoverView : BackableOpenableObservableControl, IAnimationStarter
+	public sealed partial class BinderCoverView : OpenableObservableControl, IAnimationStarter
 	{
+		#region events
+		public event EventHandler GoToSettingsRequested;
+		public event EventHandler GoToBinderContentRequested;
+		#endregion events
+
+
 		#region properties
 		private BinderCoverVM _vm = null;
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
@@ -38,32 +28,49 @@ namespace UniFiler10.Views
 		#region construct, open, close
 		public BinderCoverView()
 		{
-			//TriggerOpenCloseWhenLoadedUnloaded = false;
+			DataContextChanged += OnDataContextChanged;
 			InitializeComponent();
 		}
 
-		protected override async Task<bool> TryOpenMayOverrideAsync()
+
+		protected override Task OpenMayOverrideAsync()
 		{
-			var binder = DataContext as Data.Model.Binder;
-			if (await base.TryOpenMayOverrideAsync() && binder != null && !binder.IsDisposed)
+			return UpdateVMAsync();
+		}
+
+		private async Task UpdateVMAsync()
+		{
+			var binder = DataContext as Binder;
+			if (binder != null && !binder.IsDisposed)
 			{
-				if (_vm == null || _vm.Binder != binder)
+				if (_vm == null)
 				{
 					_vm = new BinderCoverVM(binder, this);
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
 				}
-				return true;
+				else if (_vm.Binder != binder)
+				{
+					await DisposeVMAsync().ConfigureAwait(false);
+
+					_vm = new BinderCoverVM(binder, this);
+					await _vm.OpenAsync().ConfigureAwait(false);
+					RaisePropertyChanged_UI(nameof(VM));
+				}
 			}
 			else
 			{
-				return false;
+				await DisposeVMAsync().ConfigureAwait(false);
 			}
 		}
+
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await base.CloseMayOverrideAsync();
+			await DisposeVMAsync().ConfigureAwait(false);
+		}
 
+		private async Task DisposeVMAsync()
+		{
 			var vm = _vm;
 			if (vm != null)
 			{
@@ -72,79 +79,74 @@ namespace UniFiler10.Views
 				VM = null;
 			}
 		}
-
-		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private async Task UpdateOpenCloseAsync()
-		{
-			try
-			{
-				await _vmSemaphore.WaitAsync(); //.ConfigureAwait(false);
-
-				var newBinder = DataContext as Data.Model.Binder;
-				if (newBinder == null)
-				{
-					await CloseAsync().ConfigureAwait(false);
-				}
-				else if (_vm == null || _vm.Binder != newBinder)
-				{
-					await CloseAsync().ConfigureAwait(false);
-					await TryOpenAsync().ConfigureAwait(false);
-				}
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
-			}
-		}
 		#endregion construct, open, close
 
 
 		#region event handlers
 		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			Task upd = UpdateOpenCloseAsync();
+			Task upd = RunFunctionWhileOpenAsyncT(delegate
+			{
+				return UpdateVMAsync();
+			});
 		}
 
-		protected override void GoBackMustOverride()
-		{
-			_vm?.GoBack();
-		}
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			Task all = _vm?.SelectFolderAsync((e?.ClickedItem as Data.Model.Binder.FolderPreview)?.FolderId);
+			Task upd = RunFunctionWhileOpenAsyncT(async delegate
+			{
+				var vm = _vm;
+				if (vm != null)
+				{
+					// LOLLO NOTE await instance?.method crashes if instance is null; await is not that clever yet.
+					if (await vm.SelectFolderAsync((e?.ClickedItem as Binder.FolderPreview)?.FolderId))
+					{
+						GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
+					}
+				}
+			});
 		}
 
 		private void OnDeleteFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			var fp = (sender as FrameworkElement).DataContext as Data.Model.Binder.FolderPreview;
-			Task del = _vm?.DeleteFolderAsync(fp);
+			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement).DataContext as Binder.FolderPreview);
 		}
 		private void OnAddFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			Task del = _vm?.AddFolderAsync();
 		}
 
-		private void OnAddOpenFolder_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnAddAndOpenFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task del = _vm?.AddOpenFolderAsync();
+			Task upd = RunFunctionWhileOpenAsyncT(async delegate
+			{
+				var vm = _vm;
+				if (vm != null)
+				{
+					if (await vm.AddOpenFolderAsync()) //.ConfigureAwait(false);
+					{
+						GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
+					}
+				}
+			});
 		}
 
 		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			_vm?.GoToSettings();
+			GoToSettingsRequested?.Invoke(this, EventArgs.Empty);
 		}
 		#endregion event handlers
 
 		public void StartAnimation()
 		{
-			RunInUiThread(delegate
+			Task start = RunInUiThreadAsync(delegate
 			{
 				UpdatingStoryboard.Begin();
 			});
 		}
 		public void EndAnimation()
 		{
-			RunInUiThread(delegate
+			Task end = RunInUiThreadAsync(delegate
 			{
 				UpdatingStoryboard.SkipToFill();
 				UpdatingStoryboard.Stop();

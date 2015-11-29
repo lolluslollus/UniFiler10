@@ -11,7 +11,7 @@ using Windows.Storage.Pickers;
 
 namespace UniFiler10.ViewModels
 {
-	public sealed class BinderVM : OpenableObservableData, IAudioFileGetter
+	public sealed class BinderContentVM : OpenableObservableData, IAudioFileGetter
 	{
 		private Binder _binder = null;
 		public Binder Binder { get { return _binder; } private set { _binder = value; RaisePropertyChanged_UI(); } }
@@ -21,30 +21,35 @@ namespace UniFiler10.ViewModels
 
 
 		#region construct dispose open close
-		public BinderVM(Binder binder)
+		public BinderContentVM()
 		{
-			if (binder == null) throw new ArgumentNullException("BinderVM ctor: binder may not be null");
-
-			Binder = binder;
 			RuntimeData = RuntimeData.Instance;
-
-			UpdateCurrentFolderCategories();
+		}
+		protected async override Task OpenMayOverrideAsync()
+		{
+			var briefcase = Briefcase.GetOrCreateInstance();
+			await briefcase.OpenAsync();
+			await briefcase.OpenCurrentBinderAsync();
+			Binder = briefcase.CurrentBinder;
 
 			_binder.PropertyChanged += OnBinder_PropertyChanged;
-			UpdateOpenClose();
+			UpdateCurrentFolderCategories();
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
+			_binder.PropertyChanged -= OnBinder_PropertyChanged;
+
 			EndRecordAudio();
 			EndShoot();
+
+			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
+			Binder = null;
+
 			return Task.CompletedTask;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
 			base.Dispose(isDisposing);
-
-			var binder = _binder;
-			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 
 			_folderCategorySelector?.Dispose();
 			_folderCategorySelector = null;
@@ -55,28 +60,15 @@ namespace UniFiler10.ViewModels
 			{
 				UpdateCurrentFolderCategories();
 			}
-			if (e.PropertyName == nameof(Binder.IsOpen))
-			{
-				UpdateOpenClose();
-			}
-		}
-		private void UpdateOpenClose()
-		{
-			if (_binder?.IsOpen == true)
-			{
-				Task open = OpenAsync();
-			}
-			else
-			{
-				Task close = CloseAsync();
-			}
 		}
 		#endregion construct dispose open close
 
 		#region actions
-		public Task AddFolderAsync()
+		public async Task AddFolderAsync()
 		{
-			return _binder?.AddFolderAsync(true);
+			var binder = _binder; if (binder == null) return;
+			var folder = await binder.AddFolderAsync();
+			await binder.SetCurrentFolderIdAsync(folder?.Id);
 		}
 		public Task DeleteFolderAsync(Folder folder)
 		{
@@ -84,7 +76,7 @@ namespace UniFiler10.ViewModels
 		}
 		public Task AddWalletToFolderAsync(Folder folder)
 		{
-			return folder?.AddWalletAsync(new Wallet());
+			return folder?.AddWalletAsync();
 		}
 		public Task<bool> RemoveWalletFromFolderAsync(Folder folder, Wallet wallet)
 		{
@@ -92,33 +84,22 @@ namespace UniFiler10.ViewModels
 		}
 		public Task AddEmptyDocumentToWalletAsync(Wallet wallet)
 		{
-			return wallet?.AddDocumentAsync(new Document());
+			return wallet?.AddDocumentAsync();
 		}
 		public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
 		{
 			return wallet?.RemoveDocumentAsync(doc);
 		}
-		public void OpenCover()
-		{
-			_binder?.SetIsCoverOpen(true);
-		}
-		public void GoBack()
-		{
-			var opener = _binder?.ParentPaneOpener;
-			if (opener != null)
-			{
-				opener.IsShowingCover = true;
-			}
-		}
 		public Task SelectFolderAsync(string folderId)
 		{
 			return _binder?.SetCurrentFolderIdAsync(folderId);
 		}
-		//public void TogglePaneOpen()
-		//{
-		//	_binder?.ToggleIsPaneOpen();
-		//}
+		public Task<bool> TrySetFieldValueAsync(DynamicField dynFld, string newValue)
+		{
+			return dynFld?.TrySetFieldValueAsync(newValue);
+		}
 		#endregion actions
+
 
 		#region save media
 		private bool _isCameraOverlayOpen = false;
@@ -158,10 +139,13 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null && binder.IsOpen && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
 			{
-				IsCameraOverlayOpen = true; // opens the Camera control
-				await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
+				await RunFunctionWhileOpenAsyncT(async delegate 
+				{
+					IsCameraOverlayOpen = true; // opens the Camera control
+					await _photoTriggerSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-				await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+				}).ConfigureAwait(false);
 			}
 		}
 		public async Task ShootAsync(Wallet parentWallet)
@@ -169,15 +153,19 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null && binder.IsOpen && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
 			{
-				IsCameraOverlayOpen = true; // opens the Camera control
-				await _photoSemaphore.WaitAsync(); // wait until someone calls EndShoot
+				await RunFunctionWhileOpenAsyncT(async delegate 
+				{
+					IsCameraOverlayOpen = true; // opens the Camera control
+					await _photoTriggerSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
-				await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
+					await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
+				}).ConfigureAwait(false);
 			}
 		}
 		public void EndShoot()
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_photoSemaphore);
+			SemaphoreSlimSafeRelease.TryRelease(_photoTriggerSemaphore);
+			IsCameraOverlayOpen = false; // closes the Camera control
 		}
 
 		public async Task RecordAudioAsync(Folder parentFolder)
@@ -185,19 +173,24 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null && binder.IsOpen && !_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 			{
-				await CreateAudioFileAsync(); // required before we start any audio recording
-				IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
-				await _audioSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
+				await RunFunctionWhileOpenAsyncT(async delegate 
+				{
+					await CreateAudioFileAsync(); // required before we start any audio recording
+					IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
+					await _audioTriggerSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
 
-				await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
+					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
+				}).ConfigureAwait(false);
 			}
 		}
 		public void EndRecordAudio()
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_audioSemaphore);
+			SemaphoreSlimSafeRelease.TryRelease(_audioTriggerSemaphore);
+			IsAudioRecorderOverlayOpen = false; // closes the AudioRecorder control
 		}
 
-		private static SemaphoreSlimSafeRelease _audioSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+		private static SemaphoreSlimSafeRelease _audioTriggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+
 		private StorageFile _audioFile = null;
 		private async Task<StorageFile> CreateAudioFileAsync()
 		{
@@ -219,7 +212,8 @@ namespace UniFiler10.ViewModels
 			return _audioFile;
 		}
 
-		private static SemaphoreSlimSafeRelease _photoSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+		private static SemaphoreSlimSafeRelease _photoTriggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+
 		private StorageFile _photoFile = null;
 		public async Task<StorageFile> CreatePhotoFileAsync()
 		{
@@ -289,9 +283,9 @@ namespace UniFiler10.ViewModels
 
 			private string _catId = null;
 
-			private BinderVM _vm = null;
+			private BinderContentVM _vm = null;
 
-			internal FolderCategorySelectorRow(BinderVM vm, string name, string catId, bool isOn)
+			internal FolderCategorySelectorRow(BinderContentVM vm, string name, string catId, bool isOn)
 			{
 				_vm = vm;
 				_name = name;
@@ -320,27 +314,5 @@ namespace UniFiler10.ViewModels
 			}
 		}
 		#endregion edit categories
-
-		#region edit field value
-		public async Task<bool> ChangeFieldValueAsync(DynamicField dynFld, string newValue)
-		{
-			if (dynFld == null || dynFld.FieldDescription == null) return false;
-
-			bool isOk = false;
-			if (dynFld.FieldValue != null && dynFld.FieldValue.Vaalue != newValue)
-			{
-				var oldValue = dynFld.FieldValue.Vaalue;
-
-				isOk = await dynFld.SetFieldValueIdAsync(newValue);
-
-				if (!isOk) dynFld.FieldValue.Vaalue = oldValue;
-			}
-			else if (dynFld.FieldValue == null)
-			{
-				isOk = await dynFld.SetFieldValueIdAsync(newValue);
-			}
-			return isOk;
-		}
-		#endregion edit field value
 	}
 }

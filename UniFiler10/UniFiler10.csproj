@@ -109,9 +109,11 @@
       <DependentUpon>LolloSplitView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\LolloTextBox.cs" />
+    <Compile Include="Controlz\ObservablePage.cs" />
     <Compile Include="Controlz\ObservableControl.cs" />
+    <Compile Include="Controlz\OpenableObservablePage.cs" />
     <Compile Include="Controlz\OpenableObservableControl.cs" />
-    <Compile Include="Controlz\ScalingTextBlock.cs" />
+    <Compile Include="Controlz\TextBlockScaler.cs" />
     <Compile Include="Controlz\UniversalWrapPanel.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="InfoData\DynamicCategory.cs" />
@@ -131,18 +133,24 @@
     <Compile Include="Services\DocumentExtensions.cs" />
     <Compile Include="Utilz\Constants.cs" />
     <Compile Include="Utilz\IAnimationStarter.cs" />
+    <Compile Include="Utilz\Navigator.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="InfoData\Briefcase.cs" />
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLiteLollo.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
     <Compile Include="Utilz\ProportionsTrigger.cs" />
+    <Compile Include="Utilz\RegistryAccess.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />
-    <Compile Include="ViewModels\BinderVM.cs" />
+    <Compile Include="ViewModels\BinderContentVM.cs" />
+    <Compile Include="ViewModels\BriefcaseContentVM.cs" />
     <Compile Include="ViewModels\BriefcaseVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="Views\AudioRecorderView.xaml.cs">
       <DependentUpon>AudioRecorderView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BinderContentPage.xaml.cs">
+      <DependentUpon>BinderContentPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BriefcaseCoverView.xaml.cs">
       <DependentUpon>BriefcaseCoverView.xaml</DependentUpon>
@@ -165,8 +173,8 @@
     <Compile Include="Views\MetaBriefcaseView.xaml.cs">
       <DependentUpon>MetaBriefcaseView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\SettingsView.xaml.cs">
-      <DependentUpon>SettingsView.xaml</DependentUpon>
+    <Compile Include="Views\SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WalletsView.xaml.cs">
       <DependentUpon>WalletsView.xaml</DependentUpon>
@@ -174,8 +182,8 @@
     <Compile Include="Views\BriefcasePage.xaml.cs">
       <DependentUpon>BriefcasePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BriefcaseContentView.xaml.cs">
-      <DependentUpon>BriefcaseContentView.xaml</DependentUpon>
+    <Compile Include="Views\BriefcaseContentPage.xaml.cs">
+      <DependentUpon>BriefcaseContentPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilz\Logger.cs" />
@@ -238,6 +246,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\BinderContentPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\BriefcaseCoverView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -266,7 +278,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\SettingsView.xaml">
+    <Page Include="Views\SettingsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -278,7 +290,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\BriefcaseContentView.xaml">
+    <Page Include="Views\BriefcaseContentPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -294,7 +306,6 @@
       <Name>Windows Mobile Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

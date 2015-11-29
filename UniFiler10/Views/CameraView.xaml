@@ -1,4 +1,4 @@
-﻿<ctl:BackableOpenableObservableControl
+﻿<ctl:OpenableObservableControl
     x:Class="UniFiler10.Views.CameraView"
 	x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -48,7 +48,6 @@
             </Button>
 
             <Button
-				Visibility="{Binding ElementName=me, Path=IsBackButtonAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
 				Tapped="OnOwnBackButton_Tapped">
                 <Viewbox MaxHeight="40" MaxWidth="40">
                     <SymbolIcon Symbol="Back"/>
@@ -60,4 +59,4 @@
             <TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>
-</ctl:BackableOpenableObservableControl>
+</ctl:OpenableObservableControl>

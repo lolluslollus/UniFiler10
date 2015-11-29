@@ -12,6 +12,7 @@ namespace UniFiler10.Controlz
 	{
 		private long _onTextChangedToken = default(long);
 		private double _origFontSize = default(double);
+		private const double SAFETY_FACTOR = 0.9;
 
 		public TextBlock TextBlock
 		{
@@ -20,12 +21,6 @@ namespace UniFiler10.Controlz
 		}
 		public static readonly DependencyProperty TextBlockProperty = DependencyProperty.Register(
 			"TextBlock", typeof(TextBlock), typeof(TextBlockScaler), new PropertyMetadata(new TextBlock(), OnTextBlockChanged));
-
-
-		public TextBlockScaler()
-		{
-			//Loading += OnLoading;
-		}
 
 
 		#region event handlers
@@ -75,19 +70,15 @@ namespace UniFiler10.Controlz
 		{
 			UpdateTB();
 		}
-
-		//private void OnLoading(FrameworkElement sender, object args)
-		//{
-		//	UpdateTB();
-		//}
 		#endregion event handlers
 
 		private void UpdateTB()
 		{
 			if (TextBlock.ActualHeight > 0 && TextBlock.ActualWidth > 0 && !string.IsNullOrEmpty(TextBlock.Text))
 			{
-				double testFontSize = Math.Sqrt((ActualHeight - TextBlock.Padding.Top - Padding.Top - TextBlock.Padding.Bottom - Padding.Bottom) 
-					* (ActualWidth - TextBlock.Padding.Left - Padding.Left - TextBlock.Padding.Right - Padding.Right) / TextBlock.Text.Length);
+				double testFontSize = Math.Sqrt((ActualHeight - TextBlock.Padding.Top - Padding.Top - TextBlock.Padding.Bottom - Padding.Bottom)
+					* (ActualWidth - TextBlock.Padding.Left - Padding.Left - TextBlock.Padding.Right - Padding.Right) / TextBlock.Text.Length)
+					* SAFETY_FACTOR;
 				if (testFontSize < _origFontSize)
 				{
 					TextBlock.FontSize = testFontSize;

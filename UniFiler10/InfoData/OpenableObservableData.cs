@@ -21,10 +21,10 @@ namespace UniFiler10.Data.Model
         [Ignore]
         public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
-        protected volatile bool _isEnabled = false;
-        [IgnoreDataMember]
-        [Ignore]
-        public bool IsEnabled { get { return _isEnabled; } protected set { if (_isEnabled != value) { _isEnabled = value; RaisePropertyChanged_UI(); } } }
+        //protected volatile bool _isEnabled = false;
+        //[IgnoreDataMember]
+        //[Ignore]
+        //public bool IsEnabled { get { return _isEnabled; } protected set { if (_isEnabled != value) { _isEnabled = value; RaisePropertyChanged_UI(); } } }
 
         protected volatile bool _isDisposed = false;
         [IgnoreDataMember]
@@ -42,7 +42,7 @@ namespace UniFiler10.Data.Model
             ClearListeners();
         }
 
-        public virtual async Task<bool> OpenAsync(bool enable = true)
+        public virtual async Task<bool> OpenAsync(/*bool enable = true*/)
         {
             if (!_isOpen)
             {
@@ -56,7 +56,7 @@ namespace UniFiler10.Data.Model
                         await OpenMayOverrideAsync().ConfigureAwait(false);
 
                         IsOpen = true;
-						if (enable) IsEnabled = true;
+						//if (enable) IsEnabled = true;
 						isJustOpen = true;						
                         return true;
                     }
@@ -72,7 +72,7 @@ namespace UniFiler10.Data.Model
 					if (isJustOpen && _runAsSoonAsOpen != null) await _runAsSoonAsOpen();
 				}
             }
-            if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
+            //if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
             return false;
         }
 #pragma warning disable 1998
@@ -87,7 +87,7 @@ namespace UniFiler10.Data.Model
                     await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
                     if (_isOpen)
                     {
-                        IsEnabled = false;
+                        //IsEnabled = false;
                         IsOpen = false;
 
                         await CloseMayOverrideAsync().ConfigureAwait(false);
@@ -112,40 +112,40 @@ namespace UniFiler10.Data.Model
         protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
 #pragma warning restore 1998
 
-        public virtual async Task<bool> SetIsEnabledAsync(bool enable)
-        {
-            if (_isOpen && _isEnabled != enable)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-                    if (_isOpen && _isEnabled != enable)
-                    {
-                        IsEnabled = enable;
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            return false;
-        }
+        //private async Task<bool> SetIsEnabledAsync(bool enable)
+        //{
+        //    if (_isOpen && _isEnabled != enable)
+        //    {
+        //        try
+        //        {
+        //            await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+        //            if (_isOpen && _isEnabled != enable)
+        //            {
+        //                IsEnabled = enable;
+        //                return true;
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+        //                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+        //        }
+        //        finally
+        //        {
+        //            SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+        //        }
+        //    }
+        //    return false;
+        //}
 
-		protected async Task<bool> RunFunctionWhileEnabledAsyncA(Action func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
         {
-            if (_isOpen && _isEnabled)
+            if (_isOpen)
             {
                 try
                 {
                     await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-					if (_isOpen && _isEnabled)
+					if (_isOpen)
 					{
 						func();
 						return true;
@@ -163,14 +163,14 @@ namespace UniFiler10.Data.Model
             }
 			return false;
         }
-		protected async Task<bool> RunFunctionWhileEnabledAsyncA_MT(Action func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncA_MT(Action func)
 		{
-			if (_isOpen && _isEnabled)
+			if (_isOpen)
 			{
 				try
 				{
 					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-					if (_isOpen && _isEnabled)
+					if (_isOpen)
 					{
 						await Task.Run(func).ConfigureAwait(false);
 						return true;
@@ -188,14 +188,14 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileEnabledAsyncB(Func<bool> func)
+		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
         {
-            if (_isOpen && _isEnabled)
-            {
+			if (_isOpen)
+			{
                 try
                 {
                     await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && _isEnabled) return func();
+                    if (_isOpen) return func();
                 }
                 catch (Exception ex)
                 {
@@ -209,14 +209,14 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
-		protected async Task<bool> RunFunctionWhileEnabledAsyncT(Func<Task> funcAsync)
+		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
         {
-            if (_isOpen && _isEnabled)
+            if (_isOpen)
             {
                 try
                 {
                     await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-					if (_isOpen && _isEnabled)
+					if (_isOpen)
 					{
 						await funcAsync().ConfigureAwait(false);
 						return true;
@@ -234,14 +234,14 @@ namespace UniFiler10.Data.Model
             }
 			return false;
         }
-        protected async Task<bool> RunFunctionWhileEnabledAsyncTB(Func<Task<bool>> funcAsync)
+        protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
         {
-            if (_isOpen && _isEnabled)
+            if (_isOpen)
             {
                 try
                 {
                     await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen && _isEnabled) return await funcAsync().ConfigureAwait(false);
+                    if (_isOpen) return await funcAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

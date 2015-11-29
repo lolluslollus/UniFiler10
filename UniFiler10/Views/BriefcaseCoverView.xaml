@@ -11,10 +11,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:DesignHeight="500"
-    d:DesignWidth="300"
-	d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}">
+    d:DesignWidth="300">
 
-	<ctl:ObservableControl.Resources>
+	<UserControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
 			<ObjectAnimationUsingKeyFrames 
                 Storyboard.TargetName="RefreshIcon" 
@@ -31,10 +30,13 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
-	</ctl:ObservableControl.Resources>
+	</UserControl.Resources>
 
 	<ScrollViewer>
-		<Grid Background="Lavender" x:Name="LayoutRoot" DataContext="{x:Bind VM, Mode=OneWay}">
+		<Grid Background="Lavender" 
+			x:Name="LayoutRoot"
+			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
+			DataContext="{x:Bind VM, Mode=OneWay}">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
@@ -143,7 +145,7 @@
 			<!-- fields to add new binder -->
 			<ctl:UniversalWrapPanel Orientation="Horizontal" Grid.Row="1">
 				<Grid Grid.Row="1"
-					Visibility="{Binding IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+					Visibility="{Binding IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
@@ -236,7 +238,7 @@
                 ItemsSource="{Binding Briefcase.DbNames}"
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
-                ItemClick="OnFolderPreviews_ItemClick"
+                ItemClick="OnBinderPreviews_ItemClick"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
@@ -261,23 +263,12 @@
 									<TextBlock
 										Text="{Binding}"
 										Foreground="{StaticResource FlashyForeground}"
-										HorizontalAlignment="Center"
+										TextAlignment="Center"
 										Padding="{StaticResource Thickness4444}"
 										TextWrapping="Wrap"/>
 									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
 								</ctl:TextBlockScaler.TextBlock>
 							</ctl:TextBlockScaler>
-							<!--<Viewbox Canvas.ZIndex="200"
-                                Stretch="Uniform" StretchDirection="DownOnly"
-                                VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                                MaxHeight="{StaticResource MiniatureQuarterHeight}">
-								<TextBlock
-                                    Text="{Binding}"
-                                    Foreground="{StaticResource FlashyForeground}" 
-                                    HorizontalAlignment="Stretch"
-                                    TextWrapping="Wrap"
-                                    MaxWidth="{StaticResource MiniatureWidth}"/>
-							</Viewbox>-->
 
 							<Border Height="{StaticResource MiniatureHeight}"
 								Width="{StaticResource MiniatureWidth}"
