@@ -99,7 +99,7 @@ namespace UniFiler10.Views
 				if (vm != null)
 				{
 					// LOLLO NOTE await instance?.method crashes if instance is null; await is not that clever yet.
-					if (await vm.SelectFolderAsync((e?.ClickedItem as Binder.FolderPreview)?.FolderId))
+					if (await vm.SetCurrentFolderAsync((e?.ClickedItem as Binder.FolderPreview)?.FolderId))
 					{
 						GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
 					}
@@ -123,7 +123,7 @@ namespace UniFiler10.Views
 				var vm = _vm;
 				if (vm != null)
 				{
-					if (await vm.AddOpenFolderAsync()) //.ConfigureAwait(false);
+					if (await vm.AddAndOpenFolderAsync()) //.ConfigureAwait(false);
 					{
 						GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
 					}

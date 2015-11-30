@@ -138,7 +138,39 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
-		public Task<bool> SetCurrentBinderAsync(string dbName)
+		private Task UpdateCurrentBinderAsync()
+		{
+			return RunFunctionWhileOpenAsyncT(delegate { return UpdateCurrentBinder2Async(false); });
+		}
+
+		private async Task<bool> UpdateCurrentBinder2Async(bool openBinder)
+		{
+			if (string.IsNullOrEmpty(_currentBinderName))
+			{
+				await CloseCurrentBinder2Async().ConfigureAwait(false);
+				RaisePropertyChanged_UI(nameof(CurrentBinder));
+				return false;
+			}
+			else if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName))
+				|| (_currentBinder != null && _currentBinder.DBName != _currentBinderName))
+			{
+				await CloseCurrentBinder2Async().ConfigureAwait(false);
+
+				_currentBinder = Binder.CreateInstance(_currentBinderName);
+				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
+				RaisePropertyChanged_UI(nameof(CurrentBinder)); // notify the UI once the data has been loaded
+				return true;
+			}
+			else if (_currentBinder != null)
+			{
+				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
+				RaisePropertyChanged_UI(nameof(CurrentBinder));
+				return true;
+			}
+			return false;
+		}
+
+		public Task<bool> SetCurrentBinderNameAsync(string dbName)
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
 			{
@@ -262,38 +294,6 @@ namespace UniFiler10.Data.Model
 				}
 				return false;
 			});
-		}
-
-		private Task UpdateCurrentBinderAsync()
-		{
-			return RunFunctionWhileOpenAsyncT(delegate { return UpdateCurrentBinder2Async(false); });
-		}
-
-		private async Task<bool> UpdateCurrentBinder2Async(bool openBinder)
-		{
-			if (string.IsNullOrEmpty(_currentBinderName))
-			{
-				await CloseCurrentBinder2Async().ConfigureAwait(false);
-				RaisePropertyChanged_UI(nameof(CurrentBinder));
-				return false;
-			}
-			else if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName))
-				|| (_currentBinder != null && _currentBinder.DBName != _currentBinderName))
-			{
-				await CloseCurrentBinder2Async().ConfigureAwait(false);
-
-				_currentBinder = Binder.CreateInstance(_currentBinderName);
-				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
-				RaisePropertyChanged_UI(nameof(CurrentBinder)); // notify the UI once the data has been loaded
-				return true;
-			}
-			else if (_currentBinder != null)
-			{
-				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
-				RaisePropertyChanged_UI(nameof(CurrentBinder));
-				return true;
-			}
-			return false;
 		}
 
 		public Task CloseCurrentBinderAsync()
@@ -421,15 +421,15 @@ namespace UniFiler10.Data.Model
 
 			if (source.DbNames != null) DbNames = source.DbNames;
 			NewDbName = source.NewDbName;
-			CurrentBinderName = source.CurrentBinderName; // must be last because it triggers updates
+			CurrentBinderName = source.CurrentBinderName;
 			return true;
 		}
 		private Briefcase CloneNonDbProperties()
 		{
 			Briefcase target = new Briefcase();
-			target.CurrentBinderName = CurrentBinderName;
 			target.DbNames = DbNames;
 			target.NewDbName = NewDbName;
+			target.CurrentBinderName = CurrentBinderName;
 			return target;
 		}
 		#endregion loading methods

@@ -127,10 +127,9 @@ namespace UniFiler10.Data.Model
 
 			// read children from db
 			var wallets = await _dbManager.GetWalletsAsync(Id).ConfigureAwait(false);
-			var documents = new List<Document>();
 			foreach (var wallet in wallets)
 			{
-				documents.AddRange(await _dbManager.GetDocumentsAsync(wallet.Id).ConfigureAwait(false));
+				wallet.Documents.AddRange(await _dbManager.GetDocumentsAsync(wallet.Id).ConfigureAwait(false));
 			}
 
 			var dynamicFields = await _dbManager.GetDynamicFieldsAsync(Id).ConfigureAwait(false);
@@ -142,11 +141,6 @@ namespace UniFiler10.Data.Model
 			{
 				_wallets.Clear();
 				_wallets.AddRange(wallets);
-				foreach (var wallet in _wallets)
-				{
-					wallet.Documents.Clear();
-					wallet.Documents.AddRange(documents.Where(a => a.ParentId == wallet.Id));
-				}
 
 				_dynamicFields.Clear();
 				_dynamicFields.AddRange(dynamicFields);
@@ -174,25 +168,30 @@ namespace UniFiler10.Data.Model
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			if (_wallets != null)
+			var wallets = _wallets;
+			if (wallets != null)
 			{
-				foreach (var wallet in _wallets)
+				foreach (var wallet in wallets)
 				{
 					await wallet.CloseAsync().ConfigureAwait(false);
 					wallet.Dispose();
 				}
 			}
-			if (_dynamicFields != null)
+
+			var dynFlds = _dynamicFields;
+			if (dynFlds != null)
 			{
-				foreach (var dynFld in _dynamicFields)
+				foreach (var dynFld in dynFlds)
 				{
 					await dynFld.CloseAsync().ConfigureAwait(false);
 					dynFld.Dispose();
 				}
 			}
-			if (_dynamicCategories != null)
+
+			var dynCats = _dynamicCategories;
+			if (dynCats != null)
 			{
-				foreach (var dynCat in _dynamicCategories)
+				foreach (var dynCat in dynCats)
 				{
 					await dynCat.CloseAsync().ConfigureAwait(false);
 					dynCat.Dispose();
@@ -201,9 +200,9 @@ namespace UniFiler10.Data.Model
 
 			await RunInUiThreadAsync(delegate
 			{
-				_wallets.Clear();
-				_dynamicFields.Clear();
-				_dynamicCategories.Clear();
+				_wallets?.Clear();
+				_dynamicFields?.Clear();
+				_dynamicCategories?.Clear();
 			}).ConfigureAwait(false);
 		}
 

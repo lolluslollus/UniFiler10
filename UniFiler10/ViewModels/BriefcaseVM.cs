@@ -52,7 +52,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (await bf.AddBinderAsync(_newDbName).ConfigureAwait(false))
 				{
-					if (await bf.SetCurrentBinderAsync(_newDbName).ConfigureAwait(false))
+					if (await bf.SetCurrentBinderNameAsync(_newDbName).ConfigureAwait(false))
 					{
 						IsNewDbNameVisible = false;
 						return true;
@@ -68,7 +68,7 @@ namespace UniFiler10.ViewModels
 			var bf = _briefcase;
 			if (bf != null)
 			{
-				return await bf.SetCurrentBinderAsync(dbName).ConfigureAwait(false);
+				return await bf.SetCurrentBinderNameAsync(dbName).ConfigureAwait(false);
 			}
 			return false;
 		}

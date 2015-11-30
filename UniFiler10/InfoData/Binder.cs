@@ -37,32 +37,18 @@ namespace UniFiler10.Data.Model
 		private Binder(string dbName)
 		{
 			if (dbName == null || string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
-
 			DBName = dbName;
-			//ParentPaneOpener = parentPaneOpener;
 		}
 		#endregion construct and dispose
 
 
 		#region open and close
-		//protected override async Task<bool> SetIsEnabledAsync(bool enable)
-		//{
-		//	try
-		//	{
-		//		await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
-		//		return await base.SetIsEnabledAsync(enable).ConfigureAwait(false);
-		//	}
-		//	finally
-		//	{
-		//		_isClosedSemaphore.Release();
-		//	}
-		//}
-		public override async Task<bool> OpenAsync(/*bool enable = true*/)
+		public override async Task<bool> OpenAsync()
 		{
 			try
 			{
 				await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
-				return await base.OpenAsync(/*enable*/).ConfigureAwait(false);
+				return await base.OpenAsync().ConfigureAwait(false);
 			}
 			finally
 			{
@@ -77,8 +63,7 @@ namespace UniFiler10.Data.Model
 			await LoadNonDbPropertiesAsync().ConfigureAwait(false);
 			await LoadFoldersWithoutContentAsync().ConfigureAwait(false);
 
-			//_runAsSoonAsOpen = delegate { return UpdateCurrentFolderAsync(); };
-			await UpdateCurrentFolder2Async().ConfigureAwait(false);
+			await UpdateCurrentFolder2Async(false).ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
@@ -88,9 +73,9 @@ namespace UniFiler10.Data.Model
 
 			Task closeFolders = new Task(delegate
 			{
-				Parallel.ForEach(_folders, async (folder) =>
+				Parallel.ForEach(_folders, (folder) =>
 				{
-					await folder.CloseAsync().ConfigureAwait(false);
+					// await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
 					folder.Dispose();
 				});
 			});
@@ -144,10 +129,6 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
 
-		//private IPaneOpener _parentPaneOpener = null;
-		//[IgnoreDataMember]
-		//public IPaneOpener ParentPaneOpener { get { return _parentPaneOpener; } private set { _parentPaneOpener = value; RaisePropertyChanged_UI(); /*UpdateIsPaneOpen();*/ } }
-
 		private SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
 		[IgnoreDataMember]
 		public SwitchableObservableCollection<Folder> Folders { get { return _folders; } private set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
@@ -173,35 +154,6 @@ namespace UniFiler10.Data.Model
 				}
 			}
 		}
-		private async Task UpdateCurrentFolder2Async()
-		{
-			if (_folders != null)
-			{
-				if (_currentFolderId != null)
-				{
-					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
-					_currentFolder = _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
-				}
-				else
-				{
-					_currentFolder = null;
-				}
-				if (_currentFolder != null)
-				{
-					await _currentFolder.OpenAsync().ConfigureAwait(false);
-				}
-				RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
-			}
-		}
-		private Task UpdateCurrentFolderAsync()
-		{
-			return RunFunctionWhileOpenAsyncT(UpdateCurrentFolder2Async);
-		}
-
-		public Task SetCurrentFolderIdAsync(string newValue)
-		{
-			return RunFunctionWhileOpenAsyncA(delegate { CurrentFolderId = newValue; });
-		}
 
 		private Folder _currentFolder = null;
 		[IgnoreDataMember]
@@ -210,26 +162,6 @@ namespace UniFiler10.Data.Model
 			get { return _currentFolder; }
 			private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
 		}
-
-		//private bool _isPaneOpen = true;
-		//[DataMember]
-		//public bool IsPaneOpen { get { return _isPaneOpen; } set { if (_isPaneOpen != value) { _isPaneOpen = value; RaisePropertyChanged_UI(); /*if (!_isPaneOpen) _parentPaneOpener.IsPaneOpen = false; */} } }
-		//private void UpdateIsPaneOpen()
-		//{
-		//    if (_parentPaneOpener == null) IsPaneOpen = false;
-		//}
-		//public void ToggleIsPaneOpen()
-		//{
-		//    IsPaneOpen = !_isPaneOpen;
-		//}
-
-		//private bool _isCoverOpen = true;
-		//[DataMember]
-		//public bool IsCoverOpen { get { return _isCoverOpen; } set { if (_isCoverOpen != value) { _isCoverOpen = value; RaisePropertyChanged_UI(); } } }
-		//public void SetIsCoverOpen(bool newValue)
-		//{
-		//	IsCoverOpen = newValue;
-		//}
 		#endregion main properties
 
 
@@ -422,22 +354,18 @@ namespace UniFiler10.Data.Model
 		}
 		private void CopyNonDbProperties(Binder source)
 		{
-			//IsPaneOpen = source.IsPaneOpen;
-			//IsCoverOpen = source.IsCoverOpen;
 			CatIdForFldFilter = source.CatIdForFldFilter;
 			FldDscIdForFldFilter = source.FldDscIdForFldFilter;
 			FldValIdForFldFilter = source.FldValIdForFldFilter;
 			CatIdForCatFilter = source.CatIdForCatFilter;
 			WhichFilter = source.WhichFilter;
 			DBName = source.DBName;
-			CurrentFolderId = source.CurrentFolderId; // last
+			CurrentFolderId = source.CurrentFolderId;
 		}
 		private Binder CloneNonDbProperties()
 		{
-			Binder target = new Binder(DBName); //, _parentPaneOpener);
+			Binder target = new Binder(DBName);
 			target.CurrentFolderId = _currentFolderId;
-			//target.IsPaneOpen = _isPaneOpen;
-			//target.IsCoverOpen = _isCoverOpen;
 			target.CatIdForFldFilter = _catIdForFldFilter;
 			target.FldDscIdForFldFilter = _fldDscIdForFldFilter;
 			target.FldValIdForFldFilter = _fldValIdForFldFilter;
@@ -571,6 +499,61 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
+		private Task UpdateCurrentFolderAsync()
+		{
+			return RunFunctionWhileOpenAsyncT(delegate
+			{
+				return UpdateCurrentFolder2Async(false);
+			});
+		}
+
+		private async Task UpdateCurrentFolder2Async(bool openFolder)
+		{
+			if (_folders != null)
+			{
+				if (_currentFolderId != null)
+				{
+					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
+					_currentFolder = _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
+				}
+				else
+				{
+					_currentFolder = null;
+				}
+				if (_currentFolder != null && openFolder)
+				{
+					await _currentFolder.OpenAsync().ConfigureAwait(false);
+				}
+				RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
+			}
+		}
+
+		public Task SetCurrentFolderIdAsync(string folderId)
+		{
+			return RunFunctionWhileOpenAsyncT(delegate
+			{
+				_currentFolderId = folderId;
+				return UpdateCurrentFolder2Async(false);
+			});
+		}
+
+		public Task<bool> OpenCurrentFolderAsync()
+		{
+			return RunFunctionWhileOpenAsyncT(delegate
+			{
+				return UpdateCurrentFolder2Async(true);
+			});
+		}
+
+		public Task<bool> OpenFolderAsync(string folderId)
+		{
+			return RunFunctionWhileOpenAsyncT(delegate
+			{
+				_currentFolderId = folderId;
+				return UpdateCurrentFolder2Async(true);
+			});
+		}
+
 		public async Task<Folder> AddFolderAsync()
 		{
 			var folder = new Folder();
@@ -584,11 +567,6 @@ namespace UniFiler10.Data.Model
 				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
 				{
 					_folders.Add(folder);
-					//if (setCurrentAndOpen)
-					//{
-					//	await folder.OpenAsync();
-					//	CurrentFolderId = folder.Id;
-					//}
 					return true;
 				}
 
@@ -598,6 +576,7 @@ namespace UniFiler10.Data.Model
 			if (isOk) return folder;
 			else return null;
 		}
+
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
@@ -743,15 +722,6 @@ namespace UniFiler10.Data.Model
 		{
 			throw new NotImplementedException();
 		}
-		//protected override Task<bool> UpdateDbMustOverrideAsync()
-		//{
-		//	throw new NotImplementedException("ERROR in Binder: UpdateDbWithinSemaphoreMustOverride() was called but it must not. ");
-		//}
-
-		//protected override void CopyMustOverride(ref DbBoundObservableData target)
-		//{
-		//	throw new NotImplementedException("ERROR in Binder: CopyNoDbMustOverride() was called but it must not. ");
-		//}
 
 		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
 		{

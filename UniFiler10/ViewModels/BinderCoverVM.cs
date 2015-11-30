@@ -634,7 +634,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region user actions
-		public async Task<bool> SelectFolderAsync(string folderId)
+		public async Task<bool> SetCurrentFolderAsync(string folderId)
 		{
 			if (!string.IsNullOrWhiteSpace(folderId))
 			{
@@ -661,7 +661,7 @@ namespace UniFiler10.ViewModels
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
 		}
 
-		public async Task<bool> AddOpenFolderAsync()
+		public async Task<bool> AddAndOpenFolderAsync()
 		{
 			var binder = _binder;
 			if (binder != null)
@@ -669,7 +669,7 @@ namespace UniFiler10.ViewModels
 				var newFolder = await binder.AddFolderAsync();
 				if (newFolder != null)
 				{
-					if (await SelectFolderAsync(newFolder.Id).ConfigureAwait(false))
+					if (await SetCurrentFolderAsync(newFolder.Id).ConfigureAwait(false))
 					{
 						SetIsDirty(true, true, 0);
 						return true;
