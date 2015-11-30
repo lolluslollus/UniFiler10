@@ -22,9 +22,7 @@ namespace UniFiler10.ViewModels
 
 		public static bool GetIsElevated()
 		{
-			var mb = _instance?._metaBriefcase;
-			if (mb != null) return mb.IsElevated;
-			else return false;
+			return _instance?._metaBriefcase?.IsElevated == true;
 		}
 
 		private static SettingsVM _instance = null;
@@ -32,6 +30,7 @@ namespace UniFiler10.ViewModels
 		{
 			MetaBriefcase = metaBriefcase;
 			_instance = this;
+			UpdateUnassignedFields();
 		}
 
 		public void Dispose()
@@ -58,7 +57,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (await mbf.AddFieldDescriptionAsync())
 				{
-					RefreshUnassignedFields();
+					UpdateUnassignedFields();
 					return true;
 				}
 			}
@@ -72,7 +71,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (await mbf.RemoveFieldDescriptionAsync(fldDesc))
 				{
-					RefreshUnassignedFields();
+					UpdateUnassignedFields();
 					return true;
 				}
 			}
@@ -85,7 +84,7 @@ namespace UniFiler10.ViewModels
 
 			if (await mb.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
 			{
-				RefreshUnassignedFields();
+				UpdateUnassignedFields();
 				return true;
 			}
 			return false;
@@ -114,7 +113,7 @@ namespace UniFiler10.ViewModels
 
 			if (await mb.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
 			{
-				RefreshUnassignedFields();
+				UpdateUnassignedFields();
 				return true;
 			}
 			return false;
@@ -165,7 +164,7 @@ namespace UniFiler10.ViewModels
 
 		private SwitchableObservableCollection<FieldDescription> _unassignedFields = new SwitchableObservableCollection<FieldDescription>();
 		public SwitchableObservableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
-		private void RefreshUnassignedFields()
+		private void UpdateUnassignedFields()
 		{
 			var mb = _metaBriefcase;
 			_unassignedFields.Clear();
@@ -178,21 +177,21 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public void UpdateCurrentCategory(Category newItem)
+		public async Task UpdateCurrentCategoryAsync(Category newItem)
 		{
 			var mb = _metaBriefcase;
 			if (mb != null && newItem != null)
 			{
-				mb.CurrentCategoryId = newItem.Id;
-				RefreshUnassignedFields();
+				await mb.SetCurrentCategoryIdAsync(newItem.Id);
+				UpdateUnassignedFields();
 			}
 		}
-		public void UpdateCurrentFieldDescription(FieldDescription newItem)
+		public async Task UpdateCurrentFieldDescriptionAsync(FieldDescription newItem)
 		{
 			var mb = _metaBriefcase;
 			if (mb != null && newItem != null)
-			{ 
-				mb.CurrentFieldDescriptionId = newItem.Id;
+			{
+				await mb.SetCurrentFieldDescriptionIdAsync(newItem.Id);
 			}
 		}
 	}

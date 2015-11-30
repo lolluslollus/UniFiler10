@@ -27,27 +27,24 @@ namespace UniFiler10.Data.Metadata
         public string CurrentCategoryId
         {
             get { return _currentCategoryId; }
-            set
+            private set
             {
                 if (_currentCategoryId != value)
                 {
-                    _currentCategoryId = value;					
-					Task upd = UpdateCurrentCategoryAsync().ContinueWith(delegate
-					{
-						RaisePropertyChanged_UI();
-					});
+                    _currentCategoryId = value;
+					UpdateCurrentCategory2();
+					RaisePropertyChanged_UI();
                 }
                 else if (_currentCategory == null)
                 {
-					Task upd = UpdateCurrentCategoryAsync();
-                }
+					UpdateCurrentCategory2();
+				}
             }
         }
 
-        private Task UpdateCurrentCategoryAsync()
-        {
-			return RunFunctionWhileOpenAsyncA(delegate { UpdateCurrentCategory2(); });
-        }
+		private Category _currentCategory = null;
+        [IgnoreDataMember]
+        public Category CurrentCategory { get { return _currentCategory; } private set { if (_currentCategory != value) { _currentCategory = value; RaisePropertyChanged_UI(); } } }
 		private void UpdateCurrentCategory2()
 		{
 			if (_categories != null && _currentCategoryId != null)
@@ -60,11 +57,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private Category _currentCategory = null;
-        [IgnoreDataMember]
-        public Category CurrentCategory { get { return _currentCategory; } private set { if (_currentCategory != value) { _currentCategory = value; RaisePropertyChanged_UI(); } } }
-
-        private string _currentFieldDescriptionId = null;
+		private string _currentFieldDescriptionId = null;
         [DataMember]
         public string CurrentFieldDescriptionId
         {
@@ -74,21 +67,19 @@ namespace UniFiler10.Data.Metadata
                 if (_currentFieldDescriptionId != value)
                 {
                     _currentFieldDescriptionId = value;
-					Task upd = UpdateCurrentFieldDescription().ContinueWith(delegate
-					{
-						RaisePropertyChanged_UI();
-					});
+					UpdateCurrentFieldDescription2();
+					RaisePropertyChanged_UI();
                 }
                 else if (_currentFieldDescription == null)
                 {
-					Task upd = UpdateCurrentFieldDescription();
-                }
+					UpdateCurrentFieldDescription2();
+				}
             }
         }
-        private Task UpdateCurrentFieldDescription()
-        {
-			return RunFunctionWhileOpenAsyncA(delegate { UpdateCurrentFieldDescription2(); });
-        }
+
+		private FieldDescription _currentFieldDescription = null;
+        [IgnoreDataMember]
+        public FieldDescription CurrentFieldDescription { get { return _currentFieldDescription; } private set { if (_currentFieldDescription != value) { _currentFieldDescription = value; RaisePropertyChanged_UI(); } } }
 		private void UpdateCurrentFieldDescription2()
 		{
 			if (_fieldDescriptions != null && _currentFieldDescriptionId != null)
@@ -101,11 +92,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private FieldDescription _currentFieldDescription = null;
-        [IgnoreDataMember]
-        public FieldDescription CurrentFieldDescription { get { return _currentFieldDescription; } private set { if (_currentFieldDescription != value) { _currentFieldDescription = value; RaisePropertyChanged_UI(); } } }
-
-        private SwitchableObservableCollection<Category> _categories = new SwitchableObservableCollection<Category>();
+		private SwitchableObservableCollection<Category> _categories = new SwitchableObservableCollection<Category>();
         [DataMember]
         public SwitchableObservableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
 
@@ -116,11 +103,8 @@ namespace UniFiler10.Data.Metadata
 		private bool _isElevated = false;
 		[DataMember]
 		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
-		public Task SetIsElevatedAsync(bool newValue)
-		{
-			return RunFunctionWhileOpenAsyncA(delegate { IsElevated = newValue; });
-		}
 		#endregion properties
+
 
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
@@ -150,12 +134,11 @@ namespace UniFiler10.Data.Metadata
 		}
 		#endregion construct and dispose
 
+
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
         {
             await LoadAsync().ConfigureAwait(false);
-			UpdateCurrentCategory2();
-			UpdateCurrentFieldDescription2();
         }
         protected override async Task CloseMayOverrideAsync()
         {
@@ -214,20 +197,19 @@ namespace UniFiler10.Data.Metadata
 
             Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
         }
-        public async Task SaveAsync()
+        private async Task SaveAsync()
         {
-            MetaBriefcase metaBriefcaseClone = Clone();
-            //for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
-            //{
-            //    String aaa = i.ToString();
-            //}
+			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
+			//{
+			//    String aaa = i.ToString();
+			//}
 
-            try
+			try
             {
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
                     DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
-                    sessionDataSerializer.WriteObject(memoryStream, metaBriefcaseClone);
+                    sessionDataSerializer.WriteObject(memoryStream, this);
 
                     var file = await ApplicationData.Current.LocalFolder
                         .CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
@@ -249,35 +231,47 @@ namespace UniFiler10.Data.Metadata
         }
         private bool Copy(MetaBriefcase source)
         {
-            if (source == null) return false;
+			if (source == null) return false;
 
-            FieldDescription.Copy(source.FieldDescriptions, FieldDescriptions);
+			IsElevated = source._isElevated;
+            FieldDescription.Copy(source._fieldDescriptions, ref _fieldDescriptions);
             RaisePropertyChanged_UI(nameof(FieldDescriptions));
-            Category.Copy(source.Categories, Categories, FieldDescriptions);
-            RaisePropertyChanged_UI(nameof(Categories));
-            CurrentCategoryId = source.CurrentCategoryId; // must come after setting the categories
-            CurrentFieldDescriptionId = source.CurrentFieldDescriptionId;
-
-            return true;
+            Category.Copy(source._categories, ref _categories, FieldDescriptions);
+			RaisePropertyChanged_UI(nameof(Categories));
+            CurrentCategoryId = source._currentCategoryId;
+			CurrentFieldDescriptionId = source._currentFieldDescriptionId;
+			return true;
         }
-        private MetaBriefcase Clone()
-        {
-            // LOLLO it may seem that these Clone...() methods should run under a semaphore.
-            // However, they are only called when IsOpen == false, so we are good.
-            MetaBriefcase target = new MetaBriefcase();
-
-            target.CurrentCategoryId = _currentCategoryId;
-            target.CurrentFieldDescriptionId = _currentFieldDescriptionId;
-            target.Categories = _categories;
-            target.FieldDescriptions = _fieldDescriptions;
-
-            return target;
-        }
-        #endregion loading methods
+		#endregion loading methods
 
 
-        #region while enabled methods
-        public Task<bool> AddCategoryAsync()
+		#region while open methods
+		public Task SetCurrentCategoryIdAsync(string catId)
+		{
+			return RunFunctionWhileOpenAsyncA(delegate 
+			{
+				_currentCategoryId = catId;
+				UpdateCurrentCategory2();
+				RaisePropertyChanged_UI(nameof(CurrentCategoryId));
+			});
+		}
+
+		public Task SetCurrentFieldDescriptionIdAsync(string fldDscId)
+		{
+			return RunFunctionWhileOpenAsyncA(delegate 
+			{
+				_currentFieldDescriptionId = fldDscId;
+				UpdateCurrentFieldDescription2();
+				RaisePropertyChanged_UI(nameof(CurrentFieldDescriptionId));
+			});
+		}
+
+		public Task SetIsElevatedAsync(bool newValue)
+		{
+			return RunFunctionWhileOpenAsyncA(delegate { IsElevated = newValue; });
+		}
+
+		public Task<bool> AddCategoryAsync()
         {
             return RunFunctionWhileOpenAsyncB(delegate
             {
@@ -394,7 +388,6 @@ namespace UniFiler10.Data.Metadata
 				return _currentCategory.RemoveFieldDescription(fldDsc);
 			});
 		}
-
-		#endregion while enabled methods
+		#endregion while open methods
 	}
 }

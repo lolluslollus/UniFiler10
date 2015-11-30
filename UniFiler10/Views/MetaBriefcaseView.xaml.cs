@@ -35,25 +35,51 @@ namespace UniFiler10.Views
 		{
 			InitializeComponent();
 		}
-		private void OnCategoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		//private void OnCategoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		//{
+		//	Task upd = VM?.UpdateCurrentCategoryAsync((sender as ListView)?.SelectedItem as Category);
+		//}
+		private void OnCategoryListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			VM?.UpdateCurrentCategory((sender as ListView)?.SelectedItem as Category);
+			Task upd = VM?.UpdateCurrentCategoryAsync(e.ClickedItem as Category);
 		}
-		private void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+		//private async void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		//{
+		//	var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
+		//	var vm = VM;
+		//	if (fldDsc != null && vm != null)
+		//	{
+		//		await vm.UpdateCurrentFieldDescriptionAsync(fldDsc);
+		//		AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
+		//	}
+		//}
+		private async void OnUnassignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
-			if (fldDsc != null)
+			var vm = VM;
+			if (vm != null)
 			{
-				VM?.UpdateCurrentFieldDescription(fldDsc);
+				await vm.UpdateCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
 				AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
 			}
 		}
-		private void OnAssignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+		//private async void OnAssignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		//{
+		//	var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
+		//	var vm = VM;
+		//	if (fldDsc != null && vm != null)
+		//	{
+		//		await vm.UpdateCurrentFieldDescriptionAsync(fldDsc);
+		//		UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
+		//	}
+		//}
+		private async void OnAssignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
-			if (fldDsc != null)
+			var vm = VM;
+			if (vm != null)
 			{
-				VM?.UpdateCurrentFieldDescription(fldDsc);
+				await vm.UpdateCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
 				UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
 			}
 		}

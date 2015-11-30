@@ -70,10 +70,10 @@
 				</Grid>
 			</Button>
 
-			<ToggleButton 
-                    IsChecked="{Binding MetaBriefcase.IsElevated, Mode=TwoWay}"
-                    Style="{StaticResource ToggleButtonLolloStyle}"
-					Tapped="OnToggleElevated_Tapped">
+			<ToggleButton
+                IsChecked="{Binding MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=False}"
+                Style="{StaticResource ToggleButtonLolloStyle}"
+				Tapped="OnToggleElevated_Tapped">
 
 				<Grid>
 					<Grid.ColumnDefinitions>
@@ -88,34 +88,34 @@
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
-                            Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+                            Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"/>
 					<SymbolIcon 
                             Symbol="Emoji2" 
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"
-                            Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}}"/>
+                            Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
 					<TextBlock Grid.Column="2" 
                             x:Uid="GotoElevated"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
                             HorizontalAlignment="Left"
 							VerticalAlignment="Center"
-							Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-					<TextBlock Grid.Column="2" 
+							Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"/>
+					<TextBlock Grid.Column="2"
                             x:Uid="GotoSafe"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
                             HorizontalAlignment="Left"
 							VerticalAlignment="Center"
-							Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}}"/>
+							Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
 				</Grid>
 			</ToggleButton>
 		</VariableSizedWrapGrid>
 
 		<Border Grid.Row="1"
-			Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}}"
+			Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 			BorderBrush="{StaticResource FlashyForeground}"
 			BorderThickness="{StaticResource Thickness2222}"
 			Padding="{StaticResource PanelPadding8282}">
@@ -127,7 +127,7 @@
 		</Border>
 
 		<Border Grid.Row="1"
-			Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}}"
+			Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
 			BorderThickness="{StaticResource Thickness2222}"
 			Padding="{StaticResource PanelPadding8282}">
 			<TextBlock x:Uid="SafeMode"
@@ -139,7 +139,7 @@
 		<local:MetaBriefcaseView Grid.Row="2"
 			x:Name="MBView"            
             VM="{x:Bind VM, Mode=OneWay}"
-			IsEnabled="{Binding IsOpen, Mode=OneWay, FallbackValue=False}"/>
+			IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=False}"/>
 		
 	</Grid>
 </ctl:OpenableObservablePage>

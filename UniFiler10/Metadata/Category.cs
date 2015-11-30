@@ -62,7 +62,7 @@ namespace UniFiler10.Data.Metadata
                 target.Name = source.Name;
             }
         }
-        public static void Copy(SwitchableObservableCollection<Category> source, SwitchableObservableCollection<Category> target, IList<FieldDescription> allFldDscs)
+        public static void Copy(SwitchableObservableCollection<Category> source, ref SwitchableObservableCollection<Category> target, IList<FieldDescription> allFldDscs)
         {
             if (source != null && target != null)
             {

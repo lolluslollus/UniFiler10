@@ -48,15 +48,12 @@ namespace UniFiler10.ViewModels
 		{
 			var bf = _briefcase; if (bf == null) return false;
 
-			if (await bf.IsNewDbNameWrongAsync(_newDbName).ConfigureAwait(false) == false)
+			if (await bf.AddBinderAsync(_newDbName).ConfigureAwait(false))
 			{
-				if (await bf.AddBinderAsync(_newDbName).ConfigureAwait(false))
+				if (await bf.SetCurrentBinderNameAsync(_newDbName).ConfigureAwait(false))
 				{
-					if (await bf.SetCurrentBinderNameAsync(_newDbName).ConfigureAwait(false))
-					{
-						IsNewDbNameVisible = false;
-						return true;
-					}
+					IsNewDbNameVisible = false;
+					return true;
 				}
 			}
 
@@ -82,7 +79,7 @@ namespace UniFiler10.ViewModels
 			var bf = _briefcase;
 			if (bf != null)
 			{
-				bool isDbNameWrongAndBriefcaseIsOpen = await bf.IsNewDbNameWrongAsync(_newDbName);
+				bool isDbNameWrongAndBriefcaseIsOpen = await bf.IsNewDbNameWrongAsync(_newDbName).ConfigureAwait(false);
 				if (isDbNameWrongAndBriefcaseIsOpen)
 				{
 					IsNewDbNameErrorMessageVisible = true;

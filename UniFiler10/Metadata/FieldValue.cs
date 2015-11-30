@@ -44,7 +44,7 @@ namespace UniFiler10.Data.Metadata
                 target.Id = source.Id;
                 target.Vaalue = source.Vaalue;
                 target.IsCustom = source.IsCustom;
-                // target.IsJustAdded = source.IsJustAdded; // we don't actually need this
+                // target.IsJustAdded = source.IsJustAdded; // we don't want this!
             }
         }
         public static void Copy(SwitchableObservableCollection<FieldValue> source, SwitchableObservableCollection<FieldValue> target)

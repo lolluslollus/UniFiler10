@@ -71,14 +71,14 @@ namespace UniFiler10.Data.Metadata
                 target.Caption = source._caption;
                 target.Id = source._id;
                 target.IsCustom = source._isCustom;
-                // target.IsJustAdded = source._isJustAdded; // we don't actually need this
-                // target.JustAssignedToCats = source._justAssignedToCats; // we don't actually need this
+                // target.IsJustAdded = source._isJustAdded; // we don't actually want this
+                // target.JustAssignedToCats = source._justAssignedToCats; // we don't actually want this
                 target.IsAnyValueAllowed = source._isAnyValueAllowed;
                 FieldValue.Copy(source._possibleValues, target.PossibleValues);
                 target.Typez = source._typez;
             }
         }
-        public static void Copy(SwitchableObservableCollection<FieldDescription> source, SwitchableObservableCollection<FieldDescription> target)
+        public static void Copy(SwitchableObservableCollection<FieldDescription> source, ref SwitchableObservableCollection<FieldDescription> target)
         {
             if (source != null && target != null)
             {

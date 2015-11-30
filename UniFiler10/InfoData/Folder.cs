@@ -373,9 +373,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
-					var newDynCat = new DynamicCategory();
-					newDynCat.ParentId = Id;
-					newDynCat.CategoryId = catId;
+					var newDynCat = new DynamicCategory() { ParentId = Id, CategoryId = catId };
 
 					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
 					{

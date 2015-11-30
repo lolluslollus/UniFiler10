@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using System;
+using Utilz;
 
 namespace UniFiler10.Data.Model
 {
@@ -37,9 +38,10 @@ namespace UniFiler10.Data.Model
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
-							_fieldValueId = oldValue;
-							UpdateDynamicValues2();
-							RaisePropertyChanged_UI();
+							//_fieldValueId = oldValue;
+							//UpdateDynamicValues2();
+							//RaisePropertyChanged_UI();
+							Logger.Add_TPL(GetType().ToString() + "." + nameof(FieldValueId) + " could not be set", Logger.ForegroundLogFilename);
 						}
 					});
 				}
@@ -74,9 +76,10 @@ namespace UniFiler10.Data.Model
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
 						{
-							_fieldDescriptionId = oldValue;
-							UpdateDynamicValues2();
-							RaisePropertyChanged_UI();
+							//_fieldDescriptionId = oldValue;
+							//UpdateDynamicValues2();
+							//RaisePropertyChanged_UI();
+							Logger.Add_TPL(GetType().ToString() + "." + nameof(FieldDescriptionId) + " could not be set", Logger.ForegroundLogFilename);
 						}
 					});
 				}
@@ -108,6 +111,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 		#endregion properties
+
 
 		protected override bool UpdateDbMustOverride()
 		{
@@ -141,6 +145,8 @@ namespace UniFiler10.Data.Model
 			return result;
 		}
 
+
+		#region while open methods
 		public Task<bool> TrySetFieldValueAsync(string newValue)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
@@ -160,8 +166,9 @@ namespace UniFiler10.Data.Model
 					isOk = await TrySetFieldValueId(newValue);
 				}
 
-				// LOLLO TODO is isOk, save metaBriefcase, in case there is a crash before the next Suspend. 
+				// LOLLO TODO if isOk, save metaBriefcase, in case there is a crash before the next Suspend. 
 				// This problem actually affects all XML-based stuff, because they only save on closing.
+				// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
 				return isOk;
 			});
 		}
@@ -191,6 +198,6 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-
+		#endregion while open methods
 	}
 }

@@ -49,11 +49,11 @@
 						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
-				<!--SelectedIndexTolerant="{Binding CurrentCategoryIndex, Mode=OneWay}"-->
+				<!--SelectionChanged="OnCategoryListView_SelectionChanged"-->
 				<ctl:TolerantListView
                     ItemsSource="{Binding Categories, Mode=OneWay}"
                     SelectedItem="{Binding CurrentCategory, Mode=OneWay}"
-					SelectionChanged="OnCategoryListView_SelectionChanged"
+					ItemClick="OnCategoryListView_ItemClick"
 					IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -118,17 +118,17 @@
 				</Grid>
 
 				<!-- assigned field descriptions -->
-				<!--SelectedIndexTolerant="{Binding CurrentFieldDescriptionIndex, Mode=OneWay}" 
-                LOLLO binding to the index makes trouble, better bind to the item. 
+				<!-- LOLLO NOTE binding to the index makes trouble, better bind to the item. 
                 Here, you have two lists that should look like one and have only one selected line
                 between the two of them, so no selected item binding whatsoever:
                 we need to do it in the code behind. -->
 				<ctl:TolerantListView
                     x:Name="AssignedLV"
                     ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
-					SelectionChanged="OnAssignedFieldDescriptionsListView_SelectionChanged"
+					ItemClick="OnAssignedFieldDescriptionsListView_ItemClick"
                     IsMultiSelectCheckBoxEnabled="False"
                     IsItemClickEnabled="True"
+					SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl.ItemsPanel>
@@ -202,12 +202,14 @@
 				</Grid>
 
 				<!-- unassigned field descriptions -->
+				<!--SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"-->
 				<ctl:TolerantListView
                     x:Name="UnassignedLV"
                     ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
-					SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"
+					ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
+					SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl.ItemsPanel>

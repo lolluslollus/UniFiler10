@@ -223,7 +223,7 @@ namespace UniFiler10.Controlz
 			_listView = GetTemplateChild("PopupListView") as ListView;
 			if (_listView != null)
 			{
-				_listView.SelectionChanged += OnListView_SelectionChanged;
+				_listView.SelectionChanged += OnListView_SelectionChanged; // LOLLO TODO shouldn't I use ItemClick instead of SelectionChanged?
 			}
 
 			_contentElement = GetTemplateChild("ContentElement") as ScrollViewer;

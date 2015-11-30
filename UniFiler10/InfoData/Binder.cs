@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using Utilz;
-using System.Reflection;
-using Windows.ApplicationModel.Core;
-using Windows.UI.Core;
-using UniFiler10.Data.Metadata;
-using System.Diagnostics;
+using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using System.IO;
-using Windows.ApplicationModel.Resources.Core;
 
 namespace UniFiler10.Data.Model
 {
@@ -138,20 +133,25 @@ namespace UniFiler10.Data.Model
 		public string CurrentFolderId
 		{
 			get { return _currentFolderId; }
-			set
+			private set
 			{
-				if (_currentFolderId != value)
+				if (_currentFolderId != value) // never set this property, it's only for the serialiser! If you do, call UpdateCurrentFolderAsync().
 				{
 					_currentFolderId = value;
-					Task upd = UpdateCurrentFolderAsync().ContinueWith(delegate
-					{
-						RaisePropertyChanged_UI();
-					});
+					RaisePropertyChanged_UI();
 				}
-				else if (_currentFolder == null)
-				{
-					Task upd = UpdateCurrentFolderAsync();
-				}
+				//if (_currentFolderId != value)
+				//{
+				//	_currentFolderId = value;
+				//	Task upd = UpdateCurrentFolderAsync().ContinueWith(delegate
+				//	{
+				//		RaisePropertyChanged_UI();
+				//	});
+				//}
+				//else if (_currentFolder == null)
+				//{
+				//	Task upd = UpdateCurrentFolderAsync();
+				//}
 			}
 		}
 
@@ -312,7 +312,6 @@ namespace UniFiler10.Data.Model
 		}
 		private async Task SaveNonDbPropertiesAsync()
 		{
-			Binder binderClone = CloneNonDbProperties();
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
 			//    String aaa = i.ToString();
@@ -328,7 +327,7 @@ namespace UniFiler10.Data.Model
 						.AsTask().ConfigureAwait(false);
 
 					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(Binder));
-					sessionDataSerializer.WriteObject(memoryStream, binderClone);
+					sessionDataSerializer.WriteObject(memoryStream, this);
 
 					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{
@@ -354,25 +353,13 @@ namespace UniFiler10.Data.Model
 		}
 		private void CopyNonDbProperties(Binder source)
 		{
-			CatIdForFldFilter = source.CatIdForFldFilter;
-			FldDscIdForFldFilter = source.FldDscIdForFldFilter;
-			FldValIdForFldFilter = source.FldValIdForFldFilter;
-			CatIdForCatFilter = source.CatIdForCatFilter;
-			WhichFilter = source.WhichFilter;
-			DBName = source.DBName;
-			CurrentFolderId = source.CurrentFolderId;
-		}
-		private Binder CloneNonDbProperties()
-		{
-			Binder target = new Binder(DBName);
-			target.CurrentFolderId = _currentFolderId;
-			target.CatIdForFldFilter = _catIdForFldFilter;
-			target.FldDscIdForFldFilter = _fldDscIdForFldFilter;
-			target.FldValIdForFldFilter = _fldValIdForFldFilter;
-			target.CatIdForCatFilter = _catIdForCatFilter;
-			target.WhichFilter = _whichFilter;
-			target.DBName = _dbName;
-			return target;
+			CatIdForFldFilter = source._catIdForFldFilter;
+			FldDscIdForFldFilter = source._fldDscIdForFldFilter;
+			FldValIdForFldFilter = source._fldValIdForFldFilter;
+			CatIdForCatFilter = source._catIdForCatFilter;
+			WhichFilter = source._whichFilter;
+			DBName = source._dbName;
+			CurrentFolderId = source._currentFolderId;
 		}
 		private async Task LoadFoldersWithoutContentAsync()
 		{
@@ -507,7 +494,7 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
-		private async Task UpdateCurrentFolder2Async(bool openFolder)
+		private async Task UpdateCurrentFolder2Async(bool openTheFolder)
 		{
 			if (_folders != null)
 			{
@@ -520,7 +507,7 @@ namespace UniFiler10.Data.Model
 				{
 					_currentFolder = null;
 				}
-				if (_currentFolder != null && openFolder)
+				if (_currentFolder != null && openTheFolder)
 				{
 					await _currentFolder.OpenAsync().ConfigureAwait(false);
 				}
@@ -533,6 +520,7 @@ namespace UniFiler10.Data.Model
 			return RunFunctionWhileOpenAsyncT(delegate
 			{
 				_currentFolderId = folderId;
+				RaisePropertyChanged_UI(nameof(CurrentFolderId));
 				return UpdateCurrentFolder2Async(false);
 			});
 		}
@@ -550,6 +538,7 @@ namespace UniFiler10.Data.Model
 			return RunFunctionWhileOpenAsyncT(delegate
 			{
 				_currentFolderId = folderId;
+				RaisePropertyChanged_UI(nameof(CurrentFolderId));
 				return UpdateCurrentFolder2Async(true);
 			});
 		}
@@ -608,6 +597,7 @@ namespace UniFiler10.Data.Model
 					if (folder.Id == _currentFolderId)
 					{
 						CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
+						await UpdateCurrentFolder2Async(false);
 					}
 					return isOK;
 				}

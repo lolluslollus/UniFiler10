@@ -15,7 +15,7 @@ using Windows.Storage.Streams;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public sealed class Briefcase : OpenableObservableData //, IPaneOpener
+	public sealed class Briefcase : OpenableObservableData
 	{
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
@@ -39,6 +39,7 @@ namespace UniFiler10.Data.Model
 		}
 		private Briefcase() { }
 		#endregion construct and dispose
+
 
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
@@ -86,6 +87,7 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion open and close
 
+
 		#region properties
 		private static Briefcase _instance = null;
 
@@ -106,20 +108,25 @@ namespace UniFiler10.Data.Model
 		public string CurrentBinderName
 		{
 			get { return _currentBinderName; }
-			set
+			private set
 			{
-				if (_currentBinderName != value)
+				if (_currentBinderName != value) // never set this property, it's only for the serialiser! If you do, call UpdateCurrentFolderAsync().
 				{
 					_currentBinderName = value;
-					Task upd = UpdateCurrentBinderAsync().ContinueWith(delegate
-					{
-						RaisePropertyChanged_UI();
-					});
+					RaisePropertyChanged_UI();
 				}
-				else if (_currentBinder == null)
-				{
-					Task upd = UpdateCurrentBinderAsync();
-				}
+				//if (_currentBinderName != value)
+				//{
+				//	_currentBinderName = value;
+				//	Task upd = UpdateCurrentBinderAsync().ContinueWith(delegate
+				//	{
+				//		RaisePropertyChanged_UI();
+				//	});
+				//}
+				//else if (_currentBinder == null)
+				//{
+				//	Task upd = UpdateCurrentBinderAsync();
+				//}
 			}
 		}
 
@@ -143,7 +150,7 @@ namespace UniFiler10.Data.Model
 			return RunFunctionWhileOpenAsyncT(delegate { return UpdateCurrentBinder2Async(false); });
 		}
 
-		private async Task<bool> UpdateCurrentBinder2Async(bool openBinder)
+		private async Task<bool> UpdateCurrentBinder2Async(bool openTheBinder)
 		{
 			if (string.IsNullOrEmpty(_currentBinderName))
 			{
@@ -157,13 +164,13 @@ namespace UniFiler10.Data.Model
 				await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 				_currentBinder = Binder.CreateInstance(_currentBinderName);
-				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
+				if (openTheBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(CurrentBinder)); // notify the UI once the data has been loaded
 				return true;
 			}
 			else if (_currentBinder != null)
 			{
-				if (openBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
+				if (openTheBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(CurrentBinder));
 				return true;
 			}
@@ -174,7 +181,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				_currentBinderName = dbName;
+				CurrentBinderName = dbName;
 				return UpdateCurrentBinder2Async(false);
 			});
 		}
@@ -191,7 +198,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				_currentBinderName = dbName;
+				CurrentBinderName = dbName;
 				return UpdateCurrentBinder2Async(true);
 			});
 		}
@@ -214,7 +221,6 @@ namespace UniFiler10.Data.Model
 				await RunInUiThreadAsync(delegate
 				{
 					DbNames.Add(dbName);
-					CurrentBinderName = dbName;
 				}).ConfigureAwait(false);
 				return true;
 			}
@@ -233,12 +239,15 @@ namespace UniFiler10.Data.Model
 						await _currentBinder.CloseAsync().ConfigureAwait(false);
 						if (DbNames.Count > 0)
 						{
-							CurrentBinderName = DbNames[0];
+							CurrentBinderName = _dbNames[0];
+							// CurrentBinderName = DbNames[0];
 						}
 						else
 						{
 							CurrentBinderName = string.Empty;
+							// CurrentBinderName = string.Empty;
 						}
+						await UpdateCurrentBinder2Async(false);
 					}
 					return await Binder.DeleteClosedBinderAsync(dbName).ConfigureAwait(false);
 				}
@@ -281,12 +290,15 @@ namespace UniFiler10.Data.Model
 					await _currentBinder.CloseAsync().ConfigureAwait(false);
 					if (DbNames.Count > 0)
 					{
-						CurrentBinderName = DbNames[0];
+						CurrentBinderName = _dbNames[0];
+						// CurrentBinderName = DbNames[0];
 					}
 					else
 					{
 						CurrentBinderName = string.Empty;
+						// CurrentBinderName = string.Empty;
 					}
+					await UpdateCurrentBinder2Async(false);
 				}
 				if (await Binder.RestoreClosedBinderAsync(fromStorageFolder).ConfigureAwait(false))
 				{
@@ -384,7 +396,6 @@ namespace UniFiler10.Data.Model
 		}
 		private async Task SaveAsync()
 		{
-			Briefcase briefcaseClone = CloneNonDbProperties();
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
 			//    String aaa = i.ToString();
@@ -395,7 +406,7 @@ namespace UniFiler10.Data.Model
 				using (MemoryStream memoryStream = new MemoryStream())
 				{
 					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
-					sessionDataSerializer.WriteObject(memoryStream, briefcaseClone);
+					sessionDataSerializer.WriteObject(memoryStream, this);
 
 					var file = await ApplicationData.Current.LocalFolder
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
@@ -419,18 +430,10 @@ namespace UniFiler10.Data.Model
 		{
 			if (source == null) return false;
 
-			if (source.DbNames != null) DbNames = source.DbNames;
-			NewDbName = source.NewDbName;
-			CurrentBinderName = source.CurrentBinderName;
+			if (source.DbNames != null) DbNames = source._dbNames;
+			NewDbName = source._newDbName;
+			CurrentBinderName = source._currentBinderName;
 			return true;
-		}
-		private Briefcase CloneNonDbProperties()
-		{
-			Briefcase target = new Briefcase();
-			target.DbNames = DbNames;
-			target.NewDbName = NewDbName;
-			target.CurrentBinderName = CurrentBinderName;
-			return target;
 		}
 		#endregion loading methods
 	}

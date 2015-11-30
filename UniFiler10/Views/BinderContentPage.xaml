@@ -68,7 +68,7 @@
                         ItemsSource="{Binding Binder.Folders, Mode=OneWay}"
                         IsMultiSelectCheckBoxEnabled="False" 
                         IsItemClickEnabled="True"
-                        SelectedItem="{Binding Binder.CurrentFolder}"
+                        SelectedItem="{Binding Binder.CurrentFolder, Mode=OneWay}"
 						ItemClick="OnFolderPreview_Click"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
 						<ItemsControl.ItemsPanel>

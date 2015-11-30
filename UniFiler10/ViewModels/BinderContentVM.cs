@@ -313,14 +313,6 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
-
-		public void ToggleIsEditingCategories()
-		{
-			if (_binder?.CurrentFolder != null)
-			{
-				_binder.CurrentFolder.IsEditingCategories = !_binder.CurrentFolder.IsEditingCategories;
-			}
-		}
 		#endregion edit categories
 	}
 }

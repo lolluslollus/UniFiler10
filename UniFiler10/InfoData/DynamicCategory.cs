@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using System;
+using Utilz;
 
 namespace UniFiler10.Data.Model
 {
@@ -37,9 +38,10 @@ namespace UniFiler10.Data.Model
 					{
 						if (DBManager.OpenInstance?.UpdateDynamicCategories(this) == false)
 						{
-							_categoryId = oldValue;
-							UpdateCategory2();
-							RaisePropertyChanged_UI();
+							//_categoryId = oldValue;
+							//UpdateCategory2();
+							//RaisePropertyChanged_UI();
+							Logger.Add_TPL(GetType().ToString() + "." + nameof(CategoryId) + " could not be set", Logger.ForegroundLogFilename);
 						}
 					});
 				}
@@ -63,17 +65,13 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion properties
 
+
 		protected override bool UpdateDbMustOverride()
 		{
 			var ins = DBManager.OpenInstance;
 			if (ins != null) return ins.UpdateDynamicCategories(this);
 			else return false;
 		}
-		//protected override async Task<bool> UpdateDbMustOverrideAsync()
-		//      {
-		//          if (DBManager.OpenInstance != null) return await DBManager.OpenInstance.UpdateDynamicCategoriesAsync(this).ConfigureAwait(false);
-		//          else return false;
-		//      }
 
 		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
 		{
@@ -86,11 +84,5 @@ namespace UniFiler10.Data.Model
 		{
 			return _id != DEFAULT_ID && _parentId != DEFAULT_ID && _categoryId != DEFAULT_ID;
 		}
-		//protected override void CopyMustOverride(ref DbBoundObservableData target)
-		//{
-		//    var tgt = target as DynamicCategory;
-
-		//    tgt.CategoryId = CategoryId;
-		//}
 	}
 }

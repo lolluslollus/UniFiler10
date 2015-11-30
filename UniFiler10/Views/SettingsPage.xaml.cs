@@ -40,6 +40,7 @@ namespace UniFiler10.Views
 		public SettingsPage()
 		{
 			InitializeComponent();
+			MBView.DataContext = null;
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
