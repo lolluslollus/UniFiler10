@@ -25,6 +25,7 @@ namespace UniFiler10.Views
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
+
 		#region construct, open, close
 		public BinderCoverView()
 		{
