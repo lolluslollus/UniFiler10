@@ -15,9 +15,11 @@ namespace UniFiler10.Utilz
         public const string APPNAME_ALL_IN_ONE = "PapierKrieger";
 		public const string ASSEMBLY_NAME = "Unifiler10";
 		public const string VIEWS_NAMESPACE = "UniFiler10.Views.";
-        //public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
-        //public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
-        public static string AppName { get { return ConstantData.APPNAME; } }
+		public const string XML_EXTENSION = ".xml";
+		public const string DB_EXTENSION = ".db";
+		//public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
+		//public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
+		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()
             + "."
             + Package.Current.Id.Version.Minor.ToString()

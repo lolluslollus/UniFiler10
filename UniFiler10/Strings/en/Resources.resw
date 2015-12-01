@@ -195,6 +195,9 @@
   <data name="Expand.Label" xml:space="preserve">
     <value>Expand</value>
   </data>
+  <data name="Export.Text" xml:space="preserve">
+    <value>Export</value>
+  </data>
   <data name="FieldDescrsAssignedToCat.Text" xml:space="preserve">
     <value>Assigned fields</value>
   </data>
@@ -209,6 +212,9 @@
   </data>
   <data name="GotoSafe.Text" xml:space="preserve">
     <value>Go to safe mode</value>
+  </data>
+  <data name="Import.Text" xml:space="preserve">
+    <value>Import</value>
   </data>
   <data name="Name.Text" xml:space="preserve">
     <value>Name</value>

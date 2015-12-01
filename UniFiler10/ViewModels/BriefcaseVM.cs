@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
+using UniFiler10.Utilz;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -143,23 +144,24 @@ namespace UniFiler10.ViewModels
 			return await bc.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
 		}
 
-		private async Task<StorageFolder> PickFolderAsync()
+		private Task<StorageFolder> PickFolderAsync()
 		{
-			//bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
-			//if (unsnapped)
-			//{
+			return Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+			////bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
+			////if (unsnapped)
+			////{
 
-			FolderPicker openPicker = new FolderPicker();
-			openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-			//openPicker.CommitButtonText=
-			//openPicker.ViewMode = PickerViewMode.List;
-			openPicker.FileTypeFilter.Add(".db");
-			openPicker.FileTypeFilter.Add(".xml");
-			var folder = await openPicker.PickSingleFolderAsync();
-			return folder;
+			//FolderPicker openPicker = new FolderPicker();
+			//openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+			////openPicker.CommitButtonText=
+			////openPicker.ViewMode = PickerViewMode.List;
+			//openPicker.FileTypeFilter.Add(".db");
+			//openPicker.FileTypeFilter.Add(".xml");
+			//var folder = await openPicker.PickSingleFolderAsync();
+			//return folder;
 
-			//}
-			//return false;
+			////}
+			////return false;
 		}
 	}
 }

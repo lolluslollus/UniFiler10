@@ -79,6 +79,22 @@ namespace UniFiler10.Views
 			MBView.DataContext = null;
 			MBView.DataContext = VM.MetaBriefcase;
 		}
+
+		private void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			Task exp = _vm?.ExportAsync();
+		}
+
+		private async void OnImport_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			var vm = _vm;
+			if (vm != null)
+			{
+				await vm.ImportAsync(); // .ConfigureAwait(false);
+				MBView.DataContext = null;
+				MBView.DataContext = VM.MetaBriefcase;
+			}
+		}
 		#endregion user actions
 	}
 }

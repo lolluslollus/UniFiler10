@@ -122,13 +122,14 @@
                 Here, you have two lists that should look like one and have only one selected line
                 between the two of them, so no selected item binding whatsoever:
                 we need to do it in the code behind. -->
+				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 				<ctl:TolerantListView
                     x:Name="AssignedLV"
                     ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
 					ItemClick="OnAssignedFieldDescriptionsListView_ItemClick"
                     IsMultiSelectCheckBoxEnabled="False"
                     IsItemClickEnabled="True"
-					SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"
+					SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl.ItemsPanel>
@@ -203,13 +204,14 @@
 
 				<!-- unassigned field descriptions -->
 				<!--SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"-->
+				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 				<ctl:TolerantListView
                     x:Name="UnassignedLV"
                     ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
 					ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
-					SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"
+					SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl.ItemsPanel>

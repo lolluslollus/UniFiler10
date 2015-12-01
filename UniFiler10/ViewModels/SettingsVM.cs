@@ -5,6 +5,8 @@ using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
+using UniFiler10.Data.Model;
+using UniFiler10.Utilz;
 using Utilz;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.UI.Xaml;
@@ -119,6 +121,10 @@ namespace UniFiler10.ViewModels
 			return false;
 		}
 
+		public void OnDataContextChanged()
+		{
+			UpdateUnassignedFields();
+		}
 		//     public bool UnassignFieldDescriptionFromCurrentCategory(FieldDescription fldDsc, Category toCat)
 		//     {
 		//var mb = _metaBriefcase;
@@ -192,6 +198,31 @@ namespace UniFiler10.ViewModels
 			if (mb != null)
 			{
 				await mb.SetCurrentFieldDescriptionAsync(newItem);
+			}
+		}
+
+		public async Task ExportAsync()
+		{
+			var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+			if (file != null)
+			{
+				var bf = Briefcase.GetCurrentInstance();
+				if (bf != null)
+				{
+					await bf.ExportSettingsAsync(file).ConfigureAwait(false);
+				}
+			}
+		}
+		public async Task ImportAsync()
+		{
+			var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+			if (file != null)
+			{
+				var bf = Briefcase.GetCurrentInstance();
+				if (bf != null)
+				{
+					await bf.ImportSettingsAsync(file).ConfigureAwait(false);
+				}
 			}
 		}
 	}

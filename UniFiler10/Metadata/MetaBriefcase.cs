@@ -33,13 +33,13 @@ namespace UniFiler10.Data.Metadata
 				{
 					_currentCategoryId = value;
 					UpdateCurrentCategory2();
-					UpdateCurrentFieldDescription2();
+					//UpdateCurrentFieldDescription2();
 					RaisePropertyChanged_UI();
 				}
 				else if (_currentCategory == null)
 				{
 					UpdateCurrentCategory2();
-					UpdateCurrentFieldDescription2();
+					//UpdateCurrentFieldDescription2();
 				}
 			}
 		}
@@ -84,10 +84,10 @@ namespace UniFiler10.Data.Metadata
 		public FieldDescription CurrentFieldDescription { get { return _currentFieldDescription; } private set { if (_currentFieldDescription != value) { _currentFieldDescription = value; RaisePropertyChanged_UI(); } } }
 		private void UpdateCurrentFieldDescription2()
 		{
-			if (_currentCategory != null && _currentCategory.FieldDescriptions != null && _currentFieldDescriptionId != null)
+			if (_fieldDescriptions != null && _currentFieldDescriptionId != null)
 			{
-				// CurrentFieldDescription = _fieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
-				CurrentFieldDescription = _currentCategory.FieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
+				CurrentFieldDescription = _fieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
+				///CurrentFieldDescription = _currentCategory.FieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
 			}
 			else
 			{
@@ -151,7 +151,13 @@ namespace UniFiler10.Data.Metadata
 
 
 		#region loading methods
-		private const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
+		public const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
+		private StorageFile _sourceFile = null;
+		public void SetSourceFileJustOnce(StorageFile sourceFile)
+		{
+			_sourceFile = sourceFile;
+		}
+
 		private async Task LoadAsync()
 		{
 			string errorMessage = string.Empty;
@@ -159,10 +165,14 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				StorageFile file = await GetDirectory()
-					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-					.AsTask().ConfigureAwait(false);
-
+				StorageFile file = _sourceFile;
+				if (file == null)
+				{
+					file = await GetDirectory()
+						.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
+						.AsTask().ConfigureAwait(false);
+				}
+				_sourceFile = null;
 				//String ssss = null; //this is useful when you debug and want to see the file as a string
 				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
 				//{
@@ -195,12 +205,12 @@ namespace UniFiler10.Data.Metadata
 			}
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
-				if (newMetaBriefcase != null) Copy(newMetaBriefcase);
+				if (newMetaBriefcase != null) CopyFrom(newMetaBriefcase);
 			}
 
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
-		private async Task SaveAsync()
+		private async Task SaveAsync(StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
@@ -209,14 +219,18 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
+				if (file == null)
+				{
+					file = await GetDirectory()
+						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
+						.AsTask().ConfigureAwait(false);
+				}
+
 				using (MemoryStream memoryStream = new MemoryStream())
 				{
 					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
 					sessionDataSerializer.WriteObject(memoryStream, this);
 
-					var file = await GetDirectory()
-						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
-						.AsTask().ConfigureAwait(false);
 					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{
 						memoryStream.Seek(0, SeekOrigin.Begin);
@@ -232,14 +246,14 @@ namespace UniFiler10.Data.Metadata
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 		}
-		private bool Copy(MetaBriefcase source)
+		private bool CopyFrom(MetaBriefcase source)
 		{
 			if (source == null) return false;
 
 			IsElevated = source._isElevated;
 			FieldDescription.Copy(source._fieldDescriptions, ref _fieldDescriptions);
 			RaisePropertyChanged_UI(nameof(FieldDescriptions));
-			Category.Copy(source._categories, ref _categories, FieldDescriptions);
+			Category.Copy(source._categories, ref _categories, _fieldDescriptions);
 			RaisePropertyChanged_UI(nameof(Categories));
 			CurrentCategoryId = source._currentCategoryId; // must come after setting the categories
 			CurrentFieldDescriptionId = source._currentFieldDescriptionId; // must come after setting the current category
@@ -247,6 +261,8 @@ namespace UniFiler10.Data.Metadata
 		}
 		private StorageFolder GetDirectory()
 		{
+			//var output = ApplicationData.Current.LocalFolder;
+			//return output;
 			return ApplicationData.Current.RoamingFolder; // was LocalFolder
 		}
 		#endregion loading methods
@@ -396,6 +412,11 @@ namespace UniFiler10.Data.Metadata
 
 				return _currentCategory.RemoveFieldDescription(fldDsc);
 			});
+		}
+
+		public Task SaveACopyAsync(StorageFile file)
+		{
+			return RunFunctionWhileOpenAsyncT(delegate { return SaveAsync(file); });
 		}
 		#endregion while open methods
 	}

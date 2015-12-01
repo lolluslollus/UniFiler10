@@ -33,27 +33,20 @@ namespace UniFiler10.Views
 
 		public MetaBriefcaseView()
 		{
+			DataContextChanged += OnDataContextChanged;
 			InitializeComponent();
 		}
-		//private void OnCategoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		//{
-		//	Task upd = VM?.UpdateCurrentCategoryAsync((sender as ListView)?.SelectedItem as Category);
-		//}
+
+		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		{
+			VM?.OnDataContextChanged();
+		}
+
 		private void OnCategoryListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			Task upd = VM?.SetCurrentCategoryAsync(e.ClickedItem as Category);
 		}
 
-		//private async void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		//{
-		//	var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
-		//	var vm = VM;
-		//	if (fldDsc != null && vm != null)
-		//	{
-		//		await vm.UpdateCurrentFieldDescriptionAsync(fldDsc);
-		//		AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
-		//	}
-		//}
 		private async void OnUnassignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			var vm = VM;
@@ -64,16 +57,6 @@ namespace UniFiler10.Views
 			}
 		}
 
-		//private async void OnAssignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		//{
-		//	var fldDsc = (sender as ListView)?.SelectedItem as FieldDescription;
-		//	var vm = VM;
-		//	if (fldDsc != null && vm != null)
-		//	{
-		//		await vm.UpdateCurrentFieldDescriptionAsync(fldDsc);
-		//		UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
-		//	}
-		//}
 		private async void OnAssignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			var vm = VM;

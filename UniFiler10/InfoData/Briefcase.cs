@@ -45,12 +45,11 @@ namespace UniFiler10.Data.Model
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
+			await LoadAsync().ConfigureAwait(false);
 
 			_metaBriefcase = MetaBriefcase.CreateInstance();
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
-
-			await LoadAsync().ConfigureAwait(false);
 
 			_runtimeData = RuntimeData.CreateInstance(this);
 			await _runtimeData.OpenAsync().ConfigureAwait(false);
@@ -142,7 +141,7 @@ namespace UniFiler10.Data.Model
 		public Binder CurrentBinder { get { return _currentBinder; } private set { if (_currentBinder != value) { _currentBinder = value; RaisePropertyChanged_UI(); } } }
 
 		private SwitchableObservableCollection<string> _dbNames = new SwitchableObservableCollection<string>();
-		[DataMember]
+		[IgnoreDataMember]
 		public SwitchableObservableCollection<string> DbNames { get { return _dbNames; } private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } } }
 
 		private string _newDbName = string.Empty;
@@ -338,6 +337,31 @@ namespace UniFiler10.Data.Model
 				return _dbNames.Contains(newDbName);
 			}
 		}
+		public Task ExportSettingsAsync(StorageFile toFile)
+		{
+			return RunFunctionWhileOpenAsyncT(delegate
+			{
+				return _metaBriefcase.SaveACopyAsync(toFile);
+			});
+		}
+		public Task ImportSettingsAsync(StorageFile fromFile)
+		{
+			return RunFunctionWhileOpenAsyncT(async delegate
+			{
+				if (fromFile == null) return;
+
+				await CloseCurrentBinder2Async().ConfigureAwait(false);
+
+				await _metaBriefcase.CloseAsync().ConfigureAwait(false);
+				// do not replace the instance or you may screw the binding. Close, change and reopen will do.
+				_metaBriefcase.SetSourceFileJustOnce(fromFile);
+
+				await _metaBriefcase.OpenAsync().ConfigureAwait(false);
+				RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
+
+				await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
+			});
+		}
 		#endregion while open methods
 
 
@@ -440,6 +464,7 @@ namespace UniFiler10.Data.Model
 			if (source == null) return false;
 
 			// if (source.DbNames != null) DbNames = source._dbNames;
+			IsAllowMeteredConnection = source._isAllowMeteredConnection;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
 			return true;

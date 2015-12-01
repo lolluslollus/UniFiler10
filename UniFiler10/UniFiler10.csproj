@@ -139,6 +139,7 @@
     <Compile Include="DB\DBManager.cs" />
     <Compile Include="DB\SQLiteLollo.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
+    <Compile Include="Utilz\Pickers.cs" />
     <Compile Include="Utilz\ProportionsTrigger.cs" />
     <Compile Include="Utilz\RegistryAccess.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />

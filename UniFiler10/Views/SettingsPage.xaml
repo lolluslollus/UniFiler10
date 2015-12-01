@@ -112,6 +112,53 @@
 							Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
 				</Grid>
 			</ToggleButton>
+
+			<Button
+				Tapped="OnExport_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+					</Grid.ColumnDefinitions>
+
+					<SymbolIcon Symbol="Save"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>
+					<TextBlock Grid.Column="2" x:Uid="Export"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                        TextWrapping="Wrap"
+                        HorizontalAlignment="Left"
+						VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+
+			<Button
+				Tapped="OnImport_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+					</Grid.ColumnDefinitions>
+
+					<SymbolIcon Symbol="OpenFile"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>
+					<TextBlock Grid.Column="2" x:Uid="Import"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+                        TextWrapping="Wrap"
+                        HorizontalAlignment="Left"
+						VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+
 		</VariableSizedWrapGrid>
 
 		<Border Grid.Row="1"
