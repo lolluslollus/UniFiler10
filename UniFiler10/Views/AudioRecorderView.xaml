@@ -29,9 +29,18 @@
 		</Storyboard>
 	</UserControl.Resources>
 
-	<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
+	<Grid Background="Gold">
 		<!--Audio preview LOLLO TODO check if we can use this to show the recording level -->
-		<Border Width="400" Height="400" Background="Gold">
+		<!-- 
+			https://social.msdn.microsoft.com/forums/windowsapps/en-US/70af881f-3823-49b8-9c5a-0062e75f1376/winrt-mediaelement-recording-level 
+			may help.
+		-->
+		<!--<CaptureElement Name="PreviewControl" Stretch="Uniform" 
+			Width="200" Height="200"
+			HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
+		
+		<Border Width="400" Height="400" >
 			<Viewbox x:Name="viewbox" Width="200" Height="200" 
 				HorizontalAlignment="Center" VerticalAlignment="Center" 
                 RenderTransformOrigin="0.5,0.5">
@@ -46,8 +55,8 @@
 			<StackPanel.Resources>
 				<Style TargetType="Button">
 					<Setter Property="Margin" Value="10,40"/>
-					<Setter Property="MinWidth" Value="80"/>
-					<Setter Property="MinHeight" Value="80"/>
+					<Setter Property="Width" Value="80"/>
+					<Setter Property="Height" Value="80"/>
 					<Setter Property="Foreground" Value="White"/>
 					<Setter Property="Background" Value="{StaticResource TranslucentBlackBrush}"/>
 					<Setter Property="BorderBrush" Value="White"/>
@@ -55,9 +64,8 @@
 				</Style>
 			</StackPanel.Resources>
 
-			<Button
-				Tapped="OnOwnBackButton_Tapped">
-				<Viewbox MaxHeight="60" MaxWidth="60">
+			<Button Tapped="OnOwnBackButton_Tapped">
+				<Viewbox Height="60" Width="60">
 					<StackPanel Orientation="Vertical">
 						<SymbolIcon Symbol="Back"/>
 						<TextBlock x:Uid="StopRecording"
@@ -65,9 +73,16 @@
 					</StackPanel>
 				</Viewbox>
 			</Button>
+
+			<Slider x:Name="VolumeSlider"
+				Minimum="1" Maximum="100"
+				Value="100"
+				Width="80" Height="80" 
+				TickFrequency="49" TickPlacement="Outside"/>
 		</StackPanel>
 
-		<Border Background="Gold" VerticalAlignment="Bottom">
+		<!--Background="Gold"-->
+		<Border VerticalAlignment="Bottom">
 			<TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		</Border>
 	</Grid>

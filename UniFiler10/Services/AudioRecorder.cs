@@ -65,6 +65,8 @@ namespace UniFiler10.Services
 		/// <returns></returns>
 		private async Task<string> CreateAudioGraphAsync()
 		{
+			// var inputDevices = await DeviceInformation.FindAllAsync(MediaDevice.GetAudioCaptureSelector()); // LOLLO TEST
+
 			_outputDevices = await DeviceInformation.FindAllAsync(MediaDevice.GetAudioRenderSelector());
 			if (_outputDevices == null || _outputDevices.Count < 1)
 			{
@@ -108,6 +110,11 @@ namespace UniFiler10.Services
 
 			// Because we are using lowest latency setting, we need to handle device disconnection errors
 			_audioGraph.UnrecoverableErrorOccurred += OnGraph_UnrecoverableErrorOccurred;
+
+			// LOLLO set the volume, rather useless coz it is like a mixer and the default value is 1.
+			if (_deviceOutputNode.OutgoingGain < 1.0) _deviceOutputNode.OutgoingGain = 1.0;
+			if (_deviceInputNode.OutgoingGain < 1.0) _deviceInputNode.OutgoingGain = 1.0;
+
 			return string.Empty;
 		}
 
@@ -128,7 +135,6 @@ namespace UniFiler10.Services
 		/// <returns></returns>
 		private async Task<string> SetFileAsync(StorageFile file)
 		{
-			// File can be null if cancel is hit in the file picker
 			if (file == null)
 			{
 				return "file is empty";
@@ -156,17 +162,20 @@ namespace UniFiler10.Services
 
 		private MediaEncodingProfile CreateMediaEncodingProfile(StorageFile file)
 		{
+			MediaEncodingProfile output = null;
 			switch (file.FileType.ToString().ToLowerInvariant())
 			{
 				case ".wma":
-					return MediaEncodingProfile.CreateWma(AudioEncodingQuality.High);
+					output = MediaEncodingProfile.CreateWma(AudioEncodingQuality.High); break;
 				case ".mp3":
-					return MediaEncodingProfile.CreateMp3(AudioEncodingQuality.High);
+					output = MediaEncodingProfile.CreateMp3(AudioEncodingQuality.High); break;
 				case ".wav":
-					return MediaEncodingProfile.CreateWav(AudioEncodingQuality.High);
+					output = MediaEncodingProfile.CreateWav(AudioEncodingQuality.High); break;
 				default:
 					throw new ArgumentException("AudioRecorder.CreateMediaEncodingProfile() : wrong media encoding profile");
 			}
+			// var test = output.Audio.Properties["AudioDeviceController"];
+			return output;
 		}
 		#endregion init properties before recording
 

@@ -1,10 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using UniFiler10.Controlz;
+using UniFiler10.Data.Model;
 using UniFiler10.Services;
 using UniFiler10.ViewModels;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.Foundation.Metadata;
+using Windows.Media;
+using Windows.Media.Capture;
 using Windows.Phone.UI.Input;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -115,7 +119,8 @@ namespace UniFiler10.Views
 		{
 			await CloseAsync().ConfigureAwait(false);
 		}
-
+		private MediaCapture _mediaCapture;
+		[STAThread]
 		protected override async Task OpenMayOverrideAsync()
 		{
 			if (VM != null)
@@ -123,12 +128,33 @@ namespace UniFiler10.Views
 				RecordingStoryboard.Begin();
 				_audioRecorder = new AudioRecorder(this, VM);
 				await _audioRecorder.OpenAsync();
+				try
+				{
+					// adjust the microphone volume. You need MediaCapture, apparently, and she needs STAThread. Ridiculous.
+					_mediaCapture = new MediaCapture();
+					var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
+					await _mediaCapture.InitializeAsync(settings);
+					_mediaCapture.AudioDeviceController.Muted = false;
+					_mediaCapture.AudioDeviceController.VolumePercent = (float)VolumeSlider.Value;
+					//_mediaCapture.AudioDeviceController.VolumePercent = 100.0F;
+					// The following is useless, it was a feeble attempt at getting a graphical display of audio levels. It fails, don't use it.
+					//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { PreviewControl.Source = _mediaCapture; });
+					//await _mediaCapture.StartPreviewAsync();
+				}
+				catch (Exception ex)
+				{
+					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+				}
 				await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
 			}
 		}
+		[STAThread]
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await StopRecordingAsync().ConfigureAwait(false);
+
+			_mediaCapture?.Dispose();
+			_mediaCapture = null;
 
 			var audioRecorder = _audioRecorder;
 			if (audioRecorder != null)
