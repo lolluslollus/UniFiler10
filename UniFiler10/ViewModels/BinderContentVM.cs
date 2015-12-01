@@ -204,8 +204,7 @@ namespace UniFiler10.ViewModels
 			try
 			{
 				//var directory = ApplicationData.Current.LocalCacheFolder;
-				var directory = await _binder.GetDirectoryAsync();
-				_audioFile = await directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
+				_audioFile = await Binder.OpenInstance.Directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
 				return _audioFile;
 			}
 			catch (Exception ex)
@@ -230,10 +229,10 @@ namespace UniFiler10.ViewModels
 				var binder = _binder;
 				if (binder != null)
 				{
-					var directory = await binder.GetDirectoryAsync();
-					if (directory != null)
+					var dir = Binder.OpenInstance?.Directory;
+					if (dir != null)
 					{
-						_photoFile = await directory.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName);
+						_photoFile = await dir.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
 						return _photoFile;
 					}
 				}

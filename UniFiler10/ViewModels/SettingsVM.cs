@@ -177,7 +177,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public async Task UpdateCurrentCategoryAsync(Category newItem)
+		public async Task SetCurrentCategoryAsync(Category newItem)
 		{
 			var mb = _metaBriefcase;
 			if (mb != null)
@@ -186,7 +186,7 @@ namespace UniFiler10.ViewModels
 				UpdateUnassignedFields();
 			}
 		}
-		public async Task UpdateCurrentFieldDescriptionAsync(FieldDescription newItem)
+		public async Task SetCurrentFieldDescriptionAsync(FieldDescription newItem)
 		{
 			var mb = _metaBriefcase;
 			if (mb != null)

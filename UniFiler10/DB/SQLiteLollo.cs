@@ -3464,7 +3464,7 @@ namespace SQLite
 		//[DllImport(LibraryPath, EntryPoint = "sqlite3_close", CallingConvention = CallingConvention.Cdecl)]
 		//public static extern Result Close(IntPtr db);
 
-		[DllImport(LibraryPath, EntryPoint = "sqlite3_close_v2", CallingConvention = CallingConvention.Cdecl)] // LOLLO changed this
+		[DllImport(LibraryPath, EntryPoint = "sqlite3_close_v2", CallingConvention = CallingConvention.Cdecl)] // LOLLO changed this following web instructions, it works better now.
 		public static extern Result Close(IntPtr db);
 
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_initialize", CallingConvention = CallingConvention.Cdecl)]

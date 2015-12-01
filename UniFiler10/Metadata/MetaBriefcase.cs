@@ -159,7 +159,7 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				StorageFile file = await ApplicationData.Current.LocalFolder
+				StorageFile file = await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 
@@ -214,7 +214,7 @@ namespace UniFiler10.Data.Metadata
 					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
 					sessionDataSerializer.WriteObject(memoryStream, this);
 
-					var file = await ApplicationData.Current.LocalFolder
+					var file = await GetDirectory()
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
@@ -244,6 +244,10 @@ namespace UniFiler10.Data.Metadata
 			CurrentCategoryId = source._currentCategoryId; // must come after setting the categories
 			CurrentFieldDescriptionId = source._currentFieldDescriptionId; // must come after setting the current category
 			return true;
+		}
+		private StorageFolder GetDirectory()
+		{
+			return ApplicationData.Current.RoamingFolder; // was LocalFolder
 		}
 		#endregion loading methods
 

@@ -41,7 +41,7 @@ namespace UniFiler10.Views
 		//}
 		private void OnCategoryListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			Task upd = VM?.UpdateCurrentCategoryAsync(e.ClickedItem as Category);
+			Task upd = VM?.SetCurrentCategoryAsync(e.ClickedItem as Category);
 		}
 
 		//private async void OnUnassignedFieldDescriptionsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -59,7 +59,7 @@ namespace UniFiler10.Views
 			var vm = VM;
 			if (vm != null)
 			{
-				await vm.UpdateCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
+				await vm.SetCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
 				AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
 			}
 		}
@@ -79,7 +79,7 @@ namespace UniFiler10.Views
 			var vm = VM;
 			if (vm != null)
 			{
-				await vm.UpdateCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
+				await vm.SetCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
 				UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
 			}
 		}

@@ -47,12 +47,13 @@ namespace UniFiler10.Data.DB
 				return _instance;
 			}
 		}
-		private DBManager(string pathInLocalFolder)
+		private DBManager(string pathInFolder)
 		{
-			if (pathInLocalFolder != null && !string.IsNullOrWhiteSpace(pathInLocalFolder))
+			if (pathInFolder != null && !string.IsNullOrWhiteSpace(pathInFolder))
 			{
-				_dbName = pathInLocalFolder;
-				_dbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, _dbName, DB_FILE_NAME);
+				_dbName = pathInFolder;
+				// _dbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, _dbName, DB_FILE_NAME);
+				_dbPath = Path.Combine(Briefcase.BindersDirectory.Path, _dbName, DB_FILE_NAME);
 			}
 			else throw new ArgumentNullException("DBManager ctor: dbName cannot be null or empty");
 		}
@@ -82,7 +83,8 @@ namespace UniFiler10.Data.DB
 
 					if (!_isOpen)
 					{
-						var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+						// var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+						var dbFolder = await Briefcase.BindersDirectory.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
 
 						if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 						if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);

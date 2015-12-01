@@ -1,5 +1,6 @@
 ﻿using SQLite;
 using System;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
@@ -135,7 +136,7 @@ namespace UniFiler10.Data.Model
 					{
 						if (!string.IsNullOrWhiteSpace(doc.Uri0))
 						{
-							var file = await StorageFile.GetFileFromPathAsync(doc.Uri0).AsTask().ConfigureAwait(false);
+							var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask().ConfigureAwait(false);
 							if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 						}
 					}
@@ -169,13 +170,12 @@ namespace UniFiler10.Data.Model
 					StorageFile newFile = null;
 					if (copyFile)
 					{
-						var directory = await Binder.OpenInstance.GetDirectoryAsync();
-						newFile = await file.CopyAsync(directory, file.Name, NameCollisionOption.GenerateUniqueName);
-						newDocument.Uri0 = newFile.Path;
+						newFile = await file.CopyAsync(Binder.OpenInstance.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
+						newDocument.Uri0 = Path.GetFileName(newFile.Path);
 					}
 					else
 					{
-						newDocument.Uri0 = file.Path;
+						newDocument.Uri0 = Path.GetFileName(file.Path);
 					}
 
 					if (await AddDocument2Async(newDocument))

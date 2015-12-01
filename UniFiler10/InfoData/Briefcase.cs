@@ -44,6 +44,8 @@ namespace UniFiler10.Data.Model
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
+			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
+
 			_metaBriefcase = MetaBriefcase.CreateInstance();
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
@@ -89,6 +91,11 @@ namespace UniFiler10.Data.Model
 
 
 		#region properties
+		public const string BINDERS_DIRECTORY_NAME = "Binders";
+		private static StorageFolder _bindersDirectory = null;
+		[IgnoreDataMember]
+		public static StorageFolder BindersDirectory { get { return _bindersDirectory; } }
+
 		private static Briefcase _instance = null;
 
 		private MetaBriefcase _metaBriefcase = null;
@@ -344,7 +351,7 @@ namespace UniFiler10.Data.Model
 
 			try
 			{
-				var file = await ApplicationData.Current.LocalFolder
+				var file = await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 
@@ -380,8 +387,10 @@ namespace UniFiler10.Data.Model
 			}
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
-				if (newBriefcase != null) CopyNonDbProperties(newBriefcase);
+				if (newBriefcase != null) CopyFrom(newBriefcase);
 			}
+
+			await LoadDbNames().ConfigureAwait(false);
 
 			Debug.WriteLine("ended method Briefcase.LoadAsync()");
 		}
@@ -399,7 +408,7 @@ namespace UniFiler10.Data.Model
 					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
 					sessionDataSerializer.WriteObject(memoryStream, this);
 
-					var file = await ApplicationData.Current.LocalFolder
+					var file = await ApplicationData.Current.RoamingFolder //.LocalFolder
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
@@ -417,14 +426,38 @@ namespace UniFiler10.Data.Model
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 		}
-		private bool CopyNonDbProperties(Briefcase source)
+		private async Task LoadDbNames()
+		{
+			var directories = await BindersDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
+			DbNames.Clear();
+			foreach (var dir in directories)
+			{
+				DbNames.Add(dir.Name);
+			}
+		}
+		private bool CopyFrom(Briefcase source)
 		{
 			if (source == null) return false;
 
-			if (source.DbNames != null) DbNames = source._dbNames;
+			// if (source.DbNames != null) DbNames = source._dbNames;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
 			return true;
+		}
+
+		private StorageFolder GetDirectory()
+		{
+			return ApplicationData.Current.LocalFolder;
+		}
+
+		private async Task GetCreateBindersDirectoryAsync()
+		{
+			if (_bindersDirectory == null)
+			{
+				_bindersDirectory = await GetDirectory()
+					.CreateFolderAsync(BINDERS_DIRECTORY_NAME, CreationCollisionOption.OpenIfExists)
+					.AsTask().ConfigureAwait(false);
+			}
 		}
 		#endregion loading methods
 	}

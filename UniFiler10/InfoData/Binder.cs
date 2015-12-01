@@ -52,6 +52,8 @@ namespace UniFiler10.Data.Model
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
+			await GetCreateDirectoryAsync().ConfigureAwait(false);
+
 			_dbManager = DBManager.CreateInstance(_dbName);
 			await _dbManager.OpenAsync().ConfigureAwait(false);
 
@@ -112,6 +114,11 @@ namespace UniFiler10.Data.Model
 
 
 		#region main properties
+		private StorageFolder _directory = null;
+		[IgnoreDataMember]
+		public StorageFolder Directory { get { return _directory; } }
+
+
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		internal DBManager DbManager { get { return _dbManager; } }
@@ -268,8 +275,7 @@ namespace UniFiler10.Data.Model
 
 			try
 			{
-				var directory = await GetDirectoryAsync().ConfigureAwait(false);
-				var file = await directory
+				var file = await Directory
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 
@@ -321,8 +327,7 @@ namespace UniFiler10.Data.Model
 			{
 				using (MemoryStream memoryStream = new MemoryStream())
 				{
-					var folder = await GetDirectoryAsync().ConfigureAwait(false);
-					var file = await folder
+					var file = await Directory
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 
@@ -344,12 +349,18 @@ namespace UniFiler10.Data.Model
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 		}
-		public async Task<StorageFolder> GetDirectoryAsync()
+		//public async Task<StorageFolder> GetCreateDirectoryAsync()
+		//{
+		//	var dir = await Briefcase.BindersDirectory
+		//		.CreateFolderAsync(DBName, CreationCollisionOption.OpenIfExists)
+		//		.AsTask().ConfigureAwait(false);
+		//	return dir;
+		//}
+		private async Task GetCreateDirectoryAsync()
 		{
-			var folder = await ApplicationData.Current.LocalFolder
+			_directory = await Briefcase.BindersDirectory
 				.CreateFolderAsync(DBName, CreationCollisionOption.OpenIfExists)
 				.AsTask().ConfigureAwait(false);
-			return folder;
 		}
 		private void CopyNonDbProperties(Binder source)
 		{
@@ -390,10 +401,10 @@ namespace UniFiler10.Data.Model
 				{
 					try
 					{
-						var storageFolder = await ApplicationData.Current.LocalFolder
+						var binderDirectory = await Briefcase.BindersDirectory
 							.GetFolderAsync(dbName)
 							.AsTask().ConfigureAwait(false);
-						if (storageFolder != null) await storageFolder.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false);
+						if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false);
 						return true;
 					}
 					catch (Exception ex)
@@ -418,7 +429,7 @@ namespace UniFiler10.Data.Model
 				{
 					try
 					{
-						var fromStorageFolder = await ApplicationData.Current.LocalFolder
+						var fromStorageFolder = await Briefcase.BindersDirectory
 							.GetFolderAsync(dbName)
 							.AsTask().ConfigureAwait(false);
 						if (fromStorageFolder != null)
@@ -459,7 +470,7 @@ namespace UniFiler10.Data.Model
 				{
 					try
 					{
-						var toStorageFolder = await ApplicationData.Current.LocalFolder
+						var toStorageFolder = await Briefcase.BindersDirectory
 							.CreateFolderAsync(from.Name, CreationCollisionOption.ReplaceExisting)
 							.AsTask().ConfigureAwait(false);
 						var fromFiles = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
@@ -683,7 +694,7 @@ namespace UniFiler10.Data.Model
 					{
 						if (!string.IsNullOrWhiteSpace(doc.Uri0))
 						{
-							folderPreview.DocumentUri0 = doc.Uri0;
+							folderPreview.DocumentUri0 = doc.GetFullUri0();
 							folderPreview.Document = doc;
 							exit = true;
 						}
