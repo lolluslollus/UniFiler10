@@ -180,18 +180,18 @@ namespace UniFiler10.ViewModels
 		public async Task UpdateCurrentCategoryAsync(Category newItem)
 		{
 			var mb = _metaBriefcase;
-			if (mb != null && newItem != null)
+			if (mb != null)
 			{
-				await mb.SetCurrentCategoryIdAsync(newItem.Id);
+				await mb.SetCurrentCategoryAsync(newItem);
 				UpdateUnassignedFields();
 			}
 		}
 		public async Task UpdateCurrentFieldDescriptionAsync(FieldDescription newItem)
 		{
 			var mb = _metaBriefcase;
-			if (mb != null && newItem != null)
+			if (mb != null)
 			{
-				await mb.SetCurrentFieldDescriptionIdAsync(newItem.Id);
+				await mb.SetCurrentFieldDescriptionAsync(newItem);
 			}
 		}
 	}

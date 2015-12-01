@@ -14,37 +14,39 @@ using Windows.Storage.Streams;
 
 namespace UniFiler10.Data.Metadata
 {
-    [DataContract]
-    public sealed class MetaBriefcase : OpenableObservableData
-    {
-        #region properties
-        private static volatile MetaBriefcase _instance = null;
-        [IgnoreDataMember]
-        public static MetaBriefcase OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
+	[DataContract]
+	public sealed class MetaBriefcase : OpenableObservableData
+	{
+		#region properties
+		private static volatile MetaBriefcase _instance = null;
+		[IgnoreDataMember]
+		public static MetaBriefcase OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
 
-        private string _currentCategoryId = null;
-        [DataMember]
-        public string CurrentCategoryId
-        {
-            get { return _currentCategoryId; }
-            private set
-            {
-                if (_currentCategoryId != value)
-                {
-                    _currentCategoryId = value;
+		private string _currentCategoryId = null;
+		[DataMember]
+		public string CurrentCategoryId
+		{
+			get { return _currentCategoryId; }
+			private set
+			{
+				if (_currentCategoryId != value)
+				{
+					_currentCategoryId = value;
 					UpdateCurrentCategory2();
+					UpdateCurrentFieldDescription2();
 					RaisePropertyChanged_UI();
-                }
-                else if (_currentCategory == null)
-                {
-					UpdateCurrentCategory2();
 				}
-            }
-        }
+				else if (_currentCategory == null)
+				{
+					UpdateCurrentCategory2();
+					UpdateCurrentFieldDescription2();
+				}
+			}
+		}
 
 		private Category _currentCategory = null;
-        [IgnoreDataMember]
-        public Category CurrentCategory { get { return _currentCategory; } private set { if (_currentCategory != value) { _currentCategory = value; RaisePropertyChanged_UI(); } } }
+		[IgnoreDataMember]
+		public Category CurrentCategory { get { return _currentCategory; } private set { if (_currentCategory != value) { _currentCategory = value; RaisePropertyChanged_UI(); } } }
 		private void UpdateCurrentCategory2()
 		{
 			if (_categories != null && _currentCategoryId != null)
@@ -58,33 +60,34 @@ namespace UniFiler10.Data.Metadata
 		}
 
 		private string _currentFieldDescriptionId = null;
-        [DataMember]
-        public string CurrentFieldDescriptionId
-        {
-            get { return _currentFieldDescriptionId; }
-            set
-            {
-                if (_currentFieldDescriptionId != value)
-                {
-                    _currentFieldDescriptionId = value;
+		[DataMember]
+		public string CurrentFieldDescriptionId
+		{
+			get { return _currentFieldDescriptionId; }
+			private set
+			{
+				if (_currentFieldDescriptionId != value)
+				{
+					_currentFieldDescriptionId = value;
 					UpdateCurrentFieldDescription2();
 					RaisePropertyChanged_UI();
-                }
-                else if (_currentFieldDescription == null)
-                {
+				}
+				else if (_currentFieldDescription == null)
+				{
 					UpdateCurrentFieldDescription2();
 				}
-            }
-        }
+			}
+		}
 
 		private FieldDescription _currentFieldDescription = null;
-        [IgnoreDataMember]
-        public FieldDescription CurrentFieldDescription { get { return _currentFieldDescription; } private set { if (_currentFieldDescription != value) { _currentFieldDescription = value; RaisePropertyChanged_UI(); } } }
+		[IgnoreDataMember]
+		public FieldDescription CurrentFieldDescription { get { return _currentFieldDescription; } private set { if (_currentFieldDescription != value) { _currentFieldDescription = value; RaisePropertyChanged_UI(); } } }
 		private void UpdateCurrentFieldDescription2()
 		{
-			if (_fieldDescriptions != null && _currentFieldDescriptionId != null)
+			if (_currentCategory != null && _currentCategory.FieldDescriptions != null && _currentFieldDescriptionId != null)
 			{
-				CurrentFieldDescription = _fieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
+				// CurrentFieldDescription = _fieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
+				CurrentFieldDescription = _currentCategory.FieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
 			}
 			else
 			{
@@ -93,12 +96,12 @@ namespace UniFiler10.Data.Metadata
 		}
 
 		private SwitchableObservableCollection<Category> _categories = new SwitchableObservableCollection<Category>();
-        [DataMember]
-        public SwitchableObservableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
+		[DataMember]
+		public SwitchableObservableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
 
-        private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
-        [DataMember]
-        public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
+		private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
+		[DataMember]
+		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
 		private bool _isElevated = false;
 		[DataMember]
@@ -108,19 +111,19 @@ namespace UniFiler10.Data.Metadata
 
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
-        internal static MetaBriefcase CreateInstance()
-        {
-            lock (_instanceLock)
-            {
-                if (_instance == null || _instance._isDisposed)
-                {
-                    _instance = new MetaBriefcase();
-                }
-                return _instance;
-            }
-        }
+		internal static MetaBriefcase CreateInstance()
+		{
+			lock (_instanceLock)
+			{
+				if (_instance == null || _instance._isDisposed)
+				{
+					_instance = new MetaBriefcase();
+				}
+				return _instance;
+			}
+		}
 
-        private MetaBriefcase() { }
+		private MetaBriefcase() { }
 
 		protected override void Dispose(bool isDisposing)
 		{
@@ -137,132 +140,134 @@ namespace UniFiler10.Data.Metadata
 
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
-        {
-            await LoadAsync().ConfigureAwait(false);
-        }
-        protected override async Task CloseMayOverrideAsync()
-        {
-            await SaveAsync().ConfigureAwait(false);
-        }
-        #endregion open and close
+		{
+			await LoadAsync().ConfigureAwait(false);
+		}
+		protected override async Task CloseMayOverrideAsync()
+		{
+			await SaveAsync().ConfigureAwait(false);
+		}
+		#endregion open and close
 
 
-        #region loading methods
-        private const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
-        private async Task LoadAsync()
-        {
-            string errorMessage = string.Empty;
-            MetaBriefcase newMetaBriefcase = null;
+		#region loading methods
+		private const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
+		private async Task LoadAsync()
+		{
+			string errorMessage = string.Empty;
+			MetaBriefcase newMetaBriefcase = null;
 
-            try
-            {
-                StorageFile file = await ApplicationData.Current.LocalFolder
-                    .CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-                    .AsTask().ConfigureAwait(false);
+			try
+			{
+				StorageFile file = await ApplicationData.Current.LocalFolder
+					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
+					.AsTask().ConfigureAwait(false);
 
-                //String ssss = null; //this is useful when you debug and want to see the file as a string
-                //using (IInputStream inStream = await file.OpenSequentialReadAsync())
-                //{
-                //    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
-                //    {
-                //      ssss = streamReader.ReadToEnd();
-                //    }
-                //}
+				//String ssss = null; //this is useful when you debug and want to see the file as a string
+				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
+				//{
+				//    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
+				//    {
+				//      ssss = streamReader.ReadToEnd();
+				//    }
+				//}
 
-                using (IInputStream inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
-                {
-                    using (var iinStream = inStream.AsStreamForRead())
-                    {
-                        DataContractSerializer serializer = new DataContractSerializer(typeof(MetaBriefcase));
-                        iinStream.Position = 0;
-                        newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(iinStream));
-                        await iinStream.FlushAsync().ConfigureAwait(false);
-                    }
-                }
-            }
-            catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
-            {
-                errorMessage = "starting afresh";
-                await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
-            }
-            catch (Exception ex)                 //must be tolerant or the app might crash when starting
-            {
-                errorMessage = "could not restore the data, starting afresh";
-                await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
-            }
-            if (string.IsNullOrWhiteSpace(errorMessage))
-            {
-                if (newMetaBriefcase != null) Copy(newMetaBriefcase);
-            }
+				using (IInputStream inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
+				{
+					using (var iinStream = inStream.AsStreamForRead())
+					{
+						DataContractSerializer serializer = new DataContractSerializer(typeof(MetaBriefcase));
+						iinStream.Position = 0;
+						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(iinStream));
+						await iinStream.FlushAsync().ConfigureAwait(false);
+					}
+				}
+			}
+			catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
+			{
+				errorMessage = "starting afresh";
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+			catch (Exception ex)                 //must be tolerant or the app might crash when starting
+			{
+				errorMessage = "could not restore the data, starting afresh";
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+			if (string.IsNullOrWhiteSpace(errorMessage))
+			{
+				if (newMetaBriefcase != null) Copy(newMetaBriefcase);
+			}
 
-            Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
-        }
-        private async Task SaveAsync()
-        {
+			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
+		}
+		private async Task SaveAsync()
+		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
 			//    String aaa = i.ToString();
 			//}
 
 			try
-            {
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
-                    sessionDataSerializer.WriteObject(memoryStream, this);
+			{
+				using (MemoryStream memoryStream = new MemoryStream())
+				{
+					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
+					sessionDataSerializer.WriteObject(memoryStream, this);
 
-                    var file = await ApplicationData.Current.LocalFolder
-                        .CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
-                        .AsTask().ConfigureAwait(false);
-                    using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-                    {
-                        memoryStream.Seek(0, SeekOrigin.Begin);
-                        await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-                        await memoryStream.FlushAsync().ConfigureAwait(false);
-                        await fileStream.FlushAsync().ConfigureAwait(false);
-                    }
-                }
-                Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-            }
-        }
-        private bool Copy(MetaBriefcase source)
-        {
+					var file = await ApplicationData.Current.LocalFolder
+						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
+						.AsTask().ConfigureAwait(false);
+					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+					{
+						memoryStream.Seek(0, SeekOrigin.Begin);
+						await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+						await memoryStream.FlushAsync().ConfigureAwait(false);
+						await fileStream.FlushAsync().ConfigureAwait(false);
+					}
+				}
+				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+		}
+		private bool Copy(MetaBriefcase source)
+		{
 			if (source == null) return false;
 
 			IsElevated = source._isElevated;
-            FieldDescription.Copy(source._fieldDescriptions, ref _fieldDescriptions);
-            RaisePropertyChanged_UI(nameof(FieldDescriptions));
-            Category.Copy(source._categories, ref _categories, FieldDescriptions);
+			FieldDescription.Copy(source._fieldDescriptions, ref _fieldDescriptions);
+			RaisePropertyChanged_UI(nameof(FieldDescriptions));
+			Category.Copy(source._categories, ref _categories, FieldDescriptions);
 			RaisePropertyChanged_UI(nameof(Categories));
-            CurrentCategoryId = source._currentCategoryId;
-			CurrentFieldDescriptionId = source._currentFieldDescriptionId;
+			CurrentCategoryId = source._currentCategoryId; // must come after setting the categories
+			CurrentFieldDescriptionId = source._currentFieldDescriptionId; // must come after setting the current category
 			return true;
-        }
+		}
 		#endregion loading methods
 
 
 		#region while open methods
-		public Task SetCurrentCategoryIdAsync(string catId)
+		public Task SetCurrentCategoryAsync(Category cat)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate 
+			return RunFunctionWhileOpenAsyncA(delegate
 			{
-				_currentCategoryId = catId;
-				UpdateCurrentCategory2();
-				RaisePropertyChanged_UI(nameof(CurrentCategoryId));
+				if (cat != null)
+				{
+					CurrentCategoryId = cat.Id;
+				}
 			});
 		}
 
-		public Task SetCurrentFieldDescriptionIdAsync(string fldDscId)
+		public Task SetCurrentFieldDescriptionAsync(FieldDescription fldDsc)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate 
+			return RunFunctionWhileOpenAsyncA(delegate
 			{
-				_currentFieldDescriptionId = fldDscId;
-				UpdateCurrentFieldDescription2();
-				RaisePropertyChanged_UI(nameof(CurrentFieldDescriptionId));
+				if (fldDsc != null)
+				{
+					CurrentFieldDescriptionId = fldDsc.Id;
+				}
 			});
 		}
 
@@ -272,68 +277,68 @@ namespace UniFiler10.Data.Metadata
 		}
 
 		public Task<bool> AddCategoryAsync()
-        {
-            return RunFunctionWhileOpenAsyncB(delegate
-            {
-                string name = ResourceManager.Current.MainResourceMap
-                    .GetValue("Resources/NewCategory/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-                var newCat = new Category() { Name = name, IsCustom = true, IsJustAdded = true };
+		{
+			return RunFunctionWhileOpenAsyncB(delegate
+			{
+				string name = ResourceManager.Current.MainResourceMap
+					.GetValue("Resources/NewCategory/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				var newCat = new Category() { Name = name, IsCustom = true, IsJustAdded = true };
 
-                if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
-                {
-                    _categories.Add(newCat);
-                    return true;
-                }
-                return false;
-            });
-        }
-        public Task<bool> RemoveCategoryAsync(Category cat)
-        {
-            return RunFunctionWhileOpenAsyncB(delegate
-            {
-                if (cat != null && (cat.IsJustAdded || _isElevated))
-                {
-                    return _categories.Remove(cat);
-                }
-                else
-                {
-                    return false;
-                }
-            });
-        }
+				if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
+				{
+					_categories.Add(newCat);
+					return true;
+				}
+				return false;
+			});
+		}
+		public Task<bool> RemoveCategoryAsync(Category cat)
+		{
+			return RunFunctionWhileOpenAsyncB(delegate
+			{
+				if (cat != null && (cat.IsJustAdded || _isElevated))
+				{
+					return _categories.Remove(cat);
+				}
+				else
+				{
+					return false;
+				}
+			});
+		}
 
-        public Task<bool> AddFieldDescriptionAsync()
-        {
-            return RunFunctionWhileOpenAsyncB(delegate
-            {
-                string name = ResourceManager.Current.MainResourceMap
-                    .GetValue("Resources/NewFieldDescription/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-                var newFieldDesc = new FieldDescription() { Caption = name, IsCustom = true, IsJustAdded = true };
+		public Task<bool> AddFieldDescriptionAsync()
+		{
+			return RunFunctionWhileOpenAsyncB(delegate
+			{
+				string name = ResourceManager.Current.MainResourceMap
+					.GetValue("Resources/NewFieldDescription/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				var newFieldDesc = new FieldDescription() { Caption = name, IsCustom = true, IsJustAdded = true };
 
-                if (FieldDescription.Check(newFieldDesc) && !_fieldDescriptions.Any(fd => fd.Caption == newFieldDesc.Caption || fd.Id == newFieldDesc.Id))
-                {
-                    _fieldDescriptions.Add(newFieldDesc);
-                    return true;
-                }
-                return false;
-            });
-        }
+				if (FieldDescription.Check(newFieldDesc) && !_fieldDescriptions.Any(fd => fd.Caption == newFieldDesc.Caption || fd.Id == newFieldDesc.Id))
+				{
+					_fieldDescriptions.Add(newFieldDesc);
+					return true;
+				}
+				return false;
+			});
+		}
 
-        public Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
-        {
-            return RunFunctionWhileOpenAsyncB(delegate
-            {
-                if (fldDesc != null && (fldDesc.IsJustAdded || _isElevated))
-                {
-                    foreach (var cat in _categories)
-                    {
-                        cat.RemoveFieldDescription(fldDesc);
-                    }
-                    return FieldDescriptions.Remove(fldDesc);
-                }
-                else return false;
-            });
-        }
+		public Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
+		{
+			return RunFunctionWhileOpenAsyncB(delegate
+			{
+				if (fldDesc != null && (fldDesc.IsJustAdded || _isElevated))
+				{
+					foreach (var cat in _categories)
+					{
+						cat.RemoveFieldDescription(fldDesc);
+					}
+					return FieldDescriptions.Remove(fldDesc);
+				}
+				else return false;
+			});
+		}
 
 		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{

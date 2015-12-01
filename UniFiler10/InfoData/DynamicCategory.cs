@@ -77,8 +77,8 @@ namespace UniFiler10.Data.Model
 		{
 			var target = that as DynamicCategory;
 
-			return Category == target.Category &&
-				CategoryId == target.CategoryId;
+			return _category == target._category &&
+				_categoryId == target._categoryId;
 		}
 		protected override bool CheckMeMustOverride()
 		{

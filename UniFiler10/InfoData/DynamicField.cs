@@ -125,10 +125,10 @@ namespace UniFiler10.Data.Model
 			var target = that as DynamicField;
 
 			return
-				_fieldValueId == target.FieldValueId &&
-				_fieldValue == target.FieldValue &&
-				_fieldDescriptionId == target.FieldDescriptionId &&
-				_fieldDescription == target.FieldDescription;
+				_fieldValueId == target._fieldValueId &&
+				_fieldValue == target._fieldValue &&
+				_fieldDescriptionId == target._fieldDescriptionId &&
+				_fieldDescription == target._fieldDescription;
 		}
 		private bool IsValueAllowed()
 		{
@@ -166,9 +166,6 @@ namespace UniFiler10.Data.Model
 					isOk = await TrySetFieldValueId(newValue);
 				}
 
-				// LOLLO TODO if isOk, save metaBriefcase, in case there is a crash before the next Suspend. 
-				// This problem actually affects all XML-based stuff, because they only save on closing.
-				// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
 				return isOk;
 			});
 		}
@@ -192,6 +189,9 @@ namespace UniFiler10.Data.Model
 					if (await mb.AddPossibleValueToFieldDescriptionAsync(_fieldDescription, newFldVal))
 					{
 						FieldValueId = newFldVal.Id;
+						// LOLLO TODO save metaBriefcase, in case there is a crash before the next Suspend.
+						// This problem actually affects all XML-based stuff, because they only save on closing.
+						// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
 						return true;
 					}
 				}

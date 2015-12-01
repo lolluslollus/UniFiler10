@@ -135,7 +135,7 @@ namespace UniFiler10.Data.Model
 			get { return _currentFolderId; }
 			private set
 			{
-				if (_currentFolderId != value) // never set this property, it's only for the serialiser! If you do, call UpdateCurrentFolderAsync().
+				if (_currentFolderId != value) // this property is only for the serialiser! If you set it, call UpdateCurrentFolderAsync() after.
 				{
 					_currentFolderId = value;
 					RaisePropertyChanged_UI();
@@ -359,7 +359,7 @@ namespace UniFiler10.Data.Model
 			CatIdForCatFilter = source._catIdForCatFilter;
 			WhichFilter = source._whichFilter;
 			DBName = source._dbName;
-			CurrentFolderId = source._currentFolderId;
+			CurrentFolderId = source._currentFolderId; // CurrentFolder will be updated later
 		}
 		private async Task LoadFoldersWithoutContentAsync()
 		{
@@ -486,14 +486,6 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
-		private Task UpdateCurrentFolderAsync()
-		{
-			return RunFunctionWhileOpenAsyncT(delegate
-			{
-				return UpdateCurrentFolder2Async(false);
-			});
-		}
-
 		private async Task UpdateCurrentFolder2Async(bool openTheFolder)
 		{
 			if (_folders != null)
@@ -519,8 +511,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncT(delegate
 			{
-				_currentFolderId = folderId;
-				RaisePropertyChanged_UI(nameof(CurrentFolderId));
+				CurrentFolderId = folderId;
 				return UpdateCurrentFolder2Async(false);
 			});
 		}
@@ -537,8 +528,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncT(delegate
 			{
-				_currentFolderId = folderId;
-				RaisePropertyChanged_UI(nameof(CurrentFolderId));
+				CurrentFolderId = folderId;
 				return UpdateCurrentFolder2Async(true);
 			});
 		}

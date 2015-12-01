@@ -110,7 +110,7 @@ namespace UniFiler10.Data.Model
 			get { return _currentBinderName; }
 			private set
 			{
-				if (_currentBinderName != value) // never set this property, it's only for the serialiser! If you do, call UpdateCurrentFolderAsync().
+				if (_currentBinderName != value) // this property is only for the serialiser! If you set it, call UpdateCurrentBinderAsync() after.
 				{
 					_currentBinderName = value;
 					RaisePropertyChanged_UI();
@@ -145,11 +145,6 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
-		private Task UpdateCurrentBinderAsync()
-		{
-			return RunFunctionWhileOpenAsyncT(delegate { return UpdateCurrentBinder2Async(false); });
-		}
-
 		private async Task<bool> UpdateCurrentBinder2Async(bool openTheBinder)
 		{
 			if (string.IsNullOrEmpty(_currentBinderName))
@@ -240,12 +235,10 @@ namespace UniFiler10.Data.Model
 						if (DbNames.Count > 0)
 						{
 							CurrentBinderName = _dbNames[0];
-							// CurrentBinderName = DbNames[0];
 						}
 						else
 						{
 							CurrentBinderName = string.Empty;
-							// CurrentBinderName = string.Empty;
 						}
 						await UpdateCurrentBinder2Async(false);
 					}
@@ -291,12 +284,10 @@ namespace UniFiler10.Data.Model
 					if (DbNames.Count > 0)
 					{
 						CurrentBinderName = _dbNames[0];
-						// CurrentBinderName = DbNames[0];
 					}
 					else
 					{
 						CurrentBinderName = string.Empty;
-						// CurrentBinderName = string.Empty;
 					}
 					await UpdateCurrentBinder2Async(false);
 				}
@@ -432,7 +423,7 @@ namespace UniFiler10.Data.Model
 
 			if (source.DbNames != null) DbNames = source._dbNames;
 			NewDbName = source._newDbName;
-			CurrentBinderName = source._currentBinderName;
+			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
 			return true;
 		}
 		#endregion loading methods

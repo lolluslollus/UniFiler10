@@ -11,7 +11,7 @@ namespace UniFiler10.Data.Metadata
     [DataContract]
     public sealed class Category : ObservableData
     {
-		// LOLLO TODO make Openable ?
+		// LOLLO TODO make Disposable ?
         private static readonly string DEFAULT_ID = string.Empty;
 
         #region properties
