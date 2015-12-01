@@ -246,6 +246,7 @@ namespace UniFiler10.Data.Metadata
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 		}
+
 		private bool CopyFrom(MetaBriefcase source)
 		{
 			if (source == null) return false;
@@ -255,8 +256,13 @@ namespace UniFiler10.Data.Metadata
 			RaisePropertyChanged_UI(nameof(FieldDescriptions));
 			Category.Copy(source._categories, ref _categories, _fieldDescriptions);
 			RaisePropertyChanged_UI(nameof(Categories));
+
 			CurrentCategoryId = source._currentCategoryId; // must come after setting the categories
+			UpdateCurrentCategory2();
+
 			CurrentFieldDescriptionId = source._currentFieldDescriptionId; // must come after setting the current category
+			UpdateCurrentFieldDescription2();
+
 			return true;
 		}
 		private StorageFolder GetDirectory()

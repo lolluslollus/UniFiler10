@@ -453,17 +453,16 @@ namespace UniFiler10.Data.Model
 		private async Task LoadDbNames()
 		{
 			var directories = await BindersDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
-			DbNames.Clear();
+			_dbNames.Clear();
 			foreach (var dir in directories)
 			{
-				DbNames.Add(dir.Name);
+				_dbNames.Add(dir.Name);
 			}
 		}
 		private bool CopyFrom(Briefcase source)
 		{
 			if (source == null) return false;
 
-			// if (source.DbNames != null) DbNames = source._dbNames;
 			IsAllowMeteredConnection = source._isAllowMeteredConnection;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later

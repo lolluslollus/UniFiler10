@@ -19,9 +19,6 @@ namespace UniFiler10.ViewModels
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
-		//private bool _isElevated = false;
-		//public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
-
 		public static bool GetIsElevated()
 		{
 			return _instance?._metaBriefcase?.IsElevated == true;
@@ -178,7 +175,6 @@ namespace UniFiler10.ViewModels
 			{
 				_unassignedFields.AddRange(mb.FieldDescriptions
 					.Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
-				// _unassignedFields.AddRange(MetaBriefcase.FieldDescriptions.Except(MetaBriefcase.CurrentCategory.FieldDescriptions, new FieldDescription.Comparer()));
 				RaisePropertyChanged_UI(nameof(UnassignedFields));
 			}
 		}

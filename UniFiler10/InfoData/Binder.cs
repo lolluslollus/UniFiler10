@@ -311,7 +311,7 @@ namespace UniFiler10.Data.Model
 			}
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
-				if (newBinder != null) CopyNonDbProperties(newBinder);
+				if (newBinder != null) CopyFrom(newBinder);
 			}
 
 			Debug.WriteLine("ended method Binder.LoadAsync()");
@@ -362,7 +362,7 @@ namespace UniFiler10.Data.Model
 				.CreateFolderAsync(DBName, CreationCollisionOption.OpenIfExists)
 				.AsTask().ConfigureAwait(false);
 		}
-		private void CopyNonDbProperties(Binder source)
+		private void CopyFrom(Binder source)
 		{
 			CatIdForFldFilter = source._catIdForFldFilter;
 			FldDscIdForFldFilter = source._fldDscIdForFldFilter;
