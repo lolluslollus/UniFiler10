@@ -230,11 +230,11 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (string.IsNullOrWhiteSpace(dbName)) return false;
+				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName)) return false;
 
 				if (_dbNames.Remove(dbName))
 				{
-					// close the current binder if it is the one to be deleted
+					// if deleting the current binder, close it and set another binder as current
 					if (_currentBinderName == dbName)
 					{
 						await _currentBinder.CloseAsync().ConfigureAwait(false);
@@ -248,62 +248,128 @@ namespace UniFiler10.Data.Model
 						}
 						await UpdateCurrentBinder2Async(false);
 					}
-					return await Binder.DeleteClosedBinderAsync(dbName).ConfigureAwait(false);
+					return await DeleteBinderFilesAsync(dbName).ConfigureAwait(false);
 				}
 				return false;
 			});
+		}
+		private async Task<bool> DeleteBinderFilesAsync(string dbName)
+		{
+			try
+			{
+				var binderDirectory = await BindersDirectory
+					.GetFolderAsync(dbName)
+					.AsTask().ConfigureAwait(false);
+				if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			return false;
 		}
 		public Task<bool> BackupBinderAsync(string dbName, StorageFolder intoStorageFolder)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName) || intoStorageFolder == null) return false;
+				bool isOk = false;
+				// close the current binder if it is the one to be exported
+				bool wasOpen = false;
+				if (_currentBinderName == dbName)
+				{
+					wasOpen = _currentBinder?.IsOpen == true;
+					await CloseCurrentBinder2Async().ConfigureAwait(false);
+				}
 
-				//bool wasCurrentBinder = false;
-				//// close the current binder if it is the one to be backed up
-				//if (_currentBinderName == dbName)
-				//{
-				//	wasCurrentBinder = true;
-
-				//	await _currentBinder.SetIsEnabledAsync(false).ConfigureAwait(false);
-				//}
-				bool isOk = await Binder.BackupDisabledBinderAsync(dbName, intoStorageFolder).ConfigureAwait(false);
-
-				//if (wasCurrentBinder)
-				//{
-				//	await _currentBinder.SetIsEnabledAsync(true).ConfigureAwait(false);
-				//}
+				if (await BackupBinderFilesASync(dbName, intoStorageFolder))
+				{
+					isOk = true;
+				}
+				// reopen the binder if it was open before
+				if (wasOpen) await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
 
 				return isOk;
 			});
+		}
+		private async Task<bool> BackupBinderFilesASync(string dbName, StorageFolder intoStorageFolder)
+		{
+			try
+			{
+				var fromStorageFolder = await BindersDirectory
+					.GetFolderAsync(dbName)
+					.AsTask().ConfigureAwait(false);
+				if (fromStorageFolder != null)
+				{
+					var toStorageFolder = await intoStorageFolder
+						.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+					var fromFiles = await fromStorageFolder.GetFilesAsync().AsTask().ConfigureAwait(false);
+					foreach (var stoFile in fromFiles)
+					{
+						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+					}
+					return true;
+					// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			return false;
 		}
 		public Task<bool> RestoreBinderAsync(StorageFolder fromStorageFolder)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (fromStorageFolder == null) return false;
+				bool isOk = false;
 
 				// close the current binder if it is the one to be restored
+				bool wasOpen = false;
 				if (_currentBinderName == fromStorageFolder.Name)
 				{
-					await _currentBinder.CloseAsync().ConfigureAwait(false);
-					if (_dbNames.Count > 0)
-					{
-						CurrentBinderName = _dbNames[0];
-					}
-					else
-					{
-						CurrentBinderName = string.Empty;
-					}
-					await UpdateCurrentBinder2Async(false);
+					wasOpen = _currentBinder?.IsOpen == true;
+					await CloseCurrentBinder2Async().ConfigureAwait(false);
 				}
-				if (await Binder.RestoreClosedBinderAsync(fromStorageFolder).ConfigureAwait(false))
+
+				if (await RestoreBinderFilesAsync(fromStorageFolder).ConfigureAwait(false))
 				{
 					if (!_dbNames.Contains(fromStorageFolder.Name)) _dbNames.Add(fromStorageFolder.Name);
+					isOk = true;
+				}
+				// reopen the binder if it was open before
+				if (wasOpen) await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
+
+				return isOk;
+			});
+		}
+		private async Task<bool> RestoreBinderFilesAsync(StorageFolder from)
+		{
+			// LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
+			// Make sure you restore a Binder and not just any directory!
+			if (from == null)
+			{
+				try
+				{
+					var toStorageFolder = await BindersDirectory
+						.CreateFolderAsync(from.Name, CreationCollisionOption.ReplaceExisting)
+						.AsTask().ConfigureAwait(false);
+					var fromFiles = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
+					foreach (var stoFile in fromFiles)
+					{
+						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+					}
+					// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
 					return true;
 				}
-				return false;
-			});
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			}
+			return false;
 		}
 
 		public Task CloseCurrentBinderAsync()

@@ -38,18 +38,18 @@ namespace UniFiler10.Data.Model
 
 
 		#region open and close
-		public override async Task<bool> OpenAsync()
-		{
-			try
-			{
-				await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
-				return await base.OpenAsync().ConfigureAwait(false);
-			}
-			finally
-			{
-				_isClosedSemaphore.Release();
-			}
-		}
+		//public override async Task<bool> OpenAsync()
+		//{
+		//	try
+		//	{
+		//		await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
+		//		return await base.OpenAsync().ConfigureAwait(false);
+		//	}
+		//	finally
+		//	{
+		//		_isClosedSemaphore.Release();
+		//	}
+		//}
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateDirectoryAsync().ConfigureAwait(false);
@@ -390,109 +390,109 @@ namespace UniFiler10.Data.Model
 		/// <summary>
 		/// I need this semaphore for the static operations such as backup, restore, etc
 		/// </summary>
-		private static SemaphoreSlimSafeRelease _isClosedSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		public static async Task<bool> DeleteClosedBinderAsync(string dbName)
-		{
-			try
-			{
-				_isClosedSemaphore.Wait();
-				var openBinder = OpenInstance;
-				if (openBinder == null || openBinder.DBName != dbName)
-				{
-					try
-					{
-						var binderDirectory = await Briefcase.BindersDirectory
-							.GetFolderAsync(dbName)
-							.AsTask().ConfigureAwait(false);
-						if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false);
-						return true;
-					}
-					catch (Exception ex)
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-					}
-				}
-			}
-			finally
-			{
-				_isClosedSemaphore.Release();
-			}
-			return false;
-		}
-		public static async Task<bool> BackupDisabledBinderAsync(string dbName, StorageFolder into)
-		{
-			try
-			{
-				_isClosedSemaphore.Wait();
-				var openBinder = OpenInstance;
-				if (!string.IsNullOrWhiteSpace(dbName) && into != null && (openBinder == null || openBinder.DBName != dbName /*|| !openBinder.IsEnabled*/))
-				{
-					try
-					{
-						var fromStorageFolder = await Briefcase.BindersDirectory
-							.GetFolderAsync(dbName)
-							.AsTask().ConfigureAwait(false);
-						if (fromStorageFolder != null)
-						{
-							var toStorageFolder = await into
-								.CreateFolderAsync(dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-							var fromFiles = await fromStorageFolder.GetFilesAsync().AsTask().ConfigureAwait(false);
-							foreach (var stoFile in fromFiles)
-							{
-								await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-							}
-							return true;
-							// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-					}
-				}
-			}
-			finally
-			{
-				_isClosedSemaphore.Release();
-			}
-			return false;
-		}
+		//private static SemaphoreSlimSafeRelease _isClosedSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//public static async Task<bool> DeleteClosedBinderAsync(string dbName)
+		//{
+		//	try
+		//	{
+		//		_isClosedSemaphore.Wait();
+		//		var openBinder = OpenInstance;
+		//		if (openBinder == null || openBinder.DBName != dbName)
+		//		{
+		//			try
+		//			{
+		//				var binderDirectory = await Briefcase.BindersDirectory
+		//					.GetFolderAsync(dbName)
+		//					.AsTask().ConfigureAwait(false);
+		//				if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false);
+		//				return true;
+		//			}
+		//			catch (Exception ex)
+		//			{
+		//				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//			}
+		//		}
+		//	}
+		//	finally
+		//	{
+		//		_isClosedSemaphore.Release();
+		//	}
+		//	return false;
+		//}
+		//public static async Task<bool> BackupDisabledBinderAsync(string dbName, StorageFolder into)
+		//{
+		//	try
+		//	{
+		//		_isClosedSemaphore.Wait();
+		//		var openBinder = OpenInstance;
+		//		if (!string.IsNullOrWhiteSpace(dbName) && into != null && (openBinder == null || openBinder.DBName != dbName /*|| !openBinder.IsEnabled*/))
+		//		{
+		//			try
+		//			{
+		//				var fromStorageFolder = await Briefcase.BindersDirectory
+		//					.GetFolderAsync(dbName)
+		//					.AsTask().ConfigureAwait(false);
+		//				if (fromStorageFolder != null)
+		//				{
+		//					var toStorageFolder = await into
+		//						.CreateFolderAsync(dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+		//					var fromFiles = await fromStorageFolder.GetFilesAsync().AsTask().ConfigureAwait(false);
+		//					foreach (var stoFile in fromFiles)
+		//					{
+		//						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+		//					}
+		//					return true;
+		//					// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
+		//				}
+		//			}
+		//			catch (Exception ex)
+		//			{
+		//				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//			}
+		//		}
+		//	}
+		//	finally
+		//	{
+		//		_isClosedSemaphore.Release();
+		//	}
+		//	return false;
+		//}
 
-		public static async Task<bool> RestoreClosedBinderAsync(StorageFolder from)
-		{
-			try
-			{
-				_isClosedSemaphore.Wait();
-				// LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
-				// Make sure you restore a Binder and not just any directory!
-				var openBinder = OpenInstance;
-				if (from == null || openBinder == null || openBinder.DBName != from.Name)
-				{
-					try
-					{
-						var toStorageFolder = await Briefcase.BindersDirectory
-							.CreateFolderAsync(from.Name, CreationCollisionOption.ReplaceExisting)
-							.AsTask().ConfigureAwait(false);
-						var fromFiles = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
-						foreach (var stoFile in fromFiles)
-						{
-							await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-						}
-						// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
-						return true;
-					}
-					catch (Exception ex)
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-					}
-				}
-			}
-			finally
-			{
-				_isClosedSemaphore.Release();
-			}
-			return false;
-		}
+		//public static async Task<bool> RestoreClosedBinderAsync(StorageFolder from)
+		//{
+		//	try
+		//	{
+		//		_isClosedSemaphore.Wait();
+		//		// LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
+		//		// Make sure you restore a Binder and not just any directory!
+		//		var openBinder = OpenInstance;
+		//		if (from == null || openBinder == null || openBinder.DBName != from.Name)
+		//		{
+		//			try
+		//			{
+		//				var toStorageFolder = await Briefcase.BindersDirectory
+		//					.CreateFolderAsync(from.Name, CreationCollisionOption.ReplaceExisting)
+		//					.AsTask().ConfigureAwait(false);
+		//				var fromFiles = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
+		//				foreach (var stoFile in fromFiles)
+		//				{
+		//					await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+		//				}
+		//				// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
+		//				return true;
+		//			}
+		//			catch (Exception ex)
+		//			{
+		//				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//			}
+		//		}
+		//	}
+		//	finally
+		//	{
+		//		_isClosedSemaphore.Release();
+		//	}
+		//	return false;
+		//}
 		#endregion closed static methods
 
 
