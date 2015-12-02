@@ -29,14 +29,13 @@ namespace UniFiler10.ViewModels
 			return Task.CompletedTask;
 		}
 
-		public async Task<bool> OpenBinderAsync(string dbName)
+		public async Task OpenBinderAsync(string dbName)
 		{
 			var bf = _briefcase;
 			if (bf != null)
 			{
-				return await bf.OpenBinderAsync(dbName).ConfigureAwait(false);
+				await bf.OpenBinderAsync(dbName).ConfigureAwait(false);
 			}
-			return false;
 		}
 		public Task CloseBinderAsync()
 		{

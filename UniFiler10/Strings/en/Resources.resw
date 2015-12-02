@@ -262,10 +262,7 @@
     <value>Remarks</value>
   </data>
   <data name="RestoreBinder.Text" xml:space="preserve">
-    <value>Restore binder</value>
-  </data>
-  <data name="RestoreBinder1.Label" xml:space="preserve">
-    <value>Restore binder</value>
+    <value>Import binder</value>
   </data>
   <data name="SafeMode.Text" xml:space="preserve">
     <value>You are in safe mode. This forbids deleting and changing certain things, to protect your data.</value>

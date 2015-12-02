@@ -206,9 +206,9 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddBinderAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				return await AddBinder2Async(dbName).ConfigureAwait(false);
+				return AddBinder2Async(dbName);
 			});
 		}
 		private async Task<bool> AddBinder2Async(string dbName)
@@ -287,7 +287,7 @@ namespace UniFiler10.Data.Model
 				if (_currentBinderName == fromStorageFolder.Name)
 				{
 					await _currentBinder.CloseAsync().ConfigureAwait(false);
-					if (DbNames.Count > 0)
+					if (_dbNames.Count > 0)
 					{
 						CurrentBinderName = _dbNames[0];
 					}
@@ -299,6 +299,7 @@ namespace UniFiler10.Data.Model
 				}
 				if (await Binder.RestoreClosedBinderAsync(fromStorageFolder).ConfigureAwait(false))
 				{
+					if (!_dbNames.Contains(fromStorageFolder.Name)) _dbNames.Add(fromStorageFolder.Name);
 					return true;
 				}
 				return false;
@@ -432,7 +433,7 @@ namespace UniFiler10.Data.Model
 					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
 					sessionDataSerializer.WriteObject(memoryStream, this);
 
-					var file = await ApplicationData.Current.RoamingFolder //.LocalFolder
+					var file = await GetDirectory()
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
@@ -471,14 +472,14 @@ namespace UniFiler10.Data.Model
 
 		private StorageFolder GetDirectory()
 		{
-			return ApplicationData.Current.LocalFolder;
+			return ApplicationData.Current.RoamingFolder;
 		}
 
 		private async Task GetCreateBindersDirectoryAsync()
 		{
 			if (_bindersDirectory == null)
 			{
-				_bindersDirectory = await GetDirectory()
+				_bindersDirectory = await ApplicationData.Current.LocalFolder
 					.CreateFolderAsync(BINDERS_DIRECTORY_NAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 			}

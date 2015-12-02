@@ -267,8 +267,6 @@ namespace UniFiler10.Data.Metadata
 		}
 		private StorageFolder GetDirectory()
 		{
-			//var output = ApplicationData.Current.LocalFolder;
-			//return output;
 			return ApplicationData.Current.RoamingFolder; // was LocalFolder
 		}
 		#endregion loading methods
