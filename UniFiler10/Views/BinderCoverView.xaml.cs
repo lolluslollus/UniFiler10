@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
-using UniFiler10.Utilz;
+using Utilz;
 using UniFiler10.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;

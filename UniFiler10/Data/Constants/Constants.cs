@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 
-namespace UniFiler10.Utilz
+namespace UniFiler10.Data.Constants
 {
     public static class ConstantData
     {

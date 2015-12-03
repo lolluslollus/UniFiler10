@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
-using UniFiler10.Utilz;
 using UniFiler10.ViewModels;
 using Utilz;
 using Windows.ApplicationModel.Resources;

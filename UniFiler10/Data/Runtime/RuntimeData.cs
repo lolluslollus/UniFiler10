@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using UniFiler10.Data.Model;
 using Utilz;
 using Windows.Devices.Enumeration;
 using Windows.Networking.Connectivity;
 
-namespace UniFiler10.Data.Model
+namespace UniFiler10.Data.Runtime
 {
     public sealed class RuntimeData : OpenableObservableData
     {

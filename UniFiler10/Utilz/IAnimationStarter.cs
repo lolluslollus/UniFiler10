@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UniFiler10.Utilz
+namespace Utilz
 {
     public interface IAnimationStarter
     {

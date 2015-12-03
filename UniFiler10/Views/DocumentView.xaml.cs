@@ -23,7 +23,6 @@ using Windows.Storage.Streams;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.System;
 using System.Diagnostics;
-using UniFiler10.Services;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // LOLLO WebView: http://blogs.msdn.com/b/wsdevsol/archive/2012/10/18/nine-things-you-need-to-know-about-webview.aspx

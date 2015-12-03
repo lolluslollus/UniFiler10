@@ -9,7 +9,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
-namespace UniFiler10.Services
+namespace Utilz
 {
     public static class DocumentExtensions
     {

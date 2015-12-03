@@ -14,7 +14,7 @@ using Windows.Media.Render;
 using Windows.Media.Transcoding;
 using Windows.Storage;
 
-namespace UniFiler10.Services
+namespace Utilz
 {
 	public class AudioRecorder : OpenableObservableData
 	{
