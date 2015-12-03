@@ -355,9 +355,9 @@ namespace UniFiler10.Data.Model
 						.CreateFolderAsync(from.Name, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 					var fromFiles = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
-					foreach (var stoFile in fromFiles)
+					foreach (var fromFile in fromFiles)
 					{
-						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+						await fromFile.CopyAsync(toStorageFolder, fromFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
 					}
 					return true;
 				}
