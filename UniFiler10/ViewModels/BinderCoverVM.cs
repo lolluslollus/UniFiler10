@@ -342,38 +342,7 @@ namespace UniFiler10.ViewModels
 						await Task.Delay(waitMsec, cts.Token).ConfigureAwait(false);
 						Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
-						await RunFunctionWhileOpenAsyncT(async delegate
-						{
-							if (IsNeedRefresh)
-							{
-								if (_isAllFoldersDirty && _isAllFolderPaneOpen)
-								{
-									await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
-									IsAllFoldersDirty = false;
-									IsRecentFoldersDirty = true;
-								}
-								if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
-								{
-									await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
-									IsAllFoldersDirty = true;
-									IsRecentFoldersDirty = false;
-								}
-								if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
-								{
-									await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
-									//IsByCatFoldersDirty = false;
-									IsAllFoldersDirty = true;
-									IsRecentFoldersDirty = true;
-								}
-								if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
-								{
-									await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
-									//IsByFldFoldersDirty = false;
-									IsAllFoldersDirty = true;
-									IsRecentFoldersDirty = true;
-								}
-							}
-						});
+						await RunFunctionWhileOpenAsyncT(UpdatePaneContent2Async);
 					}
 				}
 				catch (OperationCanceledException) { } // fired by the cancellation token
@@ -385,6 +354,38 @@ namespace UniFiler10.ViewModels
 				finally
 				{
 					_animationStarter.EndAnimation();
+				}
+			}
+		}
+		private async Task UpdatePaneContent2Async()
+		{
+			if (IsNeedRefresh)
+			{
+				if (_isAllFoldersDirty && _isAllFolderPaneOpen)
+				{
+					await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
+					IsAllFoldersDirty = false;
+					IsRecentFoldersDirty = true;
+				}
+				if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
+				{
+					await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
+					IsAllFoldersDirty = true;
+					IsRecentFoldersDirty = false;
+				}
+				if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
+				{
+					await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
+					//IsByCatFoldersDirty = false;
+					IsAllFoldersDirty = true;
+					IsRecentFoldersDirty = true;
+				}
+				if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
+				{
+					await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
+					//IsByFldFoldersDirty = false;
+					IsAllFoldersDirty = true;
+					IsRecentFoldersDirty = true;
 				}
 			}
 		}
@@ -409,8 +410,6 @@ namespace UniFiler10.ViewModels
 			if (_metaBriefcase == null) Debugger.Break(); // LOLLO this must never happen, check it
 			_animationStarter = animationStarter;
 
-			_runAsSoonAsOpen = delegate { return UpdatePaneContentAsync(0); };
-
 			UpdateDataForCatFilter();
 			UpdateDataForFldFilter();
 
@@ -421,7 +420,7 @@ namespace UniFiler10.ViewModels
 		{
 			_cts = new CancellationTokenSource();
 			RegisterFoldersChanged();
-			return Task.CompletedTask;
+			return UpdatePaneContent2Async();
 		}
 
 		protected override Task CloseMayOverrideAsync()
