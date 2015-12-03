@@ -72,7 +72,6 @@ namespace UniFiler10.Data.Model
 
 		protected void SetProperty<T>(ref T fldValue, T newValue, bool onlyIfDifferent = true, [CallerMemberName] string propertyName = "")
 		{
-			// LOLLO TODO if you stick to this, which seems the best, you can make the private sides of the properties private again
 			T oldValue = fldValue;
 			if (!newValue.Equals(oldValue) || !onlyIfDifferent)
 			{
@@ -153,10 +152,8 @@ namespace UniFiler10.Data.Model
 		{
 			if (compTarget != null)
 				return
-					//DbIndex == that.DbIndex &&
 					Id == compTarget.Id &&
-					ParentId == compTarget.ParentId &&
-					//IsUpdateDb == that.IsUpdateDb &&
+					// ParentId == compTarget.ParentId && // LOLLO TODO do I need this? I think not!
 					IsEqualToMustOverride(compTarget);
 			else return false;
 		}

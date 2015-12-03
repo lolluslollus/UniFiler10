@@ -310,7 +310,6 @@ namespace UniFiler10.Data.Model
 						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
 					}
 					return true;
-					// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
 				}
 			}
 			catch (Exception ex)
@@ -333,7 +332,7 @@ namespace UniFiler10.Data.Model
 					wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 				}
 
-				if (await RestoreBinderFilesAsync(fromStorageFolder).ConfigureAwait(false))
+				if (await ImportBinderFilesAsync(fromStorageFolder).ConfigureAwait(false))
 				{
 					if (!_dbNames.Contains(fromStorageFolder.Name)) _dbNames.Add(fromStorageFolder.Name);
 					isOk = true;
@@ -344,7 +343,7 @@ namespace UniFiler10.Data.Model
 				return isOk;
 			});
 		}
-		private async Task<bool> RestoreBinderFilesAsync(StorageFolder from)
+		private async Task<bool> ImportBinderFilesAsync(StorageFolder from)
 		{
 			// LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
 			// Make sure you restore a Binder and not just any directory!
@@ -360,7 +359,6 @@ namespace UniFiler10.Data.Model
 					{
 						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
 					}
-					// LOLLO TODO test this and make sure there are no nested folders, otherwise we need a little more code
 					return true;
 				}
 				catch (Exception ex)

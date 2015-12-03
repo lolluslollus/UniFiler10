@@ -143,9 +143,19 @@ namespace UniFiler10.Data.Metadata
 		{
 			await LoadAsync().ConfigureAwait(false);
 		}
+
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await SaveAsync().ConfigureAwait(false);
+
+			var cats = _categories; // LOLLO TODO test this
+			if (cats != null)
+			{
+				foreach (var cat in cats)
+				{
+					cat.Dispose();
+				}
+			}
 		}
 		#endregion open and close
 

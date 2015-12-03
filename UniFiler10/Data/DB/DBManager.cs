@@ -716,7 +716,7 @@ namespace UniFiler10.Data.DB
 				}
 				return result;
 			}
-			public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
+			public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
 			{
 				return Task.Run<List<T>>(() =>
 				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
@@ -724,7 +724,7 @@ namespace UniFiler10.Data.DB
 					return ReadRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
 				});
 			}
-			public static List<T> ReadRecordsWithParentId<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = "ParentId") where T : new()
+			public static List<T> ReadRecordsWithParentId<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
 			{
 				if (!_isOpen) return null;
 

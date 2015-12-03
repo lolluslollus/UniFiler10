@@ -15,15 +15,15 @@ namespace UniFiler10.Data.Model
 	public class Wallet : DbBoundObservableData
 	{
 		#region properties
-		public string _name = string.Empty;
+		private string _name = string.Empty;
 		[DataMember]
 		public string Name { get { return _name; } set { SetProperty(ref _name, value); } }
 
-		public string _descr0 = string.Empty;
+		private string _descr0 = string.Empty;
 		[DataMember]
 		public string Descr0 { get { return _descr0; } set { SetProperty(ref _descr0, value); } }
 
-		public DateTime _date0 = default(DateTime);
+		private DateTime _date0 = default(DateTime);
 		[DataMember]
 		public DateTime Date0 { get { return _date0; } set { SetProperty(ref _date0, value); } }
 

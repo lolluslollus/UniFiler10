@@ -440,7 +440,7 @@ namespace UniFiler10.Data.Model
 
 			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				folder.ParentId = Id;
+				// folder.ParentId = Id; // LOLLO TODO  what happens if I do not give the folder a ParentId? I expect it should work anyway!
 				folder.Name = ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFolder/Text", ResourceContext.GetForCurrentView()).ValueAsString;
 				folder.DateCreated = DateTime.Now;
 
@@ -578,9 +578,9 @@ namespace UniFiler10.Data.Model
 			{
 				var folderPreview = new FolderPreview() { FolderName = fol.Name, FolderId = fol.Id };
 				bool exit = false;
-				foreach (var wal in wallets.Where(w => w.ParentId == fol.Id))
+				foreach (var wal in wallets.Where(wlt => wlt.ParentId == fol.Id))
 				{
-					foreach (var doc in documents.Where(d => d.ParentId == wal.Id))
+					foreach (var doc in documents.Where(dcm => dcm.ParentId == wal.Id))
 					{
 						if (!string.IsNullOrWhiteSpace(doc.Uri0))
 						{

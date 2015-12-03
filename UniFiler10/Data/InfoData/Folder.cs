@@ -31,43 +31,43 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public SwitchableObservableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } set { if (_dynamicFields != value) { _dynamicFields = value; RaisePropertyChanged_UI(); } } }
 
-		public string _name = string.Empty;
+		private string _name = string.Empty;
 		[DataMember]
 		public string Name { get { return _name; } set { SetProperty(ref _name, value); } }
 
-		public string _descr0 = string.Empty;
+		private string _descr0 = string.Empty;
 		[DataMember]
 		public string Descr0 { get { return _descr0; } set { SetProperty(ref _descr0, value); } }
 
-		public string _descr1 = string.Empty;
+		private string _descr1 = string.Empty;
 		[DataMember]
 		public string Descr1 { get { return _descr1; } set { SetProperty(ref _descr1, value); } }
 
-		public string _descr2 = string.Empty;
+		private string _descr2 = string.Empty;
 		[DataMember]
 		public string Descr2 { get { return _descr2; } set { SetProperty(ref _descr2, value); } }
 
-		public string _descr3 = string.Empty;
+		private string _descr3 = string.Empty;
 		[DataMember]
 		public string Descr3 { get { return _descr3; } set { SetProperty(ref _descr3, value); } }
 
-		public DateTime _dateCreated = default(DateTime);
+		private DateTime _dateCreated = default(DateTime);
 		[DataMember]
 		public DateTime DateCreated { get { return _dateCreated; } set { SetProperty(ref _dateCreated, value); } }
 
-		public DateTime _date0 = default(DateTime);
+		private DateTime _date0 = default(DateTime);
 		[DataMember]
 		public DateTime Date0 { get { return _date0; } set { SetProperty(ref _date0, value); } }
 
-		public DateTime _date1 = default(DateTime);
+		private DateTime _date1 = default(DateTime);
 		[DataMember]
 		public DateTime Date1 { get { return _date1; } set { SetProperty(ref _date1, value); } }
 
-		public DateTime _date2 = default(DateTime);
+		private DateTime _date2 = default(DateTime);
 		[DataMember]
 		public DateTime Date2 { get { return _date2; } set { SetProperty(ref _date2, value); } }
 
-		public DateTime _date3 = default(DateTime);
+		private DateTime _date3 = default(DateTime);
 		[DataMember]
 		public DateTime Date3 { get { return _date3; } set { SetProperty(ref _date3, value); } }
 
@@ -76,7 +76,7 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public SwitchableObservableCollection<Wallet> Wallets { get { return _wallets; } private set { if (_wallets != value) { _wallets = value; RaisePropertyChanged_UI(); } } }
 
-		public bool _isEditingCategories = true;
+		private bool _isEditingCategories = true;
 		[DataMember]
 		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetProperty(ref _isEditingCategories, value); } }
 		#endregion properties

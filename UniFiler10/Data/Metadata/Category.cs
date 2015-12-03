@@ -9,9 +9,8 @@ using Utilz;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class Category : ObservableData
+	public sealed class Category : ObservableData, IDisposable
 	{
-		// LOLLO TODO make Disposable ?
 		private static readonly string DEFAULT_ID = string.Empty;
 
 		#region properties
@@ -78,10 +77,22 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
+		#region ctor and dispose
 		public Category()
 		{
 			Id = Guid.NewGuid().ToString();
 		}
+
+		public void Dispose()
+		{
+			_fieldDescriptions?.Dispose();
+			_fieldDescriptions = null;
+
+			_fieldDescriptionIds?.Dispose();
+			_fieldDescriptionIds = null;
+		}
+		#endregion ctor and dispose
+
 
 		public bool AddFieldDescription(FieldDescription newFldDsc)
 		{

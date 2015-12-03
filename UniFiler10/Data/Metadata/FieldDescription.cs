@@ -11,7 +11,6 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class FieldDescription : ObservableData //, IEqualityComparer<FieldDescription>
 	{
-		// LOLLO TODO make Disposable ?
 		private static readonly string DEFAULT_ID = string.Empty;
 
 		#region properties
@@ -63,6 +62,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 		#endregion properties
+
 
 		public static void Copy(FieldDescription source, ref FieldDescription target)
 		{
