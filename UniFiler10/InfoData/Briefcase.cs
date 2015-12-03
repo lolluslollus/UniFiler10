@@ -279,15 +279,14 @@ namespace UniFiler10.Data.Model
 				bool wasOpen = false;
 				if (_currentBinderName == dbName)
 				{
-					wasOpen = _currentBinder?.IsOpen == true;
-					await CloseCurrentBinder2Async().ConfigureAwait(false);
+					wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 				}
 
 				if (await BackupBinderFilesASync(dbName, intoStorageFolder))
 				{
 					isOk = true;
 				}
-				// reopen the binder if it was open before
+				// update the current binder and reopen it if it was open before
 				if (wasOpen) await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
 
 				return isOk;
@@ -330,8 +329,7 @@ namespace UniFiler10.Data.Model
 				bool wasOpen = false;
 				if (_currentBinderName == fromStorageFolder.Name)
 				{
-					wasOpen = _currentBinder?.IsOpen == true;
-					await CloseCurrentBinder2Async().ConfigureAwait(false);
+					wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 				}
 
 				if (await RestoreBinderFilesAsync(fromStorageFolder).ConfigureAwait(false))
@@ -339,7 +337,7 @@ namespace UniFiler10.Data.Model
 					if (!_dbNames.Contains(fromStorageFolder.Name)) _dbNames.Add(fromStorageFolder.Name);
 					isOk = true;
 				}
-				// reopen the binder if it was open before
+				// update the current binder and open it if it was open before
 				if (wasOpen) await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
 
 				return isOk;
@@ -372,7 +370,7 @@ namespace UniFiler10.Data.Model
 			return false;
 		}
 
-		public Task CloseCurrentBinderAsync()
+		public Task<bool> CloseCurrentBinderAsync()
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate { return CloseCurrentBinder2Async(); });
 		}
@@ -381,10 +379,10 @@ namespace UniFiler10.Data.Model
 			var cb = _currentBinder;
 			if (cb != null)
 			{
-				await cb.CloseAsync().ConfigureAwait(false);
+				bool wasOpen = await cb.CloseAsync().ConfigureAwait(false);
 				cb.Dispose();
 				_currentBinder = null; // don't use CurrentBinder here, it triggers stuff
-				return true;
+				return wasOpen;
 			}
 			return false;
 		}
@@ -417,7 +415,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (fromFile == null) return;
 
-				await CloseCurrentBinder2Async().ConfigureAwait(false);
+				bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 				await _metaBriefcase.CloseAsync().ConfigureAwait(false);
 				// do not replace the instance or you may screw the binding. Close, change and reopen will do.
@@ -426,7 +424,8 @@ namespace UniFiler10.Data.Model
 				await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
-				await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
+				// update the current binder, whichever it is, and open it if it was open before
+				await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
 			});
 		}
 		#endregion while open methods
