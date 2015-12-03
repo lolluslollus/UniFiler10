@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
@@ -14,12 +14,15 @@ using Windows.Foundation.Metadata;
 using Windows.Phone.UI.Input;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Controlz
 {
+	/// <summary>
+	/// This is a smarter Page that can be opened and closed, asynchronously. 
+	/// It will stay disabled as long as it is closed.
+	/// Do not bind to IsEnabled, but to IsEnabledOverride instead.
+	/// </summary>
 	public abstract class OpenableObservablePage : ObservablePage
 	{
 		#region properties
@@ -30,14 +33,48 @@ namespace UniFiler10.Controlz
 
 		protected volatile bool _isOpen = false;
 		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
+
+		protected volatile bool _isEnabledAllowed = false;
+		public bool IsEnabledAllowed
+		{
+			get { return _isEnabledAllowed; }
+			protected set
+			{
+				if (_isEnabledAllowed != value)
+				{
+					_isEnabledAllowed = value; RaisePropertyChanged_UI();
+					Task upd = UpdateIsEnabledAsync();
+				}
+			}
+		}
+
+		public bool IsEnabledOverride
+		{
+			get { return (bool)GetValue(IsEnabledOverrideProperty); }
+			set { SetValue(IsEnabledOverrideProperty, value); }
+		}
+		public static readonly DependencyProperty IsEnabledOverrideProperty =
+			DependencyProperty.Register("IsEnabledOverride", typeof(bool), typeof(OpenableObservablePage), new PropertyMetadata(true, OnIsEnabledOverrideChanged));
+		private static void OnIsEnabledOverrideChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			Task upd = (obj as OpenableObservablePage)?.UpdateIsEnabledAsync();
+		}
+		private Task UpdateIsEnabledAsync()
+		{
+			return RunInUiThreadAsync(delegate
+			{
+				IsEnabled = IsEnabledAllowed && IsEnabledOverride;
+			});
+		}
 		#endregion properties
 
 
 		#region ctor
-		public OpenableObservablePage()
+		public OpenableObservablePage() : base()
 		{
 			Application.Current.Resuming += OnResuming;
 			Application.Current.Suspending += OnSuspending;
+			Task upd = UpdateIsEnabledAsync();
 		}
 		#endregion ctor
 
@@ -87,9 +124,9 @@ namespace UniFiler10.Controlz
 					if (!_isOpen)
 					{
 						await OpenMayOverrideAsync().ConfigureAwait(false);
-						
+
 						IsOpen = true;
-						if (enable) await RunInUiThreadAsync(delegate { IsEnabled = true; }).ConfigureAwait(false);
+						if (enable) IsEnabledAllowed = true;
 
 						await RegisterBackEventHandlersAsync().ConfigureAwait(false);
 
@@ -126,7 +163,7 @@ namespace UniFiler10.Controlz
 					{
 						await UnregisterBackEventHandlersAsync();
 
-						await RunInUiThreadAsync(delegate { IsEnabled = false; });
+						IsEnabledAllowed = false;
 						IsOpen = false;
 
 						await CloseMayOverrideAsync().ConfigureAwait(false);
@@ -163,7 +200,7 @@ namespace UniFiler10.Controlz
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen && IsEnabled != enable)
 					{
-						await RunInUiThreadAsync(delegate { IsEnabled = enable; }).ConfigureAwait(false);
+						IsEnabledAllowed = enable;
 						return true;
 					}
 				}

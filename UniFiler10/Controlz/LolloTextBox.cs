@@ -223,7 +223,8 @@ namespace UniFiler10.Controlz
 			_listView = GetTemplateChild("PopupListView") as ListView;
 			if (_listView != null)
 			{
-				_listView.SelectionChanged += OnListView_SelectionChanged; // LOLLO TODO shouldn't I use ItemClick instead of SelectionChanged?
+				//_listView.SelectionChanged += OnListView_SelectionChanged;
+				_listView.ItemClick += OnListView_ItemClick;
 			}
 
 			_contentElement = GetTemplateChild("ContentElement") as ScrollViewer;
@@ -260,35 +261,34 @@ namespace UniFiler10.Controlz
 				_flyout.ShowAt(this);
 			}
 			catch { }
-			//Debug.WriteLine("Flyout open");
 		}
 
-		private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		private void OnListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			if (_listView == null || _listView.SelectedItem == null) return;
+			if (e == null || e.ClickedItem == null) return;
 
-			string selItem = _listView.SelectedItem.GetType()?.GetProperties()?
+			string selItem = e.ClickedItem.GetType()?.GetProperties()?
 				.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?
-				.GetValue(_listView.SelectedItem)?.ToString();
+				.GetValue(e.ClickedItem)?.ToString();
 
-			_listView.ItemsSource = null;
+
+			_listView.ItemsSource = null; // reset before hiding, we don't want leftovers
 
 			try
 			{
 				_flyout?.Hide();
+				Debug.WriteLine("Flyout closed");
 			}
 			catch { }
-			Debug.WriteLine("Flyout closed");
 
 			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
 			// when this changes a value, which goes straight into the DB, we must check it.
 			SetValue(TextProperty, selItem);
 			Debug.WriteLine("new value set = " + selItem);
 
-			var tb = GetBindingExpression(TextBox.TextProperty);
+			var tb = GetBindingExpression(TextProperty);
 			if (tb?.ParentBinding?.Mode == Windows.UI.Xaml.Data.BindingMode.TwoWay)
 			{
-				// GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
 				tb.UpdateSource();
 				Debug.WriteLine("binding source updated");
 			}
@@ -297,6 +297,41 @@ namespace UniFiler10.Controlz
 				Debug.WriteLine("binding source NOT updated");
 			}
 		}
+
+		//private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		//{
+		//	if (_listView == null || _listView.SelectedItem == null) return;
+
+		//	string selItem = _listView.SelectedItem.GetType()?.GetProperties()?
+		//		.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?
+		//		.GetValue(_listView.SelectedItem)?.ToString();
+
+		//	_listView.ItemsSource = null;
+
+		//	try
+		//	{
+		//		_flyout?.Hide();
+		//	}
+		//	catch { }
+		//	Debug.WriteLine("Flyout closed");
+
+		//	// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
+		//	// when this changes a value, which goes straight into the DB, we must check it.
+		//	SetValue(TextProperty, selItem);
+		//	Debug.WriteLine("new value set = " + selItem);
+
+		//	var tb = GetBindingExpression(TextProperty);
+		//	if (tb?.ParentBinding?.Mode == Windows.UI.Xaml.Data.BindingMode.TwoWay)
+		//	{
+		//		// GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+		//		tb.UpdateSource();
+		//		Debug.WriteLine("binding source updated");
+		//	}
+		//	else
+		//	{
+		//		Debug.WriteLine("binding source NOT updated");
+		//	}
+		//}
 
 		private void OnDeleteBorder_Tapped(object sender, TappedRoutedEventArgs e)
 		{

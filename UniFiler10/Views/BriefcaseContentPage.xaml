@@ -22,7 +22,7 @@
             ClosedPaneLength="{StaticResource CompactPaneLength}"
             OpenPaneLength="{StaticResource CompactPaneLength}">
 			<ctl:LolloSplitView.BodyContent>
-				<local:BinderCoverView x:Name="BinderCoverView" 
+				<local:BinderCoverView x:Name="BinderCoverView"
 					DataContext="{x:Bind VM.Briefcase.CurrentBinder, Mode=OneWay}"
 					GoToBinderContentRequested="OnBinderCoverView_GoToBinderContentRequested"
 					GoToSettingsRequested="OnBinderCoverView_GoToSettingsRequested"/>
