@@ -9,7 +9,7 @@ using Utilz;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class FieldDescription : ObservableData //, IEqualityComparer<FieldDescription>
+	public sealed class FieldDescription : ObservableData, IDisposable //, IEqualityComparer<FieldDescription>
 	{
 		private static readonly string DEFAULT_ID = string.Empty;
 
@@ -64,6 +64,26 @@ namespace UniFiler10.Data.Metadata
 		#endregion properties
 
 
+		#region ctor and dispose
+		public FieldDescription()
+		{
+			Id = Guid.NewGuid().ToString();
+		}
+		public void Dispose()
+		{
+			if (_isDisposed) return;
+			_isDisposed = true;
+
+			_possibleValues?.Dispose();
+			_possibleValues = null;
+		}
+
+		private bool _isDisposed = false;
+		[IgnoreDataMember]
+		public bool IsDisposed { get { return _isDisposed; } private set { if (_isDisposed != value) { _isDisposed = value; } } }
+		#endregion ctor and dispose
+
+
 		public static void Copy(FieldDescription source, ref FieldDescription target)
 		{
 			if (source != null && target != null)
@@ -92,10 +112,6 @@ namespace UniFiler10.Data.Metadata
 				}
 				target.IsObserving = true;
 			}
-		}
-		public FieldDescription()
-		{
-			Id = Guid.NewGuid().ToString();
 		}
 
 		public bool AddPossibleValue(FieldValue newValue)

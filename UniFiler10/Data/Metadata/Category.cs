@@ -82,15 +82,21 @@ namespace UniFiler10.Data.Metadata
 		{
 			Id = Guid.NewGuid().ToString();
 		}
-
 		public void Dispose()
 		{
+			if (_isDisposed) return;
+			_isDisposed = true;
+
 			_fieldDescriptions?.Dispose();
 			_fieldDescriptions = null;
 
 			_fieldDescriptionIds?.Dispose();
 			_fieldDescriptionIds = null;
 		}
+
+		private bool _isDisposed = false;
+		[IgnoreDataMember]
+		public bool IsDisposed { get { return _isDisposed; } private set { if (_isDisposed != value) { _isDisposed = value; } } }
 		#endregion ctor and dispose
 
 

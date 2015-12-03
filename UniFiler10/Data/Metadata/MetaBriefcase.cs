@@ -148,7 +148,16 @@ namespace UniFiler10.Data.Metadata
 		{
 			await SaveAsync().ConfigureAwait(false);
 
-			var cats = _categories; // LOLLO TODO test this
+			var fldDscs = _fieldDescriptions;
+			if (fldDscs != null)
+			{
+				foreach (var fldDsc in fldDscs)
+				{
+					fldDsc.Dispose();
+				}
+			}
+
+			var cats = _categories;
 			if (cats != null)
 			{
 				foreach (var cat in cats)
