@@ -136,28 +136,28 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion construct and dispose
 
-		public static bool AreEqual(IEnumerable<DbBoundObservableData> one, IEnumerable<DbBoundObservableData> two)
-		{
-			if (one != null && two != null && one.Count() == two.Count())
-			{
-				for (int i = 0; i < one.Count(); i++)
-				{
-					if (!(one.ElementAt(i).IsEqualTo(two.ElementAt(i)))) return false;
-				}
-				return true;
-			}
-			return false;
-		}
-		public bool IsEqualTo(DbBoundObservableData compTarget)
-		{
-			if (compTarget != null)
-				return
-					Id == compTarget.Id &&
-					// ParentId == compTarget.ParentId && // LOLLO TODO do I need this? I think not!
-					IsEqualToMustOverride(compTarget);
-			else return false;
-		}
-		protected abstract bool IsEqualToMustOverride(DbBoundObservableData that);
+		//public static bool AreEqual(IEnumerable<DbBoundObservableData> one, IEnumerable<DbBoundObservableData> two)
+		//{
+		//	if (one != null && two != null && one.Count() == two.Count())
+		//	{
+		//		for (int i = 0; i < one.Count(); i++)
+		//		{
+		//			if (!(one.ElementAt(i).IsEqualTo(two.ElementAt(i)))) return false;
+		//		}
+		//		return true;
+		//	}
+		//	return false;
+		//}
+		//public bool IsEqualTo(DbBoundObservableData compTarget)
+		//{
+		//	if (compTarget != null)
+		//		return
+		//			Id == compTarget.Id &&
+		//			//ParentId == compTarget.ParentId && // I don't want this for the folder, but I want it for the smaller objects
+		//			IsEqualToMustOverride(compTarget);
+		//	else return false;
+		//}
+		//protected abstract bool IsEqualToMustOverride(DbBoundObservableData that);
 
 		protected abstract bool CheckMeMustOverride();
 		public static bool Check(DbBoundObservableData item)

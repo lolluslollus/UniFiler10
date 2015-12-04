@@ -89,25 +89,25 @@ namespace UniFiler10.Data.Model
 			else return false;
 		}
 
-		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		{
-			var target = that as Folder;
+		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
+		//{
+		//	var target = that as Folder;
 
-			return
-				DateCreated == target.DateCreated &&
-				Date0 == target.Date0 &&
-				Date1 == target.Date1 &&
-				Date2 == target.Date2 &&
-				Date3 == target.Date3 &&
-				Descr0 == target.Descr0 &&
-				Descr1 == target.Descr1 &&
-				Descr2 == target.Descr2 &&
-				Descr3 == target.Descr3 &&
-				Name == target.Name &&
-				Wallet.AreEqual(Wallets, target.Wallets) &&
-				DynamicCategory.AreEqual(DynamicCategories, target.DynamicCategories) &&
-				DynamicField.AreEqual(DynamicFields, target.DynamicFields);
-		}
+		//	return
+		//		DateCreated == target.DateCreated &&
+		//		Date0 == target.Date0 &&
+		//		Date1 == target.Date1 &&
+		//		Date2 == target.Date2 &&
+		//		Date3 == target.Date3 &&
+		//		Descr0 == target.Descr0 &&
+		//		Descr1 == target.Descr1 &&
+		//		Descr2 == target.Descr2 &&
+		//		Descr3 == target.Descr3 &&
+		//		Name == target.Name &&
+		//		Wallet.AreEqual(Wallets, target.Wallets) &&
+		//		DynamicCategory.AreEqual(DynamicCategories, target.DynamicCategories) &&
+		//		DynamicField.AreEqual(DynamicFields, target.DynamicFields);
+		//}
 
 		protected override bool CheckMeMustOverride()
 		{

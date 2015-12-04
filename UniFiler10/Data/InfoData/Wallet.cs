@@ -76,15 +76,16 @@ namespace UniFiler10.Data.Model
 			return output;
 		}
 
-		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		{
-			var target = that as Wallet;
+		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
+		//{
+		//	var target = that as Wallet;
 
-			return Date0 == target.Date0 &&
-				Descr0 == target.Descr0 &&
-				Name == target.Name &&
-				Document.AreEqual(Documents, target.Documents);
-		}
+		//	return _parentId == that._parentId && // I don't want it for the folder, but I want it for the smaller objects
+		//		Date0 == target.Date0 &&
+		//		Descr0 == target.Descr0 &&
+		//		Name == target.Name &&
+		//		Document.AreEqual(Documents, target.Documents);
+		//}
 
 		protected override bool CheckMeMustOverride()
 		{

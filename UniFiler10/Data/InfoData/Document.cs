@@ -43,12 +43,13 @@ namespace UniFiler10.Data.Model
 			else return false;
 		}
 
-		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		{
-			var target = that as Document;
+		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
+		//{
+		//	var target = that as Document;
 
-			return _uri0 == target._uri0;
-		}
+		//	return _parentId == that._parentId && // I don't want it for the folder, but I want it for the smaller objects
+		//		_uri0 == target._uri0;
+		//}
 
 		protected override bool CheckMeMustOverride()
 		{

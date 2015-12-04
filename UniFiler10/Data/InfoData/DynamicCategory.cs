@@ -73,13 +73,14 @@ namespace UniFiler10.Data.Model
 			else return false;
 		}
 
-		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		{
-			var target = that as DynamicCategory;
+		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
+		//{
+		//	var target = that as DynamicCategory;
 
-			return _category == target._category &&
-				_categoryId == target._categoryId;
-		}
+		//	return _parentId == that._parentId && // I don't want it for the folder, but I want it for the smaller objects
+		//		_category == target._category &&
+		//		_categoryId == target._categoryId;
+		//}
 		protected override bool CheckMeMustOverride()
 		{
 			return _id != DEFAULT_ID && _parentId != DEFAULT_ID && _categoryId != DEFAULT_ID;

@@ -604,10 +604,10 @@ namespace UniFiler10.Data.Model
 			throw new NotImplementedException();
 		}
 
-		protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		{
-			throw new NotImplementedException("ERROR in Binder: IsEqualToMustOverride() was called but it must not. ");
-		}
+		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
+		//{
+		//	throw new NotImplementedException("ERROR in Binder: IsEqualToMustOverride() was called but it must not. ");
+		//}
 
 		protected override bool CheckMeMustOverride()
 		{
