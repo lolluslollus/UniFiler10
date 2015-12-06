@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using Utilz;
 using Windows.ApplicationModel.Core;
+using Windows.Storage;
 using Windows.UI.Core;
 
 namespace UniFiler10.Data.Model
@@ -16,7 +17,24 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class Document : DbBoundObservableData
 	{
+		public Document() { }
+		public Document(Binder binder)
+		{
+			_binder = binder;
+		}
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_binder = null;
+		}
+
 		#region properties
+		private Binder _binder = null;
+		[IgnoreDataMember]
+		[Ignore]
+		public Binder Binder { get { return _binder; } set { _binder = value; } }
+
 		private string _uri0 = string.Empty;
 		[DataMember]
 		public string Uri0
@@ -32,13 +50,18 @@ namespace UniFiler10.Data.Model
 		public string GetFullUri0()
 		{
 			if (string.IsNullOrWhiteSpace(_uri0)) return string.Empty;
-			else return Path.Combine(Binder.OpenInstance?.Directory?.Path, _uri0);
+			else return Path.Combine(_binder?.Directory?.Path, _uri0);
+		}
+		public string GetFullUri0(StorageFolder directory)
+		{
+			if (string.IsNullOrWhiteSpace(_uri0) || directory == null) return string.Empty;
+			else return Path.Combine(directory.Path, _uri0);
 		}
 		#endregion properties
 
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = DBManager.OpenInstance;
+			var ins = _binder?.DbManager;
 			if (ins != null) return ins.UpdateDocuments(this);
 			else return false;
 		}

@@ -13,7 +13,25 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class DynamicCategory : DbBoundObservableData
 	{
+		public DynamicCategory() { }
+		public DynamicCategory(Binder binder)
+		{
+			_binder = binder;
+		}
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_binder = null;
+		}
+
+
 		#region properties
+		private Binder _binder = null;
+		[IgnoreDataMember]
+		[Ignore]
+		public Binder Binder { get { return _binder; } set { _binder = value; } }
+
 		private Category _category = null;
 		[IgnoreDataMember]
 		[Ignore]
@@ -36,7 +54,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
-						if (DBManager.OpenInstance?.UpdateDynamicCategories(this) == false)
+						if (_binder?.DbManager?.UpdateDynamicCategories(this) == false)
 						{
 							//_categoryId = oldValue;
 							//UpdateCategory2();
@@ -68,7 +86,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = DBManager.OpenInstance;
+			var ins = _binder?.DbManager;
 			if (ins != null) return ins.UpdateDynamicCategories(this);
 			else return false;
 		}

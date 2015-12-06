@@ -13,7 +13,25 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class DynamicField : DbBoundObservableData
 	{
+		public DynamicField() { }
+		public DynamicField(Binder binder)
+		{
+			_binder = binder;
+		}
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_binder = null;
+		}
+
+
 		#region properties
+		private Binder _binder = null;
+		[IgnoreDataMember]
+		[Ignore]
+		public Binder Binder { get { return _binder; } set { _binder = value; } }
+
 		private FieldValue _fieldValue = null;
 		[IgnoreDataMember]
 		[Ignore]
@@ -36,7 +54,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
-						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
+						if (_binder?.DbManager?.UpdateDynamicFields(this) == false)
 						{
 							//_fieldValueId = oldValue;
 							//UpdateDynamicValues2();
@@ -74,7 +92,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
-						if (DBManager.OpenInstance?.UpdateDynamicFields(this) == false)
+						if (_binder?.DbManager?.UpdateDynamicFields(this) == false)
 						{
 							//_fieldDescriptionId = oldValue;
 							//UpdateDynamicValues2();
@@ -115,7 +133,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = DBManager.OpenInstance;
+			var ins = _binder?.DbManager;
 			if (ins != null) return ins.UpdateDynamicFields(this);
 			else return false;
 		}

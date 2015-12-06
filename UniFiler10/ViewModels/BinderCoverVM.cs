@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
@@ -685,6 +686,19 @@ namespace UniFiler10.ViewModels
 				if (await binder.RemoveFolderAsync(fp.FolderId).ConfigureAwait(false))
 				{
 					SetIsDirty(true, true, 0);
+				}
+			}
+		}
+
+		public async Task ImportFoldersFromBinderAsync()
+		{
+			var binder = _binder;
+			if (binder != null)
+			{
+				var directory = await Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+				if (directory != null)
+				{
+					await binder.ImportFoldersAsync(directory).ConfigureAwait(false);
 				}
 			}
 		}

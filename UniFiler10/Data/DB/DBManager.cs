@@ -12,154 +12,234 @@ using Windows.Storage;
 
 namespace UniFiler10.Data.DB
 {
-	public sealed class DBManager : IDisposable
+	public sealed class DBManager : OpenableObservableData
 	{
 		#region fields
 		// one db for all tables
 		// one semaphore each table
-		private string _dbName = string.Empty;
+		//private string _dbName = string.Empty;
 		private const string DB_FILE_NAME = "Db.db";
-		private string _dbPath = string.Empty;
+		private string _dbFullPath = string.Empty;
 
 		private readonly bool _isStoreDateTimeAsTicks = true;
 		private readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create; //.FullMutex;
 
-		private static SemaphoreSlimSafeRelease _foldersSemaphore = null;
-		private static SemaphoreSlimSafeRelease _walletsSemaphore = null;
-		private static SemaphoreSlimSafeRelease _documentsSemaphore = null;
-		private static SemaphoreSlimSafeRelease _dynamicFieldsSemaphore = null;
-		private static SemaphoreSlimSafeRelease _dynamicCategoriesSemaphore = null;
+		private SemaphoreSlimSafeRelease _foldersSemaphore = null;
+		private SemaphoreSlimSafeRelease _walletsSemaphore = null;
+		private SemaphoreSlimSafeRelease _documentsSemaphore = null;
+		private SemaphoreSlimSafeRelease _dynamicFieldsSemaphore = null;
+		private SemaphoreSlimSafeRelease _dynamicCategoriesSemaphore = null;
+
+		private LolloSQLiteConnectionPoolMT _connectionPool = null;
 		#endregion fields
 
 		#region construct and dispose
-		private static readonly object _instanceLock = new object();
-		private static DBManager _instance = null;
-		public static DBManager OpenInstance { get { if (_isOpen) return _instance; else return null; } }
+		//private static readonly object _instanceLock = new object();
+		//private static DBManager _instance = null;
+		//public static DBManager OpenInstance { get { if (_isOpen) return _instance; else return null; } }
 
-		public static DBManager CreateInstance(string dbName)
+		//public static DBManager CreateInstance(string dbName)
+		//{
+		//	lock (_instanceLock)
+		//	{
+		//		if (_instance == null || _instance._isDisposed)
+		//		{
+		//			_instance = new DBManager(dbName);
+		//		}
+		//		return _instance;
+		//	}
+		//}
+		//public DBManager(string pathInFolder)
+		//{
+		//	if (pathInFolder != null && !string.IsNullOrWhiteSpace(pathInFolder))
+		//	{
+		//		_dbName = pathInFolder;
+		//		// _dbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, _dbName, DB_FILE_NAME);
+		//		_dbPath = Path.Combine(Briefcase.BindersDirectory.Path, _dbName, DB_FILE_NAME);
+		//	}
+		//	else throw new ArgumentNullException("DBManager ctor: dbName cannot be null or empty");
+		//}
+		public DBManager(StorageFolder directory, bool isReadOnly)
 		{
-			lock (_instanceLock)
+			if (directory != null)
 			{
-				if (_instance == null || _instance._isDisposed)
+				//_dbName = pathInFolder;
+				// _dbPath = Path.Combine(Briefcase.BindersDirectory.Path, _dbName, DB_FILE_NAME);
+				if (isReadOnly)
 				{
-					_instance = new DBManager(dbName);
+					_openFlags = SQLiteOpenFlags.ReadOnly;
 				}
-				return _instance;
-			}
-		}
-		private DBManager(string pathInFolder)
-		{
-			if (pathInFolder != null && !string.IsNullOrWhiteSpace(pathInFolder))
-			{
-				_dbName = pathInFolder;
-				// _dbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, _dbName, DB_FILE_NAME);
-				_dbPath = Path.Combine(Briefcase.BindersDirectory.Path, _dbName, DB_FILE_NAME);
+				else
+				{
+					_openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create;
+				}
+
+				_dbFullPath = Path.Combine(directory.Path, DB_FILE_NAME);
+				_connectionPool = new LolloSQLiteConnectionPoolMT();
 			}
 			else throw new ArgumentNullException("DBManager ctor: dbName cannot be null or empty");
 		}
-		private volatile bool _isDisposed = false;
-		public void Dispose()
-		{
-			_isDisposed = true;
-			CloseAsync().Wait();
-		}
+		//private volatile bool _isDisposed = false;
+		//public void Dispose()
+		//{
+		//	_isDisposed = true;
+		//	CloseAsync().Wait();
+		//}
 		#endregion construct and dispose
 
 		#region open and close
-		private static SemaphoreSlimSafeRelease _isOpenSemaphore = null;
-		private static volatile bool _isOpen = false;
-		public static bool IsOpen { get { return _isOpen; } private set { _isOpen = value; } }
+		//private SemaphoreSlimSafeRelease _isOpenSemaphore = null;
+		//private volatile bool _isOpen = false;
+		//public bool IsOpen { get { return _isOpen; } private set { _isOpen = value; } }
+		protected override async Task OpenMayOverrideAsync()
+		{
+			// var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+			//var dbFolder = await Briefcase.BindersDirectory.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+
+			if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+			if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+			if (!SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)) _documentsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+			if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)) _dynamicFieldsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+			if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore)) _dynamicCategoriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+
+			await _connectionPool.OpenAsync().ConfigureAwait(false);
+		}
 		/// <summary>
 		/// Open the DB
 		/// </summary>
-		public async Task OpenAsync()
+		//public async Task OpenAsync()
+		//{
+		//	if (!_isOpen)
+		//	{
+		//		try
+		//		{
+		//			if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//			await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+
+		//			if (!_isOpen)
+		//			{
+		//				// var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+		//				//var dbFolder = await Briefcase.BindersDirectory.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+
+		//				if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//				if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//				if (!SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)) _documentsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//				if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)) _dynamicFieldsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//				if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore)) _dynamicCategoriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//				LolloSQLiteConnectionPoolMT.Open();
+		//				IsOpen = true;
+		//			}
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		//				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//		}
+		//	}
+		//}
+		protected override async Task CloseMayOverrideAsync()
 		{
-			if (!_isOpen)
+			try
 			{
-				try
+				await Task.Run(async delegate
 				{
-					if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					_foldersSemaphore?.Wait();
+					_walletsSemaphore?.Wait();
+					_documentsSemaphore?.Wait();
+					_dynamicFieldsSemaphore?.Wait();
+					_dynamicCategoriesSemaphore?.Wait();
 
-					if (!_isOpen)
+					var cp = _connectionPool;
+					if (cp != null)
 					{
-						// var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-						var dbFolder = await Briefcase.BindersDirectory.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-
-						if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-						if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-						if (!SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)) _documentsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-						if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)) _dynamicFieldsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-						if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore)) _dynamicCategoriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-						LolloSQLiteConnectionPoolMT.Open();
-						IsOpen = true;
+						await cp.CloseAsync();
 					}
-				}
-				catch (Exception ex)
+				}).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)
+					&& SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)
+					&& SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)
+					&& SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)
+					&& SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore))
 				{
-					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					throw;
 				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryDispose(_dynamicCategoriesSemaphore);
+				_dynamicCategoriesSemaphore = null;
+				SemaphoreSlimSafeRelease.TryDispose(_dynamicFieldsSemaphore);
+				_dynamicFieldsSemaphore = null;
+				SemaphoreSlimSafeRelease.TryDispose(_documentsSemaphore);
+				_documentsSemaphore = null;
+				SemaphoreSlimSafeRelease.TryDispose(_walletsSemaphore);
+				_walletsSemaphore = null;
+				SemaphoreSlimSafeRelease.TryDispose(_foldersSemaphore);
+				_foldersSemaphore = null;
 			}
 		}
 		/// <summary>
 		/// Wait for all DB operations to end and close the DB
 		/// </summary>
 		/// <returns></returns>
-		public async Task CloseAsync()
-		{
-			if (_isOpen)
-			{
-				try
-				{
-					await Task.Run(() =>
-					{
-						if (_isOpen)
-						{
-							try
-							{
-								_foldersSemaphore.Wait();
-								_walletsSemaphore.Wait();
-								_documentsSemaphore.Wait();
-								_dynamicFieldsSemaphore.Wait();
-								_dynamicCategoriesSemaphore.Wait();
+		//public async Task CloseAsync()
+		//{
+		//	if (_isOpen)
+		//	{
+		//		try
+		//		{
+		//			await Task.Run(() =>
+		//			{
+		//				if (_isOpen)
+		//				{
+		//					try
+		//					{
+		//						_foldersSemaphore.Wait();
+		//						_walletsSemaphore.Wait();
+		//						_documentsSemaphore.Wait();
+		//						_dynamicFieldsSemaphore.Wait();
+		//						_dynamicCategoriesSemaphore.Wait();
 
-								IsOpen = false;
+		//						IsOpen = false;
 
-								LolloSQLiteConnectionPoolMT.Close();
-							}
-							catch (Exception ex)
-							{
-								if (SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)
-									&& SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)
-									&& SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)
-									&& SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)
-									&& SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore))
-									Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-							}
-							finally
-							{
-								SemaphoreSlimSafeRelease.TryDispose(_dynamicCategoriesSemaphore);
-								_dynamicCategoriesSemaphore = null;
-								SemaphoreSlimSafeRelease.TryDispose(_dynamicFieldsSemaphore);
-								_dynamicFieldsSemaphore = null;
-								SemaphoreSlimSafeRelease.TryDispose(_documentsSemaphore);
-								_documentsSemaphore = null;
-								SemaphoreSlimSafeRelease.TryDispose(_walletsSemaphore);
-								_walletsSemaphore = null;
-								SemaphoreSlimSafeRelease.TryDispose(_foldersSemaphore);
-								_foldersSemaphore = null;
-							}
-						}
-					}).ConfigureAwait(false);
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
-					_isOpenSemaphore = null;
-				}
-			}
-		}
+		//						LolloSQLiteConnectionPoolMT.Close();
+		//					}
+		//					catch (Exception ex)
+		//					{
+		//						if (SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)
+		//							&& SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)
+		//							&& SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)
+		//							&& SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)
+		//							&& SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore))
+		//							Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//					}
+		//					finally
+		//					{
+		//						SemaphoreSlimSafeRelease.TryDispose(_dynamicCategoriesSemaphore);
+		//						_dynamicCategoriesSemaphore = null;
+		//						SemaphoreSlimSafeRelease.TryDispose(_dynamicFieldsSemaphore);
+		//						_dynamicFieldsSemaphore = null;
+		//						SemaphoreSlimSafeRelease.TryDispose(_documentsSemaphore);
+		//						_documentsSemaphore = null;
+		//						SemaphoreSlimSafeRelease.TryDispose(_walletsSemaphore);
+		//						_walletsSemaphore = null;
+		//						SemaphoreSlimSafeRelease.TryDispose(_foldersSemaphore);
+		//						_foldersSemaphore = null;
+		//					}
+		//				}
+		//			}).ConfigureAwait(false);
+		//		}
+		//		finally
+		//		{
+		//			SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
+		//			_isOpenSemaphore = null;
+		//		}
+		//	}
+		//}
 		#endregion open and close
 
 		#region table methods
@@ -168,7 +248,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = LolloSQLiteConnectionMT.Update<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _dynamicFieldsSemaphore);
+				result = Update<DynamicField>(newRecord, _dynamicFieldsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -183,7 +263,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = LolloSQLiteConnectionMT.Update<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _dynamicCategoriesSemaphore);
+				result = Update<DynamicCategory>(newRecord, _dynamicCategoriesSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -198,7 +278,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = LolloSQLiteConnectionMT.Update<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _documentsSemaphore);
+				result = Update<Document>(newRecord, _documentsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -213,7 +293,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = LolloSQLiteConnectionMT.Update<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _walletsSemaphore);
+				result = Update<Wallet>(newRecord, _walletsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -228,7 +308,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = LolloSQLiteConnectionMT.Update<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newRecord, _foldersSemaphore);
+				result = Update<Folder>(newRecord, _foldersSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -245,11 +325,27 @@ namespace UniFiler10.Data.DB
 			{
 				if (DynamicField.Check(newFld)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var fieldsAlreadyInFolder = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicCategory), newFld.ParentId).ConfigureAwait(false);
+					var fieldsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicCategory), newFld.ParentId).ConfigureAwait(false);
 					if (!fieldsAlreadyInFolder.Any(ff => ff.FieldDescriptionId == newFld.FieldDescriptionId))
 					{
-						result = await LolloSQLiteConnectionMT.InsertAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+						result = await InsertAsync<DynamicField>(newFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 					}
+				}
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return result;
+		}
+		internal async Task<bool> InsertIntoDynamicFieldsAsync(IEnumerable<DynamicField> records, bool checkMaxEntries)
+		{
+			bool result = false;
+			try
+			{
+				if (records.Count() > 0 && DynamicField.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				{
+					result = await InsertManyAsync<DynamicField>(records, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 				}
 			}
 			catch (Exception exc)
@@ -266,16 +362,16 @@ namespace UniFiler10.Data.DB
 				newFields.Clear();
 				if (DynamicCategory.Check(newCat)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var catsAlreadyInFolder = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
+					var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
 					if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
 					{
-						result = await LolloSQLiteConnectionMT.InsertAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+						result = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 						if (result)
 						{
 							// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
 							var fieldDescriptionIdsAlreadyInFolder = new List<string>();
 
-							var fieldsInFolder = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
+							var fieldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
 							foreach (var fieldInFolder in fieldsInFolder)
 							{
 								if (fieldInFolder?.FieldDescriptionId != null
@@ -289,7 +385,7 @@ namespace UniFiler10.Data.DB
 									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 								{
 									var dynamicField = new DynamicField() { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
-									if (await LolloSQLiteConnectionMT.InsertAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
+									if (await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
 									{
 										newFields.Add(dynamicField);
 									}
@@ -305,6 +401,22 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
+		internal async Task<bool> InsertIntoDynamicCategoriesAsync(IEnumerable<DynamicCategory> records, bool checkMaxEntries)
+		{
+			bool result = false;
+			try
+			{
+				if (records.Count() > 0 && DynamicCategory.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				{
+					result = await InsertManyAsync<DynamicCategory>(records, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+				}
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return result;
+		}
 		internal async Task<bool> DeleteFromDynamicCategoriesAsync(DynamicCategory cat, List<string> deletedFieldDescriptionIds)
 		{
 			if (cat == null) return true;
@@ -312,11 +424,11 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				deletedFieldDescriptionIds.Clear();
-				result = await LolloSQLiteConnectionMT.DeleteAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, cat.Id, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<DynamicCategory>(cat.Id, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 				// delete the dynamic fields owned by this category unless they are owned by another category
 				if (result)
 				{
-					var otherAvailableCategories = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, nameof(DynamicCategory), cat.ParentId).ConfigureAwait(false);
+					var otherAvailableCategories = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), cat.ParentId).ConfigureAwait(false);
 
 					List<string> otherFieldDescrIds = new List<string>();
 					foreach (var otherCat in otherAvailableCategories)
@@ -332,10 +444,10 @@ namespace UniFiler10.Data.DB
 						}
 					}
 
-					var dynamicFieldsInCurrentFolder = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicField), cat.ParentId).ConfigureAwait(false);
+					var dynamicFieldsInCurrentFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), cat.ParentId).ConfigureAwait(false);
 					foreach (var fieldToDelete in dynamicFieldsInCurrentFolder.Where(a => a?.FieldDescriptionId != null && !otherFieldDescrIds.Contains(a.FieldDescriptionId)))
 					{
-						if (await LolloSQLiteConnectionMT.DeleteAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, fieldToDelete.Id, _dynamicFieldsSemaphore).ConfigureAwait(false))
+						if (await DeleteAsync<DynamicField>(fieldToDelete.Id, _dynamicFieldsSemaphore).ConfigureAwait(false))
 						{
 							deletedFieldDescriptionIds.Add(fieldToDelete.FieldDescriptionId);
 						}
@@ -354,7 +466,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, fld.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<DynamicField>(fld.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -362,6 +474,62 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
+		//internal async Task<bool> InsertFoldersFullAsync(IEnumerable<Folder> newFolders, bool checkMaxEntries)
+		//{
+		//	bool result = false;
+		//	try
+		//	{
+		//		// LOLLO TODO work on the success or failure results
+		//		foreach (var fol in newFolders)
+		//		{
+		//			if (await InsertAsync<Folder>(fol, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false))
+		//			{
+
+		//				foreach (var wal in fol.Wallets)
+		//				{
+		//					await InsertManyAsync(wal.Documents, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+		//				}
+		//				await InsertManyAsync(fol.Wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+		//				await InsertManyAsync(fol.DynamicFields, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+		//				await InsertManyAsync(fol.DynamicCategories, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+
+		//				result = true;
+		//			}
+		//		}
+		//	}
+		//	catch (Exception exc)
+		//	{
+		//		Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+		//	}
+		//	return result;
+		//}
+
+		//internal async Task<bool> InsertFolderFullAsync(Folder newFolder, bool checkMaxEntries)
+		//{
+		//	bool result = false;
+		//	try
+		//	{
+		//		// LOLLO TODO work on the success or failure results
+		//			if (await InsertAsync<Folder>(newFolder, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false))
+		//			{
+		//				foreach (var wal in newFolder.Wallets)
+		//				{
+		//					await InsertManyAsync(wal.Documents, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+		//				}
+		//				await InsertManyAsync(newFolder.Wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+		//				await InsertManyAsync(newFolder.DynamicFields, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+		//				await InsertManyAsync(newFolder.DynamicCategories, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+
+		//				result = true;
+		//			}
+		//	}
+		//	catch (Exception exc)
+		//	{
+		//		Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+		//	}
+		//	return result;
+		//}
+
 		internal async Task<bool> InsertIntoDocumentsAsync(Document record, bool checkMaxEntries)
 		{
 			bool result = false;
@@ -369,7 +537,23 @@ namespace UniFiler10.Data.DB
 			{
 				if (Document.Check(record)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					result = await LolloSQLiteConnectionMT.InsertAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+					result = await InsertAsync<Document>(record, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+				}
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return result;
+		}
+		internal async Task<bool> InsertIntoDocumentsAsync(IEnumerable<Document> records, bool checkMaxEntries)
+		{
+			bool result = false;
+			try
+			{
+				if (records.Count() > 0 && Document.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				{
+					result = await InsertManyAsync<Document>(records, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
 				}
 			}
 			catch (Exception exc)
@@ -385,7 +569,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (Wallet.Check(record)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
-					result = await LolloSQLiteConnectionMT.InsertAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+					result = await InsertAsync<Wallet>(record, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
 				}
 			}
 			catch (Exception exc)
@@ -394,6 +578,23 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
+		internal async Task<bool> InsertIntoWalletsAsync(IEnumerable<Wallet> records, bool checkMaxEntries)
+		{
+			bool result = false;
+			try
+			{
+				if (records.Count() > 0 && Wallet.Check(records)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
+				{
+					result = await InsertManyAsync<Wallet>(records, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+				}
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return result;
+		}
+
 		internal async Task<bool> InsertIntoFoldersAsync(Folder record, bool checkMaxEntries)
 		{
 			bool result = false;
@@ -401,7 +602,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (Folder.Check(record)) // && await CheckForeignKey_TagsInFolderAsync(record).ConfigureAwait(false)) // && await CheckUniqueKeyInEntriesAsync(record).ConfigureAwait(false))
 				{
-					result = await LolloSQLiteConnectionMT.InsertAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _foldersSemaphore).ConfigureAwait(false);
+					result = await InsertAsync<Folder>(record, checkMaxEntries, _foldersSemaphore).ConfigureAwait(false);
 				}
 			}
 			catch (Exception exc)
@@ -416,8 +617,8 @@ namespace UniFiler10.Data.DB
 			List<DynamicCategory> dynCats = new List<DynamicCategory>();
 			try
 			{
-				dynCats = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicCategory>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, nameof(DynamicCategory), parentId)
+				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>
+					(_dynamicCategoriesSemaphore, nameof(DynamicCategory), parentId)
 					.ConfigureAwait(false);
 			}
 			catch (Exception exc)
@@ -446,8 +647,8 @@ namespace UniFiler10.Data.DB
 			var dynCats = new List<DynamicCategory>();
 			try
 			{
-				dynCats = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicCategory>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, nameof(DynamicCategory), catId, "CategoryId")
+				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>
+					(_dynamicCategoriesSemaphore, nameof(DynamicCategory), catId, "CategoryId")
 					.ConfigureAwait(false);
 			}
 			catch (Exception exc)
@@ -461,8 +662,8 @@ namespace UniFiler10.Data.DB
 			var dynFlds = new List<DynamicField>();
 			try
 			{
-				dynFlds = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicField>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicField), fldDscId, "FieldDescriptionId")
+				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>
+					(_dynamicFieldsSemaphore, nameof(DynamicField), fldDscId, "FieldDescriptionId")
 					.ConfigureAwait(false);
 			}
 			catch (Exception exc)
@@ -476,8 +677,8 @@ namespace UniFiler10.Data.DB
 			var dynFlds = new List<DynamicField>();
 			try
 			{
-				dynFlds = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<DynamicField>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicField), parentId)
+				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>
+					(_dynamicFieldsSemaphore, nameof(DynamicField), parentId)
 					.ConfigureAwait(false);
 			}
 			catch (Exception exc)
@@ -492,8 +693,8 @@ namespace UniFiler10.Data.DB
 			var docs = new List<Document>();
 			try
 			{
-				docs = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<Document>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), parentId).ConfigureAwait(false);
+				docs = await ReadRecordsWithParentIdAsync<Document>
+					(_documentsSemaphore, nameof(Document), parentId).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -506,7 +707,7 @@ namespace UniFiler10.Data.DB
 			var docs = new List<Document>();
 			try
 			{
-				docs = await LolloSQLiteConnectionMT.ReadTableAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore).ConfigureAwait(false);
+				docs = await ReadTableAsync<Document>(_documentsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -519,8 +720,8 @@ namespace UniFiler10.Data.DB
 			var wallets = new List<Wallet>();
 			try
 			{
-				wallets = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<Wallet>
-					(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, nameof(Wallet), parentId).ConfigureAwait(false);
+				wallets = await ReadRecordsWithParentIdAsync<Wallet>
+					(_walletsSemaphore, nameof(Wallet), parentId).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -533,7 +734,7 @@ namespace UniFiler10.Data.DB
 			var wallets = new List<Wallet>();
 			try
 			{
-				wallets = await LolloSQLiteConnectionMT.ReadTableAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore).ConfigureAwait(false);
+				wallets = await ReadTableAsync<Wallet>(_walletsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -546,7 +747,7 @@ namespace UniFiler10.Data.DB
 			var folders = new List<Folder>();
 			try
 			{
-				folders = await LolloSQLiteConnectionMT.ReadTableAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _foldersSemaphore).ConfigureAwait(false);
+				folders = await ReadTableAsync<Folder>(_foldersSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -561,7 +762,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, doc.Id, _documentsSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<Document>(doc.Id, _documentsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -576,13 +777,13 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, wallet.Id, _walletsSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<Wallet>(wallet.Id, _walletsSemaphore).ConfigureAwait(false);
 				if (!result)
 				{
-					var nonDeletedObj = await LolloSQLiteConnectionMT.ReadRecordByIdAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, wallet.Id).ConfigureAwait(false);
+					var nonDeletedObj = await ReadRecordByIdAsync<Wallet>(_walletsSemaphore, wallet.Id).ConfigureAwait(false);
 					if (nonDeletedObj == null) result = true;
 				}
-				await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
+				await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -596,20 +797,20 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				result = await LolloSQLiteConnectionMT.DeleteAsync<Folder>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, folder.Id, _foldersSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<Folder>(folder.Id, _foldersSemaphore).ConfigureAwait(false);
 				if (result)
 				{
-					var wallets = await LolloSQLiteConnectionMT.ReadRecordsWithParentIdAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
+					var wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
 
-					if (await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Wallet>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false))
+					if (await DeleteRecordsWithParentIdAsync<Wallet>(_documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false))
 					{
 						foreach (var wallet in wallets.Distinct())
 						{
-							await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<Document>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
+							await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 						}
 					}
-					await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<DynamicCategory>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore, nameof(DynamicCategory), folder.Id).ConfigureAwait(false);
-					await LolloSQLiteConnectionMT.DeleteRecordsWithParentIdAsync<DynamicField>(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicFieldsSemaphore, nameof(DynamicField), folder.Id).ConfigureAwait(false);
+					await DeleteRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), folder.Id).ConfigureAwait(false);
+					await DeleteRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), folder.Id).ConfigureAwait(false);
 				}
 			}
 			catch (Exception exc)
@@ -620,424 +821,489 @@ namespace UniFiler10.Data.DB
 		}
 		#endregion table methods
 
-		private class LolloSQLiteConnectionMT
+		//private class LolloSQLiteConnectionMT
+		//{
+		private Task<List<T>> ReadTableAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : new()
 		{
-			public static Task<List<T>> ReadTableAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : new()
+			return Task.Run<List<T>>(() =>
+			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
-				return Task.Run<List<T>>(() =>
-				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-				{
-					return ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease);
-				});
-			}
-			public static List<T> ReadTable<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore) where T : new()
-			{
-				if (!_isOpen) return null;
+				return ReadTable<T>(SemaphoreSlimSafeRelease);
+			});
+		}
+		private List<T> ReadTable<T>(SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			if (!_isOpen) return null;
 
-				List<T> result = null;
-				try
+			List<T> result = null;
+			try
+			{
+				semaphore.Wait();
+				if (_isOpen)
 				{
-					semaphore.Wait();
-					if (_isOpen)
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
 					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							var query = conn.Table<T>();
-							result = query.ToList<T>();
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+						int aResult = conn.CreateTable(typeof(T));
+						var query = conn.Table<T>();
+						result = query.ToList<T>();
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
 					}
 				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
 			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
+		}
 
-			public static Task<bool> DeleteRecordsWithParentIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId) where T : new()
+		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId) where T : new()
+		{
+			return Task.Run<bool>(() =>
+			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
-				return Task.Run<bool>(() =>
-				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-				{
-					return DeleteRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId);
-				});
-			}
-			public static bool DeleteRecordsWithParentId<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId) where T : new()
-			{
-				if (!_isOpen) return false;
+				return DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId);
+			});
+		}
+		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId) where T : new()
+		{
+			if (!_isOpen) return false;
 
-				bool result = false;
-				try
+			bool result = false;
+			try
+			{
+				semaphore.Wait();
+				if (_isOpen)
 				{
-					semaphore.Wait();
-					if (_isOpen)
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
 					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							string queryString = string.Format("DELETE FROM {0} WHERE ParentId = '{1}'", tableName, parentId);
-							int queryResult = conn.Execute(queryString);
-							result = queryResult > 0;
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+						int aResult = conn.CreateTable(typeof(T));
+						string queryString = string.Format("DELETE FROM {0} WHERE ParentId = '{1}'", tableName, parentId);
+						int queryResult = conn.Execute(queryString);
+						result = queryResult > 0;
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
 					}
 				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
 			}
-			public static Task<List<T>> ReadRecordsWithParentIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+			catch (Exception ex)
 			{
-				return Task.Run<List<T>>(() =>
-				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
-					return ReadRecordsWithParentId<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
-				});
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
 			}
-			public static List<T> ReadRecordsWithParentId<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+			finally
 			{
-				if (!_isOpen) return null;
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
+		}
+		private Task<List<T>> ReadRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+		{
+			return Task.Run<List<T>>(() =>
+			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+			{
+				return ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
+			});
+		}
+		private List<T> ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+		{
+			if (!_isOpen) return null;
 
-				List<T> result = null;
-				try
+			List<T> result = null;
+			try
+			{
+				semaphore.Wait();
+				if (_isOpen)
 				{
-					semaphore.Wait();
-					if (_isOpen)
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
 					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							string queryString = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
-							var query = conn.Query<T>(queryString);
-							result = query.ToList<T>();
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+						int aResult = conn.CreateTable(typeof(T));
+						string queryString = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
+						var query = conn.Query<T>(queryString);
+						result = query.ToList<T>();
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
 					}
 				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
 			}
-			public static Task<T> ReadRecordByIdAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
+			catch (Exception ex)
 			{
-				return Task.Run<T>(() =>
-				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
-					return ReadRecordById<T>(dbPath, openFlags, storeDateTimeAsTicks, SemaphoreSlimSafeRelease, primaryKey);
-				});
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
 			}
-			public static T ReadRecordById<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
+			finally
 			{
-				if (!_isOpen) return default(T);
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
+		}
+		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
+		{
+			return Task.Run<T>(() =>
+			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+			{
+				return ReadRecordById<T>(SemaphoreSlimSafeRelease, primaryKey);
+			});
+		}
+		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
+		{
+			if (!_isOpen) return default(T);
 
-				T result = default(T);
-				try
+			T result = default(T);
+			try
+			{
+				semaphore.Wait();
+				if (_isOpen)
 				{
-					semaphore.Wait();
-					if (_isOpen)
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
 					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							var query = conn.Get<T>(primaryKey);
-							result = query;
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+						int aResult = conn.CreateTable(typeof(T));
+						var query = conn.Get<T>(primaryKey);
+						result = query;
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
 					}
 				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
 			}
-			public static Task<bool> DeleteAllAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore)
+			catch (Exception ex)
 			{
-				return Task.Run(() =>
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
-					return DeleteAll<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
-				});
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
 			}
-			public static bool DeleteAll<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore)
+			finally
 			{
-				if (!_isOpen) return false;
-				bool result = false;
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
+		}
+		private Task<bool> DeleteAllAsync<T>(SemaphoreSlimSafeRelease semaphore)
+		{
+			return Task.Run(() =>
+			{
+				return DeleteAll<T>(semaphore);
+			});
+		}
+		private bool DeleteAll<T>(SemaphoreSlimSafeRelease semaphore)
+		{
+			if (!_isOpen) return false;
+			bool result = false;
 
-				try
-				{
-					semaphore.Wait();
-					if (_isOpen)
-					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							int deleteResult = conn.DeleteAll<T>();
-							result = true;
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
-			}
-			public static Task<bool> InsertAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+			try
 			{
-				return Task.Run(() =>
+				semaphore.Wait();
+				if (_isOpen)
 				{
-					return Insert<T>(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
-				});
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
+					{
+						int aResult = conn.CreateTable(typeof(T));
+						int deleteResult = conn.DeleteAll<T>();
+						result = true;
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
+					}
+				}
 			}
-			public static bool Insert<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+			catch (Exception ex)
 			{
-				if (!_isOpen) return false;
-				bool result = false;
-				try
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
-					semaphore.Wait();
-					if (_isOpen)
-					{
-						//bool isTesting = true;
-						//if (isTesting)
-						//{
-						//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
-						//    {
-						//        string aaa = i.ToString();
-						//    }
-						//}
-
-						object item_mt = item;
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							int insertResult = 0;
-							if (checkMaxEntries)
-							{
-								var query = conn.Table<T>();
-								var count = query.Count();
-								insertResult = conn.Insert(item_mt);
-							}
-							else
-							{
-								insertResult = conn.Insert(item_mt);
-							}
-							result = insertResult > 0;
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
-					}
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
 				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
 			}
-			public static Task<bool> DeleteAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
+			finally
 			{
-				return Task.Run(() =>
-				{
-					return Delete<T>(dbPath, openFlags, storeDateTimeAsTicks, primaryKey, semaphore);
-				});
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
 			}
-			public static bool Delete<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
+			return result;
+		}
+		private Task<bool> InsertAsync<T>(object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			return Task.Run(() =>
 			{
-				if (!_isOpen) return false;
-
-				bool result = false;
-				try
-				{
-					object pk_mt = primaryKey;
-
-					semaphore.Wait();
-					if (_isOpen)
-					{
-						//bool isTesting = true;
-						//if (isTesting)
-						//{
-						//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
-						//    {
-						//        string aaa = i.ToString();
-						//    }
-						//}
-
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							int deleteResult = conn.Delete<T>(pk_mt);
-							result = (deleteResult > 0);
-							if (!result)
-							{
-								if (conn.Get<T>(pk_mt) == null) result = true;
-							}
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				}
-				return result;
-			}
-			public static Task<bool> UpdateAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+				return Insert<T>(item, checkMaxEntries, semaphore);
+			});
+		}
+		private bool Insert<T>(object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			if (!_isOpen) return false;
+			bool result = false;
+			try
 			{
-				return Task.Run(() =>
+				semaphore.Wait();
+				if (_isOpen)
 				{
-					return Update<T>(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
-				});
-			}
-			public static bool Update<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, SemaphoreSlimSafeRelease semaphore) where T : new()
-			{
-				if (!_isOpen) return false;
-				bool result = false;
-				int updateResult = 0;
-
-				try
-				{
-					semaphore.Wait();
-					if (_isOpen)
-					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						try
-						{
-							int aResult = conn.CreateTable(typeof(T));
-							{
-								updateResult = conn.Update(item);
-								result = true;  //(updateResult > 0);
-							}
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-						throw;
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
-					//if (updateResult < 1)
+					//bool isTesting = true;
+					//if (isTesting)
 					//{
-					//	Debugger.Break();
-					//	List<T> test = ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
-
-					//	T itemTyped = (T)item;
-
-					//	bool check = test.Contains(itemTyped);
+					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
+					//    {
+					//        string aaa = i.ToString();
+					//    }
 					//}
 
+					object item_mt = item;
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
+					{
+						int aResult = conn.CreateTable(typeof(T));
+						int insertResult = 0;
+						if (checkMaxEntries)
+						{
+							var query = conn.Table<T>();
+							var count = query.Count(); // LOLLO TODO only insert if the table has not too many records
+							insertResult = conn.Insert(item_mt);
+						}
+						else
+						{
+							insertResult = conn.Insert(item_mt);
+						}
+						result = insertResult > 0;
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
+					}
 				}
-				return result;
 			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
 		}
-		private static class LolloSQLiteConnectionPoolMT
+
+		private Task<bool> InsertManyAsync<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			return Task.Run(() =>
+			{
+				return InsertMany<T>(items, checkMaxEntries, semaphore);
+			});
+		}
+		private bool InsertMany<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			if (!_isOpen) return false;
+			bool result = false;
+			try
+			{
+				semaphore.Wait();
+				if (_isOpen)
+				{
+					//bool isTesting = true;
+					//if (isTesting)
+					//{
+					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
+					//    {
+					//        string aaa = i.ToString();
+					//    }
+					//}
+
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
+					{
+						int aResult = conn.CreateTable(typeof(T));
+						int insertResult = 0;
+						if (checkMaxEntries)
+						{
+							var query = conn.Table<T>();
+							var count = query.Count();
+							insertResult = conn.InsertAll(items);
+						}
+						else
+						{
+							insertResult = conn.Insert(items);
+						}
+						result = insertResult > 0;
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
+		}
+		private Task<bool> DeleteAsync<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			return Task.Run(() =>
+			{
+				return Delete<T>(primaryKey, semaphore);
+			});
+		}
+		private bool Delete<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			if (!_isOpen) return false;
+
+			bool result = false;
+			try
+			{
+				object pk_mt = primaryKey;
+
+				semaphore.Wait();
+				if (_isOpen)
+				{
+					//bool isTesting = true;
+					//if (isTesting)
+					//{
+					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
+					//    {
+					//        string aaa = i.ToString();
+					//    }
+					//}
+
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
+					{
+						int aResult = conn.CreateTable(typeof(T));
+						int deleteResult = conn.Delete<T>(pk_mt);
+						result = (deleteResult > 0);
+						if (!result)
+						{
+							if (conn.Get<T>(pk_mt) == null) result = true;
+						}
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+			}
+			return result;
+		}
+		//private Task<bool> UpdateAsync<T>(object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+		//{
+		//	return Task.Run(() =>
+		//	{
+		//		return Update<T>(item, semaphore);
+		//	});
+		//}
+		private bool Update<T>(object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+		{
+			if (!_isOpen) return false;
+
+			bool result = false;
+			int updateResult = 0;
+
+			try
+			{
+				semaphore.Wait();
+				if (_isOpen)
+				{
+					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+					try
+					{
+						int aResult = conn.CreateTable(typeof(T));
+						{
+							updateResult = conn.Update(item);
+							result = true;  //(updateResult > 0);
+						}
+					}
+					finally
+					{
+						_connectionPool.ResetConnection(connectionString.ConnectionString);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					throw;
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(semaphore);
+				//if (updateResult < 1)
+				//{
+				//	Debugger.Break();
+				//	List<T> test = ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
+
+				//	T itemTyped = (T)item;
+
+				//	bool check = test.Contains(itemTyped);
+				//}
+
+			}
+			return result;
+		}
+		//}
+		private class LolloSQLiteConnectionPoolMT : OpenableObservableData
 		{
 			private class LolloConnection
 			{
@@ -1057,10 +1323,10 @@ namespace UniFiler10.Data.DB
 				}
 			}
 
-			private static readonly Dictionary<string, LolloConnection> _connectionsDict = new Dictionary<string, LolloConnection>();
-			private static SemaphoreSlimSafeRelease _connectionsDictSemaphore = null;
+			private readonly Dictionary<string, LolloConnection> _connectionsDict = new Dictionary<string, LolloConnection>();
+			private SemaphoreSlimSafeRelease _connectionsDictSemaphore = null;
 
-			internal static SQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+			internal SQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 			{
 				LolloConnection conn = null;
 				try
@@ -1077,7 +1343,10 @@ namespace UniFiler10.Data.DB
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+					{
 						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						throw;
+					}
 				}
 				finally
 				{
@@ -1089,7 +1358,7 @@ namespace UniFiler10.Data.DB
 			/// <summary>
 			/// Closes a given connection managed by this pool. 
 			/// </summary>
-			internal static void ResetConnection(string connectionString)
+			internal void ResetConnection(string connectionString)
 			{
 				if (connectionString == null) return;
 
@@ -1132,20 +1401,21 @@ namespace UniFiler10.Data.DB
 				}
 			}
 
+			protected override Task OpenMayOverrideAsync()
+			{
+				if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+				return Task.CompletedTask;
+			}
 			/// <summary>
 			/// Call this method when the application is resumed.
 			/// </summary>
-			internal static void Open()
+			//internal void Open()
+			//{
+			//	// I don't need a semaphore for this Open / Close pair coz it is managed by the owner class DBManager
+			//	if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+			//}
+			protected override Task CloseMayOverrideAsync()
 			{
-				// I don't need a semaphore for this Open / Close pair coz it is managed by the owner class DBManager
-				if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-			}
-			/// <summary>
-			/// Closes all connections managed by this pool.
-			/// </summary>
-			internal static void Close()
-			{
-				// I don't need a semaphore for this Open / Close pair coz it is managed by the owner class DBManager
 				try
 				{
 					_connectionsDictSemaphore.Wait();
@@ -1165,7 +1435,34 @@ namespace UniFiler10.Data.DB
 					SemaphoreSlimSafeRelease.TryDispose(_connectionsDictSemaphore);
 					_connectionsDictSemaphore = null;
 				}
+				return Task.CompletedTask;
 			}
+			/// <summary>
+			/// Closes all connections managed by this pool.
+			/// </summary>
+			//internal void Close()
+			//{
+			//	// I don't need a semaphore for this Open / Close pair coz it is managed by the owner class DBManager
+			//	try
+			//	{
+			//		_connectionsDictSemaphore.Wait();
+			//		foreach (var conn in _connectionsDict.Values)
+			//		{
+			//			conn.Reset();
+			//		}
+			//		_connectionsDict.Clear();
+			//	}
+			//	catch (Exception ex)
+			//	{
+			//		if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+			//			Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			//	}
+			//	finally
+			//	{
+			//		SemaphoreSlimSafeRelease.TryDispose(_connectionsDictSemaphore);
+			//		_connectionsDictSemaphore = null;
+			//	}
+			//}
 		}
 	}
 }

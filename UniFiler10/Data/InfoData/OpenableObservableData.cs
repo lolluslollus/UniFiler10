@@ -150,6 +150,31 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
+		protected async Task<bool> RunFunctionWhileOpenAsyncB_MT(Func<bool> func)
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen)
+					{
+						bool isOk = await Task.Run(func).ConfigureAwait(false);
+						return isOk;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return false;
+		}
 		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
         {
 			if (_isOpen)

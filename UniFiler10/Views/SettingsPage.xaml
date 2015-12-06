@@ -146,7 +146,7 @@
 						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
 					</Grid.ColumnDefinitions>
 
-					<SymbolIcon Symbol="OpenFile"
+					<SymbolIcon Symbol="Import"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
 						Width="{StaticResource LandscapeItemHeight}"

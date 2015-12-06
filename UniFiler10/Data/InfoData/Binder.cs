@@ -14,9 +14,9 @@ using Windows.Storage.Streams;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public sealed class Binder : DbBoundObservableData
+	public class Binder : DbBoundObservableData
 	{
-		#region construct and dispose
+		#region ctor and dispose
 		private static readonly object _instanceLock = new object();
 		internal static Binder CreateInstance(string dbName)
 		{
@@ -29,32 +29,29 @@ namespace UniFiler10.Data.Model
 				return _instance;
 			}
 		}
-		private Binder(string dbName)
+		protected Binder(string dbName)
 		{
 			if (dbName == null || string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
 			DBName = dbName;
 		}
-		#endregion construct and dispose
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_folders?.Dispose();
+			_folders = null;
+		}
+
+		#endregion ctor and dispose
 
 
 		#region open and close
-		//public override async Task<bool> OpenAsync()
-		//{
-		//	try
-		//	{
-		//		await _isClosedSemaphore.WaitAsync().ConfigureAwait(false);
-		//		return await base.OpenAsync().ConfigureAwait(false);
-		//	}
-		//	finally
-		//	{
-		//		_isClosedSemaphore.Release();
-		//	}
-		//}
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateDirectoryAsync().ConfigureAwait(false);
 
-			_dbManager = DBManager.CreateInstance(_dbName);
+			//_dbManager = new DBManager(_dbName);
+			_dbManager = new DBManager(_directory, false);
 			await _dbManager.OpenAsync().ConfigureAwait(false);
 
 			await LoadNonDbPropertiesAsync().ConfigureAwait(false);
@@ -64,8 +61,12 @@ namespace UniFiler10.Data.Model
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await _dbManager.CloseAsync().ConfigureAwait(false);
-			_dbManager?.Dispose();
+			var dbM = _dbManager;
+			if (dbM != null)
+			{
+				await dbM.CloseAsync().ConfigureAwait(false);
+				dbM.Dispose();
+			}
 			_dbManager = null;
 
 			Task closeFolders = new Task(delegate
@@ -103,37 +104,30 @@ namespace UniFiler10.Data.Model
 			//	CurrentFolder = null;
 			//}).AsTask().ConfigureAwait(false);
 		}
-		protected override void Dispose(bool isDisposing)
-		{
-			base.Dispose(isDisposing);
-
-			_folders?.Dispose();
-			_folders = null;
-		}
 		#endregion open and close
 
 
 		#region main properties
-		private StorageFolder _directory = null;
+		private static Binder _instance = null;
+		//[IgnoreDataMember]
+		//public static Binder OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
+
+		protected StorageFolder _directory = null;
 		[IgnoreDataMember]
 		public StorageFolder Directory { get { return _directory; } }
 
 
-		private DBManager _dbManager = null;
+		protected DBManager _dbManager = null;
 		[IgnoreDataMember]
 		internal DBManager DbManager { get { return _dbManager; } }
-
-		private static Binder _instance = null;
-		[IgnoreDataMember]
-		public static Binder OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
 
 		private string _dbName = string.Empty;
 		[DataMember]
 		public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
 
-		private SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
+		protected SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<Folder> Folders { get { return _folders; } private set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
+		public SwitchableObservableCollection<Folder> Folders { get { return _folders; } protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
 
 		private string _currentFolderId = DEFAULT_ID;
 		[DataMember]
@@ -167,7 +161,7 @@ namespace UniFiler10.Data.Model
 		public Folder CurrentFolder
 		{
 			get { return _currentFolder; }
-			private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
+			private set { if (_currentFolder != value) { _currentFolder = value; _currentFolder.Binder = this; RaisePropertyChanged_UI(); } }
 		}
 		#endregion main properties
 
@@ -268,7 +262,7 @@ namespace UniFiler10.Data.Model
 		#region loading methods
 		internal const string FILENAME = "LolloSessionDataBinder.xml";
 
-		private async Task LoadNonDbPropertiesAsync()
+		protected async Task LoadNonDbPropertiesAsync()
 		{
 			string errorMessage = string.Empty;
 			Binder newBinder = null;
@@ -372,14 +366,18 @@ namespace UniFiler10.Data.Model
 			DBName = source._dbName;
 			CurrentFolderId = source._currentFolderId; // CurrentFolder will be updated later
 		}
-		private async Task LoadFoldersWithoutContentAsync()
+		protected async Task LoadFoldersWithoutContentAsync()
 		{
 			var folders = await _dbManager.GetFoldersAsync();
+			foreach (var fol in folders)
+			{
+				fol.Binder = this;
+			}
 
 			await RunInUiThreadAsync(delegate
 			{
-				Folders.Clear();
-				Folders.AddRange(folders);
+				_folders.Clear();
+				_folders.AddRange(folders);
 			}).ConfigureAwait(false);
 		}
 
@@ -395,6 +393,7 @@ namespace UniFiler10.Data.Model
 				{
 					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
 					_currentFolder = _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
+					_currentFolder.Binder = this;
 				}
 				else
 				{
@@ -436,7 +435,7 @@ namespace UniFiler10.Data.Model
 
 		public async Task<Folder> AddFolderAsync()
 		{
-			var folder = new Folder();
+			var folder = new Folder(this);
 
 			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
 			{
@@ -456,7 +455,65 @@ namespace UniFiler10.Data.Model
 			if (isOk) return folder;
 			else return null;
 		}
+		public Task<bool> ImportFoldersAsync(StorageFolder fromDirectory)
+		{
+			// LOLLO TODO can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode.
+			return RunFunctionWhileOpenAsyncTB(async delegate
+			{
+				if (fromDirectory == null) return false;
+				bool isOk = false;
 
+				var extraBinder = ExtraBinder.CreateInstance(_dbName, fromDirectory);
+				await extraBinder.OpenAsync().ConfigureAwait(false);
+
+				foreach (var fol in extraBinder.Folders)
+				{
+					await fol.OpenAsync().ConfigureAwait(false);
+					if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
+					{
+						fol.Binder = this;
+						await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
+						foreach (var wal in fol.Wallets)
+						{
+							wal.Binder = this;
+							foreach (var doc in wal.Documents)
+							{
+								doc.Binder = this;
+								var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
+								if (file != null)
+								{
+									var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+									doc.Uri0 = copiedFile.Name;
+								}
+							}
+							await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
+						}
+
+						await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
+						await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
+
+						foreach (var dynFld in fol.DynamicFields)
+						{
+							dynFld.Binder = this;
+						}
+						foreach (var dynCat in fol.DynamicCategories)
+						{
+							dynCat.Binder = this;
+						}
+
+						isOk = true;
+					}
+				}
+				//openExtraFolders.Start();
+				//await openExtraFolders.ConfigureAwait(false);
+
+				await extraBinder.CloseAsync().ConfigureAwait(false);
+				extraBinder.Dispose();
+				extraBinder = null;
+
+				return isOk;
+			});
+		}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
@@ -505,7 +562,7 @@ namespace UniFiler10.Data.Model
 		#region while open filter methods
 		public async Task<List<FolderPreview>> GetAllFolderPreviewsAsync()
 		{
-			List<FolderPreview> output = null;
+			var output = new List<FolderPreview>();
 			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.All) return;
@@ -521,7 +578,7 @@ namespace UniFiler10.Data.Model
 
 		public async Task<List<FolderPreview>> GetRecentFolderPreviewsAsync()
 		{
-			List<FolderPreview> output = null;
+			var output = new List<FolderPreview>();
 			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Recent) return;
@@ -537,7 +594,7 @@ namespace UniFiler10.Data.Model
 
 		public async Task<List<FolderPreview>> GetByCatFolderPreviewsAsync()
 		{
-			List<FolderPreview> output = null;
+			var output = new List<FolderPreview>();
 			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Cat || _dbManager == null || _catIdForCatFilter == null || _catIdForCatFilter == DEFAULT_ID) return;
@@ -555,7 +612,7 @@ namespace UniFiler10.Data.Model
 
 		public async Task<List<FolderPreview>> GetByFldFolderPreviewsAsync()
 		{
-			List<FolderPreview> output = null;
+			var output = new List<FolderPreview>();
 			await RunFunctionWhileOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null) return;
@@ -573,6 +630,19 @@ namespace UniFiler10.Data.Model
 		private List<FolderPreview> GetFolderPreviews(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
 		{
 			var folderPreviews = new List<FolderPreview>();
+
+			foreach (var fol in folders)
+			{
+				fol.Binder = this;
+			}
+			foreach (var wal in wallets)
+			{
+				wal.Binder = this;
+			}
+			foreach (var doc in documents)
+			{
+				doc.Binder = this;
+			}
 
 			foreach (var fol in folders)
 			{

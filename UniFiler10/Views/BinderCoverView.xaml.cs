@@ -132,11 +132,17 @@ namespace UniFiler10.Views
 			});
 		}
 
+		private void OnImportFoldersFromBinder_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			Task imp = _vm?.ImportFoldersFromBinderAsync();
+		}
+
 		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			GoToSettingsRequested?.Invoke(this, EventArgs.Empty);
 		}
 		#endregion event handlers
+
 
 		public void StartAnimation()
 		{

@@ -347,7 +347,7 @@ namespace UniFiler10.Data.Model
 		{
 			// LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
 			// Make sure you restore a Binder and not just any directory!
-			if (from == null)
+			if (from != null)
 			{
 				try
 				{

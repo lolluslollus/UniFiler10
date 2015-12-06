@@ -137,6 +137,26 @@
 				</Button>
 
 				<Button 
+                    Tapped="OnImportFoldersFromBinder_Tapped"
+                    Style="{StaticResource ButtonLolloStyle}">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+						</Grid.ColumnDefinitions>
+
+						<SymbolIcon Symbol="Import"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"/>
+						<TextBlock Grid.Column="2" x:Uid="ImportFolders"
+							MaxWidth="{StaticResource LandscapeItemWidth}"
+							TextWrapping="Wrap" 
+							HorizontalAlignment="Left"/>
+					</Grid>
+				</Button>
+
+				<Button 
                     Tapped="OnSettingsButton_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>

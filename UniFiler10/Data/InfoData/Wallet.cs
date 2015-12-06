@@ -14,7 +14,18 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class Wallet : DbBoundObservableData
 	{
+		public Wallet() { }
+		public Wallet(Binder binder)
+		{
+			_binder = binder;
+		}
+
 		#region properties
+		private Binder _binder = null;
+		[IgnoreDataMember]
+		[Ignore]
+		public Binder Binder { get { return _binder; } set { _binder = value; } }
+
 		private string _name = string.Empty;
 		[DataMember]
 		public string Name { get { return _name; } set { SetProperty(ref _name, value); } }
@@ -40,6 +51,7 @@ namespace UniFiler10.Data.Model
 			{
 				foreach (var doc in docs)
 				{
+					doc.Binder = _binder;
 					await doc.OpenAsync().ConfigureAwait(false);
 				}
 			}
@@ -67,10 +79,12 @@ namespace UniFiler10.Data.Model
 
 			_documents?.Dispose();
 			_documents = null;
+
+			_binder = null;
 		}
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = DBManager.OpenInstance;
+			var ins = _binder?.DbManager;
 			bool output = false;
 			if (ins != null) output = ins.UpdateWallets(this);
 			return output;
@@ -102,7 +116,7 @@ namespace UniFiler10.Data.Model
 
 				if (Document.Check(doc))
 				{
-					var dbM = DBManager.OpenInstance;
+					var dbM = _binder?.DbManager;
 					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc, true))
 					{
 						_documents.Add(doc);
@@ -117,7 +131,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				var doc = new Document();
+				var doc = new Document(_binder);
 				return await AddDocument2Async(doc).ConfigureAwait(false);
 			});
 		}
@@ -125,7 +139,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (doc != null && doc.ParentId == Id)
 			{
-				var dbM = DBManager.OpenInstance;
+				var dbM = _binder?.DbManager;
 				if (dbM != null)
 				{
 					await dbM.DeleteFromDocumentsAsync(doc);
@@ -164,22 +178,22 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (Binder.OpenInstance != null && file != null)
+				if (_binder != null && file != null)
 				{
-					var newDocument = new Document();
+					var newDoc = new Document(_binder);
 
 					StorageFile newFile = null;
 					if (copyFile)
 					{
-						newFile = await file.CopyAsync(Binder.OpenInstance.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
-						newDocument.Uri0 = Path.GetFileName(newFile.Path);
+						newFile = await file.CopyAsync(_binder.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
+						newDoc.Uri0 = Path.GetFileName(newFile.Path);
 					}
 					else
 					{
-						newDocument.Uri0 = Path.GetFileName(file.Path);
+						newDoc.Uri0 = Path.GetFileName(file.Path);
 					}
 
-					if (await AddDocument2Async(newDocument))
+					if (await AddDocument2Async(newDoc))
 					{
 						return true;
 					}
