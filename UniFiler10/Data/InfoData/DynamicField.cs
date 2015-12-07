@@ -14,23 +14,23 @@ namespace UniFiler10.Data.Model
 	public class DynamicField : DbBoundObservableData
 	{
 		public DynamicField() { }
-		public DynamicField(Binder binder)
+		public DynamicField(DBManager dbManager)
 		{
-			_binder = binder;
+			_dbManager = dbManager;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
 			base.Dispose(isDisposing);
 
-			_binder = null;
+			_dbManager = null;
 		}
 
 
 		#region properties
-		private Binder _binder = null;
+		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public Binder Binder { get { return _binder; } set { _binder = value; } }
+		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
 		private FieldValue _fieldValue = null;
 		[IgnoreDataMember]
@@ -54,7 +54,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
-						if (_binder?.DbManager?.UpdateDynamicFields(this) == false)
+						if (_dbManager?.UpdateDynamicFields(this) == false)
 						{
 							//_fieldValueId = oldValue;
 							//UpdateDynamicValues2();
@@ -92,7 +92,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
 					{
-						if (_binder?.DbManager?.UpdateDynamicFields(this) == false)
+						if (_dbManager?.UpdateDynamicFields(this) == false)
 						{
 							//_fieldDescriptionId = oldValue;
 							//UpdateDynamicValues2();
@@ -133,9 +133,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = _binder?.DbManager;
-			if (ins != null) return ins.UpdateDynamicFields(this);
-			else return false;
+			return _dbManager?.UpdateDynamicFields(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)

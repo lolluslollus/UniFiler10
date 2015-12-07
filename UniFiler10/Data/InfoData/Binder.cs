@@ -50,7 +50,6 @@ namespace UniFiler10.Data.Model
 		{
 			await GetCreateDirectoryAsync().ConfigureAwait(false);
 
-			//_dbManager = new DBManager(_dbName);
 			_dbManager = new DBManager(_directory, false);
 			await _dbManager.OpenAsync().ConfigureAwait(false);
 
@@ -161,7 +160,7 @@ namespace UniFiler10.Data.Model
 		public Folder CurrentFolder
 		{
 			get { return _currentFolder; }
-			private set { if (_currentFolder != value) { _currentFolder = value; _currentFolder.Binder = this; RaisePropertyChanged_UI(); } }
+			private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
 		}
 		#endregion main properties
 
@@ -369,10 +368,6 @@ namespace UniFiler10.Data.Model
 		protected async Task LoadFoldersWithoutContentAsync()
 		{
 			var folders = await _dbManager.GetFoldersAsync();
-			foreach (var fol in folders)
-			{
-				fol.Binder = this;
-			}
 
 			await RunInUiThreadAsync(delegate
 			{
@@ -393,7 +388,6 @@ namespace UniFiler10.Data.Model
 				{
 					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
 					_currentFolder = _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
-					_currentFolder.Binder = this;
 				}
 				else
 				{
@@ -435,7 +429,7 @@ namespace UniFiler10.Data.Model
 
 		public async Task<Folder> AddFolderAsync()
 		{
-			var folder = new Folder(this);
+			var folder = new Folder(_dbManager);
 
 			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
 			{
@@ -466,19 +460,20 @@ namespace UniFiler10.Data.Model
 				var extraBinder = ExtraBinder.CreateInstance(_dbName, fromDirectory);
 				await extraBinder.OpenAsync().ConfigureAwait(false);
 
+				// parallelisation here seems ideal, but it screws with SQLite.
+
 				foreach (var fol in extraBinder.Folders)
 				{
 					await fol.OpenAsync().ConfigureAwait(false);
 					if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
 					{
-						fol.Binder = this;
+						await fol.SetDbManager(_dbManager).ConfigureAwait(false);
+
 						await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
 						foreach (var wal in fol.Wallets)
 						{
-							wal.Binder = this;
 							foreach (var doc in wal.Documents)
 							{
-								doc.Binder = this;
 								var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
 								if (file != null)
 								{
@@ -492,20 +487,10 @@ namespace UniFiler10.Data.Model
 						await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
 						await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
 
-						foreach (var dynFld in fol.DynamicFields)
-						{
-							dynFld.Binder = this;
-						}
-						foreach (var dynCat in fol.DynamicCategories)
-						{
-							dynCat.Binder = this;
-						}
-
+						_folders.Add(fol);
 						isOk = true;
 					}
 				}
-				//openExtraFolders.Start();
-				//await openExtraFolders.ConfigureAwait(false);
 
 				await extraBinder.CloseAsync().ConfigureAwait(false);
 				extraBinder.Dispose();
@@ -540,14 +525,19 @@ namespace UniFiler10.Data.Model
 				if (await _dbManager.DeleteFromFoldersAsync(folder))
 				{
 					int previousFolderIndex = Math.Max(0, _folders.IndexOf(folder) - 1);
-					await folder.CloseAsync();
-					bool isOK = _folders.Remove(folder);
 					if (folder.Id == _currentFolderId)
 					{
 						CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
 						await UpdateCurrentFolder2Async(false);
 					}
-					return isOK;
+
+					await RunInUiThreadAsync(delegate { _folders.Remove(folder); }).ConfigureAwait(false);
+
+					await folder.RemoveWalletsAsync().ConfigureAwait(false);
+					await folder.CloseAsync();
+					folder.Dispose();
+
+					return true;
 				}
 				else
 				{
@@ -630,19 +620,6 @@ namespace UniFiler10.Data.Model
 		private List<FolderPreview> GetFolderPreviews(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
 		{
 			var folderPreviews = new List<FolderPreview>();
-
-			foreach (var fol in folders)
-			{
-				fol.Binder = this;
-			}
-			foreach (var wal in wallets)
-			{
-				wal.Binder = this;
-			}
-			foreach (var doc in documents)
-			{
-				doc.Binder = this;
-			}
 
 			foreach (var fol in folders)
 			{

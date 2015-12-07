@@ -15,16 +15,16 @@ namespace UniFiler10.Data.Model
 	public class Wallet : DbBoundObservableData
 	{
 		public Wallet() { }
-		public Wallet(Binder binder)
+		public Wallet(DBManager dbManager)
 		{
-			_binder = binder;
+			_dbManager = dbManager;
 		}
 
 		#region properties
-		private Binder _binder = null;
+		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public Binder Binder { get { return _binder; } set { _binder = value; } }
+		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
 		private string _name = string.Empty;
 		[DataMember]
@@ -51,7 +51,6 @@ namespace UniFiler10.Data.Model
 			{
 				foreach (var doc in docs)
 				{
-					doc.Binder = _binder;
 					await doc.OpenAsync().ConfigureAwait(false);
 				}
 			}
@@ -80,14 +79,11 @@ namespace UniFiler10.Data.Model
 			_documents?.Dispose();
 			_documents = null;
 
-			_binder = null;
+			_dbManager = null;
 		}
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = _binder?.DbManager;
-			bool output = false;
-			if (ins != null) output = ins.UpdateWallets(this);
-			return output;
+			return _dbManager?.UpdateWallets(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
@@ -116,7 +112,7 @@ namespace UniFiler10.Data.Model
 
 				if (Document.Check(doc))
 				{
-					var dbM = _binder?.DbManager;
+					var dbM = _dbManager;
 					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc, true))
 					{
 						_documents.Add(doc);
@@ -131,7 +127,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				var doc = new Document(_binder);
+				var doc = new Document(_dbManager);
 				return await AddDocument2Async(doc).ConfigureAwait(false);
 			});
 		}
@@ -139,7 +135,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (doc != null && doc.ParentId == Id)
 			{
-				var dbM = _binder?.DbManager;
+				var dbM = _dbManager;
 				if (dbM != null)
 				{
 					await dbM.DeleteFromDocumentsAsync(doc);
@@ -161,11 +157,26 @@ namespace UniFiler10.Data.Model
 					}
 
 					await doc.CloseAsync().ConfigureAwait(false);
-					return _documents.Count < countBefore;
+					doc.Dispose();
+
+					return _documents.Count < countBefore || _documents.Count == 0;
 				}
 			}
 			return false;
 		}
+
+		public Task<bool> RemoveDocumentsAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(async delegate
+			{
+				while (_documents.Count > 0)
+				{
+					await RemoveDocument2Async(_documents[0]).ConfigureAwait(false);
+				}
+				return true;
+			});
+		}
+
 		public Task<bool> RemoveDocumentAsync(Document doc)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
@@ -178,14 +189,14 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (_binder != null && file != null)
+				if (_dbManager != null && file != null)
 				{
-					var newDoc = new Document(_binder);
+					var newDoc = new Document(_dbManager);
 
 					StorageFile newFile = null;
 					if (copyFile)
 					{
-						newFile = await file.CopyAsync(_binder.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
+						newFile = await file.CopyAsync(_dbManager.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
 						newDoc.Uri0 = Path.GetFileName(newFile.Path);
 					}
 					else

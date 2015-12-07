@@ -20,6 +20,8 @@ namespace UniFiler10.Data.DB
 		//private string _dbName = string.Empty;
 		private const string DB_FILE_NAME = "Db.db";
 		private string _dbFullPath = string.Empty;
+		private StorageFolder _directory = null;
+		public StorageFolder Directory { get { return _directory; } }
 
 		private readonly bool _isStoreDateTimeAsTicks = true;
 		private readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create; //.FullMutex;
@@ -74,6 +76,7 @@ namespace UniFiler10.Data.DB
 					_openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create;
 				}
 
+				_directory = directory;
 				_dbFullPath = Path.Combine(directory.Path, DB_FILE_NAME);
 				_connectionPool = new LolloSQLiteConnectionPoolMT();
 			}
@@ -384,7 +387,7 @@ namespace UniFiler10.Data.DB
 								if (fieldDescriptionId != null
 									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 								{
-									var dynamicField = new DynamicField() { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
+									var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
 									if (await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
 									{
 										newFields.Add(dynamicField);
@@ -620,6 +623,10 @@ namespace UniFiler10.Data.DB
 				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>
 					(_dynamicCategoriesSemaphore, nameof(DynamicCategory), parentId)
 					.ConfigureAwait(false);
+				foreach (var dynCat in dynCats)
+				{
+					dynCat.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -650,6 +657,10 @@ namespace UniFiler10.Data.DB
 				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>
 					(_dynamicCategoriesSemaphore, nameof(DynamicCategory), catId, "CategoryId")
 					.ConfigureAwait(false);
+				foreach (var dynCat in dynCats)
+				{
+					dynCat.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -665,6 +676,10 @@ namespace UniFiler10.Data.DB
 				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>
 					(_dynamicFieldsSemaphore, nameof(DynamicField), fldDscId, "FieldDescriptionId")
 					.ConfigureAwait(false);
+				foreach (var dynFld in dynFlds)
+				{
+					dynFld.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -680,6 +695,10 @@ namespace UniFiler10.Data.DB
 				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>
 					(_dynamicFieldsSemaphore, nameof(DynamicField), parentId)
 					.ConfigureAwait(false);
+				foreach (var dynFld in dynFlds)
+				{
+					dynFld.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -693,8 +712,11 @@ namespace UniFiler10.Data.DB
 			var docs = new List<Document>();
 			try
 			{
-				docs = await ReadRecordsWithParentIdAsync<Document>
-					(_documentsSemaphore, nameof(Document), parentId).ConfigureAwait(false);
+				docs = await ReadRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), parentId).ConfigureAwait(false);
+				foreach (var doc in docs)
+				{
+					doc.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -708,6 +730,10 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				docs = await ReadTableAsync<Document>(_documentsSemaphore).ConfigureAwait(false);
+				foreach (var doc in docs)
+				{
+					doc.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -722,6 +748,10 @@ namespace UniFiler10.Data.DB
 			{
 				wallets = await ReadRecordsWithParentIdAsync<Wallet>
 					(_walletsSemaphore, nameof(Wallet), parentId).ConfigureAwait(false);
+				foreach (var wal in wallets)
+				{
+					wal.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -735,6 +765,10 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				wallets = await ReadTableAsync<Wallet>(_walletsSemaphore).ConfigureAwait(false);
+				foreach (var wal in wallets)
+				{
+					wal.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -748,6 +782,10 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				folders = await ReadTableAsync<Folder>(_foldersSemaphore).ConfigureAwait(false);
+				foreach (var fol in folders)
+				{
+					fol.DBManager = this;
+				}
 			}
 			catch (Exception exc)
 			{
@@ -1218,7 +1256,7 @@ namespace UniFiler10.Data.DB
 						int aResult = conn.CreateTable(typeof(T));
 						int deleteResult = conn.Delete<T>(pk_mt);
 						result = (deleteResult > 0);
-						if (!result)
+						if (!result) // LOLLO TODO it gets here whenever I delete a folder coz it never finds the wallets or documents
 						{
 							if (conn.Get<T>(pk_mt) == null) result = true;
 						}

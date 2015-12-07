@@ -19,17 +19,17 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public sealed class Folder : DbBoundObservableData
 	{
-		public Folder(Binder binder)
+		public Folder(DBManager dbManager)
 		{
-			_binder = binder;
+			_dbManager = dbManager;
 		}
 		public Folder() { }
 
 		#region properties
-		private Binder _binder = null;
+		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public Binder Binder { get { return _binder; } set { _binder = value; } }
+		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
 		private SwitchableObservableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableCollection<DynamicCategory>();
 		[IgnoreDataMember]
@@ -93,9 +93,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = _binder?.DbManager;
-			if (ins != null) return ins.UpdateFolders(this);
-			else return false;
+			return _dbManager?.UpdateFolders(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
@@ -125,41 +123,22 @@ namespace UniFiler10.Data.Model
 		}
 
 		#region loading methods
-		//private DBManager _dbManager = null;
-		//public async Task OpenAsync(DBManager dbManager)
-		//{
-		//	_dbManager = dbManager;
-		//	await OpenAsync().ConfigureAwait(false);
-		//}
 		protected override async Task OpenMayOverrideAsync()
 		{
 			// LOLLO TODO the following OpenInstance fails when opening an ExtraBinder, across the app.
-			var _dbManager = _binder?.DbManager; if (_dbManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
+			if (_dbManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
 
 			// read children from db
 			var wallets = await _dbManager.GetWalletsAsync(Id).ConfigureAwait(false);
 			foreach (var wallet in wallets)
 			{
-				wallet.Binder = _binder;
 				var docs = await _dbManager.GetDocumentsAsync(wallet.Id).ConfigureAwait(false);
-				foreach (var doc in docs)
-				{
-					doc.Binder = _binder;
-				}
 				wallet.Documents.AddRange(docs);
 			}
 
 			var dynamicFields = await _dbManager.GetDynamicFieldsAsync(Id).ConfigureAwait(false);
-			foreach (var dynFld in dynamicFields)
-			{
-				dynFld.Binder = _binder;
-			}
 
 			var dynamicCategories = await _dbManager.GetDynamicCategoriesAsync(Id).ConfigureAwait(false);
-			foreach (var dynCat in dynamicCategories)
-			{
-				dynCat.Binder = _binder;
-			}
 
 			// populate my collections
 			await RunInUiThreadAsync(delegate
@@ -244,7 +223,7 @@ namespace UniFiler10.Data.Model
 			_dynamicFields?.Dispose();
 			_dynamicFields = null;
 
-			_binder = null;
+			_dbManager = null;
 		}
 
 		private async Task RefreshDynamicPropertiesAsync()
@@ -305,9 +284,8 @@ namespace UniFiler10.Data.Model
 
 			foreach (var obsoleteDynFld in obsoleteDynFlds)
 			{
-				var dbM = _binder?.DbManager;
-				if (dbM != null
-					&& await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
+				var dbM = _dbManager;
+				if (dbM != null && await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
 				{
 					await RunInUiThreadAsync(delegate
 					{
@@ -320,8 +298,8 @@ namespace UniFiler10.Data.Model
 			var newFldDscs = shouldBeFldDscs.Where(fldDsc => !DynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
 			foreach (var newFldDsc in newFldDscs)
 			{
-				var dynFld = new DynamicField(_binder) { ParentId = Id, FieldDescriptionId = newFldDsc.Id };
-				var dbM = _binder?.DbManager;
+				var dynFld = new DynamicField(_dbManager) { ParentId = Id, FieldDescriptionId = newFldDsc.Id };
+				var dbM = _dbManager;
 				if (dbM != null
 					&& await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
 				{
@@ -336,11 +314,34 @@ namespace UniFiler10.Data.Model
 		#endregion loading methods
 
 		#region loaded methods
+		public Task<bool> SetDbManager(DBManager dbManager)
+		{
+			return RunFunctionWhileOpenAsyncA(delegate
+			{
+				_dbManager = dbManager;
+				foreach (var wal in _wallets)
+				{
+					wal.DBManager = dbManager;
+					foreach (var doc in wal.Documents)
+					{
+						doc.DBManager = dbManager;
+					}
+				}
+				foreach (var dynCat in _dynamicCategories)
+				{
+					dynCat.DBManager = dbManager;
+				}
+				foreach (var dynFld in _dynamicFields)
+				{
+					dynFld.DBManager = dbManager;
+				}
+			});
+		}
 		public Task<bool> AddWalletAsync()
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				var wallet = new Wallet(_binder);
+				var wallet = new Wallet(_dbManager);
 				return await AddWallet2Async(wallet).ConfigureAwait(false);
 			});
 		}
@@ -353,7 +354,7 @@ namespace UniFiler10.Data.Model
 
 				if (Wallet.Check(wallet))
 				{
-					var dbM = _binder?.DbManager;
+					var dbM = _dbManager;
 					if (dbM != null && await dbM.InsertIntoWalletsAsync(wallet, true))
 					{
 						await RunInUiThreadAsync(delegate { _wallets.Add(wallet); }).ConfigureAwait(false);
@@ -370,6 +371,17 @@ namespace UniFiler10.Data.Model
 			return false;
 		}
 
+		public Task<bool> RemoveWalletsAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(async delegate
+			{
+				while (_wallets.Count > 0)
+				{
+					await RemoveWallet2Async(_wallets[0]).ConfigureAwait(false);
+				}
+				return true;
+			});
+		}
 		public Task<bool> RemoveWalletAsync(Wallet wallet)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
@@ -381,13 +393,14 @@ namespace UniFiler10.Data.Model
 		{
 			if (wallet != null && wallet.ParentId == Id)
 			{
-				var dbM = _binder?.DbManager;
+				var dbM = _dbManager;
 				if (dbM != null)
 				{
 					await dbM.DeleteFromWalletsAsync(wallet);
 
 					await RunInUiThreadAsync(delegate { _wallets.Remove(wallet); }).ConfigureAwait(false);
 
+					await wallet.RemoveDocumentsAsync().ConfigureAwait(false);
 					bool isOk = await wallet.CloseAsync().ConfigureAwait(false);
 					wallet.Dispose();
 
@@ -403,12 +416,12 @@ namespace UniFiler10.Data.Model
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
-					var newDynCat = new DynamicCategory(_binder) { ParentId = Id, CategoryId = catId };
+					var newDynCat = new DynamicCategory(_dbManager) { ParentId = Id, CategoryId = catId };
 
 					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
 					{
 						List<DynamicField> newFields = new List<DynamicField>();
-						var dbM = _binder?.DbManager;
+						var dbM = _dbManager;
 						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newFields, true))
 						{
 							_dynamicCategories.Add(newDynCat);
@@ -416,7 +429,6 @@ namespace UniFiler10.Data.Model
 							await newDynCat.OpenAsync();
 							foreach (var field in newFields)
 							{
-								field.Binder = _binder;
 								_dynamicFields.Add(field);
 								await field.OpenAsync();
 							}
@@ -443,7 +455,7 @@ namespace UniFiler10.Data.Model
 				if (dynCat != null)
 				{
 					var descriptionIdsOfFieldsToBeRemoved = new List<string>();
-					var dbM = _binder?.DbManager;
+					var dbM = _dbManager;
 					if (dbM != null && await dbM.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
 					{
 						_dynamicCategories.Remove(dynCat);
@@ -470,9 +482,9 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (_binder != null && file != null)
+				if (_dbManager != null && file != null)
 				{
-					var newWallet = new Wallet(_binder);
+					var newWallet = new Wallet(_dbManager);
 					await newWallet.OpenAsync().ConfigureAwait(false); // open the wallet or the following won't run
 					bool isOk = await newWallet.ImportMediaFileAsync(file, copyFile).ConfigureAwait(false)
 						&& await AddWallet2Async(newWallet).ConfigureAwait(false);

@@ -18,22 +18,22 @@ namespace UniFiler10.Data.Model
 	public class Document : DbBoundObservableData
 	{
 		public Document() { }
-		public Document(Binder binder)
+		public Document(DBManager dbManager)
 		{
-			_binder = binder;
+			_dbManager = dbManager;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
 			base.Dispose(isDisposing);
 
-			_binder = null;
+			_dbManager = null;
 		}
 
 		#region properties
-		private Binder _binder = null;
+		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public Binder Binder { get { return _binder; } set { _binder = value; } }
+		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
 		private string _uri0 = string.Empty;
 		[DataMember]
@@ -50,7 +50,7 @@ namespace UniFiler10.Data.Model
 		public string GetFullUri0()
 		{
 			if (string.IsNullOrWhiteSpace(_uri0)) return string.Empty;
-			else return Path.Combine(_binder?.Directory?.Path, _uri0);
+			else return Path.Combine(_dbManager.Directory.Path, _uri0);
 		}
 		public string GetFullUri0(StorageFolder directory)
 		{
@@ -61,9 +61,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			var ins = _binder?.DbManager;
-			if (ins != null) return ins.UpdateDocuments(this);
-			else return false;
+			return _dbManager?.UpdateDocuments(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
