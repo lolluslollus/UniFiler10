@@ -452,6 +452,7 @@ namespace UniFiler10.Data.Model
 		public Task<bool> ImportFoldersAsync(StorageFolder fromDirectory)
 		{
 			// LOLLO TODO can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode.
+			// LOLLO TODO test importing a binder content into itself: it must skip out
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (fromDirectory == null) return false;
@@ -533,6 +534,7 @@ namespace UniFiler10.Data.Model
 
 					await RunInUiThreadAsync(delegate { _folders.Remove(folder); }).ConfigureAwait(false);
 
+					await folder.OpenAsync().ConfigureAwait(false);
 					await folder.RemoveWalletsAsync().ConfigureAwait(false);
 					await folder.CloseAsync();
 					folder.Dispose();

@@ -245,7 +245,7 @@ namespace UniFiler10.Data.DB
 		//}
 		#endregion open and close
 
-		#region table methods
+		#region public methods
 		internal bool UpdateDynamicFields(DynamicField newRecord)
 		{
 			bool result = false;
@@ -365,37 +365,38 @@ namespace UniFiler10.Data.DB
 				newFields.Clear();
 				if (DynamicCategory.Check(newCat)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
-					if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
+					//var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
+					//if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
+					//{
+					// LOLLO TODO I have commented out the lines above coz the DB already checks if the key is unique. Check it.
+					result = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+					if (result)
 					{
-						result = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-						if (result)
+						// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
+						var fieldDescriptionIdsAlreadyInFolder = new List<string>();
+
+						var fieldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
+						foreach (var fieldInFolder in fieldsInFolder)
 						{
-							// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
-							var fieldDescriptionIdsAlreadyInFolder = new List<string>();
+							if (fieldInFolder?.FieldDescriptionId != null
+								&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldInFolder.FieldDescriptionId))
+								fieldDescriptionIdsAlreadyInFolder.Add(fieldInFolder.FieldDescriptionId);
+						}
 
-							var fieldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
-							foreach (var fieldInFolder in fieldsInFolder)
+						foreach (var fieldDescriptionId in newCat.Category.FieldDescriptionIds)
+						{
+							if (fieldDescriptionId != null
+								&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 							{
-								if (fieldInFolder?.FieldDescriptionId != null
-									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldInFolder.FieldDescriptionId))
-									fieldDescriptionIdsAlreadyInFolder.Add(fieldInFolder.FieldDescriptionId);
-							}
-
-							foreach (var fieldDescriptionId in newCat.Category.FieldDescriptionIds)
-							{
-								if (fieldDescriptionId != null
-									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
+								var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
+								if (await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
 								{
-									var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
-									if (await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
-									{
-										newFields.Add(dynamicField);
-									}
+									newFields.Add(dynamicField);
 								}
 							}
 						}
 					}
+					//}
 				}
 			}
 			catch (Exception exc)
@@ -477,61 +478,6 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		//internal async Task<bool> InsertFoldersFullAsync(IEnumerable<Folder> newFolders, bool checkMaxEntries)
-		//{
-		//	bool result = false;
-		//	try
-		//	{
-		//		// LOLLO TODO work on the success or failure results
-		//		foreach (var fol in newFolders)
-		//		{
-		//			if (await InsertAsync<Folder>(fol, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false))
-		//			{
-
-		//				foreach (var wal in fol.Wallets)
-		//				{
-		//					await InsertManyAsync(wal.Documents, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
-		//				}
-		//				await InsertManyAsync(fol.Wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
-		//				await InsertManyAsync(fol.DynamicFields, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
-		//				await InsertManyAsync(fol.DynamicCategories, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-
-		//				result = true;
-		//			}
-		//		}
-		//	}
-		//	catch (Exception exc)
-		//	{
-		//		Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-		//	}
-		//	return result;
-		//}
-
-		//internal async Task<bool> InsertFolderFullAsync(Folder newFolder, bool checkMaxEntries)
-		//{
-		//	bool result = false;
-		//	try
-		//	{
-		//		// LOLLO TODO work on the success or failure results
-		//			if (await InsertAsync<Folder>(newFolder, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false))
-		//			{
-		//				foreach (var wal in newFolder.Wallets)
-		//				{
-		//					await InsertManyAsync(wal.Documents, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
-		//				}
-		//				await InsertManyAsync(newFolder.Wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
-		//				await InsertManyAsync(newFolder.DynamicFields, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
-		//				await InsertManyAsync(newFolder.DynamicCategories, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-
-		//				result = true;
-		//			}
-		//	}
-		//	catch (Exception exc)
-		//	{
-		//		Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-		//	}
-		//	return result;
-		//}
 
 		internal async Task<bool> InsertIntoDocumentsAsync(Document record, bool checkMaxEntries)
 		{
@@ -816,11 +762,11 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				result = await DeleteAsync<Wallet>(wallet.Id, _walletsSemaphore).ConfigureAwait(false);
-				if (!result)
-				{
-					var nonDeletedObj = await ReadRecordByIdAsync<Wallet>(_walletsSemaphore, wallet.Id).ConfigureAwait(false);
-					if (nonDeletedObj == null) result = true;
-				}
+				//if (!result)
+				//{
+				//	var nonDeletedObj = await ReadRecordByIdAsync<Wallet>(_walletsSemaphore, wallet.Id).ConfigureAwait(false);
+				//	if (nonDeletedObj == null) result = true; // LOLLO TODO either get rid of this, or use it in all other DeleteFrom* methods. For now, I got rid of it.
+				//}
 				await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 			}
 			catch (Exception exc)
@@ -836,20 +782,20 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				result = await DeleteAsync<Folder>(folder.Id, _foldersSemaphore).ConfigureAwait(false);
-				if (result)
-				{
-					var wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
+				//if (result)
+				//{
+				var wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
 
-					if (await DeleteRecordsWithParentIdAsync<Wallet>(_documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false))
+				if (await DeleteRecordsWithParentIdAsync<Wallet>(_documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false))
+				{
+					foreach (var wallet in wallets.Distinct())
 					{
-						foreach (var wallet in wallets.Distinct())
-						{
-							await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
-						}
+						await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 					}
-					await DeleteRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), folder.Id).ConfigureAwait(false);
-					await DeleteRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), folder.Id).ConfigureAwait(false);
 				}
+				await DeleteRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), folder.Id).ConfigureAwait(false);
+				await DeleteRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), folder.Id).ConfigureAwait(false);
+				//}
 			}
 			catch (Exception exc)
 			{
@@ -857,10 +803,10 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		#endregion table methods
+		#endregion public methods
 
-		//private class LolloSQLiteConnectionMT
-		//{
+
+		#region private methods
 		private Task<List<T>> ReadTableAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : new()
 		{
 			return Task.Run<List<T>>(() =>
@@ -1025,7 +971,8 @@ namespace UniFiler10.Data.DB
 					try
 					{
 						int aResult = conn.CreateTable(typeof(T));
-						var query = conn.Get<T>(primaryKey);
+						var query = conn.Get<T>(primaryKey); // LOLLO NOTE this throws if it does not find the record, and the exception is hard to catch 
+															 // (it is "Sequence contains no elements", without a specific type)
 						result = query;
 					}
 					finally
@@ -1039,7 +986,8 @@ namespace UniFiler10.Data.DB
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-					throw;
+					return result;
+					// throw;
 				}
 			}
 			finally
@@ -1125,16 +1073,16 @@ namespace UniFiler10.Data.DB
 					{
 						int aResult = conn.CreateTable(typeof(T));
 						int insertResult = 0;
-						if (checkMaxEntries)
-						{
-							var query = conn.Table<T>();
-							var count = query.Count(); // LOLLO TODO only insert if the table has not too many records
-							insertResult = conn.Insert(item_mt);
-						}
-						else
-						{
-							insertResult = conn.Insert(item_mt);
-						}
+						//if (checkMaxEntries)
+						//{
+						//	var query = conn.Table<T>();
+						//	var count = query.Count();
+						//	insertResult = conn.Insert(item_mt);
+						//}
+						//else
+						//{
+						insertResult = conn.Insert(item_mt);
+						//}
 						result = insertResult > 0;
 					}
 					finally
@@ -1148,7 +1096,8 @@ namespace UniFiler10.Data.DB
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-					throw;
+					// LOLLO NOTE this throws if the primary key constraint is severed and the exception is not obvious to catch by type
+					// throw;
 				}
 			}
 			finally
@@ -1189,16 +1138,16 @@ namespace UniFiler10.Data.DB
 					{
 						int aResult = conn.CreateTable(typeof(T));
 						int insertResult = 0;
-						if (checkMaxEntries)
-						{
-							var query = conn.Table<T>();
-							var count = query.Count();
-							insertResult = conn.InsertAll(items);
-						}
-						else
-						{
-							insertResult = conn.Insert(items);
-						}
+						//if (checkMaxEntries)
+						//{
+						//	var query = conn.Table<T>();
+						//	var count = query.Count();
+						//	insertResult = conn.InsertAll(items);
+						//}
+						//else
+						//{
+						insertResult = conn.InsertAll(items);
+						//}
 						result = insertResult > 0;
 					}
 					finally
@@ -1212,7 +1161,8 @@ namespace UniFiler10.Data.DB
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-					throw;
+					// LOLLO NOTE this throws if the primary key constraint is severed and the exception is not obvious to catch by type
+					// throw;
 				}
 			}
 			finally
@@ -1256,10 +1206,13 @@ namespace UniFiler10.Data.DB
 						int aResult = conn.CreateTable(typeof(T));
 						int deleteResult = conn.Delete<T>(pk_mt);
 						result = (deleteResult > 0);
-						if (!result) // LOLLO TODO it gets here whenever I delete a folder coz it never finds the wallets or documents
-						{
-							if (conn.Get<T>(pk_mt) == null) result = true;
-						}
+						//if (!result)
+						//{
+						//	//var query = conn.Table<T>();
+						//	//var currentRecords = query.ToList<T>();
+
+						//	//if (conn.Get<T>(pk_mt) == null) result = true; // no! this throws
+						//}
 					}
 					finally
 					{
@@ -1340,7 +1293,9 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		//}
+		#endregion private methods
+
+
 		private class LolloSQLiteConnectionPoolMT : OpenableObservableData
 		{
 			private class LolloConnection

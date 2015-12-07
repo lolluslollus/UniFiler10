@@ -59,6 +59,7 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion properties
 
+
 		protected override bool UpdateDbMustOverride()
 		{
 			return _dbManager?.UpdateDocuments(this) == true;
@@ -76,5 +77,29 @@ namespace UniFiler10.Data.Model
 		{
 			return _id != DEFAULT_ID && _parentId != DEFAULT_ID;
 		}
+
+
+		#region while open methods
+		public Task<bool> RemoveContentAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(async delegate
+			{
+				try
+				{
+					if (!string.IsNullOrWhiteSpace(_uri0))
+					{
+						var file = await StorageFile.GetFileFromPathAsync(GetFullUri0()).AsTask().ConfigureAwait(false);
+						if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+					}
+					return true;
+				}
+				catch (Exception ex)
+				{
+					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+				return false;
+			});
+		}
+		#endregion while open methods
 	}
 }

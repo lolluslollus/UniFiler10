@@ -93,9 +93,14 @@ namespace UniFiler10.ViewModels
 		{
 			return wallet?.AddDocumentAsync();
 		}
-		public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
+		public async Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
 		{
-			return wallet?.RemoveDocumentAsync(doc);
+			if (wallet != null)
+			{
+				await wallet.OpenAsync();
+				return await wallet.RemoveDocumentAsync(doc);
+			}
+			return false;
 		}
 		public Task SetCurrentFolderAsync(string folderId)
 		{

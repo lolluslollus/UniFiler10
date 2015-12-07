@@ -377,6 +377,7 @@ namespace UniFiler10.Data.Model
 			{
 				while (_wallets.Count > 0)
 				{
+					await _wallets[0].OpenAsync().ConfigureAwait(false);
 					await RemoveWallet2Async(_wallets[0]).ConfigureAwait(false);
 				}
 				return true;
@@ -393,19 +394,16 @@ namespace UniFiler10.Data.Model
 		{
 			if (wallet != null && wallet.ParentId == Id)
 			{
-				var dbM = _dbManager;
-				if (dbM != null)
-				{
-					await dbM.DeleteFromWalletsAsync(wallet);
+				await _dbManager.DeleteFromWalletsAsync(wallet);
 
-					await RunInUiThreadAsync(delegate { _wallets.Remove(wallet); }).ConfigureAwait(false);
+				await RunInUiThreadAsync(delegate { _wallets.Remove(wallet); }).ConfigureAwait(false);
 
-					await wallet.RemoveDocumentsAsync().ConfigureAwait(false);
-					bool isOk = await wallet.CloseAsync().ConfigureAwait(false);
-					wallet.Dispose();
+				await wallet.OpenAsync().ConfigureAwait(false);
+				await wallet.RemoveDocumentsAsync().ConfigureAwait(false);
+				await wallet.CloseAsync().ConfigureAwait(false);
+				wallet.Dispose();
 
-					return isOk;
-				}
+				return true;
 			}
 			return false;
 		}

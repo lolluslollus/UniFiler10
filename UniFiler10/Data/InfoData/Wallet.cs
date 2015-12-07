@@ -135,32 +135,17 @@ namespace UniFiler10.Data.Model
 		{
 			if (doc != null && doc.ParentId == Id)
 			{
-				var dbM = _dbManager;
-				if (dbM != null)
-				{
-					await dbM.DeleteFromDocumentsAsync(doc);
+				await _dbManager.DeleteFromDocumentsAsync(doc);
 
-					int countBefore = _documents.Count;
-					await RunInUiThreadAsync(delegate { _documents.Remove(doc); }).ConfigureAwait(false);
+				int countBefore = _documents.Count;
+				await RunInUiThreadAsync(delegate { _documents.Remove(doc); }).ConfigureAwait(false);
 
-					try
-					{
-						if (!string.IsNullOrWhiteSpace(doc.Uri0))
-						{
-							var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask().ConfigureAwait(false);
-							if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-						}
-					}
-					catch (Exception ex)
-					{
-						await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
-					}
+				await doc.OpenAsync().ConfigureAwait(false);
+				await doc.RemoveContentAsync().ConfigureAwait(false);
+				await doc.CloseAsync().ConfigureAwait(false);
+				doc.Dispose();
 
-					await doc.CloseAsync().ConfigureAwait(false);
-					doc.Dispose();
-
-					return _documents.Count < countBefore || _documents.Count == 0;
-				}
+				return _documents.Count < countBefore || _documents.Count == 0;
 			}
 			return false;
 		}
