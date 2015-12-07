@@ -111,9 +111,12 @@ namespace UniFiler10.ViewModels
 		{
 			//raise confirmation popup
 			// var rl = new ResourceLoader(); // localisation globalisation localization globalization
-			string strQuestion = RuntimeData.ResourceLoader.GetString("DeleteBinderConfirmationRequest");
-			string strYes = RuntimeData.ResourceLoader.GetString("Yes");
-			string strNo = RuntimeData.ResourceLoader.GetString("No");
+			//string strQuestion = RuntimeData.ResourceLoader.GetString("DeleteBinderConfirmationRequest");
+			//string strYes = RuntimeData.ResourceLoader.GetString("Yes");
+			//string strNo = RuntimeData.ResourceLoader.GetString("No");
+			string strQuestion = RuntimeData.GetText("DeleteBinderConfirmationRequest"); // LOLLO TODO test this
+			string strYes = RuntimeData.GetText("Yes");
+			string strNo = RuntimeData.GetText("No");
 
 			var dialog = new MessageDialog(strQuestion);
 			UICommand yesCommand = new UICommand(strYes, (command) => { });
@@ -131,10 +134,15 @@ namespace UniFiler10.ViewModels
 		{
 			//raise confirmation popup
 			//var rl = new ResourceLoader(); // localisation globalisation localization globalization
-			string strQuestion = RuntimeData.ResourceLoader.GetString("ImportBinderConfirmationRequest");
-			string strMerge = RuntimeData.ResourceLoader.GetString("Merge");
-			string strImport = RuntimeData.ResourceLoader.GetString("Import1");
-			string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
+			//string strQuestion = RuntimeData.ResourceLoader.GetString("ImportBinderConfirmationRequest");
+			//string strMerge = RuntimeData.ResourceLoader.GetString("Merge");
+			//string strImport = RuntimeData.ResourceLoader.GetString("Import1");
+			//string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
+			string strQuestion = RuntimeData.GetText("ImportBinderConfirmationRequest"); // LOLLO TODO test this
+			string strMerge = RuntimeData.GetText("Merge");
+			string strImport = RuntimeData.GetText("Import1");
+			string strCancel = RuntimeData.GetText("Cancel");
+
 
 			var dialog = new MessageDialog(strQuestion);
 			UICommand mergeCommand = new UICommand(strMerge, (command) => { });

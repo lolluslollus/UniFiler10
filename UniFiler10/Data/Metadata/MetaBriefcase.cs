@@ -390,8 +390,9 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (_currentFieldDescription == null) return false;
 
-				string name = RuntimeData.MainResourceMap
-					.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString; // localization localisation globalization globalisation
+				string name = RuntimeData.GetText("Resources/NewFieldValue/Text");
+				//string name = RuntimeData._mainResourceMap
+				//	.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString; // localization localisation globalization globalisation
 				var newFldVal = new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true };
 
 				return _currentFieldDescription.AddPossibleValue(newFldVal);
