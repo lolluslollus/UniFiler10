@@ -27,7 +27,7 @@ namespace UniFiler10.ViewModels
 		}
 		protected async override Task OpenMayOverrideAsync()
 		{
-			var briefcase = Briefcase.GetOrCreateInstance();
+			var briefcase = Briefcase.GetCreateInstance();
 			await briefcase.OpenAsync();
 			await briefcase.OpenCurrentBinderAsync();
 

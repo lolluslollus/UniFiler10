@@ -20,7 +20,7 @@ namespace UniFiler10.Data.Model
 	{
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
-		public static Briefcase GetOrCreateInstance()
+		public static Briefcase GetCreateInstance()
 		{
 			lock (_instanceLock)
 			{
@@ -48,11 +48,11 @@ namespace UniFiler10.Data.Model
 			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
 			await LoadAsync().ConfigureAwait(false);
 
-			_metaBriefcase = MetaBriefcase.CreateInstance();
+			_metaBriefcase = MetaBriefcase.GetCreateInstance();
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
-			_runtimeData = RuntimeData.CreateInstance(this);
+			_runtimeData = RuntimeData.GetCreateInstance(this);
 			await _runtimeData.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
@@ -165,7 +165,7 @@ namespace UniFiler10.Data.Model
 			{
 				await CloseCurrentBinder2Async().ConfigureAwait(false);
 
-				_currentBinder = Binder.CreateInstance(_currentBinderName);
+				_currentBinder = Binder.GetCreateInstance(_currentBinderName);
 				if (openTheBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(CurrentBinder)); // notify the UI once the data has been loaded
 				return true;

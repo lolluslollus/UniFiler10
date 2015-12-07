@@ -1085,7 +1085,9 @@ namespace UniFiler10.Data.DB
 						//}
 						result = insertResult > 0;
 					}
+#pragma warning disable 0168
 					catch (NotNullConstraintViolationException ex0)
+#pragma warning restore 0168
 					{
 						result = false;
 					}
@@ -1153,7 +1155,9 @@ namespace UniFiler10.Data.DB
 						//}
 						result = insertResult > 0;
 					}
+#pragma warning disable 0168
 					catch (NotNullConstraintViolationException ex0)
+#pragma warning restore 0168
 					{
 						result = false;
 					}

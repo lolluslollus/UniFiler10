@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Model;
+using UniFiler10.Data.Runtime;
 using Utilz;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
@@ -26,7 +27,7 @@ namespace UniFiler10.ViewModels
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			if (_briefcase == null) _briefcase = Briefcase.GetOrCreateInstance();
+			if (_briefcase == null) _briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
 		}
@@ -109,10 +110,10 @@ namespace UniFiler10.ViewModels
 		private async Task<bool> GetUserConfirmationBeforeDeletingBinderAsync()
 		{
 			//raise confirmation popup
-			var rl = new ResourceLoader(); // localisation globalisation localization globalization
-			string strQuestion = rl.GetString("DeleteBinderConfirmationRequest");
-			string strYes = rl.GetString("Yes");
-			string strNo = rl.GetString("No");
+			// var rl = new ResourceLoader(); // localisation globalisation localization globalization
+			string strQuestion = RuntimeData.ResourceLoader.GetString("DeleteBinderConfirmationRequest");
+			string strYes = RuntimeData.ResourceLoader.GetString("Yes");
+			string strNo = RuntimeData.ResourceLoader.GetString("No");
 
 			var dialog = new MessageDialog(strQuestion);
 			UICommand yesCommand = new UICommand(strYes, (command) => { });
@@ -129,11 +130,11 @@ namespace UniFiler10.ViewModels
 		private async Task<ImportBinderOperations> GetUserConfirmationBeforeImportingBinderAsync()
 		{
 			//raise confirmation popup
-			var rl = new ResourceLoader(); // localisation globalisation localization globalization
-			string strQuestion = rl.GetString("ImportBinderConfirmationRequest");
-			string strMerge = rl.GetString("Merge");
-			string strImport = rl.GetString("Import1");
-			string strCancel = rl.GetString("Cancel");
+			//var rl = new ResourceLoader(); // localisation globalisation localization globalization
+			string strQuestion = RuntimeData.ResourceLoader.GetString("ImportBinderConfirmationRequest");
+			string strMerge = RuntimeData.ResourceLoader.GetString("Merge");
+			string strImport = RuntimeData.ResourceLoader.GetString("Import1");
+			string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
 
 			var dialog = new MessageDialog(strQuestion);
 			UICommand mergeCommand = new UICommand(strMerge, (command) => { });

@@ -125,7 +125,6 @@ namespace UniFiler10.Data.Model
 		#region loading methods
 		protected override async Task OpenMayOverrideAsync()
 		{
-			// LOLLO TODO the following OpenInstance fails when opening an ExtraBinder, across the app.
 			if (_dbManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
 
 			// read children from db

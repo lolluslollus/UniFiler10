@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Resources;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using Utilz;
+using Windows.ApplicationModel.Resources;
+using Windows.ApplicationModel.Resources.Core;
 using Windows.Devices.Enumeration;
 using Windows.Networking.Connectivity;
 
@@ -104,14 +107,17 @@ namespace UniFiler10.Data.Runtime
 
         private DeviceInformation _audioDevice = null;
         public DeviceInformation AudioDevice { get { return _audioDevice; } }
-        #endregion properties
 
-        #region construct dispose open close
-        private static RuntimeData _instance = null;
+		public static ResourceMap MainResourceMap = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap;
+		public static ResourceLoader ResourceLoader = new ResourceLoader(); // LOLLO TODO see fi you can use only one of these resource things
+		#endregion properties
+
+		#region construct dispose open close
+		private static RuntimeData _instance = null;
         public static RuntimeData Instance { get { return _instance; } }
 
         private static readonly object _instanceLock = new object();
-        public static RuntimeData CreateInstance(Briefcase briefcase)
+        public static RuntimeData GetCreateInstance(Briefcase briefcase)
         {
             lock (_instanceLock)
             {

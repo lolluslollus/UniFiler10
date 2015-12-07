@@ -104,7 +104,7 @@ namespace UniFiler10
 		{
 			// LOLLO NOTE this is the first OnResuming to fire
 			// throw new NotImplementedException();
-			var briefcase = Briefcase.GetOrCreateInstance();
+			var briefcase = Briefcase.GetCreateInstance();
 			if (briefcase != null)
 			{
 				await briefcase.OpenAsync().ConfigureAwait(false);

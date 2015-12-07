@@ -18,7 +18,7 @@ namespace UniFiler10.Data.Model
 	{
 		#region ctor and dispose
 		private static readonly object _instanceLock = new object();
-		internal static Binder CreateInstance(string dbName)
+		internal static Binder GetCreateInstance(string dbName)
 		{
 			lock (_instanceLock)
 			{
@@ -458,12 +458,12 @@ namespace UniFiler10.Data.Model
 				if (fromDirectory == null) return false;
 				bool isOk = false;
 
-				var extraBinder = ExtraBinder.CreateInstance(_dbName, fromDirectory);
-				await extraBinder.OpenAsync().ConfigureAwait(false);
+				var mergingBinder = MergingBinder.GetCreateInstance(_dbName, fromDirectory);
+				await mergingBinder.OpenAsync().ConfigureAwait(false);
 
 				// parallelisation here seems ideal, but it screws with SQLite.
 
-				foreach (var fol in extraBinder.Folders)
+				foreach (var fol in mergingBinder.Folders)
 				{
 					await fol.OpenAsync().ConfigureAwait(false);
 					if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
@@ -493,9 +493,9 @@ namespace UniFiler10.Data.Model
 					}
 				}
 
-				await extraBinder.CloseAsync().ConfigureAwait(false);
-				extraBinder.Dispose();
-				extraBinder = null;
+				await mergingBinder.CloseAsync().ConfigureAwait(false);
+				mergingBinder.Dispose();
+				mergingBinder = null;
 
 				return isOk;
 			});

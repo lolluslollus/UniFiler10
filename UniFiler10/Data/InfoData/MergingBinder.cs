@@ -14,24 +14,24 @@ using Windows.Storage.Streams;
 
 namespace UniFiler10.Data.Model
 {
-	public sealed class ExtraBinder : Binder
+	public sealed class MergingBinder : Binder
 	{
 		#region ctor
 		private static readonly object _instanceLock = new object();
-		public static ExtraBinder CreateInstance(string dbName, StorageFolder directory)
+		public static MergingBinder GetCreateInstance(string dbName, StorageFolder directory)
 		{
 			lock (_instanceLock)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
-					_instance = new ExtraBinder(dbName, directory);
+					_instance = new MergingBinder(dbName, directory);
 				}
 				return _instance;
 			}
 		}
-		private ExtraBinder(string dbName, StorageFolder directory) : base(dbName)
+		private MergingBinder(string dbName, StorageFolder directory) : base(dbName)
 		{
-			if (directory == null) throw new ArgumentException("ExtraBinder ctor: directory cannot be null or empty");
+			if (directory == null) throw new ArgumentException("MergingBinder ctor: directory cannot be null or empty");
 			_directory = directory;
 		}
 		#endregion ctor
@@ -65,7 +65,7 @@ namespace UniFiler10.Data.Model
 
 
 		#region properties
-		private static ExtraBinder _instance = null;
+		private static MergingBinder _instance = null;
 		#endregion properties
 	}
 }

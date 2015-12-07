@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
+using UniFiler10.Data.Runtime;
 using Utilz;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
@@ -111,7 +112,7 @@ namespace UniFiler10.Data.Metadata
 
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
-		internal static MetaBriefcase CreateInstance()
+		internal static MetaBriefcase GetCreateInstance()
 		{
 			lock (_instanceLock)
 			{
@@ -389,7 +390,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (_currentFieldDescription == null) return false;
 
-				string name = ResourceManager.Current.MainResourceMap
+				string name = RuntimeData.MainResourceMap
 					.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString; // localization localisation globalization globalisation
 				var newFldVal = new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true };
 

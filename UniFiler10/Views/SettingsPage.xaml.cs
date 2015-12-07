@@ -44,7 +44,7 @@ namespace UniFiler10.Views
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
-			var briefcase = Briefcase.GetOrCreateInstance();
+			var briefcase = Briefcase.GetCreateInstance();
 			await briefcase.OpenAsync();
 
 			_vm = new SettingsVM(briefcase.MetaBriefcase);

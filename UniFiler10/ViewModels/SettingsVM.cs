@@ -141,9 +141,7 @@ namespace UniFiler10.ViewModels
 
 		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{
-			// localisation localization globalisation globalization
-			//string name = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-			return _metaBriefcase?.AddPossibleValueToCurrentFieldDescriptionAsync(/*new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true }*/);
+			return _metaBriefcase?.AddPossibleValueToCurrentFieldDescriptionAsync();
 		}
 		//public bool AddPossibleValueToFieldDescription(FieldValue fldVal, FieldDescription toFldDesc)
 		//{

@@ -119,7 +119,7 @@
     <Compile Include="Data\InfoData\DynamicCategory.cs" />
     <Compile Include="Data\InfoData\DynamicField.cs" />
     <Compile Include="Data\InfoData\DbBoundObservableData.cs" />
-    <Compile Include="Data\InfoData\ExtraBinder.cs" />
+    <Compile Include="Data\InfoData\MergingBinder.cs" />
     <Compile Include="Data\InfoData\OpenableObservableData.cs" />
     <Compile Include="Data\InfoData\Wallet.cs" />
     <Compile Include="Data\InfoData\Binder.cs" />
