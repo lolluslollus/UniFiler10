@@ -17,11 +17,10 @@ namespace UniFiler10.Data.DB
 		#region fields
 		// one db for all tables
 		// one semaphore each table
-		//private string _dbName = string.Empty;
 		private const string DB_FILE_NAME = "Db.db";
 		private string _dbFullPath = string.Empty;
 		private StorageFolder _directory = null;
-		public StorageFolder Directory { get { return _directory; } }
+		internal StorageFolder Directory { get { return _directory; } }
 
 		private readonly bool _isStoreDateTimeAsTicks = true;
 		private readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create; //.FullMutex;
@@ -36,37 +35,10 @@ namespace UniFiler10.Data.DB
 		#endregion fields
 
 		#region construct and dispose
-		//private static readonly object _instanceLock = new object();
-		//private static DBManager _instance = null;
-		//public static DBManager OpenInstance { get { if (_isOpen) return _instance; else return null; } }
-
-		//public static DBManager CreateInstance(string dbName)
-		//{
-		//	lock (_instanceLock)
-		//	{
-		//		if (_instance == null || _instance._isDisposed)
-		//		{
-		//			_instance = new DBManager(dbName);
-		//		}
-		//		return _instance;
-		//	}
-		//}
-		//public DBManager(string pathInFolder)
-		//{
-		//	if (pathInFolder != null && !string.IsNullOrWhiteSpace(pathInFolder))
-		//	{
-		//		_dbName = pathInFolder;
-		//		// _dbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, _dbName, DB_FILE_NAME);
-		//		_dbPath = Path.Combine(Briefcase.BindersDirectory.Path, _dbName, DB_FILE_NAME);
-		//	}
-		//	else throw new ArgumentNullException("DBManager ctor: dbName cannot be null or empty");
-		//}
-		public DBManager(StorageFolder directory, bool isReadOnly)
+		internal DBManager(StorageFolder directory, bool isReadOnly)
 		{
 			if (directory != null)
 			{
-				//_dbName = pathInFolder;
-				// _dbPath = Path.Combine(Briefcase.BindersDirectory.Path, _dbName, DB_FILE_NAME);
 				if (isReadOnly)
 				{
 					_openFlags = SQLiteOpenFlags.ReadOnly;
@@ -80,25 +52,20 @@ namespace UniFiler10.Data.DB
 				_dbFullPath = Path.Combine(directory.Path, DB_FILE_NAME);
 				_connectionPool = new LolloSQLiteConnectionPoolMT();
 			}
-			else throw new ArgumentNullException("DBManager ctor: dbName cannot be null or empty");
+			else throw new ArgumentNullException("DBManager ctor: directory cannot be null or empty");
 		}
-		//private volatile bool _isDisposed = false;
-		//public void Dispose()
-		//{
-		//	_isDisposed = true;
-		//	CloseAsync().Wait();
-		//}
+		protected override void Dispose(bool isDisposing)
+		{
+			base.Dispose(isDisposing);
+
+			_connectionPool?.Dispose();
+			_connectionPool = null;
+		}
 		#endregion construct and dispose
 
 		#region open and close
-		//private SemaphoreSlimSafeRelease _isOpenSemaphore = null;
-		//private volatile bool _isOpen = false;
-		//public bool IsOpen { get { return _isOpen; } private set { _isOpen = value; } }
 		protected override async Task OpenMayOverrideAsync()
 		{
-			// var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-			//var dbFolder = await Briefcase.BindersDirectory.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-
 			if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 			if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 			if (!SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)) _documentsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -107,39 +74,6 @@ namespace UniFiler10.Data.DB
 
 			await _connectionPool.OpenAsync().ConfigureAwait(false);
 		}
-		/// <summary>
-		/// Open the DB
-		/// </summary>
-		//public async Task OpenAsync()
-		//{
-		//	if (!_isOpen)
-		//	{
-		//		try
-		//		{
-		//			if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//			await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-
-		//			if (!_isOpen)
-		//			{
-		//				// var dbFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-		//				//var dbFolder = await Briefcase.BindersDirectory.CreateFolderAsync(_dbName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-
-		//				if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//				if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//				if (!SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)) _documentsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//				if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)) _dynamicFieldsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//				if (!SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore)) _dynamicCategoriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//				LolloSQLiteConnectionPoolMT.Open();
-		//				IsOpen = true;
-		//			}
-		//		}
-		//		catch (Exception ex)
-		//		{
-		//			if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-		//				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//		}
-		//	}
-		//}
 		protected override async Task CloseMayOverrideAsync()
 		{
 			try
@@ -185,64 +119,6 @@ namespace UniFiler10.Data.DB
 				_foldersSemaphore = null;
 			}
 		}
-		/// <summary>
-		/// Wait for all DB operations to end and close the DB
-		/// </summary>
-		/// <returns></returns>
-		//public async Task CloseAsync()
-		//{
-		//	if (_isOpen)
-		//	{
-		//		try
-		//		{
-		//			await Task.Run(() =>
-		//			{
-		//				if (_isOpen)
-		//				{
-		//					try
-		//					{
-		//						_foldersSemaphore.Wait();
-		//						_walletsSemaphore.Wait();
-		//						_documentsSemaphore.Wait();
-		//						_dynamicFieldsSemaphore.Wait();
-		//						_dynamicCategoriesSemaphore.Wait();
-
-		//						IsOpen = false;
-
-		//						LolloSQLiteConnectionPoolMT.Close();
-		//					}
-		//					catch (Exception ex)
-		//					{
-		//						if (SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)
-		//							&& SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)
-		//							&& SemaphoreSlimSafeRelease.IsAlive(_documentsSemaphore)
-		//							&& SemaphoreSlimSafeRelease.IsAlive(_dynamicFieldsSemaphore)
-		//							&& SemaphoreSlimSafeRelease.IsAlive(_dynamicCategoriesSemaphore))
-		//							Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//					}
-		//					finally
-		//					{
-		//						SemaphoreSlimSafeRelease.TryDispose(_dynamicCategoriesSemaphore);
-		//						_dynamicCategoriesSemaphore = null;
-		//						SemaphoreSlimSafeRelease.TryDispose(_dynamicFieldsSemaphore);
-		//						_dynamicFieldsSemaphore = null;
-		//						SemaphoreSlimSafeRelease.TryDispose(_documentsSemaphore);
-		//						_documentsSemaphore = null;
-		//						SemaphoreSlimSafeRelease.TryDispose(_walletsSemaphore);
-		//						_walletsSemaphore = null;
-		//						SemaphoreSlimSafeRelease.TryDispose(_foldersSemaphore);
-		//						_foldersSemaphore = null;
-		//					}
-		//				}
-		//			}).ConfigureAwait(false);
-		//		}
-		//		finally
-		//		{
-		//			SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
-		//			_isOpenSemaphore = null;
-		//		}
-		//	}
-		//}
 		#endregion open and close
 
 		#region public methods
@@ -329,7 +205,7 @@ namespace UniFiler10.Data.DB
 				if (DynamicField.Check(newFld)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var fieldsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicCategory), newFld.ParentId).ConfigureAwait(false);
-					if (!fieldsAlreadyInFolder.Any(ff => ff.FieldDescriptionId == newFld.FieldDescriptionId))
+					if (!fieldsAlreadyInFolder.Any(fld => fld.FieldDescriptionId == newFld.FieldDescriptionId))
 					{
 						result = await InsertAsync<DynamicField>(newFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 					}
@@ -357,46 +233,45 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDynamicCategoriesAsync(DynamicCategory newCat, List<DynamicField> newFields, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicCategoriesAsync(DynamicCategory newCat, List<DynamicField> newDynFlds, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				newFields.Clear();
+				newDynFlds.Clear();
 				if (DynamicCategory.Check(newCat)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					//var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
-					//if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
-					//{
-					// LOLLO TODO I have commented out the lines above coz the DB already checks if the key is unique. It should be OK but check it.
-					result = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-					if (result)
+					var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
+					if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
 					{
-						// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
-						var fieldDescriptionIdsAlreadyInFolder = new List<string>();
-
-						var fieldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
-						foreach (var fieldInFolder in fieldsInFolder)
+						result = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+						if (result)
 						{
-							if (fieldInFolder?.FieldDescriptionId != null
-								&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldInFolder.FieldDescriptionId))
-								fieldDescriptionIdsAlreadyInFolder.Add(fieldInFolder.FieldDescriptionId);
-						}
+							// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
+							var fieldDescriptionIdsAlreadyInFolder = new List<string>();
 
-						foreach (var fieldDescriptionId in newCat.Category.FieldDescriptionIds)
-						{
-							if (fieldDescriptionId != null
-								&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
+							var fieldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
+							foreach (var fieldInFolder in fieldsInFolder)
 							{
-								var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
-								if (await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
+								if (fieldInFolder?.FieldDescriptionId != null
+									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldInFolder.FieldDescriptionId))
+									fieldDescriptionIdsAlreadyInFolder.Add(fieldInFolder.FieldDescriptionId);
+							}
+
+							foreach (var fieldDescriptionId in newCat.Category.FieldDescriptionIds)
+							{
+								if (fieldDescriptionId != null
+									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 								{
-									newFields.Add(dynamicField);
+									var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
+									if (await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false))
+									{
+										newDynFlds.Add(dynamicField);
+									}
 								}
 							}
 						}
 					}
-					//}
 				}
 			}
 			catch (Exception exc)
@@ -432,10 +307,10 @@ namespace UniFiler10.Data.DB
 				// delete the dynamic fields owned by this category unless they are owned by another category
 				if (result)
 				{
-					var otherAvailableCategories = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), cat.ParentId).ConfigureAwait(false);
+					var otherCatsInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), cat.ParentId).ConfigureAwait(false);
 
 					List<string> otherFieldDescrIds = new List<string>();
-					foreach (var otherCat in otherAvailableCategories)
+					foreach (var otherCat in otherCatsInFolder)
 					{
 						if (otherCat?.Category?.FieldDescriptionIds != null)
 						{
@@ -448,8 +323,8 @@ namespace UniFiler10.Data.DB
 						}
 					}
 
-					var dynamicFieldsInCurrentFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), cat.ParentId).ConfigureAwait(false);
-					foreach (var fieldToDelete in dynamicFieldsInCurrentFolder.Where(a => a?.FieldDescriptionId != null && !otherFieldDescrIds.Contains(a.FieldDescriptionId)))
+					var dynFldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), cat.ParentId).ConfigureAwait(false);
+					foreach (var fieldToDelete in dynFldsInFolder.Where(dynFld => dynFld?.FieldDescriptionId != null && !otherFieldDescrIds.Contains(dynFld.FieldDescriptionId)))
 					{
 						if (await DeleteAsync<DynamicField>(fieldToDelete.Id, _dynamicFieldsSemaphore).ConfigureAwait(false))
 						{
@@ -580,21 +455,6 @@ namespace UniFiler10.Data.DB
 			}
 			return dynCats;
 		}
-		//internal async Task<List<DynamicCategory>> GetDynamicCategoriesAsync()
-		//{
-		//	List<DynamicCategory> dynCats = new List<DynamicCategory>();
-		//	try
-		//	{
-		//		dynCats = await LolloSQLiteConnectionMT.ReadTableAsync<DynamicCategory>
-		//			(_dbPath, _openFlags, _isStoreDateTimeAsTicks, _dynamicCategoriesSemaphore)
-		//			.ConfigureAwait(false);
-		//	}
-		//	catch (Exception exc)
-		//	{
-		//		Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-		//	}
-		//	return dynCats;
-		//}
 		internal async Task<List<DynamicCategory>> GetDynamicCategoriesByCatIdAsync(string catId)
 		{
 			var dynCats = new List<DynamicCategory>();
@@ -777,23 +637,24 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				result = await DeleteAsync<Folder>(folder.Id, _foldersSemaphore).ConfigureAwait(false);
-				//if (result)
-				//{
-				var wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
-
-				if (await DeleteRecordsWithParentIdAsync<Wallet>(_documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false))
+				if (result)
 				{
-					foreach (var wallet in wallets.Distinct())
+					var wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
+
+					if (await DeleteRecordsWithParentIdAsync<Wallet>(_documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false))
 					{
-						await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
+						foreach (var wallet in wallets.Distinct())
+						{
+							await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
+						}
 					}
+					await DeleteRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), folder.Id).ConfigureAwait(false);
+					await DeleteRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), folder.Id).ConfigureAwait(false);
 				}
-				await DeleteRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), folder.Id).ConfigureAwait(false);
-				await DeleteRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), folder.Id).ConfigureAwait(false);
-				//}
 			}
 			catch (Exception exc)
 			{
+				Debugger.Break();
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 			}
 			return result;
@@ -838,6 +699,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -872,7 +734,7 @@ namespace UniFiler10.Data.DB
 					try
 					{
 						int aResult = conn.CreateTable(typeof(T));
-						string delQueryString = string.Format("DELETE FROM {0} WHERE ParentId = '{1}'", tableName, parentId);
+						string delQueryString = string.Format("DELETE FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
 						int queryResult = conn.Execute(delQueryString);
 						result = queryResult > 0;
 
@@ -893,6 +755,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -940,6 +803,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -1031,6 +895,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -1101,6 +966,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex1.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -1171,6 +1037,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -1228,6 +1095,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -1277,6 +1145,7 @@ namespace UniFiler10.Data.DB
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
+					Debugger.Break();
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					throw;
 				}
@@ -1341,6 +1210,7 @@ namespace UniFiler10.Data.DB
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
 					{
+						Debugger.Break();
 						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 						throw;
 					}
@@ -1372,6 +1242,7 @@ namespace UniFiler10.Data.DB
 				}
 				catch (Exception ex0)
 				{
+					Debugger.Break();
 					// LOLLO TODO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
 					// I now use close_v2 instead of close, and it looks better.
 					try
@@ -1403,14 +1274,6 @@ namespace UniFiler10.Data.DB
 				if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 				return Task.CompletedTask;
 			}
-			/// <summary>
-			/// Call this method when the application is resumed.
-			/// </summary>
-			//internal void Open()
-			//{
-			//	// I don't need a semaphore for this Open / Close pair coz it is managed by the owner class DBManager
-			//	if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-			//}
 			protected override Task CloseMayOverrideAsync()
 			{
 				try
@@ -1425,7 +1288,10 @@ namespace UniFiler10.Data.DB
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+					{
+						Debugger.Break();
 						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
 				}
 				finally
 				{
@@ -1434,32 +1300,6 @@ namespace UniFiler10.Data.DB
 				}
 				return Task.CompletedTask;
 			}
-			/// <summary>
-			/// Closes all connections managed by this pool.
-			/// </summary>
-			//internal void Close()
-			//{
-			//	// I don't need a semaphore for this Open / Close pair coz it is managed by the owner class DBManager
-			//	try
-			//	{
-			//		_connectionsDictSemaphore.Wait();
-			//		foreach (var conn in _connectionsDict.Values)
-			//		{
-			//			conn.Reset();
-			//		}
-			//		_connectionsDict.Clear();
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
-			//			Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			//	}
-			//	finally
-			//	{
-			//		SemaphoreSlimSafeRelease.TryDispose(_connectionsDictSemaphore);
-			//		_connectionsDictSemaphore = null;
-			//	}
-			//}
 		}
 	}
 }

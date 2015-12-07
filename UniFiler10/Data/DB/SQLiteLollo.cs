@@ -1540,7 +1540,7 @@ namespace SQLite
 			catch (SQLiteException ex)
 			{
 
-				if (ex.Result == SQLite3.Result.Constraint && SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
+				if (ex.Result == SQLite3.Result.Constraint) // LOLLO commented out this && SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
 				{
 					throw NotNullConstraintViolationException.New(ex, map, obj);
 				}
@@ -2289,10 +2289,11 @@ namespace SQLite
 			}
 			else if (r == SQLite3.Result.Constraint)
 			{
-				if (SQLite3.ExtendedErrCode(_conn.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
-				{
-					throw NotNullConstraintViolationException.New(r, SQLite3.GetErrmsg(_conn.Handle));
-				}
+				// LOLLO commented out this
+				//if (SQLite3.ExtendedErrCode(_conn.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
+				//{
+				throw NotNullConstraintViolationException.New(r, SQLite3.GetErrmsg(_conn.Handle));
+				//}
 			}
 
 			throw SQLiteException.New(r, r.ToString());
