@@ -368,7 +368,7 @@ namespace UniFiler10.Data.DB
 					//var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
 					//if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
 					//{
-					// LOLLO TODO I have commented out the lines above coz the DB already checks if the key is unique. Check it.
+					// LOLLO TODO I have commented out the lines above coz the DB already checks if the key is unique. It should be OK but check it.
 					result = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 					if (result)
 					{
@@ -762,11 +762,6 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				result = await DeleteAsync<Wallet>(wallet.Id, _walletsSemaphore).ConfigureAwait(false);
-				//if (!result)
-				//{
-				//	var nonDeletedObj = await ReadRecordByIdAsync<Wallet>(_walletsSemaphore, wallet.Id).ConfigureAwait(false);
-				//	if (nonDeletedObj == null) result = true; // LOLLO TODO either get rid of this, or use it in all other DeleteFrom* methods. For now, I got rid of it.
-				//}
 				await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 			}
 			catch (Exception exc)
@@ -862,7 +857,7 @@ namespace UniFiler10.Data.DB
 				return DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId);
 			});
 		}
-		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId) where T : new()
+		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
 		{
 			if (!_isOpen) return false;
 
@@ -877,9 +872,16 @@ namespace UniFiler10.Data.DB
 					try
 					{
 						int aResult = conn.CreateTable(typeof(T));
-						string queryString = string.Format("DELETE FROM {0} WHERE ParentId = '{1}'", tableName, parentId);
-						int queryResult = conn.Execute(queryString);
+						string delQueryString = string.Format("DELETE FROM {0} WHERE ParentId = '{1}'", tableName, parentId);
+						int queryResult = conn.Execute(delQueryString);
 						result = queryResult > 0;
+
+						if (!result)
+						{
+							string readQueryString = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
+							var query = conn.Query<T>(delQueryString);
+							result = query.Count <= 0;
+						}
 					}
 					finally
 					{
@@ -948,54 +950,52 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
-		{
-			return Task.Run<T>(() =>
-			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-			{
-				return ReadRecordById<T>(SemaphoreSlimSafeRelease, primaryKey);
-			});
-		}
-		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
-		{
-			if (!_isOpen) return default(T);
+		//private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
+		//{
+		//	return Task.Run<T>(() =>
+		//	//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+		//	{
+		//		return ReadRecordById<T>(SemaphoreSlimSafeRelease, primaryKey);
+		//	});
+		//}
+		//private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
+		//{
+		//	if (!_isOpen) return default(T);
 
-			T result = default(T);
-			try
-			{
-				semaphore.Wait();
-				if (_isOpen)
-				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
-					try
-					{
-						int aResult = conn.CreateTable(typeof(T));
-						var query = conn.Get<T>(primaryKey); // LOLLO NOTE this throws if it does not find the record, and the exception is hard to catch 
-															 // (it is "Sequence contains no elements", without a specific type)
-						result = query;
-					}
-					finally
-					{
-						_connectionPool.ResetConnection(connectionString.ConnectionString);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-					return result;
-					// throw;
-				}
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(semaphore);
-			}
-			return result;
-		}
+		//	T result = default(T);
+		//	try
+		//	{
+		//		semaphore.Wait();
+		//		if (_isOpen)
+		//		{
+		//			var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+		//			var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+		//			try
+		//			{
+		//				int aResult = conn.CreateTable(typeof(T));
+		//				var query = conn.Get<T>(primaryKey);
+		//				result = query;
+		//			}
+		//			finally
+		//			{
+		//				_connectionPool.ResetConnection(connectionString.ConnectionString);
+		//			}
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+		//		{
+		//			Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+		//			throw;
+		//		}
+		//	}
+		//	finally
+		//	{
+		//		SemaphoreSlimSafeRelease.TryRelease(semaphore);
+		//	}
+		//	return result;
+		//}
 		private Task<bool> DeleteAllAsync<T>(SemaphoreSlimSafeRelease semaphore)
 		{
 			return Task.Run(() =>
@@ -1085,19 +1085,22 @@ namespace UniFiler10.Data.DB
 						//}
 						result = insertResult > 0;
 					}
+					catch (NotNullConstraintViolationException ex0)
+					{
+						result = false;
+					}
 					finally
 					{
 						_connectionPool.ResetConnection(connectionString.ConnectionString);
 					}
 				}
 			}
-			catch (Exception ex)
+			catch (Exception ex1)
 			{
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
-					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-					// LOLLO NOTE this throws if the primary key constraint is severed and the exception is not obvious to catch by type
-					// throw;
+					Logger.Add_TPL(ex1.ToString(), Logger.PersistentDataLogFilename);
+					throw;
 				}
 			}
 			finally
@@ -1150,6 +1153,10 @@ namespace UniFiler10.Data.DB
 						//}
 						result = insertResult > 0;
 					}
+					catch (NotNullConstraintViolationException ex0)
+					{
+						result = false;
+					}
 					finally
 					{
 						_connectionPool.ResetConnection(connectionString.ConnectionString);
@@ -1161,8 +1168,7 @@ namespace UniFiler10.Data.DB
 				if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-					// LOLLO NOTE this throws if the primary key constraint is severed and the exception is not obvious to catch by type
-					// throw;
+					throw;
 				}
 			}
 			finally
@@ -1206,13 +1212,7 @@ namespace UniFiler10.Data.DB
 						int aResult = conn.CreateTable(typeof(T));
 						int deleteResult = conn.Delete<T>(pk_mt);
 						result = (deleteResult > 0);
-						//if (!result)
-						//{
-						//	//var query = conn.Table<T>();
-						//	//var currentRecords = query.ToList<T>();
-
-						//	//if (conn.Get<T>(pk_mt) == null) result = true; // no! this throws
-						//}
+						if (!result && conn.Get<T>(pk_mt) == null) result = true;
 					}
 					finally
 					{
@@ -1368,7 +1368,7 @@ namespace UniFiler10.Data.DB
 				}
 				catch (Exception ex0)
 				{
-					// LOLLO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
+					// LOLLO TODO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
 					// I now use close_v2 instead of close, and it looks better.
 					try
 					{

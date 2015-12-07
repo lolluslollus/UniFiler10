@@ -318,7 +318,7 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		public Task<bool> RestoreBinderAsync(StorageFolder fromStorageFolder)
+		public Task<bool> ImportBinderAsync(StorageFolder fromStorageFolder)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
@@ -339,6 +339,21 @@ namespace UniFiler10.Data.Model
 				}
 				// update the current binder and open it if it was open before
 				if (wasOpen) await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
+
+				return isOk;
+			});
+		}
+		public Task<bool> MergeBinderAsync(StorageFolder fromDirectory)
+		{// LOLLO TODO check this
+			return RunFunctionWhileOpenAsyncTB(async delegate
+			{
+				if (fromDirectory == null || string.IsNullOrWhiteSpace(fromDirectory.Name) || !_dbNames.Contains(fromDirectory.Name)) return false;
+
+				// close the current binder if it is NOT the one to be merged into, and open the binder to be merged into
+				CurrentBinderName = fromDirectory.Name;
+				await UpdateCurrentBinder2Async(true).ConfigureAwait(false);
+
+				bool isOk = await _currentBinder.ImportFoldersAsync(fromDirectory).ConfigureAwait(false);
 
 				return isOk;
 			});
@@ -386,6 +401,10 @@ namespace UniFiler10.Data.Model
 			return false;
 		}
 
+		public Task<bool> IsDbNameAvailableAsync(string dbName)
+		{
+			return RunFunctionWhileOpenAsyncB(delegate { return _dbNames.Contains(dbName); });
+		}
 		public Task<bool> IsNewDbNameWrongAsync(string newDbName)
 		{
 			return RunFunctionWhileOpenAsyncB(delegate { return IsNewDbNameWrong2(newDbName); });

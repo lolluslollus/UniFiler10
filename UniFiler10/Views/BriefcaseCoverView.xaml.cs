@@ -87,7 +87,7 @@ namespace UniFiler10.Views
 
 		private void OnRestoreButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task restore = VM?.RestoreDbAsync();
+			Task restore = VM?.ImportDbAsync();
 		}
 
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)

@@ -125,13 +125,57 @@ namespace UniFiler10.ViewModels
 			return reply == yesCommand;
 		}
 
-		public async Task<bool> RestoreDbAsync()
+		private enum ImportBinderOperations { Cancel, Import, Merge }
+		private async Task<ImportBinderOperations> GetUserConfirmationBeforeImportingBinderAsync()
+		{
+			//raise confirmation popup
+			var rl = new ResourceLoader(); // localisation globalisation localization globalization
+			string strQuestion = rl.GetString("ImportBinderConfirmationRequest");
+			string strMerge = rl.GetString("Merge");
+			string strImport = rl.GetString("Import1");
+			string strCancel = rl.GetString("Cancel");
+
+			var dialog = new MessageDialog(strQuestion);
+			UICommand mergeCommand = new UICommand(strMerge, (command) => { });
+			UICommand importCommand = new UICommand(strImport, (command) => { });
+			UICommand cancelCommand = new UICommand(strCancel, (command) => { });
+
+			dialog.Commands.Add(mergeCommand);
+			dialog.Commands.Add(importCommand);
+			dialog.Commands.Add(cancelCommand);
+
+			dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
+			IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+
+			if (reply == mergeCommand) return ImportBinderOperations.Merge;
+			else if (reply == importCommand) return ImportBinderOperations.Import;
+			else return ImportBinderOperations.Cancel;
+		}
+		public async Task<bool> ImportDbAsync()
 		{
 			var briefcase = _briefcase;
 			if (briefcase != null)
 			{
-				var fromStorageFolder = await PickFolderAsync();
-				return await briefcase.RestoreBinderAsync(fromStorageFolder);
+				var fromDirectory = await PickFolderAsync();
+				if (fromDirectory != null)
+				{
+					if (await briefcase.IsDbNameAvailableAsync(fromDirectory.Name))
+					{
+						var nextAction = await GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
+						if (nextAction == ImportBinderOperations.Merge)
+						{
+							return await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);
+						}
+						else if (nextAction == ImportBinderOperations.Import)
+						{
+							return await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+						}
+					}
+					else
+					{
+						return await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+					}
+				}
 			}
 			return false;
 		}

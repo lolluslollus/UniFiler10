@@ -832,7 +832,7 @@ namespace SQLite
 		public T Get<T>(object pk) where T : new()
 		{
 			var map = GetMapping(typeof(T));
-			return Query<T>(map.GetByPrimaryKeySql, pk).First();
+			return Query<T>(map.GetByPrimaryKeySql, pk).FirstOrDefault(); // LOLLO NOTE was .First but it throws
 		}
 
 		/// <summary>
@@ -2703,7 +2703,7 @@ namespace SQLite
 				SQLite3.Reset(Statement);
 				throw SQLiteException.New(r, msg);
 			}
-			else if (r == SQLite3.Result.Constraint && SQLite3.ExtendedErrCode(Connection.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
+			else if (r == SQLite3.Result.Constraint) // LOLLO NOTE I took out  && SQLite3.ExtendedErrCode(Connection.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
 			{
 				SQLite3.Reset(Statement);
 				throw NotNullConstraintViolationException.New(r, SQLite3.GetErrmsg(Connection.Handle));
