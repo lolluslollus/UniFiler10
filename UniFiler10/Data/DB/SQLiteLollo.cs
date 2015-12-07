@@ -78,17 +78,17 @@ namespace SQLite
 		}
 	}
 
-	public class NotNullConstraintViolationException : SQLiteException
+	public class ConstraintViolationException : SQLiteException // LOLLO was NotNullConstraintViolationException
 	{
 		public IEnumerable<TableMapping.Column> Columns { get; protected set; }
 
-		protected NotNullConstraintViolationException(SQLite3.Result r, string message)
+		protected ConstraintViolationException(SQLite3.Result r, string message)
 			: this(r, message, null, null)
 		{
 
 		}
 
-		protected NotNullConstraintViolationException(SQLite3.Result r, string message, TableMapping mapping, object obj)
+		protected ConstraintViolationException(SQLite3.Result r, string message, TableMapping mapping, object obj)
 			: base(r, message)
 		{
 			if (mapping != null && obj != null)
@@ -99,19 +99,19 @@ namespace SQLite
 			}
 		}
 
-		public static new NotNullConstraintViolationException New(SQLite3.Result r, string message)
+		public static new ConstraintViolationException New(SQLite3.Result r, string message)
 		{
-			return new NotNullConstraintViolationException(r, message);
+			return new ConstraintViolationException(r, message);
 		}
 
-		public static NotNullConstraintViolationException New(SQLite3.Result r, string message, TableMapping mapping, object obj)
+		public static ConstraintViolationException New(SQLite3.Result r, string message, TableMapping mapping, object obj)
 		{
-			return new NotNullConstraintViolationException(r, message, mapping, obj);
+			return new ConstraintViolationException(r, message, mapping, obj);
 		}
 
-		public static NotNullConstraintViolationException New(SQLiteException exception, TableMapping mapping, object obj)
+		public static ConstraintViolationException New(SQLiteException exception, TableMapping mapping, object obj)
 		{
-			return new NotNullConstraintViolationException(exception.Result, exception.Message, mapping, obj);
+			return new ConstraintViolationException(exception.Result, exception.Message, mapping, obj);
 		}
 	}
 
@@ -1453,9 +1453,10 @@ namespace SQLite
 				}
 				catch (SQLiteException ex)
 				{
-					if (SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
+					//if (SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull) // LOLLO was
+					if (ex.Result == SQLite3.Result.Constraint)
 					{
-						throw NotNullConstraintViolationException.New(ex.Result, ex.Message, map, obj);
+						throw ConstraintViolationException.New(ex.Result, ex.Message, map, obj);
 					}
 					throw;
 				}
@@ -1542,7 +1543,7 @@ namespace SQLite
 
 				if (ex.Result == SQLite3.Result.Constraint) // LOLLO commented out this && SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
 				{
-					throw NotNullConstraintViolationException.New(ex, map, obj);
+					throw ConstraintViolationException.New(ex, map, obj);
 				}
 
 				throw ex;
@@ -2292,7 +2293,7 @@ namespace SQLite
 				// LOLLO commented out this
 				//if (SQLite3.ExtendedErrCode(_conn.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
 				//{
-				throw NotNullConstraintViolationException.New(r, SQLite3.GetErrmsg(_conn.Handle));
+				throw ConstraintViolationException.New(r, SQLite3.GetErrmsg(_conn.Handle));
 				//}
 			}
 
@@ -2707,7 +2708,7 @@ namespace SQLite
 			else if (r == SQLite3.Result.Constraint) // LOLLO NOTE I took out  && SQLite3.ExtendedErrCode(Connection.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
 			{
 				SQLite3.Reset(Statement);
-				throw NotNullConstraintViolationException.New(r, SQLite3.GetErrmsg(Connection.Handle));
+				throw ConstraintViolationException.New(r, SQLite3.GetErrmsg(Connection.Handle));
 			}
 			else
 			{

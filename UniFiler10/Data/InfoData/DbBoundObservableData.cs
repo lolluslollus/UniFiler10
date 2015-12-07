@@ -16,7 +16,7 @@ using Windows.UI.Core;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public class DbBoundObservableData : OpenableObservableData, IEqualityComparer<DbBoundObservableData>
+	public abstract class DbBoundObservableData : OpenableObservableData // , IEquatable<DbBoundObservableData>  //, IEqualityComparer<DbBoundObservableData>
 	{
 		public static readonly string DEFAULT_ID = string.Empty;
 
@@ -160,8 +160,8 @@ namespace UniFiler10.Data.Model
 		//}
 		//protected abstract bool IsEqualToMustOverride(DbBoundObservableData that);
 
-		//protected abstract bool CheckMeMustOverride();
-		protected virtual bool CheckMeMustOverride() { return false; }
+		protected abstract bool CheckMeMustOverride();
+		//protected virtual bool CheckMeMustOverride() { return false; }
 		public static bool Check(DbBoundObservableData item)
 		{
 			if (item == null) return false;
@@ -177,20 +177,21 @@ namespace UniFiler10.Data.Model
 			return true;
 		}
 
-		//protected abstract bool UpdateDbMustOverride();
-		protected virtual bool UpdateDbMustOverride() { return false; }
-
-		#region IEqualityComparer
-		bool IEqualityComparer<DbBoundObservableData>.Equals(DbBoundObservableData x, DbBoundObservableData y)
-		{
-			Debugger.Break();
-			return x.Id == y.Id;
-		}
-
-		int IEqualityComparer<DbBoundObservableData>.GetHashCode(DbBoundObservableData obj)
-		{
-			return obj.GetHashCode();
-		}
-		#endregion IEqualityComparer
+		protected abstract bool UpdateDbMustOverride();
+		//protected virtual bool UpdateDbMustOverride() { return false; }
 	}
+
+	//public class DbBoundDataComparer : IEqualityComparer<DbBoundObservableData> //IEquatable<DbBoundObservableData>
+	//{
+	//	public bool Equals(DbBoundObservableData x, DbBoundObservableData y)
+	//	{
+	//		Debugger.Break();
+	//		return x.Id == y.Id;
+	//	}
+
+	//	public int GetHashCode(DbBoundObservableData obj)
+	//	{
+	//		return obj.GetHashCode();
+	//	}
+	//}
 }

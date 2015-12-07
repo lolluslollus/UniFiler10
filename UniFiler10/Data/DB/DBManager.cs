@@ -15,7 +15,8 @@ namespace UniFiler10.Data.DB
 	public sealed class DBManager : OpenableObservableData
 	{
 		#region enums
-		private enum InsertResult { NothingDone, AlreadyThere, Added, SomeAdded, SomeAlreadyThere };
+		private enum InsertResult { NothingDone, AlreadyThere, Added };
+		//private enum InsertResult { NothingDone, AlreadyThere, Added, SomeAdded, SomeAlreadyThere };
 		//private enum DeleteResult { NothingDone, AlreadyMissing, Deleted };
 		#endregion enums
 
@@ -213,7 +214,7 @@ namespace UniFiler10.Data.DB
 					if (!fieldsAlreadyInFolder.Any(fld => fld.FieldDescriptionId == newFld.FieldDescriptionId))
 					{
 						var dbResult = await InsertAsync<DynamicField>(newFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
-						if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+						if (dbResult == InsertResult.Added) result = true;
 					}
 				}
 			}
@@ -231,7 +232,7 @@ namespace UniFiler10.Data.DB
 				if (records.Count() > 0 && DynamicField.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync<DynamicField>(records, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -252,7 +253,7 @@ namespace UniFiler10.Data.DB
 					if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
 					{
 						var dbResult = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-						if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+						if (dbResult == InsertResult.Added) result = true;
 						if (result)
 						{
 							// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
@@ -273,7 +274,7 @@ namespace UniFiler10.Data.DB
 								{
 									var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
 									var dbResult2 = await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
-									if (dbResult2 == InsertResult.AlreadyThere || dbResult2 == InsertResult.Added)
+									if (dbResult2 == InsertResult.Added)
 									{
 										newDynFlds.Add(dynamicField);
 									}
@@ -297,7 +298,7 @@ namespace UniFiler10.Data.DB
 				if (records.Count() > 0 && DynamicCategory.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync<DynamicCategory>(records, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -373,7 +374,7 @@ namespace UniFiler10.Data.DB
 				if (Document.Check(record)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertAsync<Document>(record, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -390,7 +391,7 @@ namespace UniFiler10.Data.DB
 				if (records.Count() > 0 && Document.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync<Document>(records, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -407,7 +408,7 @@ namespace UniFiler10.Data.DB
 				if (Wallet.Check(record)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertAsync<Wallet>(record, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -424,7 +425,7 @@ namespace UniFiler10.Data.DB
 				if (records.Count() > 0 && Wallet.Check(records)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync<Wallet>(records, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -442,7 +443,7 @@ namespace UniFiler10.Data.DB
 				if (Folder.Check(record)) // && await CheckForeignKey_TagsInFolderAsync(record).ConfigureAwait(false)) // && await CheckUniqueKeyInEntriesAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertAsync<Folder>(record, checkMaxEntries, _foldersSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.AlreadyThere || dbResult == InsertResult.Added) result = true;
+					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
 			catch (Exception exc)
@@ -1016,7 +1017,7 @@ namespace UniFiler10.Data.DB
 					try
 					{
 						int aResult = conn.CreateTable(typeof(T));
-						int insertResult = 0;
+						//int insertResult = 0;
 						//if (checkMaxEntries)
 						//{
 						//	var query = conn.Table<T>();
@@ -1025,12 +1026,12 @@ namespace UniFiler10.Data.DB
 						//}
 						//else
 						//{
-						insertResult = conn.Insert(item_mt);
+						int insertResult = conn.Insert(item_mt);
 						//}
 						if (insertResult > 0) result = InsertResult.Added;
 					}
 #pragma warning disable 0168
-					catch (NotNullConstraintViolationException ex0)
+					catch (ConstraintViolationException ex0)
 #pragma warning restore 0168
 					{
 						result = InsertResult.AlreadyThere;
@@ -1057,7 +1058,7 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		private Task<InsertResult> InsertManyAsync<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new() // new() //where T : DbBoundObservableData
+		private Task<InsertResult> InsertManyAsync<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			{
@@ -1066,8 +1067,10 @@ namespace UniFiler10.Data.DB
 		}
 		private InsertResult InsertMany<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return InsertResult.NothingDone;
-			InsertResult result = InsertResult.NothingDone;
+			var result = InsertResult.NothingDone;
+			if (!_isOpen) return result;
+
+			// InsertResult result = InsertResult.NothingDone;
 			try
 			{
 				semaphore.Wait();
@@ -1086,40 +1089,41 @@ namespace UniFiler10.Data.DB
 					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
-						int aResult = conn.CreateTable(typeof(T));
-						int insertResult = 0;
-						//if (checkMaxEntries)
-						//{
-						//	var query = conn.Table<T>();
-						//	var count = query.Count();
-						//	insertResult = conn.InsertAll(items);
-						//}
-						//else
-						//{
+						if (items.Count() > 0)
+						{
+							int aResult = conn.CreateTable(typeof(T));
+							//int insertResult = 0;
+							//if (checkMaxEntries)
+							//{
+							//	var query = conn.Table<T>();
+							//	var count = query.Count();
+							//	insertResult = conn.InsertAll(items);
+							//}
+							//else
+							//{
 
-						var itemsInTable = conn.Table<T>(); //.ToList();
-						var newItems = items.Except(itemsInTable, new DbBoundObservableData());
 
-						// LOLLO TODO check the following, I have added an equality comparer. 
-						// LOLLO TODO Also see if you can make DbBoundObservableData abstract again (I think not).
-						insertResult = conn.InsertAll(newItems);
-						//}
-						if (insertResult == newItems.Count()) result = InsertResult.Added;
-						else if (insertResult == 0) result = InsertResult.NothingDone;
-						else result = InsertResult.SomeAdded;
+
+							var itemsInTable = conn.Table<T>();
+							var newItems = items.Where(item => !itemsInTable.Any(itemInTable => itemInTable.Id == item.Id));
+							int howManyNewItems = newItems.Count();
+							if (howManyNewItems > 0)
+							{
+								int insertResult = conn.InsertAll(newItems, false);
+								if (insertResult == howManyNewItems) result = InsertResult.Added; // perhaps I did not add all records, but certainly some
+								else Debugger.Break();
+							}
+							else
+							{
+								result = InsertResult.AlreadyThere; // all records were already there
+							}
+						}
 					}
 #pragma warning disable 0168
-					catch (NotNullConstraintViolationException ex0)
+					catch (ConstraintViolationException ex0)
 #pragma warning restore 0168
 					{
 						Debugger.Break();
-						result = InsertResult.SomeAlreadyThere; // LOLLO TODO what if some have been added and some not?
-																// I'd need to do th einserts one by one and surround each with a try and this catch.
-																// I want to get rid of SomeAdded and SomeAlreadyThere !
-
-						// LOLLO TODO check the estimators on DeleteResult and InsertResult,
-						// we may want to "like" DeleteResult.AlreadyMissing and DeleteResult.Deleted
-						// but only InsertResult.Added.
 					}
 					finally
 					{

@@ -108,8 +108,8 @@ namespace UniFiler10.Data.Runtime
 		private DeviceInformation _audioDevice = null;
 		public DeviceInformation AudioDevice { get { return _audioDevice; } }
 
-		private static ResourceMap _mainResourceMap = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap;
-		private static ResourceContext _resourceContext = ResourceContext.GetForCurrentView();
+		//private static ResourceMap _mainResourceMap = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap;
+		//private static ResourceContext _resourceContext = ResourceContext.GetForCurrentView();
 
 		private static ResourceLoader _resourceLoader = new ResourceLoader();
 
@@ -118,8 +118,8 @@ namespace UniFiler10.Data.Runtime
 			// localization localisation globalization globalisation
 			// string name = _mainResourceMap.GetValue("Resources/NewFieldValue/Text", _resourceContext).ValueAsString;
 
-			string name = _mainResourceMap.GetValue(resourceName, _resourceContext).ValueAsString; // LOLLO TODO which one? This or the following? Check
-			name = _resourceLoader.GetString(resourceName);
+			//string name = _mainResourceMap.GetValue(resourceName, _resourceContext).ValueAsString; // LOLLO TODO which one? This or the following? Check
+			string name = _resourceLoader.GetString(resourceName);
 			return name ?? string.Empty;
 		}
 		#endregion properties
