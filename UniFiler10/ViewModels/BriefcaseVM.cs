@@ -114,7 +114,7 @@ namespace UniFiler10.ViewModels
 			//string strQuestion = RuntimeData.ResourceLoader.GetString("DeleteBinderConfirmationRequest");
 			//string strYes = RuntimeData.ResourceLoader.GetString("Yes");
 			//string strNo = RuntimeData.ResourceLoader.GetString("No");
-			string strQuestion = RuntimeData.GetText("DeleteBinderConfirmationRequest"); // LOLLO TODO test this
+			string strQuestion = RuntimeData.GetText("DeleteBinderConfirmationRequest");
 			string strYes = RuntimeData.GetText("Yes");
 			string strNo = RuntimeData.GetText("No");
 
@@ -138,7 +138,7 @@ namespace UniFiler10.ViewModels
 			//string strMerge = RuntimeData.ResourceLoader.GetString("Merge");
 			//string strImport = RuntimeData.ResourceLoader.GetString("Import1");
 			//string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
-			string strQuestion = RuntimeData.GetText("ImportBinderConfirmationRequest"); // LOLLO TODO test this
+			string strQuestion = RuntimeData.GetText("ImportBinderConfirmationRequest");
 			string strMerge = RuntimeData.GetText("Merge");
 			string strImport = RuntimeData.GetText("Import1");
 			string strCancel = RuntimeData.GetText("Cancel");
@@ -153,7 +153,7 @@ namespace UniFiler10.ViewModels
 			dialog.Commands.Add(importCommand);
 			dialog.Commands.Add(cancelCommand);
 
-			dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
+			dialog.DefaultCommandIndex = 0; // Set the command that will be invoked by default
 			IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
 
 			if (reply == mergeCommand) return ImportBinderOperations.Merge;

@@ -123,4 +123,13 @@
   <data name="EditCategories.Label" xml:space="preserve">
     <value>Categorie</value>
   </data>
+  <data name="NewFieldValue.Text" xml:space="preserve">
+    <value>Nuovo valore</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sì</value>
+  </data>
 </root>

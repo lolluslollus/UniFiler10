@@ -10,6 +10,7 @@ using Utilz;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Xaml;
 
 namespace UniFiler10.Data.Model
 {
@@ -451,14 +452,22 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> ImportFoldersAsync(StorageFolder fromDirectory)
 		{
-			// LOLLO TODO can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode.
-			// LOLLO TODO test importing a binder content into itself: it must skip out
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (fromDirectory == null) return false;
 				bool isOk = false;
 
-				var mergingBinder = MergingBinder.GetCreateInstance(_dbName, fromDirectory);
+				// I can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode. 
+				// So I copy the source files into the temp directory.
+				var tempDirectory = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(Guid.NewGuid().ToString()).AsTask().ConfigureAwait(false);
+				// LOLLO TODO this needs more complexity if we use subfolders
+				var tempFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
+				foreach (var tf in tempFiles)
+				{
+					await tf.CopyAsync(tempDirectory).AsTask().ConfigureAwait(false);
+				}
+
+				var mergingBinder = MergingBinder.GetCreateInstance(_dbName, tempDirectory);
 				await mergingBinder.OpenAsync().ConfigureAwait(false);
 
 				// parallelisation here seems ideal, but it screws with SQLite.
@@ -496,6 +505,8 @@ namespace UniFiler10.Data.Model
 				await mergingBinder.CloseAsync().ConfigureAwait(false);
 				mergingBinder.Dispose();
 				mergingBinder = null;
+
+				Task clean = tempDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(); //.ConfigureAwait(false);
 
 				return isOk;
 			});

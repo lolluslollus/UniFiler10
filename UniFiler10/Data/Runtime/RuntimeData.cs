@@ -112,13 +112,17 @@ namespace UniFiler10.Data.Runtime
 		//private static ResourceContext _resourceContext = ResourceContext.GetForCurrentView();
 
 		private static ResourceLoader _resourceLoader = new ResourceLoader();
-
+		/// <summary>
+		/// Gets a text from the resources, but not in the complex form such as "Resources/NewFieldValue/Text"
+		/// For that, you need Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+		/// However, it must be called from a view, and this class is not.
+		/// </summary>
+		/// <param name="resourceName"></param>
+		/// <returns></returns>
 		public static string GetText(string resourceName)
 		{
+			// LOLLO TODO neither this dumbo nor the more complicated one (see above) translate, fix it.
 			// localization localisation globalization globalisation
-			// string name = _mainResourceMap.GetValue("Resources/NewFieldValue/Text", _resourceContext).ValueAsString;
-
-			//string name = _mainResourceMap.GetValue(resourceName, _resourceContext).ValueAsString; // LOLLO TODO which one? This or the following? Check
 			string name = _resourceLoader.GetString(resourceName);
 			return name ?? string.Empty;
 		}

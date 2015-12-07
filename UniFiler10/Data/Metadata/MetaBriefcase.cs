@@ -390,7 +390,10 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (_currentFieldDescription == null) return false;
 
-				string name = RuntimeData.GetText("Resources/NewFieldValue/Text");
+				// localisation globalisation localization globalization
+				// LOLLO TODO fix localization across the app (ie here and in RuntimeData)
+				string name = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				//string name = RuntimeData.GetText("Resources/NewFieldValue/Text");
 				//string name = RuntimeData._mainResourceMap
 				//	.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString; // localization localisation globalization globalisation
 				var newFldVal = new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true };

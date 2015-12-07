@@ -679,23 +679,22 @@ namespace UniFiler10.Data.DB
 		}
 		#endregion public methods
 
+
 		#region private methods
-		private Task<bool> DeleteAsync<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
+		private Task<bool> DeleteAsync<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			{
 				return Delete<T>(primaryKey, semaphore);
 			});
 		}
-		private bool Delete<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : new()
+		private bool Delete<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return false;
-
 			bool result = false;
+			if (!_isOpen) return result;
+
 			try
 			{
-				object pk_mt = primaryKey;
-
 				semaphore.Wait();
 				if (_isOpen)
 				{
@@ -713,14 +712,14 @@ namespace UniFiler10.Data.DB
 					try
 					{
 						int aResult = conn.CreateTable(typeof(T));
-						int deleteResult = conn.Delete<T>(pk_mt);
+						int deleteResult = conn.Delete<T>(primaryKey);
 						if (deleteResult > 0)
 						{
 							result = true;
 						}
 						else
 						{
-							result = conn.Get<T>(pk_mt) == null;
+							result = conn.Get<T>(primaryKey) == null;
 						}
 					}
 					finally
@@ -744,7 +743,7 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId) where T : new()
+		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
@@ -752,11 +751,11 @@ namespace UniFiler10.Data.DB
 				return DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId);
 			});
 		}
-		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return false; ;
-
 			bool result = false;
+			if (!_isOpen) return result;
+
 			try
 			{
 				semaphore.Wait();
@@ -772,8 +771,9 @@ namespace UniFiler10.Data.DB
 						int delQueryResult = conn.Execute(delQuery);
 
 						string readQuery = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
-						var readQueryResult = conn.Query<T>(delQuery);
+						var readQueryResult = conn.Query<T>(readQuery);
 						if (readQueryResult.Count <= 0) result = true;
+						else Debugger.Break();
 					}
 					finally
 					{
@@ -796,17 +796,17 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<bool> DeleteAllAsync<T>(SemaphoreSlimSafeRelease semaphore)
+		private Task<bool> DeleteAllAsync<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			{
 				return DeleteAll<T>(semaphore);
 			});
 		}
-		private bool DeleteAll<T>(SemaphoreSlimSafeRelease semaphore)
+		private bool DeleteAll<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return false;
 			bool result = false;
+			if (!_isOpen) return result;
 
 			try
 			{
@@ -843,19 +843,19 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		private Task<List<T>> ReadTableAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : new()
+		private Task<List<T>> ReadTableAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : DbBoundObservableData, new()
 		{
-			return Task.Run<List<T>>(() =>
+			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
 				return ReadTable<T>(SemaphoreSlimSafeRelease);
 			});
 		}
-		private List<T> ReadTable<T>(SemaphoreSlimSafeRelease semaphore) where T : new()
+		private List<T> ReadTable<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return null;
+			var result = new List<T>();
+			if (!_isOpen) return result;
 
-			List<T> result = null;
 			try
 			{
 				semaphore.Wait();
@@ -890,19 +890,19 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<List<T>> ReadRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+		private Task<List<T>> ReadRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
-			return Task.Run<List<T>>(() =>
+			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
 				return ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
 			});
 		}
-		private List<T> ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : new()
+		private List<T> ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return null;
+			var result = new List<T>();
+			if (!_isOpen) return result;
 
-			List<T> result = null;
 			try
 			{
 				semaphore.Wait();
@@ -915,7 +915,7 @@ namespace UniFiler10.Data.DB
 						int aResult = conn.CreateTable(typeof(T));
 						string queryString = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
 						var query = conn.Query<T>(queryString);
-						result = query.ToList<T>();
+						result = query.ToList();
 					}
 					finally
 					{
@@ -938,19 +938,19 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : new()
+		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : DbBoundObservableData, new()
 		{
-			return Task.Run<T>(() =>
+			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
 				return ReadRecordById<T>(SemaphoreSlimSafeRelease, primaryKey);
 			});
 		}
-		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : new()
+		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return default(T);
+			T result = null; //default(T);
+			if (!_isOpen) return result;
 
-			T result = default(T);
 			try
 			{
 				semaphore.Wait();
@@ -986,48 +986,29 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		private Task<InsertResult> InsertAsync<T>(object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+		private Task<InsertResult> InsertAsync<T>(T item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			{
-				return Insert<T>(item, checkMaxEntries, semaphore);
+				return Insert(item, checkMaxEntries, semaphore);
 			});
 		}
-		private InsertResult Insert<T>(object item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : new()
+		private InsertResult Insert<T>(T item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			if (!_isOpen) return InsertResult.NothingDone;
 			InsertResult result = InsertResult.NothingDone;
+			if (!_isOpen) return result;
+
 			try
 			{
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					//bool isTesting = true;
-					//if (isTesting)
-					//{
-					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
-					//    {
-					//        string aaa = i.ToString();
-					//    }
-					//}
-
-					object item_mt = item;
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
 					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
 						int aResult = conn.CreateTable(typeof(T));
-						//int insertResult = 0;
-						//if (checkMaxEntries)
-						//{
-						//	var query = conn.Table<T>();
-						//	var count = query.Count();
-						//	insertResult = conn.Insert(item_mt);
-						//}
-						//else
-						//{
-						int insertResult = conn.Insert(item_mt);
-						//}
+						int insertResult = conn.Insert(item);
 						if (insertResult > 0) result = InsertResult.Added;
 					}
 #pragma warning disable 0168
@@ -1070,40 +1051,18 @@ namespace UniFiler10.Data.DB
 			var result = InsertResult.NothingDone;
 			if (!_isOpen) return result;
 
-			// InsertResult result = InsertResult.NothingDone;
 			try
 			{
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					//bool isTesting = true;
-					//if (isTesting)
-					//{
-					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
-					//    {
-					//        string aaa = i.ToString();
-					//    }
-					//}
-
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
-					try
+					if (items.Count() > 0)
 					{
-						if (items.Count() > 0)
+						var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+						var conn = _connectionPool.GetConnection(connectionString, _openFlags);
+						try
 						{
 							int aResult = conn.CreateTable(typeof(T));
-							//int insertResult = 0;
-							//if (checkMaxEntries)
-							//{
-							//	var query = conn.Table<T>();
-							//	var count = query.Count();
-							//	insertResult = conn.InsertAll(items);
-							//}
-							//else
-							//{
-
-
-
 							var itemsInTable = conn.Table<T>();
 							var newItems = items.Where(item => !itemsInTable.Any(itemInTable => itemInTable.Id == item.Id));
 							int howManyNewItems = newItems.Count();
@@ -1118,16 +1077,16 @@ namespace UniFiler10.Data.DB
 								result = InsertResult.AlreadyThere; // all records were already there
 							}
 						}
-					}
 #pragma warning disable 0168
-					catch (ConstraintViolationException ex0)
+						catch (ConstraintViolationException ex0)
 #pragma warning restore 0168
-					{
-						Debugger.Break();
-					}
-					finally
-					{
-						_connectionPool.ResetConnection(connectionString.ConnectionString);
+						{
+							Debugger.Break();
+						}
+						finally
+						{
+							_connectionPool.ResetConnection(connectionString.ConnectionString);
+						}
 					}
 				}
 			}
@@ -1157,9 +1116,7 @@ namespace UniFiler10.Data.DB
 		private bool Update<T>(object item, SemaphoreSlimSafeRelease semaphore) where T : new()
 		{
 			if (!_isOpen) return false;
-
 			bool result = false;
-			int updateResult = 0;
 
 			try
 			{
@@ -1172,7 +1129,7 @@ namespace UniFiler10.Data.DB
 					{
 						int aResult = conn.CreateTable(typeof(T));
 						{
-							updateResult = conn.Update(item);
+							int updateResult = conn.Update(item);
 							result = true;  //(updateResult > 0);
 						}
 					}
@@ -1194,16 +1151,6 @@ namespace UniFiler10.Data.DB
 			finally
 			{
 				SemaphoreSlimSafeRelease.TryRelease(semaphore);
-				//if (updateResult < 1)
-				//{
-				//	Debugger.Break();
-				//	List<T> test = ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
-
-				//	T itemTyped = (T)item;
-
-				//	bool check = test.Contains(itemTyped);
-				//}
-
 			}
 			return result;
 		}
