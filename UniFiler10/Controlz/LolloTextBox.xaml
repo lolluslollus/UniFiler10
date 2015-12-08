@@ -34,33 +34,38 @@
 			<Setter.Value>
 				<ControlTemplate TargetType="ctl:LolloTextBox">
 					<Grid Background="{TemplateBinding Background}">
-						<!--<Grid.Resources>
+						<Grid.Resources>
 							<Style x:Name="DeleteButtonStyle" TargetType="Button">
+								<Setter Property="HorizontalAlignment" Value="Center"/>
+								<Setter Property="VerticalAlignment" Value="Center"/>
 								<Setter Property="Template">
 									<Setter.Value>
 										<ControlTemplate TargetType="Button">
-											<Grid x:Name="ButtonLayoutGrid" 
-                                                BorderBrush="{ThemeResource TextBoxButtonBorderThemeBrush}" 
-                                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                                Background="{ThemeResource TextBoxButtonBackgroundThemeBrush}">
+											<Grid x:Name="ButtonLayoutGrid"
+                                                BorderThickness="0"
+                                                Background="Transparent">
 												<VisualStateManager.VisualStateGroups>
 													<VisualStateGroup x:Name="CommonStates">
 														<VisualState x:Name="Normal"/>
 														<VisualState x:Name="PointerOver">
 															<Storyboard>
+																<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Background" Storyboard.TargetName="ButtonLayoutGrid">
+																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
+																</ObjectAnimationUsingKeyFrames>
 																<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="GlyphElement">
-																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>
+																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightBaseHighBrush}"/>
 																</ObjectAnimationUsingKeyFrames>
 															</Storyboard>
 														</VisualState>
 														<VisualState x:Name="Pressed">
 															<Storyboard>
 																<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Background" Storyboard.TargetName="ButtonLayoutGrid">
-																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>
+																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
 																</ObjectAnimationUsingKeyFrames>
 																<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="GlyphElement">
-																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightAltChromeWhiteBrush}"/>
+																	<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlHighlightBaseHighBrush}"/>
 																</ObjectAnimationUsingKeyFrames>
+																<PointerDownThemeAnimation Storyboard.TargetName="ButtonLayoutGrid"/>
 															</Storyboard>
 														</VisualState>
 														<VisualState x:Name="Disabled">
@@ -70,14 +75,19 @@
 														</VisualState>
 													</VisualStateGroup>
 												</VisualStateManager.VisualStateGroups>
-												<TextBlock x:Name="GlyphElement" AutomationProperties.AccessibilityView="Raw" 
-													Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}" FontStyle="Normal" FontSize="12" FontFamily="{ThemeResource SymbolThemeFontFamily}" HorizontalAlignment="Center" Text="&#xE10A;" VerticalAlignment="Center"/>
+												<SymbolIcon x:Name="GlyphElement"
+													MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
+													Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}"
+													Symbol="{Binding  RelativeSource={RelativeSource Mode=TemplatedParent}, Path=(ctl:ButtonBaseExtension.Symbol)}"
+													IsHitTestVisible="False"
+													HorizontalAlignment="Center" VerticalAlignment="Center"
+													AutomationProperties.AccessibilityView="Raw"/>
 											</Grid>
 										</ControlTemplate>
 									</Setter.Value>
 								</Setter>
 							</Style>
-						</Grid.Resources>-->
+						</Grid.Resources>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="Auto"/>
 							<ColumnDefinition Width="Auto"/>
@@ -111,14 +121,17 @@
 										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="PlaceholderTextContentPresenter">
 											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
 										</ObjectAnimationUsingKeyFrames>
-										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="EditableIcon">
+										<!--<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="EditableIcon">
 											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
+										</ObjectAnimationUsingKeyFrames>-->
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="EditableBorder">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
 										</ObjectAnimationUsingKeyFrames>
-										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="DeleteGlyph">
-											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="DeleteButton">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
 										</ObjectAnimationUsingKeyFrames>
-										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="DropDownGlyph">
-											<DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SystemControlDisabledChromeDisabledLowBrush}"/>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="DropDownButton">
+											<DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
 										</ObjectAnimationUsingKeyFrames>
 									</Storyboard>
 								</VisualState>
@@ -182,7 +195,7 @@
 						<ContentPresenter x:Name="HeaderContentPresenter" 
 							Grid.ColumnSpan="4" 
                             ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" 
-							Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}" FontWeight="Normal" 
+							Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}" FontWeight="Normal"
 							Padding="4,2,4,8" TextWrapping="Wrap"
 							Visibility="Collapsed" x:DeferLoadStrategy="Lazy"/>
 						<!--<Button x:Name="DeleteButton" BorderThickness="{TemplateBinding BorderThickness}" 
@@ -192,28 +205,35 @@
 							MinWidth="{StaticResource LTBDecorationsSize}"
 							Style="{StaticResource DeleteButtonStyle}" 
 							Visibility="Collapsed" VerticalAlignment="Stretch"/>-->
-						<SymbolIcon x:Name="EditableIcon"
-                            Grid.Column="0" Grid.Row="1"
-                            MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
-							HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Symbol="Edit"
-                            Visibility="{TemplateBinding EditableDecoratorVisibility}"/>
-						<Border x:Name="DropDownBorder" Grid.Column="1" Grid.Row="1" 
+						<Border x:Name="EditableBorder"
+							Grid.Column="0" Grid.Row="1"
 							Background="Transparent"
-							Visibility="{TemplateBinding DropDownVisibility}">
-							<SymbolIcon x:Name="DropDownGlyph"
+							HorizontalAlignment="Center" VerticalAlignment="Center"
+							Visibility="{TemplateBinding EditableDecoratorVisibility}">
+							<SymbolIcon x:Name="EditableIcon"
+								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
+								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"
+								Symbol="Edit"
+								IsHitTestVisible="False"
+								HorizontalAlignment="Center" VerticalAlignment="Center"
+                                AutomationProperties.AccessibilityView="Raw"/>
+						</Border>
+						<Button x:Name="DropDownButton" 
+							Grid.Column="1" Grid.Row="1"
+							Visibility="{TemplateBinding DropDownVisibility}"
+							Style="{StaticResource DeleteButtonStyle}"
+							ctl:ButtonBaseExtension.Symbol="List">
+							<!--<SymbolIcon x:Name="DropDownGlyph"
 								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
 								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"								
                                 Symbol="List"
                                 IsHitTestVisible="False"
-								HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                AutomationProperties.AccessibilityView="Raw"/>
-						</Border>
+								HorizontalAlignment="Center" VerticalAlignment="Center"
+                                AutomationProperties.AccessibilityView="Raw"/>-->
+						</Button>
 						<Border x:Name="BackgroundElement"
                             Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="1"
                             Margin="{TemplateBinding BorderThickness}" Opacity="{ThemeResource TextControlBackgroundRestOpacity}" />
-						<!--VerticalAlignment="Center"-->
 						<ScrollViewer x:Name="ContentElement" 
                             Grid.Column="2" Grid.Row="1"
                             AutomationProperties.AccessibilityView="Raw" 
@@ -226,7 +246,6 @@
 							VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
 							HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
 							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"/>
-						<!--VerticalAlignment="Center"-->
 						<ContentControl x:Name="PlaceholderTextContentPresenter" 
                             Grid.Column="2" Grid.Row="1"
 							VerticalAlignment="Stretch"
@@ -237,18 +256,19 @@
 							Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
 							IsHitTestVisible="False" IsTabStop="False" 
 							Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"/>
-						<Border x:Name="DeleteBorder" Grid.Column="3" Grid.Row="1" 
-							Background="Transparent"
-							Visibility="{TemplateBinding DeleteButtonVisibility}">
-							<SymbolIcon x:Name="DeleteGlyph"
+						<Button x:Name="DeleteButton" 
+							Grid.Column="3" Grid.Row="1"
+							Visibility="{TemplateBinding DeleteButtonVisibility}"
+							Style="{StaticResource DeleteButtonStyle}"
+							ctl:ButtonBaseExtension.Symbol="Clear">
+							<!--<SymbolIcon x:Name="DeleteGlyph"
 								MinHeight="{StaticResource LTBDecorationsSize}" MinWidth="{StaticResource LTBDecorationsSize}"
-								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"								
+								Foreground="{ThemeResource SystemControlForegroundChromeBlackMediumBrush}"
                                 Symbol="Clear"
                                 IsHitTestVisible="False"
-								HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                AutomationProperties.AccessibilityView="Raw"/>
-						</Border>
+								HorizontalAlignment="Center" VerticalAlignment="Center"
+                                AutomationProperties.AccessibilityView="Raw"/>-->
+						</Button>
 						<FlyoutBase.AttachedFlyout>
 							<Flyout Placement="Bottom" x:Name="Flyout">
 								<Flyout.FlyoutPresenterStyle>
@@ -309,9 +329,4 @@
 			</Setter.Value>
 		</Setter>
 	</Style>
-
-	<!--<Style x:Key="LolloTextBoxGrowsInHeightStyle" TargetType="ctl:LolloTextBox" BasedOn="{StaticResource LolloTextBoxStyle}">
-		--><!--<Setter Property="HorizontalAlignment" Value="Left"/>--><!--
-		<Setter Property="VerticalAlignment" Value="Top"/>
-	</Style>-->
 </ResourceDictionary>

@@ -20,19 +20,19 @@ using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.Controlz
 {
-	[TemplatePart(Name = "DropDownBorder", Type = typeof(Border))]
-	[TemplatePart(Name = "DeleteBorder", Type = typeof(Border))]
+	[TemplatePart(Name = "DropDownButton", Type = typeof(Button))]
+	[TemplatePart(Name = "DeleteButton", Type = typeof(Button))]
 	[TemplatePart(Name = "PopupBorder", Type = typeof(Border))]
 	[TemplatePart(Name = "Flyout", Type = typeof(Flyout))]
 	[TemplatePart(Name = "PopupListView", Type = typeof(ListView))]
 	[TemplatePart(Name = "ContentElement", Type = typeof(ScrollViewer))]
-	[TemplatePart(Name = "HeaderContentPresenter", Type =typeof(ContentPresenter))]
+	[TemplatePart(Name = "HeaderContentPresenter", Type = typeof(ContentPresenter))]
 	public class LolloTextBox : TextBox
 	{
 		#region fields
 		private ApplicationView _appView = null;
-		Border _dropDownBorder = null;
-		Border _deleteBorder = null;
+		Button _dropDownButton = null;
+		Button _deleteButton = null;
 		Border _popupBorder = null;
 		Flyout _flyout = null;
 		ListView _listView = null;
@@ -136,7 +136,6 @@ namespace UniFiler10.Controlz
 
 		private void OnItemsSource_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			//UpdateItemsSource();
 			UpdateDropDownButtonVisibility();
 			UpdateDeleteButtonVisibility();
 		}
@@ -151,7 +150,6 @@ namespace UniFiler10.Controlz
 				if (args.OldValue is INotifyCollectionChanged) (args.OldValue as INotifyCollectionChanged).CollectionChanged -= ltb.OnItemsSource_CollectionChanged;
 				if (args.NewValue is INotifyCollectionChanged) (args.NewValue as INotifyCollectionChanged).CollectionChanged += ltb.OnItemsSource_CollectionChanged;
 
-				//ltb.UpdateItemsSource();
 				ltb.UpdateDropDownButtonVisibility();
 				ltb.UpdateDeleteButtonVisibility();
 			}
@@ -204,16 +202,16 @@ namespace UniFiler10.Controlz
 		{
 			base.OnApplyTemplate();
 
-			_dropDownBorder = GetTemplateChild("DropDownBorder") as Border;
-			if (_dropDownBorder != null)
+			_dropDownButton = GetTemplateChild("DropDownButton") as Button;
+			if (_dropDownButton != null)
 			{
-				_dropDownBorder.Tapped += OnDropDownBorder_Tapped;
+				_dropDownButton.Tapped += OnDropDownButton_Tapped;
 			}
 
-			_deleteBorder = GetTemplateChild("DeleteBorder") as Border;
-			if (_deleteBorder != null)
+			_deleteButton = GetTemplateChild("DeleteButton") as Button;
+			if (_deleteButton != null)
 			{
-				_deleteBorder.Tapped += OnDeleteBorder_Tapped;
+				_deleteButton.Tapped += OnDeleteButton_Tapped;
 			}
 
 			_popupBorder = GetTemplateChild("PopupBorder") as Border;
@@ -223,7 +221,6 @@ namespace UniFiler10.Controlz
 			_listView = GetTemplateChild("PopupListView") as ListView;
 			if (_listView != null)
 			{
-				//_listView.SelectionChanged += OnListView_SelectionChanged;
 				_listView.ItemClick += OnListView_ItemClick;
 			}
 
@@ -241,9 +238,8 @@ namespace UniFiler10.Controlz
 
 
 		#region user actions
-		private void OnDropDownBorder_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnDropDownButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			//Debug.WriteLine("DropDownBorder Tapped");
 			if (_listView == null || _flyout == null) return;
 
 			if (ListItemTemplate != null) _listView.ItemTemplate = ListItemTemplate;
@@ -298,42 +294,7 @@ namespace UniFiler10.Controlz
 			}
 		}
 
-		//private void OnListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		//{
-		//	if (_listView == null || _listView.SelectedItem == null) return;
-
-		//	string selItem = _listView.SelectedItem.GetType()?.GetProperties()?
-		//		.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?
-		//		.GetValue(_listView.SelectedItem)?.ToString();
-
-		//	_listView.ItemsSource = null;
-
-		//	try
-		//	{
-		//		_flyout?.Hide();
-		//	}
-		//	catch { }
-		//	Debug.WriteLine("Flyout closed");
-
-		//	// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
-		//	// when this changes a value, which goes straight into the DB, we must check it.
-		//	SetValue(TextProperty, selItem);
-		//	Debug.WriteLine("new value set = " + selItem);
-
-		//	var tb = GetBindingExpression(TextProperty);
-		//	if (tb?.ParentBinding?.Mode == Windows.UI.Xaml.Data.BindingMode.TwoWay)
-		//	{
-		//		// GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-		//		tb.UpdateSource();
-		//		Debug.WriteLine("binding source updated");
-		//	}
-		//	else
-		//	{
-		//		Debug.WriteLine("binding source NOT updated");
-		//	}
-		//}
-
-		private void OnDeleteBorder_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
 			// when this changes a value, which goes straight into the DB, and it cannot be empty or null, we must check it.
@@ -375,5 +336,22 @@ namespace UniFiler10.Controlz
 		//{
 		//	return base.ArrangeOverride(finalSize);
 		//}
+	}
+
+	public class ButtonBaseExtension
+	{
+		public static DependencyProperty SymbolProperty =
+			DependencyProperty.RegisterAttached("Symbol",
+												typeof(Symbol),
+												typeof(ButtonBaseExtension),
+												new PropertyMetadata(Symbol.SolidStar));
+		public static Symbol GetSymbol(DependencyObject target)
+		{
+			return (Symbol)target.GetValue(SymbolProperty);
+		}
+		public static void SetSymbol(DependencyObject target, Symbol value)
+		{
+			target.SetValue(SymbolProperty, value);
+		}
 	}
 }
