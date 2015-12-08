@@ -219,17 +219,14 @@
   <data name="Import.Text" xml:space="preserve">
     <value>Import</value>
   </data>
-  <data name="Import1" xml:space="preserve">
-    <value>Import</value>
-  </data>
   <data name="ImportBinderConfirmationRequest" xml:space="preserve">
     <value>There is already a binder with the same name. What do you want to do?</value>
   </data>
   <data name="ImportFolders.Text" xml:space="preserve">
-    <value>Import folders</value>
+    <value>Import new folders</value>
   </data>
-  <data name="Merge" xml:space="preserve">
-    <value>Merge</value>
+  <data name="MergeIntoCurrentBinder" xml:space="preserve">
+    <value>Import missing folders</value>
   </data>
   <data name="Name.Text" xml:space="preserve">
     <value>Name</value>
@@ -263,6 +260,9 @@
   </data>
   <data name="OpenFile.Label" xml:space="preserve">
     <value>Add file</value>
+  </data>
+  <data name="OverwriteCurrentBinder" xml:space="preserve">
+    <value>Overwrite current binder</value>
   </data>
   <data name="PossibleFieldValues.Text" xml:space="preserve">
     <value>Possible values</value>

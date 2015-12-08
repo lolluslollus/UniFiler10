@@ -135,12 +135,12 @@ namespace UniFiler10.ViewModels
 			//raise confirmation popup
 			//var rl = new ResourceLoader(); // localisation globalisation localization globalization
 			//string strQuestion = RuntimeData.ResourceLoader.GetString("ImportBinderConfirmationRequest");
-			//string strMerge = RuntimeData.ResourceLoader.GetString("Merge");
-			//string strImport = RuntimeData.ResourceLoader.GetString("Import1");
+			//string strMerge = RuntimeData.ResourceLoader.GetString("MergeIntoCurrentBinder");
+			//string strImport = RuntimeData.ResourceLoader.GetString("OverwriteCurrentBinder");
 			//string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
 			string strQuestion = RuntimeData.GetText("ImportBinderConfirmationRequest");
-			string strMerge = RuntimeData.GetText("Merge");
-			string strImport = RuntimeData.GetText("Import1");
+			string strMerge = RuntimeData.GetText("MergeIntoCurrentBinder");
+			string strImport = RuntimeData.GetText("OverwriteCurrentBinder");
 			string strCancel = RuntimeData.GetText("Cancel");
 
 
@@ -195,7 +195,7 @@ namespace UniFiler10.ViewModels
 			if (string.IsNullOrWhiteSpace(dbName) || bc == null || !bc.DbNames.Contains(dbName)) return false;
 
 			var toParentStorageFolder = await PickFolderAsync();
-			return await bc.BackupBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
+			return await bc.ExportBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
 		}
 
 		private Task<StorageFolder> PickFolderAsync()

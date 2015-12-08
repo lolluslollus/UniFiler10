@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
+using UniFiler10.Utilz;
 using Utilz;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
@@ -459,13 +460,15 @@ namespace UniFiler10.Data.Model
 
 				// I can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode. 
 				// So I copy the source files into the temp directory.
-				var tempDirectory = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(Guid.NewGuid().ToString()).AsTask().ConfigureAwait(false);
-				// LOLLO TODO this needs more complexity if we use subfolders
-				var tempFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
-				foreach (var tf in tempFiles)
-				{
-					await tf.CopyAsync(tempDirectory).AsTask().ConfigureAwait(false);
-				}
+				var tempDirectory = await ApplicationData.Current.TemporaryFolder
+					.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
+					.AsTask().ConfigureAwait(false);
+				await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
+				//var fromFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
+				//foreach (var ff in fromFiles)
+				//{
+				//	await ff.CopyAsync(tempDirectory).AsTask().ConfigureAwait(false);
+				//}
 
 				var mergingBinder = MergingBinder.GetCreateInstance(_dbName, tempDirectory);
 				await mergingBinder.OpenAsync().ConfigureAwait(false);

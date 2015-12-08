@@ -23,7 +23,7 @@ namespace UniFiler10.Data.DB
 		#region fields
 		// one db for all tables
 		// one semaphore each table
-		private const string DB_FILE_NAME = "Db.db";
+		public const string DB_FILE_NAME = "Db.db";
 		private string _dbFullPath = string.Empty;
 		private StorageFolder _directory = null;
 		internal StorageFolder Directory { get { return _directory; } }

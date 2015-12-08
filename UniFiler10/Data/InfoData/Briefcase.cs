@@ -6,8 +6,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
+using UniFiler10.Utilz;
 using Utilz;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
@@ -270,7 +272,7 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		public Task<bool> BackupBinderAsync(string dbName, StorageFolder intoStorageFolder)
+		public Task<bool> ExportBinderAsync(string dbName, StorageFolder intoStorageFolder)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
@@ -283,7 +285,7 @@ namespace UniFiler10.Data.Model
 					wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 				}
 
-				if (await BackupBinderFilesASync(dbName, intoStorageFolder))
+				if (await ExportBinderFilesASync(dbName, intoStorageFolder))
 				{
 					isOk = true;
 				}
@@ -293,22 +295,24 @@ namespace UniFiler10.Data.Model
 				return isOk;
 			});
 		}
-		private async Task<bool> BackupBinderFilesASync(string dbName, StorageFolder intoStorageFolder)
+		private async Task<bool> ExportBinderFilesASync(string dbName, StorageFolder toRootDirectory)
 		{
 			try
 			{
-				var fromStorageFolder = await BindersDirectory
+				var fromDirectory = await BindersDirectory
 					.GetFolderAsync(dbName)
 					.AsTask().ConfigureAwait(false);
-				if (fromStorageFolder != null)
+				if (fromDirectory != null)
 				{
-					var toStorageFolder = await intoStorageFolder
-						.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					var fromFiles = await fromStorageFolder.GetFilesAsync().AsTask().ConfigureAwait(false);
-					foreach (var stoFile in fromFiles)
-					{
-						await stoFile.CopyAsync(toStorageFolder, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					}
+					var toDirectory = await toRootDirectory
+						.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
+						.AsTask().ConfigureAwait(false);
+					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, toDirectory).ConfigureAwait(false);
+					//var fromFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
+					//foreach (var stoFile in fromFiles)
+					//{
+					//	await stoFile.CopyAsync(toDirectory, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+					//}
 					return true;
 				}
 			}
@@ -358,22 +362,30 @@ namespace UniFiler10.Data.Model
 				return isOk;
 			});
 		}
-		private async Task<bool> ImportBinderFilesAsync(StorageFolder from)
+		private async Task<bool> ImportBinderFilesAsync(StorageFolder fromDirectory)
 		{
-			// LOLLO TODO check if you are restoring a Binder or something completely unrelated, which may cause trouble.
-			// Make sure you restore a Binder and not just any directory!
-			if (from != null)
+			if (fromDirectory != null)
 			{
 				try
 				{
-					var toStorageFolder = await BindersDirectory
-						.CreateFolderAsync(from.Name, CreationCollisionOption.ReplaceExisting)
+					// LOLLO TODO check this
+					// Check if you are restoring a Binder or something completely unrelated, which may cause trouble.
+					// Make sure you restore a Binder and not just any directory!
+					var srcFolders = await fromDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
+					var srcFiles = await fromDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
+					bool isSrcOk = srcFiles.Any(file => file.Name == DBManager.DB_FILE_NAME)
+						&& srcFiles.Any(file => file.Name == Binder.FILENAME);
+					if (!isSrcOk) return false;
+
+					var toDirectory = await BindersDirectory
+						.CreateFolderAsync(fromDirectory.Name, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					var fromFiles = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
-					foreach (var fromFile in fromFiles)
-					{
-						await fromFile.CopyAsync(toStorageFolder, fromFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					}
+					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, toDirectory).ConfigureAwait(false);
+					//var fromFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
+					//foreach (var fromFile in fromFiles)
+					//{
+					//	await fromFile.CopyAsync(toDirectory, fromFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+					//}
 					return true;
 				}
 				catch (Exception ex)
