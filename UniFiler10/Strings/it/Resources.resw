@@ -123,7 +123,7 @@
   <data name="EditCategories.Label" xml:space="preserve">
     <value>Categorie</value>
   </data>
-  <data name="NewFieldValue.Text" xml:space="preserve">
+  <data name="NewFieldValue" xml:space="preserve">
     <value>Nuovo valore</value>
   </data>
   <data name="No" xml:space="preserve">

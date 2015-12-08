@@ -237,16 +237,16 @@
   <data name="NewBinderName.Text" xml:space="preserve">
     <value>Give your binder a name:</value>
   </data>
-  <data name="NewCategory.Text" xml:space="preserve">
+  <data name="NewCategory" xml:space="preserve">
     <value>New category</value>
   </data>
-  <data name="NewFieldDescription.Text" xml:space="preserve">
+  <data name="NewFieldDescription" xml:space="preserve">
     <value>New field</value>
   </data>
-  <data name="NewFieldValue.Text" xml:space="preserve">
+  <data name="NewFieldValue" xml:space="preserve">
     <value>New value</value>
   </data>
-  <data name="NewFolder.Text" xml:space="preserve">
+  <data name="NewFolder" xml:space="preserve">
     <value>New folder</value>
   </data>
   <data name="No" xml:space="preserve">

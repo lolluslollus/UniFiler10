@@ -324,8 +324,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionWhileOpenAsyncB(delegate
 			{
-				string name = ResourceManager.Current.MainResourceMap
-					.GetValue("Resources/NewCategory/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				string name = RuntimeData.GetText("NewCategory");
 				var newCat = new Category() { Name = name, IsCustom = true, IsJustAdded = true };
 
 				if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
@@ -355,8 +354,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionWhileOpenAsyncB(delegate
 			{
-				string name = ResourceManager.Current.MainResourceMap
-					.GetValue("Resources/NewFieldDescription/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				string name = RuntimeData.GetText("NewFieldDescription");
 				var newFieldDesc = new FieldDescription() { Caption = name, IsCustom = true, IsJustAdded = true };
 
 				if (FieldDescription.Check(newFieldDesc) && !_fieldDescriptions.Any(fd => fd.Caption == newFieldDesc.Caption || fd.Id == newFieldDesc.Id))
@@ -390,12 +388,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (_currentFieldDescription == null) return false;
 
-				// localisation globalisation localization globalization
-				// LOLLO TODO fix localization across the app (ie here and in RuntimeData)
-				string name = Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-				//string name = RuntimeData.GetText("Resources/NewFieldValue/Text");
-				//string name = RuntimeData._mainResourceMap
-				//	.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString; // localization localisation globalization globalisation
+				string name = RuntimeData.GetText("NewFieldValue");
 				var newFldVal = new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true };
 
 				return _currentFieldDescription.AddPossibleValue(newFldVal);

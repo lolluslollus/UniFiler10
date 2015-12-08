@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
+using UniFiler10.Data.Runtime;
 using UniFiler10.Utilz;
 using Utilz;
 using Windows.ApplicationModel.Resources.Core;
@@ -436,7 +437,7 @@ namespace UniFiler10.Data.Model
 			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				// folder.ParentId = Id; // LOLLO TODO  what happens if I do not give the folder a ParentId? I expect it should work anyway!
-				folder.Name = ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFolder/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+				folder.Name = RuntimeData.GetText("NewFolder");
 				folder.DateCreated = DateTime.Now;
 
 				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
