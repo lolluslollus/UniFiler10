@@ -61,7 +61,7 @@ namespace UniFiler10.Views
         private MediaCapture _mediaCapture;
         private bool _isInitialized;
         private bool _isPreviewing;
-        private bool _isRecordingVideo;
+        //private bool _isRecordingVideo;
 
         // Information about the camera device
         private bool _mirroringPreview;
@@ -77,7 +77,7 @@ namespace UniFiler10.Views
 			Application.Current.Suspending += OnSuspending;
 
 			InitializeComponent();
-            VideoButton.Visibility = Visibility.Collapsed;
+            //VideoButton.Visibility = Visibility.Collapsed;
 		}
 
 		private bool _isLoaded = false;
@@ -121,7 +121,10 @@ namespace UniFiler10.Views
         }
         protected override async Task CloseMayOverrideAsync()
         {
-            VM?.EndShoot(); // LOLLO TODO check this
+			await RunInUiThreadAsync(delegate 
+			{
+				VM?.EndShoot(); // LOLLO TODO check this
+			}).ConfigureAwait(false);            
             await CleanupCameraAsync();
             await CleanupUiAsync().ConfigureAwait(false);
         }
@@ -135,28 +138,29 @@ namespace UniFiler10.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private async void OnSystemMediaControls_PropertyChanged(SystemMediaTransportControls sender, SystemMediaTransportControlsPropertyChangedEventArgs args)
-        {
-			// LOLLO TODO this control has several calls to the dispatcher, which contain awaits. They will not be awaited, check it.
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async delegate
-            {
-                // Only handle this event if this page is currently being displayed
-                //if (args.Property == SystemMediaTransportControlsProperty.SoundLevel && Frame.CurrentSourcePageType == typeof(CameraPage))
-                if (args.Property == SystemMediaTransportControlsProperty.SoundLevel)
-                {
-                    // Check to see if the app is being muted. If so, it is being minimized.
-                    // Otherwise if it is not initialized, it is being brought into focus.
-                    if (sender.SoundLevel == SoundLevel.Muted)
-                    {
-                        await CleanupCameraAsync();
-                    }
-                    else if (!_isInitialized)
-                    {
-                        await InitializeCameraAsync();
-                    }
-                }
-            });
-        }
+   //     private async void OnSystemMediaControls_PropertyChanged(SystemMediaTransportControls sender, SystemMediaTransportControlsPropertyChangedEventArgs args)
+   //     {
+			//// LOLLO TODO this control has several calls to the dispatcher, which contain awaits. They will not be awaited, check it.
+   //         await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async delegate
+   //         {
+   //             // Only handle this event if this page is currently being displayed
+   //             //if (args.Property == SystemMediaTransportControlsProperty.SoundLevel && Frame.CurrentSourcePageType == typeof(CameraPage))
+   //             if (args.Property == SystemMediaTransportControlsProperty.SoundLevel)
+   //             {
+   //                 // Check to see if the app is being muted. If so, it is being minimized.
+   //                 // Otherwise if it is not initialized, it is being brought into focus.
+			//		// LOLLO TODO take this away, we dont need it for stills
+   //                 if (sender.SoundLevel == SoundLevel.Muted)
+   //                 {
+   //                     await CleanupCameraAsync();
+   //                 }
+   //                 else if (!_isInitialized)
+   //                 {
+   //                     await InitializeCameraAsync();
+   //                 }
+   //             }
+   //         });
+   //     }
 
         /// <summary>
         /// Occurs each time the simple orientation sensor reports a new sensor reading.
@@ -205,32 +209,32 @@ namespace UniFiler10.Views
             await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
         }
 
-        private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            await RunFunctionWhileOpenAsyncT(async delegate
-            {
-                if (!_isRecordingVideo)
-                {
-                    await StartRecordingVideoAsync();
-                }
-                else
-                {
-                    await StopRecordingVideoAsync();
-                }
+        //private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
+        //{
+            //await RunFunctionWhileOpenAsyncT(async delegate
+            //{
+            //    if (!_isRecordingVideo)
+            //    {
+            //        await StartRecordingVideoAsync();
+            //    }
+            //    else
+            //    {
+            //        await StopRecordingVideoAsync();
+            //    }
 
-                // After starting or stopping video recording, update the UI to reflect the MediaCapture state
-                UpdateCaptureControls();
-            }).ConfigureAwait(false);
-        }
+            //    // After starting or stopping video recording, update the UI to reflect the MediaCapture state
+            //    UpdateCaptureControls();
+            //}).ConfigureAwait(false);
+        //}
 
-        private async void OnMediaCapture_RecordLimitationExceeded(MediaCapture sender)
-        {
-            // This is a notification that recording has to stop, and the app is expected to finalize the recording
+        //private async void OnMediaCapture_RecordLimitationExceeded(MediaCapture sender)
+        //{
+        //    // This is a notification that recording has to stop, and the app is expected to finalize the recording
 
-            await StopRecordingVideoAsync();
+        //    //await StopRecordingVideoAsync();
 
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
-        }
+        //    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
+        //}
 
         private async void OnMediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
         {
@@ -253,6 +257,7 @@ namespace UniFiler10.Views
 		/// Initializes the MediaCapture, registers events, gets camera device information for mirroring and rotating, starts preview and unlocks the UI
 		/// </summary>
 		/// <returns></returns>
+		[STAThread]
 		private async Task<bool> InitializeCameraAsync()
         {
             LastMessage = "InitializeCameraAsync";
@@ -272,15 +277,15 @@ namespace UniFiler10.Views
                 _mediaCapture = new MediaCapture();
 
                 // Register for a notification when video recording has reached the maximum time and when something goes wrong
-                _mediaCapture.RecordLimitationExceeded += OnMediaCapture_RecordLimitationExceeded;
+                //_mediaCapture.RecordLimitationExceeded += OnMediaCapture_RecordLimitationExceeded;
                 _mediaCapture.Failed += OnMediaCapture_Failed;
 
-                var settings = new MediaCaptureInitializationSettings { VideoDeviceId = cameraDevice.Id };
+				var settings = new MediaCaptureInitializationSettings { VideoDeviceId = cameraDevice.Id , MediaCategory = MediaCategory.Media, StreamingCaptureMode = StreamingCaptureMode.Video };
 
-                // Initialize MediaCapture
-                try
-                {
-                    await _mediaCapture.InitializeAsync(settings);
+				// Initialize MediaCapture
+				try
+				{
+					await _mediaCapture.InitializeAsync(settings);
                     _isInitialized = true;
                 }
                 catch (UnauthorizedAccessException)
@@ -333,7 +338,7 @@ namespace UniFiler10.Views
             // Start the preview
             try
             {
-                await _mediaCapture.StartPreviewAsync();
+                await _mediaCapture.StartPreviewAsync(); // LOLLO TODO this causes a null reference exception
                 _isPreviewing = true;
             }
             catch (Exception ex)
@@ -406,10 +411,10 @@ namespace UniFiler10.Views
         private async Task TakePhotoAsync()
         {
             // While taking a photo, keep the video button enabled only if the camera supports simultaneously taking pictures and recording video
-            VideoButton.IsEnabled = _mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported;
+            //VideoButton.IsEnabled = _mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported;
 
             // Make the button invisible if it's disabled, so it's obvious it cannot be interacted with
-            VideoButton.Opacity = VideoButton.IsEnabled ? 1 : 0;
+            //VideoButton.Opacity = VideoButton.IsEnabled ? 1 : 0;
 
             var stream = new InMemoryRandomAccessStream();
             var photoOrientation = PhotoOrientation.Normal;
@@ -417,6 +422,7 @@ namespace UniFiler10.Views
             try
             {
                 LastMessage = "Taking photo...";
+				// LOLLO TODO the following causes an exception cannot go from stopped state to paused state
                 await _mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), stream);
                 LastMessage = "Photo taken!";
 
@@ -431,61 +437,61 @@ namespace UniFiler10.Views
                 await ReencodeAndSavePhotoAsync(stream, photoOrientation);
             }
 
-            // Done taking a photo, so re-enable the button
-            VideoButton.IsEnabled = true;
-            VideoButton.Opacity = 1;
+			// Done taking a photo, so re-enable the button
+			//VideoButton.IsEnabled = true;
+			//VideoButton.Opacity = 1;
         }
 
         /// <summary>
         /// Records an MP4 video to a StorageFile and adds rotation metadata to it
         /// </summary>
         /// <returns></returns>
-        private async Task StartRecordingVideoAsync()
-        {
-            try
-            {
-                // Create storage file in Pictures Library
-                var videoFile = await KnownFolders.PicturesLibrary.CreateFileAsync("SimpleVideo.mp4", CreationCollisionOption.GenerateUniqueName);
+        //private async Task StartRecordingVideoAsync()
+        //{
+        //    try
+        //    {
+        //        // Create storage file in Pictures Library
+        //        var videoFile = await KnownFolders.PicturesLibrary.CreateFileAsync("SimpleVideo.mp4", CreationCollisionOption.GenerateUniqueName);
 
-                var encodingProfile = MediaEncodingProfile.CreateMp4(VideoEncodingQuality.Auto);
+        //        var encodingProfile = MediaEncodingProfile.CreateMp4(VideoEncodingQuality.Auto);
 
-                // Calculate rotation angle, taking mirroring into account if necessary
-                var rotationAngle = 360 - ConvertDeviceOrientationToDegrees(GetCameraOrientation());
-                encodingProfile.Video.Properties.Add(RotationKey, PropertyValue.CreateInt32(rotationAngle));
+        //        // Calculate rotation angle, taking mirroring into account if necessary
+        //        var rotationAngle = 360 - ConvertDeviceOrientationToDegrees(GetCameraOrientation());
+        //        encodingProfile.Video.Properties.Add(RotationKey, PropertyValue.CreateInt32(rotationAngle));
 
-                LastMessage = "Starting recording...";
+        //        LastMessage = "Starting recording...";
 
-                await _mediaCapture.StartRecordToStorageFileAsync(encodingProfile, videoFile);
-                _isRecordingVideo = true;
+        //        await _mediaCapture.StartRecordToStorageFileAsync(encodingProfile, videoFile);
+        //        _isRecordingVideo = true;
 
-                LastMessage = "Started recording!";
-            }
-            catch (Exception ex)
-            {
-                LastMessage = string.Format("Exception when starting video recording: {0}", ex.ToString());
-            }
-        }
+        //        LastMessage = "Started recording!";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LastMessage = string.Format("Exception when starting video recording: {0}", ex.ToString());
+        //    }
+        //}
 
         /// <summary>
         /// Stops recording a video
         /// </summary>
         /// <returns></returns>
-        private async Task StopRecordingVideoAsync()
-        {
-            try
-            {
-                LastMessage = "Stopping recording...";
+        //private async Task StopRecordingVideoAsync()
+        //{
+        //    try
+        //    {
+        //        LastMessage = "Stopping recording...";
 
-                _isRecordingVideo = false;
-                await _mediaCapture.StopRecordAsync();
+        //        _isRecordingVideo = false;
+        //        await _mediaCapture.StopRecordAsync();
 
-                LastMessage = "Stopped recording!";
-            }
-            catch (Exception ex)
-            {
-                LastMessage = string.Format("Exception when stopping video recording: {0}", ex.ToString());
-            }
-        }
+        //        LastMessage = "Stopped recording!";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LastMessage = string.Format("Exception when stopping video recording: {0}", ex.ToString());
+        //    }
+        //}
 
         /// <summary>
         /// Cleans up the camera resources (after stopping any video recording and/or preview if necessary) and unregisters from MediaCapture events
@@ -498,10 +504,10 @@ namespace UniFiler10.Views
             if (_isInitialized)
             {
                 // If a recording is in progress during cleanup, stop it to save the recording
-                if (_isRecordingVideo)
-                {
-                    await StopRecordingVideoAsync();
-                }
+                //if (_isRecordingVideo)
+                //{
+                //    await StopRecordingVideoAsync();
+                //}
 
                 if (_isPreviewing)
                 {
@@ -516,7 +522,7 @@ namespace UniFiler10.Views
 
             if (_mediaCapture != null)
             {
-                _mediaCapture.RecordLimitationExceeded -= OnMediaCapture_RecordLimitationExceeded;
+                //_mediaCapture.RecordLimitationExceeded -= OnMediaCapture_RecordLimitationExceeded;
                 _mediaCapture.Failed -= OnMediaCapture_Failed;
                 _mediaCapture.Dispose();
                 _mediaCapture = null;
@@ -575,26 +581,26 @@ namespace UniFiler10.Views
         {
             // The buttons should only be enabled if the preview started sucessfully
             PhotoButton.IsEnabled = _isPreviewing;
-            VideoButton.IsEnabled = _isPreviewing;
+			//VideoButton.IsEnabled = false; // _isPreviewing;
 
-            // Update recording button to show "Stop" icon instead of red "Record" icon
-            StartRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Collapsed : Visibility.Visible;
-            StopRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Visible : Visibility.Collapsed;
+			// Update recording button to show "Stop" icon instead of red "Record" icon
+			//StartRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Collapsed : Visibility.Visible;
+			//StopRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Visible : Visibility.Collapsed;
 
-            // If the camera doesn't support simultaneosly taking pictures and recording video, disable the photo button on record
-            if (_isInitialized && !_mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported)
-            {
-                PhotoButton.IsEnabled = !_isRecordingVideo;
+			// If the camera doesn't support simultaneosly taking pictures and recording video, disable the photo button on record
+			//    if (_isInitialized && !_mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported)
+			//    {
+			//        PhotoButton.IsEnabled = !_isRecordingVideo;
 
-                // Make the button invisible if it's disabled, so it's obvious it cannot be interacted with
-                PhotoButton.Opacity = PhotoButton.IsEnabled ? 1 : 0;
-            }
-        }
+			//        // Make the button invisible if it's disabled, so it's obvious it cannot be interacted with
+			//        PhotoButton.Opacity = PhotoButton.IsEnabled ? 1 : 0;
+			//    }
+		}
 
-        /// <summary>
-        /// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
-        /// </summary>
-        private void RegisterEventHandlers()
+		/// <summary>
+		/// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
+		/// </summary>
+		private void RegisterEventHandlers()
         {
 			if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
             {
@@ -610,7 +616,7 @@ namespace UniFiler10.Views
             }
 
             _displayInformation.OrientationChanged += OnDisplayInformation_OrientationChanged;
-            _systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
+            //_systemMediaControls.PropertyChanged += OnSystemMediaControls_PropertyChanged;
         }
 
         /// <summary>
@@ -629,7 +635,7 @@ namespace UniFiler10.Views
             }
 
             _displayInformation.OrientationChanged -= OnDisplayInformation_OrientationChanged;
-            _systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
+            //_systemMediaControls.PropertyChanged -= OnSystemMediaControls_PropertyChanged;
         }
 
         ///// <summary>
@@ -825,7 +831,7 @@ namespace UniFiler10.Views
 
             // The RenderTransform is safe to use (i.e. it won't cause layout issues) in this case, because these buttons have a 1:1 aspect ratio
             PhotoButton.RenderTransform = transform;
-            VideoButton.RenderTransform = transform;
+            //VideoButton.RenderTransform = transform;
         }
 		#endregion Rotation helpers
 	}

@@ -40,12 +40,12 @@
                 </Viewbox>
             </Button>
 
-            <Button Name="VideoButton" Tapped="OnVideoButton_Tapped" IsEnabled="False">
+            <!--<Button Name="VideoButton" Tapped="OnVideoButton_Tapped" IsEnabled="False">
                 <Grid>
                     <Ellipse x:Name="StartRecordingIcon" Fill="Red" Width="20" Height="20"/>
                     <Rectangle x:Name="StopRecordingIcon" Fill="White" Width="20" Height="20" Visibility="Collapsed"/>
                 </Grid>
-            </Button>
+            </Button>-->
 
             <Button
 				Tapped="OnOwnBackButton_Tapped">
