@@ -9,6 +9,7 @@ using Utilz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 using System.Collections;
+using System.Globalization;
 
 namespace UniFiler10.Converters
 {
@@ -135,4 +136,25 @@ namespace UniFiler10.Converters
             throw new Exception("this is a one-way bonding, it should never come here");
         }
     }
+	public class StringFormatterConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			string format = parameter.ToString();
+			string output = string.Empty;
+			try
+			{
+				output = string.Format(CultureInfo.CurrentUICulture, format, new object[1] { value });
+			}
+			catch (FormatException)
+			{
+				output = value.ToString();
+			}
+			return output;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
 }

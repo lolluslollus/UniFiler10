@@ -330,4 +330,7 @@
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
+  <data name="About.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
 </root>

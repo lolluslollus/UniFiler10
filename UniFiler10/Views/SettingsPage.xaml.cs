@@ -95,6 +95,14 @@ namespace UniFiler10.Views
 				MBView.DataContext = VM.MetaBriefcase;
 			}
 		}
+
+		private void OnAbout_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			// LOLLO TODO show about panel
+			//this.LayoutRoot.
+			AboutFlyout.ShowAt(this);
+		}
+
 		#endregion user actions
 	}
 }

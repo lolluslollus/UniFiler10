@@ -11,14 +11,14 @@ namespace UniFiler10.Data.Constants
     {
         public const string DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
         public const string MYMAIL = "lollus@hotmail.co.uk";
-        public const string APPNAME = "PapierKrieger for Windows 10";
-        public const string APPNAME_ALL_IN_ONE = "PapierKrieger";
+        public const string APPNAME = "Paper Mate for Windows 10";
+        public const string APPNAME_ALL_IN_ONE = "Paper Mate";
 		public const string ASSEMBLY_NAME = "Unifiler10";
 		public const string VIEWS_NAMESPACE = "UniFiler10.Views.";
 		public const string XML_EXTENSION = ".xml";
 		public const string DB_EXTENSION = ".db";
-		public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // LOLLO TODO this id comes from the dashboard
-		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // LOLLO TODO this id comes from the dashboard
+		public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
+		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()
             + "."

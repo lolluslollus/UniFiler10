@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
@@ -152,7 +153,7 @@ namespace UniFiler10.Views
 		//             {
 		//                 // Check to see if the app is being muted. If so, it is being minimized.
 		//                 // Otherwise if it is not initialized, it is being brought into focus.
-		//		// LOLLO TODO take this away, we dont need it for stills
+		//		// LOLLO take this away, we dont need it for stills
 		//                 if (sender.SoundLevel == SoundLevel.Muted)
 		//                 {
 		//                     await CleanupCameraAsync();
@@ -354,7 +355,7 @@ namespace UniFiler10.Views
 			// Start the preview
 			try
 			{
-				await _mediaCapture.StartPreviewAsync(); // LOLLO TODO this causes a null reference exception
+				await _mediaCapture.StartPreviewAsync();
 				_isPreviewing = true;
 			}
 			catch (Exception ex)
@@ -440,11 +441,8 @@ namespace UniFiler10.Views
 
 				try
 				{
-					//LastMessage = "Taking photo...";
 					LastMessage = RuntimeData.GetText("CameraTakingPhoto");
-					// LOLLO TODO the following causes an exception cannot go from stopped state to paused state
 					await _mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), stream);
-					//LastMessage = "Photo taken!";
 					LastMessage = RuntimeData.GetText("CameraTakenPhoto");
 
 					photoOrientation = ConvertOrientationToPhotoOrientation(GetCameraOrientation());
@@ -722,7 +720,7 @@ namespace UniFiler10.Views
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
-				//if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete); // LOLLO TODO check how the file looks when these errors happen
+				Debugger.Break(); // LOLLO TODO check how the file looks when these errors happen
 			}
 			finally
 			{

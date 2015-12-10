@@ -7,6 +7,7 @@
 
     <Thickness x:Key="PanelMarginZero">0, 0, 0, 0</Thickness>
     <Thickness x:Key="PanelPadding8282">8, 2, 8, 2</Thickness>
+	<Thickness x:Key="PanelMargin2">2</Thickness>
 	<Thickness x:Key="Thickness2222">2</Thickness>
 	<Thickness x:Key="Thickness4444">4</Thickness>
 

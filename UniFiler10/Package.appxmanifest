@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="7555b46c-414e-4f39-88f9-ba1d2c6914e9" Publisher="CN=lollu" Version="1.0.0.0" />
+  <Identity Name="35701Lollus.PaperMate" Publisher="CN=9B2F7926-7E04-4BF6-BDB8-A8FD12FC5378" Version="1.1.0.0" />
   <mp:PhoneIdentity PhoneProductId="7555b46c-414e-4f39-88f9-ba1d2c6914e9" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>UniFiler10</DisplayName>
-    <PublisherDisplayName>lollu</PublisherDisplayName>
+    <DisplayName>Paper Mate</DisplayName>
+    <PublisherDisplayName>Lollus</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
@@ -15,7 +15,7 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="UniFiler10.App">
-      <uap:VisualElements DisplayName="UniFiler10" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="UniFiler10" BackgroundColor="transparent">
+      <uap:VisualElements DisplayName="Paper Mate" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="UniFiler10" BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
@@ -24,6 +24,7 @@
   </Applications>
   <Capabilities>
     <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer" />
     <uap:Capability Name="removableStorage" />
     <uap:Capability Name="picturesLibrary" />
     <uap:Capability Name="musicLibrary" />
