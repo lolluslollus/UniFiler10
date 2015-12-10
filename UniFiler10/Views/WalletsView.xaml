@@ -26,7 +26,7 @@
 				HorizontalAlignment="Center"
 				Width="{StaticResource LandscapeItemHeight}"
 				Height="{StaticResource LandscapeItemHeight}"
-                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable}"
+                IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
                 Click="OnShoot_Click"
 				x:Uid="Shoot"/>
             <AppBarButton

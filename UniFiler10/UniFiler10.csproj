@@ -135,6 +135,7 @@
     <Compile Include="Data\Constants\Constants.cs" />
     <Compile Include="Utilz\FileDirectoryExts.cs" />
     <Compile Include="Utilz\IAnimationStarter.cs" />
+    <Compile Include="Utilz\Licenser.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="Data\InfoData\Briefcase.cs" />
     <Compile Include="Data\DB\DBManager.cs" />
@@ -205,6 +206,7 @@
     <None Include="UniFiler10_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Flash40.png" />
     <Content Include="Assets\voice-200.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />

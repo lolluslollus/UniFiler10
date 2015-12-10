@@ -17,8 +17,8 @@ namespace UniFiler10.Data.Constants
 		public const string VIEWS_NAMESPACE = "UniFiler10.Views.";
 		public const string XML_EXTENSION = ".xml";
 		public const string DB_EXTENSION = ".db";
-		//public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
-		//public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
+		public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // LOLLO TODO this id comes from the dashboard
+		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // LOLLO TODO this id comes from the dashboard
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()
             + "."

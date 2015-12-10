@@ -15,14 +15,13 @@
         <SolidColorBrush x:Key="TranslucentBlackBrush" Color="Black" Opacity="0.3"/>
     </UserControl.Resources>
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+	<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <!--Camera preview-->
         <CaptureElement Name="PreviewControl" Stretch="Uniform"/>
 
         <!-- Capture + Record buttons -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-            <StackPanel.Resources>
+            <!--<StackPanel.Resources>
                 <Style TargetType="Button">
                     <Setter Property="Margin" Value="10,40"/>
                     <Setter Property="MinWidth" Value="80"/>
@@ -32,15 +31,28 @@
                     <Setter Property="BorderBrush" Value="White"/>
                     <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
                 </Style>
-            </StackPanel.Resources>
+            </StackPanel.Resources>-->
 
-            <Button Name="PhotoButton" Tapped="OnPhotoButton_Tapped" IsEnabled="False">
+            <Button Name="PhotoButton" 
+				Tapped="OnPhotoButton_Tapped" 
+				IsEnabled="False"
+				Style="{StaticResource ButtonLolloStyle}">
                 <Viewbox MaxHeight="40" MaxWidth="40">
                     <SymbolIcon Symbol="Camera"/>
                 </Viewbox>
             </Button>
 
-            <!--<Button Name="VideoButton" Tapped="OnVideoButton_Tapped" IsEnabled="False">
+			<ToggleButton Name="FlashButton"
+				IsChecked="{x:Bind IsFlashDesired, Mode=OneWay}"
+				Tapped="OnIsFlashDesired_Tapped"
+				IsEnabled="False"
+				Style="{StaticResource ToggleButtonLolloStyle}">
+				<Viewbox MaxHeight="40" MaxWidth="40">
+					<BitmapIcon UriSource="ms-appx:///Assets/Flash40.png"/>
+				</Viewbox>
+			</ToggleButton>
+
+			<!--<Button Name="VideoButton" Tapped="OnVideoButton_Tapped" IsEnabled="False">
                 <Grid>
                     <Ellipse x:Name="StartRecordingIcon" Fill="Red" Width="20" Height="20"/>
                     <Rectangle x:Name="StopRecordingIcon" Fill="White" Width="20" Height="20" Visibility="Collapsed"/>
@@ -48,7 +60,8 @@
             </Button>-->
 
             <Button
-				Tapped="OnOwnBackButton_Tapped">
+				Tapped="OnOwnBackButton_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
                 <Viewbox MaxHeight="40" MaxWidth="40">
                     <SymbolIcon Symbol="Back"/>
                 </Viewbox>

@@ -14,6 +14,12 @@ namespace UniFiler10.Data.Runtime
 	public sealed class RuntimeData : OpenableObservableData
 	{
 		#region properties
+		private bool _isTrial = true;
+		public bool IsTrial { get { return _isTrial; } set { _isTrial = value; RaisePropertyChanged_UI(); } }
+
+		private int _trialResidualDays = -1;
+		public int TrialResidualDays { get { return _trialResidualDays; } set { _trialResidualDays = value; RaisePropertyChanged_UI(); } }
+
 		private volatile bool _isConnectionAvailable = false;
 		public bool IsConnectionAvailable
 		{

@@ -168,6 +168,36 @@
   <data name="ByFldFolders.Text" xml:space="preserve">
     <value>Folders with value</value>
   </data>
+  <data name="CameraCaptureFailedW2Params" xml:space="preserve">
+    <value>MediaCapture_Failed: (0x{0:X}) {1}</value>
+  </data>
+  <data name="CameraDeviceNotFound" xml:space="preserve">
+    <value>No cameras found</value>
+  </data>
+  <data name="CameraInitialiseExceptionW1Params" xml:space="preserve">
+    <value>Exception when initializing camera with {0}: {1}</value>
+  </data>
+  <data name="CameraInitialising" xml:space="preserve">
+    <value>Initialising camera</value>
+  </data>
+  <data name="CameraNoAccess" xml:space="preserve">
+    <value>The app was denied access to the camera</value>
+  </data>
+  <data name="CameraPreviewStartExceptionW1Params" xml:space="preserve">
+    <value>Exception when starting the preview: {0}</value>
+  </data>
+  <data name="CameraPreviewStopExceptionW1Params" xml:space="preserve">
+    <value>Exception when stopping the preview: {0}</value>
+  </data>
+  <data name="CameraTakenPhoto" xml:space="preserve">
+    <value>Photo taken</value>
+  </data>
+  <data name="CameraTakePhotoExceptionW1Params" xml:space="preserve">
+    <value>Exception when taking a photo: {0}</value>
+  </data>
+  <data name="CameraTakingPhoto" xml:space="preserve">
+    <value>Taking photo...</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
