@@ -17,7 +17,7 @@
 		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}"
 		DataContext="{x:Bind VM, Mode=OneWay}">
 
-		<local:BriefcaseCoverView
+		<local:BriefcaseCoverView x:Name="BriefcaseCoverView"
             VM="{x:Bind VM, Mode=OneWay}"
 			GoToBinderContentRequested="OnBriefcaseCoverView_GoToBinderContentRequested"
 			GoToSettingsRequested="OnBriefcaseCoverView_GoToSettingsRequested"

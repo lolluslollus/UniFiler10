@@ -44,14 +44,16 @@ namespace UniFiler10.ViewModels
 		}
 
 		private static SettingsVM _instance = null;
+		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
 		#region ctor and dispose
-		public SettingsVM(MetaBriefcase metaBriefcase)
+		public SettingsVM(MetaBriefcase metaBriefcase, AnimationStarter animationStarter)
 		{
 			MetaBriefcase = metaBriefcase;
 			_instance = this;
+			_animationStarter = animationStarter;
 			UpdateUnassignedFields();
 		}
 
@@ -179,19 +181,29 @@ namespace UniFiler10.ViewModels
 					isOk = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
 				}
 			}
+
+			if (isOk) _animationStarter.StartAnimation(0);
+			else _animationStarter.StartAnimation(1);
+
 			return isOk;
 		}
-		public async Task ImportAsync()
+		public async Task<bool> ImportAsync()
 		{
+			bool isOk = false;
 			var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 			if (file != null)
 			{
 				var bf = Briefcase.GetCurrentInstance();
 				if (bf != null)
 				{
-					await bf.ImportSettingsAsync(file).ConfigureAwait(false);
+					isOk = await bf.ImportSettingsAsync(file).ConfigureAwait(false);
 				}
 			}
+
+			if (isOk) _animationStarter.StartAnimation(0);
+			else _animationStarter.StartAnimation(1);
+
+			return isOk;
 		}
 		#endregion user actions
 	}

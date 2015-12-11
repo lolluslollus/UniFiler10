@@ -13,7 +13,7 @@ using Windows.UI.Xaml.Media.Animation;
 
 namespace UniFiler10.Views
 {
-	public sealed partial class BinderCoverView : OpenableObservableControl, IAnimationStarter
+	public sealed partial class BinderCoverView : OpenableObservableControl
 	{
 		#region events
 		public event EventHandler GoToSettingsRequested;
@@ -24,6 +24,8 @@ namespace UniFiler10.Views
 		#region properties
 		private BinderCoverVM _vm = null;
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
+
+		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
@@ -32,12 +34,19 @@ namespace UniFiler10.Views
 		{
 			DataContextChanged += OnDataContextChanged;
 			InitializeComponent();
+			_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}
 
 
 		protected override Task OpenMayOverrideAsync()
 		{
 			return UpdateVMAsync();
+		}
+
+		protected override async Task CloseMayOverrideAsync()
+		{
+			await DisposeVMAsync().ConfigureAwait(false);
+			_animationStarter.EndAllAnimations();
 		}
 
 		private async Task UpdateVMAsync()
@@ -47,7 +56,7 @@ namespace UniFiler10.Views
 			{
 				if (_vm == null)
 				{
-					_vm = new BinderCoverVM(binder, this);
+					_vm = new BinderCoverVM(binder, _animationStarter);
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
 				}
@@ -55,7 +64,7 @@ namespace UniFiler10.Views
 				{
 					await DisposeVMAsync().ConfigureAwait(false);
 
-					_vm = new BinderCoverVM(binder, this);
+					_vm = new BinderCoverVM(binder, _animationStarter);
 					await _vm.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(VM));
 				}
@@ -64,12 +73,6 @@ namespace UniFiler10.Views
 			{
 				await DisposeVMAsync().ConfigureAwait(false);
 			}
-		}
-
-		protected override async Task CloseMayOverrideAsync()
-		{
-			await DisposeVMAsync().ConfigureAwait(false);
-			EndAnimation(0);
 		}
 
 		private async Task DisposeVMAsync()
@@ -144,24 +147,5 @@ namespace UniFiler10.Views
 			GoToSettingsRequested?.Invoke(this, EventArgs.Empty);
 		}
 		#endregion event handlers
-
-
-		#region animations
-		public void StartAnimation(int whichAnimation = 0)
-		{
-			Task start = RunInUiThreadAsync(delegate
-			{
-				UpdatingStoryboard.Begin();
-			});
-		}
-		public void EndAnimation(int whichAnimation = 0)
-		{
-			Task end = RunInUiThreadAsync(delegate
-			{
-				UpdatingStoryboard.SkipToFill();
-				UpdatingStoryboard.Stop();
-			});
-		}
-		#endregion animations
 	}
 }

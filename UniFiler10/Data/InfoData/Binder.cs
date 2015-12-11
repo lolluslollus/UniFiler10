@@ -305,6 +305,7 @@ namespace UniFiler10.Data.Model
 			}
 			catch (Exception ex)                 //must be tolerant or the app might crash when starting
 			{
+				Debugger.Break();
 				errorMessage = "could not restore the data, starting afresh";
 				await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
 			}
@@ -348,13 +349,6 @@ namespace UniFiler10.Data.Model
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 		}
-		//public async Task<StorageFolder> GetCreateDirectoryAsync()
-		//{
-		//	var dir = await Briefcase.BindersDirectory
-		//		.CreateFolderAsync(DBName, CreationCollisionOption.OpenIfExists)
-		//		.AsTask().ConfigureAwait(false);
-		//	return dir;
-		//}
 		private async Task GetCreateDirectoryAsync()
 		{
 			_directory = await Briefcase.BindersDirectory
@@ -461,54 +455,67 @@ namespace UniFiler10.Data.Model
 			{
 				if (fromDirectory == null) return false;
 				bool isOk = false;
+				MergingBinder mergingBinder = null;
+				StorageFolder tempDirectory = null;
 
-				// I can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode. 
-				// So I copy the source files into the temp directory.
-				var tempDirectory = await ApplicationData.Current.TemporaryFolder
-					.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
-					.AsTask().ConfigureAwait(false);
-				await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
-
-				var mergingBinder = MergingBinder.GetCreateInstance(_dbName, tempDirectory);
-				await mergingBinder.OpenAsync().ConfigureAwait(false);
-
-				// parallelisation here seems ideal, but it screws with SQLite.
-
-				foreach (var fol in mergingBinder.Folders)
+				try
 				{
-					await fol.OpenAsync().ConfigureAwait(false);
-					if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
+					// I can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode. 
+					// So I copy the source files into the temp directory.
+					tempDirectory = await ApplicationData.Current.TemporaryFolder
+						.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
+						.AsTask().ConfigureAwait(false);
+					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
+
+					mergingBinder = MergingBinder.GetCreateInstance(_dbName, tempDirectory);
+					await mergingBinder.OpenAsync().ConfigureAwait(false);
+
+					// parallelisation here seems ideal, but it screws with SQLite.
+
+					foreach (var fol in mergingBinder.Folders)
 					{
-						await fol.SetDbManager(_dbManager).ConfigureAwait(false);
-
-						await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
-						foreach (var wal in fol.Wallets)
+						await fol.OpenAsync().ConfigureAwait(false);
+						if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
 						{
-							foreach (var doc in wal.Documents)
+							await fol.SetDbManager(_dbManager).ConfigureAwait(false);
+
+							await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
+							foreach (var wal in fol.Wallets)
 							{
-								var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
-								if (file != null)
+								foreach (var doc in wal.Documents)
 								{
-									var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-									doc.Uri0 = copiedFile.Name;
+									var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
+									if (file != null)
+									{
+										var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+										doc.Uri0 = copiedFile.Name;
+									}
 								}
+								await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
 							}
-							await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
+
+							await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
+							await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
+
+							_folders.Add(fol);
+							isOk = true;
 						}
-
-						await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
-						await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
-
-						_folders.Add(fol);
-						isOk = true;
 					}
 				}
+				catch (Exception ex)
+				{
+					await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+					isOk = false;
+				}
 
-				await mergingBinder.CloseAsync().ConfigureAwait(false);
-				mergingBinder.Dispose();
+				if (mergingBinder != null)
+				{
+					await mergingBinder.CloseAsync().ConfigureAwait(false);
+					mergingBinder.Dispose();
+				}
 				mergingBinder = null;
 
-				Task clean = tempDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(); //.ConfigureAwait(false);
+				Task clean = tempDirectory?.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask();
 
 				return isOk;
 			});
@@ -665,11 +672,6 @@ namespace UniFiler10.Data.Model
 		{
 			throw new NotImplementedException();
 		}
-
-		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		//{
-		//	throw new NotImplementedException("ERROR in Binder: IsEqualToMustOverride() was called but it must not. ");
-		//}
 
 		protected override bool CheckMeMustOverride()
 		{

@@ -36,7 +36,6 @@ namespace UniFiler10.Data.DB
 		private SemaphoreSlimSafeRelease _documentsSemaphore = null;
 		private SemaphoreSlimSafeRelease _dynamicFieldsSemaphore = null;
 		private SemaphoreSlimSafeRelease _dynamicCategoriesSemaphore = null;
-
 		private LolloSQLiteConnectionPoolMT _connectionPool = null;
 		#endregion fields
 

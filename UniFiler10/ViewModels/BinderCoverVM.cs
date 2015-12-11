@@ -21,7 +21,7 @@ namespace UniFiler10.ViewModels
 		#region fields
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
 		private const int REFRESH_INTERVAL_SHORT_MSEC = 25;
-		IAnimationStarter _animationStarter = null;
+		private AnimationStarter _animationStarter = null;
 		private CancellationTokenSource _cts = null;
 		#endregion fields
 
@@ -401,7 +401,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region construct dispose open close
-		public BinderCoverVM(Binder binder, IAnimationStarter animationStarter)
+		public BinderCoverVM(Binder binder, AnimationStarter animationStarter)
 		{
 			if (binder == null) throw new ArgumentNullException("BinderCoverVM ctor: binder may not be null");
 			if (animationStarter == null) throw new ArgumentNullException("BinderCoverVM ctor: animationStarter may not be null");
@@ -693,15 +693,18 @@ namespace UniFiler10.ViewModels
 
 		public async Task ImportFoldersFromBinderAsync()
 		{
+			bool isOk = false;
 			var binder = _binder;
 			if (binder != null)
 			{
 				var directory = await Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
 				if (directory != null)
 				{
-					await binder.ImportFoldersAsync(directory).ConfigureAwait(false);
+					isOk = await binder.ImportFoldersAsync(directory).ConfigureAwait(false);
 				}
 			}
+			if (isOk) _animationStarter.StartAnimation(1);
+			else _animationStarter.StartAnimation(2);
 		}
 		#endregion actions
 	}

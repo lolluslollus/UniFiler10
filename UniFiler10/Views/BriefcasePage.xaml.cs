@@ -37,6 +37,8 @@ namespace UniFiler10.Views
 			await _vm.OpenAsync().ConfigureAwait(true);
 			RaisePropertyChanged(nameof(VM));
 
+			await BriefcaseCoverView.CloseAsync().ConfigureAwait(false);
+
 			//RegisterIsShowingBinderHandler();
 			// LOLLO NOTE do not set the datacontext of the whole control or it will alter the dependency properties, if any. 
 			// Instead, set LayoutRoot.DataContext, where LayoutRoot is the main child of the Page or UserControl.
@@ -52,6 +54,8 @@ namespace UniFiler10.Views
 				vm.Dispose();
 				VM = null;
 			}
+
+			await BriefcaseCoverView.CloseAsync().ConfigureAwait(false);
 		}
 		#endregion construct dispose open close
 

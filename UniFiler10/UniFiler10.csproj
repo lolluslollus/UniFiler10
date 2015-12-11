@@ -135,7 +135,7 @@
     <Compile Include="Utilz\DocumentExtensions.cs" />
     <Compile Include="Data\Constants\Constants.cs" />
     <Compile Include="Utilz\FileDirectoryExts.cs" />
-    <Compile Include="Utilz\IAnimationStarter.cs" />
+    <Compile Include="Utilz\AnimationStarter.cs" />
     <Compile Include="Utilz\Licenser.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="Data\InfoData\Briefcase.cs" />

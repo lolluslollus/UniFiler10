@@ -434,11 +434,11 @@ namespace UniFiler10.Data.Model
 				return _metaBriefcase.SaveACopyAsync(toFile);
 			});
 		}
-		public Task ImportSettingsAsync(StorageFile fromFile)
+		public Task<bool> ImportSettingsAsync(StorageFile fromFile)
 		{
-			return RunFunctionWhileOpenAsyncT(async delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (fromFile == null) return;
+				if (fromFile == null) return false;
 
 				bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 
@@ -451,6 +451,7 @@ namespace UniFiler10.Data.Model
 
 				// update the current binder, whichever it is, and open it if it was open before
 				await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
+				return true;
 			});
 		}
 		#endregion while open methods

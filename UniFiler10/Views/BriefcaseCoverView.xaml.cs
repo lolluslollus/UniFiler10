@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.ViewModels;
 using Utilz;
+using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.Resources;
 using Windows.Devices.Sensors;
 using Windows.Foundation;
@@ -30,7 +31,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace UniFiler10.Views
 {
-	public sealed partial class BriefcaseCoverView : ObservableControl, IAnimationStarter
+	public sealed partial class BriefcaseCoverView : OpenableObservableControl
 	{
 		#region events
 		public event EventHandler GoToBinderContentRequested;
@@ -46,8 +47,8 @@ namespace UniFiler10.Views
 		}
 		public static readonly DependencyProperty VMProperty =
 			DependencyProperty.Register("VM", typeof(BriefcaseVM), typeof(BriefcaseCoverView), new PropertyMetadata(null));
-		//private BriefcaseVM _vm = null;
-		//public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
+
+		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
@@ -55,6 +56,12 @@ namespace UniFiler10.Views
 		public BriefcaseCoverView()
 		{
 			InitializeComponent();
+			_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard});
+		}
+		protected override Task CloseMayOverrideAsync()
+		{
+			_animationStarter.EndAllAnimations();
+			return Task.CompletedTask;
 		}
 		#endregion construct, dispose, open, close
 
@@ -89,18 +96,30 @@ namespace UniFiler10.Views
 				bool isOk = await vm.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
 				if (isOk)
 				{
-					StartAnimation((int)Animations.Success);
+					_animationStarter.StartAnimation(1);
 				}
 				else
 				{
-					StartAnimation((int)Animations.Failure);
+					_animationStarter.StartAnimation(2);
 				}
 			}
 		}
 
-		private void OnRestoreButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private async void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task restore = VM?.ImportDbAsync();
+			var vm = VM;
+			if (vm != null)
+			{
+				bool isOk = await vm.ImportDbAsync();
+				if (isOk)
+				{
+					_animationStarter.StartAnimation(1);
+				}
+				else
+				{
+					_animationStarter.StartAnimation(2);
+				}
+			}
 		}
 
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -112,33 +131,5 @@ namespace UniFiler10.Views
 			GoToSettingsRequested?.Invoke(this, EventArgs.Empty);
 		}
 		#endregion event handlers
-
-
-		#region animations
-		public enum Animations { Updating = 0, Success = 1, Failure = 2 }
-
-		public void StartAnimation(int whichAnimation)
-		{
-			Task start = RunInUiThreadAsync(delegate
-			{
-				if ((Animations)whichAnimation == Animations.Updating) UpdatingStoryboard.Begin();
-				else if ((Animations)whichAnimation == Animations.Success) SuccessStoryboard.Begin();
-				else if ((Animations)whichAnimation == Animations.Failure) FailureStoryboard.Begin();
-			});
-		}
-		public void EndAnimation(int whichAnimation)
-		{
-			Task end = RunInUiThreadAsync(delegate
-			{
-				Storyboard sb = null;
-				if ((Animations)whichAnimation == Animations.Updating) sb = UpdatingStoryboard;
-				else if ((Animations)whichAnimation == Animations.Success) sb = SuccessStoryboard;
-				else if ((Animations)whichAnimation == Animations.Failure) sb = FailureStoryboard;
-
-				sb?.SkipToFill();
-				sb?.Stop();
-			});
-		}
-		#endregion animations
 	}
 }

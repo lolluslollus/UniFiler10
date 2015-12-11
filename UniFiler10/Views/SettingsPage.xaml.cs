@@ -34,6 +34,8 @@ namespace UniFiler10.Views
 		#region properties
 		private SettingsVM _vm = null;
 		public SettingsVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
+
+		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
@@ -42,13 +44,14 @@ namespace UniFiler10.Views
 		{
 			InitializeComponent();
 			MBView.DataContext = null; // otherwise, it will try something and run into binding errors. I am going to set its binding later.
+			_animationStarter = new AnimationStarter(new Storyboard[] { SuccessStoryboard, FailureStoryboard });
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
 			await briefcase.OpenAsync();
 
-			_vm = new SettingsVM(briefcase.MetaBriefcase);
+			_vm = new SettingsVM(briefcase.MetaBriefcase, _animationStarter);
 			await _vm.OpenAsync();
 			RaisePropertyChanged_UI(nameof(VM));
 
@@ -65,8 +68,7 @@ namespace UniFiler10.Views
 			}
 			_vm = null;
 
-			EndAnimation((int)Animations.Failure);
-			EndAnimation((int)Animations.Success);
+			_animationStarter.EndAllAnimations();
 		}
 		#endregion construct dispose open close
 
@@ -93,15 +95,7 @@ namespace UniFiler10.Views
 			var vm = _vm;
 			if (vm != null)
 			{
-				bool isOk = await vm.ExportAsync();
-				if (isOk)
-				{
-					StartAnimation((int)Animations.Success);
-				}
-				else
-				{
-					StartAnimation((int)Animations.Failure);
-				}
+				await vm.ExportAsync().ConfigureAwait(false);
 			}
 		}
 
@@ -121,31 +115,5 @@ namespace UniFiler10.Views
 			AboutFlyout.ShowAt(this);
 		}
 		#endregion user actions
-
-
-		#region animations
-		public enum Animations { Success = 1, Failure = 2 }
-
-		public void StartAnimation(int whichAnimation)
-		{
-			Task start = RunInUiThreadAsync(delegate
-			{
-				if ((Animations)whichAnimation == Animations.Success) SuccessStoryboard.Begin();
-				else if ((Animations)whichAnimation == Animations.Failure) FailureStoryboard.Begin();
-			});
-		}
-		public void EndAnimation(int whichAnimation)
-		{
-			Task end = RunInUiThreadAsync(delegate
-			{
-				Storyboard sb = null;
-				if ((Animations)whichAnimation == Animations.Success) sb = SuccessStoryboard;
-				else if ((Animations)whichAnimation == Animations.Failure) sb = FailureStoryboard;
-
-				sb?.SkipToFill();
-				sb?.Stop();
-			});
-		}
-		#endregion animations
 	}
 }

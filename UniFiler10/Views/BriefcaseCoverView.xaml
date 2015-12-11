@@ -1,4 +1,4 @@
-﻿<ctl:ObservableControl    
+﻿<ctl:OpenableObservableControl    
 	x:Class="UniFiler10.Views.BriefcaseCoverView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -192,7 +192,7 @@
 				</Button>
 
 				<Button 
-                    Tapped="OnRestoreButton_Tapped"
+                    Tapped="OnImportButton_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
@@ -395,4 +395,4 @@
 
 		</Grid>
 	</ScrollViewer>
-</ctl:ObservableControl>
+</ctl:OpenableObservableControl>
