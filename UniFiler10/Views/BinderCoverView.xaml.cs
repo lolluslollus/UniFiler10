@@ -7,6 +7,7 @@ using UniFiler10.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media.Animation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -68,6 +69,7 @@ namespace UniFiler10.Views
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await DisposeVMAsync().ConfigureAwait(false);
+			EndAnimation(0);
 		}
 
 		private async Task DisposeVMAsync()
@@ -144,14 +146,15 @@ namespace UniFiler10.Views
 		#endregion event handlers
 
 
-		public void StartAnimation()
+		#region animations
+		public void StartAnimation(int whichAnimation = 0)
 		{
 			Task start = RunInUiThreadAsync(delegate
 			{
 				UpdatingStoryboard.Begin();
 			});
 		}
-		public void EndAnimation()
+		public void EndAnimation(int whichAnimation = 0)
 		{
 			Task end = RunInUiThreadAsync(delegate
 			{
@@ -159,5 +162,6 @@ namespace UniFiler10.Views
 				UpdatingStoryboard.Stop();
 			});
 		}
+		#endregion animations
 	}
 }

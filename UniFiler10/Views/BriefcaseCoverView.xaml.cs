@@ -23,6 +23,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -80,9 +81,21 @@ namespace UniFiler10.Views
 			Task add = VM?.AddDbStep1Async();
 		}
 
-		private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private async void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task backup = VM?.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
+			var vm = VM;
+			if (vm != null)
+			{
+				bool isOk = await vm.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
+				if (isOk)
+				{
+					StartAnimation((int)Animations.Success);
+				}
+				else
+				{
+					StartAnimation((int)Animations.Failure);
+				}
+			}
 		}
 
 		private void OnRestoreButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -101,20 +114,31 @@ namespace UniFiler10.Views
 		#endregion event handlers
 
 
-		public void StartAnimation()
+		#region animations
+		public enum Animations { Updating = 0, Success = 1, Failure = 2 }
+
+		public void StartAnimation(int whichAnimation)
 		{
 			Task start = RunInUiThreadAsync(delegate
 			{
-				UpdatingStoryboard.Begin();
+				if ((Animations)whichAnimation == Animations.Updating) UpdatingStoryboard.Begin();
+				else if ((Animations)whichAnimation == Animations.Success) SuccessStoryboard.Begin();
+				else if ((Animations)whichAnimation == Animations.Failure) FailureStoryboard.Begin();
 			});
 		}
-		public void EndAnimation()
+		public void EndAnimation(int whichAnimation)
 		{
 			Task end = RunInUiThreadAsync(delegate
 			{
-				UpdatingStoryboard.SkipToFill();
-				UpdatingStoryboard.Stop();
+				Storyboard sb = null;
+				if ((Animations)whichAnimation == Animations.Updating) sb = UpdatingStoryboard;
+				else if ((Animations)whichAnimation == Animations.Success) sb = SuccessStoryboard;
+				else if ((Animations)whichAnimation == Animations.Failure) sb = FailureStoryboard;
+
+				sb?.SkipToFill();
+				sb?.Stop();
 			});
 		}
+		#endregion animations
 	}
 }

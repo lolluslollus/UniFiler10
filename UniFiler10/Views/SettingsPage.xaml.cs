@@ -22,6 +22,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
@@ -48,17 +49,24 @@ namespace UniFiler10.Views
 			await briefcase.OpenAsync();
 
 			_vm = new SettingsVM(briefcase.MetaBriefcase);
+			await _vm.OpenAsync();
 			RaisePropertyChanged_UI(nameof(VM));
 
 			//LayoutRoot.DataContext = VM;
 			MBView.DataContext = VM.MetaBriefcase;
 		}
-		protected override Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync()
 		{
-			_vm?.Dispose();
-			VM = null;
+			var vm = _vm;
+			if (vm != null)
+			{
+				await vm.CloseAsync().ConfigureAwait(false);
+				vm.Dispose();
+			}
+			_vm = null;
 
-			return Task.CompletedTask;
+			EndAnimation((int)Animations.Failure);
+			EndAnimation((int)Animations.Success);
 		}
 		#endregion construct dispose open close
 
@@ -80,9 +88,21 @@ namespace UniFiler10.Views
 			MBView.DataContext = VM.MetaBriefcase;
 		}
 
-		private void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
+		private async void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task exp = _vm?.ExportAsync();
+			var vm = _vm;
+			if (vm != null)
+			{
+				bool isOk = await vm.ExportAsync();
+				if (isOk)
+				{
+					StartAnimation((int)Animations.Success);
+				}
+				else
+				{
+					StartAnimation((int)Animations.Failure);
+				}
+			}
 		}
 
 		private async void OnImport_Tapped(object sender, TappedRoutedEventArgs e)
@@ -100,7 +120,32 @@ namespace UniFiler10.Views
 		{
 			AboutFlyout.ShowAt(this);
 		}
-
 		#endregion user actions
+
+
+		#region animations
+		public enum Animations { Success = 1, Failure = 2 }
+
+		public void StartAnimation(int whichAnimation)
+		{
+			Task start = RunInUiThreadAsync(delegate
+			{
+				if ((Animations)whichAnimation == Animations.Success) SuccessStoryboard.Begin();
+				else if ((Animations)whichAnimation == Animations.Failure) FailureStoryboard.Begin();
+			});
+		}
+		public void EndAnimation(int whichAnimation)
+		{
+			Task end = RunInUiThreadAsync(delegate
+			{
+				Storyboard sb = null;
+				if ((Animations)whichAnimation == Animations.Success) sb = SuccessStoryboard;
+				else if ((Animations)whichAnimation == Animations.Failure) sb = FailureStoryboard;
+
+				sb?.SkipToFill();
+				sb?.Stop();
+			});
+		}
+		#endregion animations
 	}
 }

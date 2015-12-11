@@ -258,7 +258,7 @@ namespace UniFiler10.Views
 						var renderOptions = GetPdfRenderOptions(pdfPage);
 						if (renderOptions != null)
 						{
-							IsMultiPage = pdfDocument.PageCount > 1; // LOLLO TODO maybe deal with multi pages with tiff too ?
+							IsMultiPage = pdfDocument.PageCount > 1; // LOLLO TODO MAYBE deal with multi pages with tiff too ?
 							using (var stream = new InMemoryRandomAccessStream())
 							{
 								await pdfPage.RenderToStreamAsync(stream, renderOptions).AsTask().ConfigureAwait(false);
@@ -308,7 +308,7 @@ namespace UniFiler10.Views
 		//}
 		private async Task RenderFirstPDFPageWithFileCacheAsync()
 		{
-			// LOLLO TODO this could be useful if we could reuse it across different documents, ie we must reference the file to check if it already exists
+			// LOLLO TODO MAYBE we could reuse this method across different documents, on condition we reference the file somehow, to check if it already exists
 			try
 			{
 				var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.GetFullUri0()).AsTask().ConfigureAwait(false);

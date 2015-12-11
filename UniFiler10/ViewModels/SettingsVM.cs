@@ -14,10 +14,29 @@ using Windows.UI.Xaml.Data;
 
 namespace UniFiler10.ViewModels
 {
-	public sealed class SettingsVM : ObservableData, IDisposable
+	public sealed class SettingsVM : OpenableObservableData, IDisposable
 	{
+		#region properties
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
+
+		private SwitchableObservableCollection<FieldDescription> _unassignedFields = new SwitchableObservableCollection<FieldDescription>();
+		public SwitchableObservableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
+		private void UpdateUnassignedFields()
+		{
+			var mb = _metaBriefcase;
+			_unassignedFields.Clear();
+			if (mb != null && mb.FieldDescriptions != null && mb.CurrentCategory != null && mb.CurrentCategory.FieldDescriptionIds != null)
+			{
+				_unassignedFields.AddRange(mb.FieldDescriptions
+					.Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
+				RaisePropertyChanged_UI(nameof(UnassignedFields));
+			}
+		}
+		public void OnDataContextChanged()
+		{
+			UpdateUnassignedFields();
+		}
 
 		public static bool GetIsElevated()
 		{
@@ -25,6 +44,10 @@ namespace UniFiler10.ViewModels
 		}
 
 		private static SettingsVM _instance = null;
+		#endregion properties
+
+
+		#region ctor and dispose
 		public SettingsVM(MetaBriefcase metaBriefcase)
 		{
 			MetaBriefcase = metaBriefcase;
@@ -32,13 +55,28 @@ namespace UniFiler10.ViewModels
 			UpdateUnassignedFields();
 		}
 
-		public void Dispose()
+		protected override void Dispose(bool isDisposing)
 		{
+			base.Dispose(isDisposing);
+
 			// we don't touch MetaBriefcase or other data, only app.xaml.cs may do so.
+			_unassignedFields?.Clear();
 			_unassignedFields?.Dispose();
 			_unassignedFields = null;
 		}
+		#endregion ctor and dispose
 
+
+		#region open and close
+		protected override async Task CloseMayOverrideAsync()
+		{
+			var mbc = _metaBriefcase;
+			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
+		}
+		#endregion open and close
+
+
+		#region user actions
 		public Task<bool> AddCategoryAsync()
 		{
 			return _metaBriefcase?.AddCategoryAsync();
@@ -89,22 +127,6 @@ namespace UniFiler10.ViewModels
 			return false;
 		}
 
-		//     public bool AssignFieldDescriptionToCurrentCategory(FieldDescription fldDsc, Category toCat)
-		//     {
-		//var mb = _metaBriefcase;
-		//if (mb == null || fldDsc == null || toCat == null) return false;
-
-		//         var cat = mb.Categories?.FirstOrDefault(ca => ca.Id == toCat.Id);
-		//         if (cat != null)
-		//         {
-		//             if (cat.AddFieldDescription(fldDsc))
-		//             {
-		//                 RefreshUnassignedFields();
-		//                 return true;
-		//             }
-		//         }
-		//         return false;
-		//     }
 		public async Task<bool> UnassignFieldDescriptionFromCurrentCategoryAsync(FieldDescription fldDsc)
 		{
 			var mb = _metaBriefcase;
@@ -118,65 +140,15 @@ namespace UniFiler10.ViewModels
 			return false;
 		}
 
-		public void OnDataContextChanged()
-		{
-			UpdateUnassignedFields();
-		}
-		//     public bool UnassignFieldDescriptionFromCurrentCategory(FieldDescription fldDsc, Category toCat)
-		//     {
-		//var mb = _metaBriefcase;
-		//if (mb == null || fldDsc == null || toCat == null) return false;
-
-		//         var cat = mb.Categories?.FirstOrDefault(c => c.Id == toCat.Id);
-		//         if (cat?.Id != null && (fldDsc.JustAssignedToCats.Contains(cat.Id) || IsElevated))
-		//         {
-		//             if (cat.RemoveFieldDescription(fldDsc))
-		//             {
-		//                 RefreshUnassignedFields();
-		//                 return true;
-		//             }
-		//         }
-		//         return false;
-		//     }
-
 		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{
 			return _metaBriefcase?.AddPossibleValueToCurrentFieldDescriptionAsync();
 		}
-		//public bool AddPossibleValueToFieldDescription(FieldValue fldVal, FieldDescription toFldDesc)
-		//{
-		//    if (fldVal == null || toFldDesc == null) return false;
 
-		//    fldVal.IsCustom = true;
-		//    fldVal.IsJustAdded = true;
-
-		//    var fldDesc = _metaBriefcase?.FieldDescriptions?.FirstOrDefault(fd => fd.Id == toFldDesc.Id);
-		//    if (fldDesc != null)
-		//    {
-		//        fldDesc.AddPossibleValue(fldVal);
-		//        return true;
-		//    }
-		//    return false;
-		//}
 		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
 		{
 			return _metaBriefcase.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal);
 		}
-
-		private SwitchableObservableCollection<FieldDescription> _unassignedFields = new SwitchableObservableCollection<FieldDescription>();
-		public SwitchableObservableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
-		private void UpdateUnassignedFields()
-		{
-			var mb = _metaBriefcase;
-			_unassignedFields.Clear();
-			if (mb != null && mb.FieldDescriptions != null && mb.CurrentCategory != null && mb.CurrentCategory.FieldDescriptionIds != null)
-			{
-				_unassignedFields.AddRange(mb.FieldDescriptions
-					.Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
-				RaisePropertyChanged_UI(nameof(UnassignedFields));
-			}
-		}
-
 		public async Task SetCurrentCategoryAsync(Category newItem)
 		{
 			var mb = _metaBriefcase;
@@ -195,17 +167,19 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public async Task ExportAsync()
+		public async Task<bool> ExportAsync()
 		{
+			bool isOk = false;
 			var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 			if (file != null)
 			{
 				var bf = Briefcase.GetCurrentInstance();
 				if (bf != null)
 				{
-					await bf.ExportSettingsAsync(file).ConfigureAwait(false);
+					isOk = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
 				}
 			}
+			return isOk;
 		}
 		public async Task ImportAsync()
 		{
@@ -219,6 +193,7 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
+		#endregion user actions
 	}
 
 	public class BooleanAndElevated : IValueConverter

@@ -350,7 +350,7 @@ namespace UniFiler10.Data.Model
 			});
 		}
 		public Task<bool> MergeBinderAsync(StorageFolder fromDirectory)
-		{// LOLLO TODO check this
+		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (fromDirectory == null || string.IsNullOrWhiteSpace(fromDirectory.Name) || !_dbNames.Contains(fromDirectory.Name)) return false;
@@ -427,9 +427,9 @@ namespace UniFiler10.Data.Model
 				return _dbNames.Contains(newDbName);
 			}
 		}
-		public Task ExportSettingsAsync(StorageFile toFile)
+		public Task<bool> ExportSettingsAsync(StorageFile toFile)
 		{
-			return RunFunctionWhileOpenAsyncT(delegate
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
 				return _metaBriefcase.SaveACopyAsync(toFile);
 			});

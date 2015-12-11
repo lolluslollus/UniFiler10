@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
+using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
@@ -334,7 +335,7 @@ namespace UniFiler10.ViewModels
 			{
 				try
 				{
-					_animationStarter.StartAnimation();
+					_animationStarter.StartAnimation(0);
 
 					var cts = _cts;
 					if (cts != null)
@@ -353,7 +354,7 @@ namespace UniFiler10.ViewModels
 				}
 				finally
 				{
-					_animationStarter.EndAnimation();
+					_animationStarter.EndAnimation(0);
 				}
 			}
 		}

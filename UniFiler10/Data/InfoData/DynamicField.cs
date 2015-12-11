@@ -202,12 +202,13 @@ namespace UniFiler10.Data.Model
 				var mb = MetaBriefcase.OpenInstance;
 				if (mb != null)
 				{
-					if (await mb.AddPossibleValueToFieldDescriptionAsync(_fieldDescription, newFldVal))
+					// LOLLO NOTE save metaBriefcase, in case there is a crash before the next Suspend.
+					// This problem actually affects all XML-based stuff, because they only save on closing.
+					// We only take extra care of MetaBriefcase because Briefcase and Binder do not save critical data.
+					// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
+					if (await mb.AddPossibleValueToFieldDescriptionAsync(_fieldDescription, newFldVal, true))
 					{
 						FieldValueId = newFldVal.Id;
-						// LOLLO TODO save metaBriefcase, in case there is a crash before the next Suspend.
-						// This problem actually affects all XML-based stuff, because they only save on closing.
-						// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
 						return true;
 					}
 				}

@@ -230,7 +230,7 @@ namespace UniFiler10.Data.Metadata
 
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
-		private async Task SaveAsync(StorageFile file = null)
+		private async Task<bool> SaveAsync(StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
@@ -260,11 +260,13 @@ namespace UniFiler10.Data.Metadata
 					}
 				}
 				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
+				return true;
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
+			return false;
 		}
 
 		private bool CopyFrom(MetaBriefcase source)
@@ -395,13 +397,23 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		public Task<bool> AddPossibleValueToFieldDescriptionAsync(FieldDescription fldDsc, FieldValue newFldVal)
+		/// <summary>
+		/// Save metaBriefcase, in case there is a crash before the next Suspend.
+		/// This is the only method that is not called by the VM, which saves when closing.
+		/// </summary>
+		/// <param name="fldDsc"></param>
+		/// <param name="newFldVal"></param>
+		/// <param name="save"></param>
+		/// <returns></returns>
+		public Task<bool> AddPossibleValueToFieldDescriptionAsync(FieldDescription fldDsc, FieldValue newFldVal, bool save)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				if (fldDsc == null || newFldVal == null) return false;
 
-				return fldDsc.AddPossibleValue(newFldVal);
+				bool isOk = fldDsc.AddPossibleValue(newFldVal);
+				if (isOk && save) isOk = await SaveAsync().ConfigureAwait(false);
+				return isOk;
 			});
 		}
 
@@ -435,9 +447,14 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		public Task SaveACopyAsync(StorageFile file)
+		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionWhileOpenAsyncT(delegate { return SaveAsync(file); });
+			return RunFunctionWhileOpenAsyncTB(delegate { return SaveAsync(file); });
+		}
+
+		public Task<bool> SaveACopyAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(delegate { return SaveAsync(); });
 		}
 		#endregion while open methods
 	}

@@ -11,13 +11,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:DesignHeight="800"
-    d:DesignWidth="400"
-    d:DataContext="{d:DesignInstance Type=vms:BinderCoverVM, IsDesignTimeCreatable=False}">
+    d:DesignWidth="800"
+    d:DataContext="{d:DesignData Type=vms:BinderCoverVM, IsDesignTimeCreatable=False}">
 
 	<ctl:OpenableObservableControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
 			<ObjectAnimationUsingKeyFrames 
-                Storyboard.TargetName="RefreshIcon" 
+                Storyboard.TargetName="RefreshVB" 
                 Storyboard.TargetProperty="Visibility">
 				<DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
 			</ObjectAnimationUsingKeyFrames>
@@ -30,33 +30,6 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
 				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
 			</DoubleAnimationUsingKeyFrames>
-
-			<!--<DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
-                Storyboard.TargetName="RefreshIcon">
-                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
-                <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
-            </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
-                Storyboard.TargetName="RefreshIcon">
-                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
-                <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0"/>
-            </DoubleAnimationUsingKeyFrames>-->
-
-			<!--<ObjectAnimationUsingKeyFrames 
-                Storyboard.TargetName="RefreshIcon" 
-                Storyboard.TargetProperty="Visibility">
-                <DiscreteObjectKeyFrame KeyTime="0:0:0.5" Value="Collapsed"/>
-            </ObjectAnimationUsingKeyFrames>-->
-			<!--<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="RefreshIcon">
-                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
-            </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)" Storyboard.TargetName="RefreshIcon">
-                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-10"/>
-            </DoubleAnimationUsingKeyFrames>-->
 		</Storyboard>
 	</ctl:OpenableObservableControl.Resources>
 
@@ -70,16 +43,16 @@
 			</Grid.RowDefinitions>
 
 			<!-- animation for refresh -->
-			<Viewbox Grid.Row="3"
+			<Viewbox Grid.Row="3" x:Name="RefreshVB"
                 Width="{StaticResource MiniatureHeight}"
                 Height="{StaticResource MiniatureHeight}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
+				Visibility="Collapsed"
                 Stretch="Uniform">
 				<SymbolIcon x:Name="RefreshIcon" 
                         Symbol="Sync"
-                        RenderTransformOrigin=".5, .5" 
-                        Visibility="Collapsed"
+                        RenderTransformOrigin=".5, .5"
                         Foreground="{StaticResource DiagonalNESWBrush}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"

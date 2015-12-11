@@ -8,7 +8,7 @@ namespace Utilz
 {
     public interface IAnimationStarter
     {
-        void StartAnimation();
-        void EndAnimation();
+		void StartAnimation(int whichAnimation);
+        void EndAnimation(int whichAnimation);
     }
 }
