@@ -16,7 +16,7 @@ using Windows.UI.Core;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public abstract class DbBoundObservableData : OpenableObservableData // , IEquatable<DbBoundObservableData>  //, IEqualityComparer<DbBoundObservableData>
+	public abstract class DbBoundObservableData : OpenableObservableData
 	{
 		public static readonly string DEFAULT_ID = string.Empty;
 
@@ -34,10 +34,10 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		public string _parentId = DEFAULT_ID;
+		protected string _parentId = DEFAULT_ID;
 		[DataMember]
 		[Indexed(Unique = false)]
-		public string ParentId
+		public virtual string ParentId
 		{
 			get { return _parentId; }
 			set
@@ -137,31 +137,7 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion construct and dispose
 
-		//public static bool AreEqual(IEnumerable<DbBoundObservableData> one, IEnumerable<DbBoundObservableData> two)
-		//{
-		//	if (one != null && two != null && one.Count() == two.Count())
-		//	{
-		//		for (int i = 0; i < one.Count(); i++)
-		//		{
-		//			if (!(one.ElementAt(i).IsEqualTo(two.ElementAt(i)))) return false;
-		//		}
-		//		return true;
-		//	}
-		//	return false;
-		//}
-		//public bool IsEqualTo(DbBoundObservableData compTarget)
-		//{
-		//	if (compTarget != null)
-		//		return
-		//			Id == compTarget.Id &&
-		//			//ParentId == compTarget.ParentId && // I don't want this for the folder, but I want it for the smaller objects
-		//			IsEqualToMustOverride(compTarget);
-		//	else return false;
-		//}
-		//protected abstract bool IsEqualToMustOverride(DbBoundObservableData that);
-
 		protected abstract bool CheckMeMustOverride();
-		//protected virtual bool CheckMeMustOverride() { return false; }
 		public static bool Check(DbBoundObservableData item)
 		{
 			if (item == null) return false;
@@ -178,20 +154,5 @@ namespace UniFiler10.Data.Model
 		}
 
 		protected abstract bool UpdateDbMustOverride();
-		//protected virtual bool UpdateDbMustOverride() { return false; }
 	}
-
-	//public class DbBoundDataComparer : IEqualityComparer<DbBoundObservableData> //IEquatable<DbBoundObservableData>
-	//{
-	//	public bool Equals(DbBoundObservableData x, DbBoundObservableData y)
-	//	{
-	//		Debugger.Break();
-	//		return x.Id == y.Id;
-	//	}
-
-	//	public int GetHashCode(DbBoundObservableData obj)
-	//	{
-	//		return obj.GetHashCode();
-	//	}
-	//}
 }

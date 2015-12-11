@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniFiler10", "UniFiler10\UniFiler10.csproj", "{C96A1609-65CE-4574-BE26-BCE348275118}"
 EndProject
@@ -10,9 +10,15 @@ Global
 		Debug|ARM = Debug|ARM
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		DebugNoStore|ARM = DebugNoStore|ARM
+		DebugNoStore|x64 = DebugNoStore|x64
+		DebugNoStore|x86 = DebugNoStore|x86
 		Release|ARM = Release|ARM
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseNoStore|ARM = ReleaseNoStore|ARM
+		ReleaseNoStore|x64 = ReleaseNoStore|x64
+		ReleaseNoStore|x86 = ReleaseNoStore|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|ARM.ActiveCfg = Debug|ARM
@@ -24,6 +30,15 @@ Global
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|x86.ActiveCfg = Debug|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|x86.Build.0 = Debug|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|x86.Deploy.0 = Debug|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|ARM.ActiveCfg = DebugNoStore|ARM
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|ARM.Build.0 = DebugNoStore|ARM
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|ARM.Deploy.0 = DebugNoStore|ARM
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x64.ActiveCfg = DebugNoStore|x64
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x64.Build.0 = DebugNoStore|x64
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x64.Deploy.0 = DebugNoStore|x64
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x86.ActiveCfg = DebugNoStore|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x86.Build.0 = DebugNoStore|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x86.Deploy.0 = DebugNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|ARM.ActiveCfg = Release|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|ARM.Build.0 = Release|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|ARM.Deploy.0 = Release|ARM
@@ -33,6 +48,15 @@ Global
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|x86.ActiveCfg = Release|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|x86.Build.0 = Release|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|x86.Deploy.0 = Release|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|ARM.ActiveCfg = ReleaseNoStore|ARM
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|ARM.Build.0 = ReleaseNoStore|ARM
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|ARM.Deploy.0 = ReleaseNoStore|ARM
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x64.ActiveCfg = ReleaseNoStore|x64
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x64.Build.0 = ReleaseNoStore|x64
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x64.Deploy.0 = ReleaseNoStore|x64
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x86.ActiveCfg = ReleaseNoStore|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x86.Build.0 = ReleaseNoStore|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x86.Deploy.0 = ReleaseNoStore|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -165,6 +165,9 @@ namespace UniFiler10.Data.Model
 			get { return _currentFolder; }
 			private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
 		}
+
+		[DataMember]
+		public override string ParentId { get { return DEFAULT_ID; } set { SetProperty(ref _parentId, DEFAULT_ID); } }
 		#endregion main properties
 
 
@@ -436,7 +439,7 @@ namespace UniFiler10.Data.Model
 
 			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				// folder.ParentId = Id; // LOLLO TODO  what happens if I do not give the folder a ParentId? I expect it should work anyway!
+				// folder.ParentId = Id; // folders may not have ParentId because they can be exported or imported
 				folder.Name = RuntimeData.GetText("NewFolder");
 				folder.DateCreated = DateTime.Now;
 

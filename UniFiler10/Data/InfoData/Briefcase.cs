@@ -58,6 +58,8 @@ namespace UniFiler10.Data.Model
 			await _runtimeData.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
+			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
+
 			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
@@ -368,11 +370,9 @@ namespace UniFiler10.Data.Model
 			{
 				try
 				{
-					// LOLLO TODO check this
 					// Check if you are restoring a Binder or something completely unrelated, which may cause trouble.
 					// Make sure you restore a Binder and not just any directory!
-					var srcFolders = await fromDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
-					var srcFiles = await fromDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
+					var srcFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
 					bool isSrcOk = srcFiles.Any(file => file.Name == DBManager.DB_FILE_NAME)
 						&& srcFiles.Any(file => file.Name == Binder.FILENAME);
 					if (!isSrcOk) return false;
@@ -381,11 +381,6 @@ namespace UniFiler10.Data.Model
 						.CreateFolderAsync(fromDirectory.Name, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, toDirectory).ConfigureAwait(false);
-					//var fromFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
-					//foreach (var fromFile in fromFiles)
-					//{
-					//	await fromFile.CopyAsync(toDirectory, fromFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					//}
 					return true;
 				}
 				catch (Exception ex)

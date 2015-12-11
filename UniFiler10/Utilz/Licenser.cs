@@ -6,9 +6,11 @@ using UniFiler10;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Runtime;
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.Store;
 using Windows.Storage;
 using Windows.System;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 
@@ -174,7 +176,7 @@ namespace Utilz
 		}
 		private static async Task<DateTimeOffset> GetInstallDateAsync()
 		{
-			// TODO check this method
+			// LOLLO TODO check this method
 			StorageFolder installLocationFolder = Package.Current.InstalledLocation;
 			// Package.Current.InstalledLocation always has a very low install date, like 400 years ago...
 			// but its descendants don't, so we take one that is bound to be there, such as Assets.
@@ -203,14 +205,20 @@ namespace Utilz
 		private static async Task<bool> AskQuitOrBuyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
-			UICommand quitCommand = new UICommand("Quit", (command) => { });
+			UICommand quitCommand = new UICommand("Quit", (command) => { }); // LOLLO TODO localise texts
 			dialog.Commands.Add(quitCommand);
 			UICommand buyCommand = new UICommand("Buy", (command) => { });
 			dialog.Commands.Add(buyCommand);
 			// Set the command that will be invoked by default
 			dialog.DefaultCommandIndex = 1;
+
 			// Show the message dialog
-			IUICommand reply = await dialog.ShowAsync().AsTask();
+			Task<IUICommand> taskReply = null;
+			await RunInUiThreadAsync(delegate
+			{
+				taskReply = dialog.ShowAsync().AsTask();
+			}).ConfigureAwait(false);
+			IUICommand reply = await taskReply.ConfigureAwait(false);
 
 			bool isAlreadyBought = false;
 			if (reply == buyCommand)
@@ -221,8 +229,8 @@ namespace Utilz
 			}
 			if (isAlreadyBought)
 			{
-				//_runtimeData.IsTrial = false; // TODO this would be better but risky. I should never arrive here anyway. What then?
-				//_runtimeData.TrialResidualDays = 0; // TODO this would be better but risky. I should never arrive here anyway. What then?
+				//_runtimeData.IsTrial = false; // LOLLO TODO this would be better but risky. I should never arrive here anyway. What then?
+				//_runtimeData.TrialResidualDays = 0; // idem
 				return true;
 			}
 			else
@@ -244,7 +252,7 @@ namespace Utilz
 				try
 				{
 					// go to the store and quit instead of calling RequestAppPurchaseAsync, which is not supported 
-					// TODO MAYBE see if it works with win10
+					// LOLLO TODO MAYBE see if it works with win10
 					// https://msdn.microsoft.com/en-us/library/windows/apps/mt228343.aspx
 					var uri = new Uri(ConstantData.BUY_URI);
 
@@ -304,7 +312,31 @@ namespace Utilz
 			var dialog = new MessageDialog(message1, message2);
 			UICommand okCommand = new UICommand("Ok", (command) => { });
 			dialog.Commands.Add(okCommand);
-			await dialog.ShowAsync().AsTask();
+
+			Task<IUICommand> taskReply = null;
+			await RunInUiThreadAsync(delegate
+			{
+				taskReply = dialog.ShowAsync().AsTask();
+			}).ConfigureAwait(false);
+			await taskReply.ConfigureAwait(false);
+		}
+		private static async Task RunInUiThreadAsync(DispatchedHandler action)
+		{
+			try
+			{
+				if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+				{
+					action();
+				}
+				else
+				{
+					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
 		}
 		private class LicenserData
 		{

@@ -50,7 +50,18 @@ namespace UniFiler10.Data.Model
 		public string GetFullUri0()
 		{
 			if (string.IsNullOrWhiteSpace(_uri0)) return string.Empty;
-			else return Path.Combine(_dbManager.Directory.Path, _uri0);
+			else
+			{
+				var dbM = _dbManager;
+				if (dbM != null)
+				{
+					return Path.Combine(dbM.Directory.Path, _uri0);
+				}
+				else
+				{
+					return string.Empty;
+				}
+			}
 		}
 		public string GetFullUri0(StorageFolder directory)
 		{

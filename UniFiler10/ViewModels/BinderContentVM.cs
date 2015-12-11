@@ -13,18 +13,17 @@ namespace UniFiler10.ViewModels
 {
 	public sealed class BinderContentVM : OpenableObservableData, IAudioFileGetter
 	{
+		#region properties
 		private Binder _binder = null;
 		public Binder Binder { get { return _binder; } private set { _binder = value; RaisePropertyChanged_UI(); } }
 
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
+		#endregion properties
 
 
 		#region construct dispose open close
-		public BinderContentVM()
-		{
-			RuntimeData = RuntimeData.Instance;
-		}
+		public BinderContentVM() { }
 		protected async override Task OpenMayOverrideAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
@@ -38,6 +37,7 @@ namespace UniFiler10.ViewModels
 				_binder.PropertyChanged += OnBinder_PropertyChanged;
 			}
 
+			RuntimeData = RuntimeData.Instance;
 			UpdateCurrentFolderCategories();
 		}
 		protected override Task CloseMayOverrideAsync()
@@ -154,6 +154,7 @@ namespace UniFiler10.ViewModels
 				await RunFunctionWhileOpenAsyncT(async delegate
 				{
 					IsCameraOverlayOpen = true; // opens the Camera control
+					await _photoTriggerSemaphore.WaitAsync();
 					await _photoTriggerSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
 					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
@@ -168,6 +169,7 @@ namespace UniFiler10.ViewModels
 				await RunFunctionWhileOpenAsyncT(async delegate
 				{
 					IsCameraOverlayOpen = true; // opens the Camera control
+					await _photoTriggerSemaphore.WaitAsync();
 					await _photoTriggerSemaphore.WaitAsync(); // wait until someone calls EndShoot
 
 					await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
@@ -189,6 +191,7 @@ namespace UniFiler10.ViewModels
 				{
 					await CreateAudioFileAsync(); // required before we start any audio recording
 					IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
+					await _audioTriggerSemaphore.WaitAsync();
 					await _audioTriggerSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
 
 					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
@@ -201,7 +204,7 @@ namespace UniFiler10.ViewModels
 			IsAudioRecorderOverlayOpen = false; // closes the AudioRecorder control
 		}
 
-		private static SemaphoreSlimSafeRelease _audioTriggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+		private static SemaphoreSlimSafeRelease _audioTriggerSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private StorageFile _audioFile = null;
 		private async Task<StorageFile> CreateAudioFileAsync()
@@ -223,7 +226,7 @@ namespace UniFiler10.ViewModels
 			return _audioFile;
 		}
 
-		private static SemaphoreSlimSafeRelease _photoTriggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is red until explicitly released
+		private static SemaphoreSlimSafeRelease _photoTriggerSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private StorageFile _photoFile = null;
 		public async Task<StorageFile> CreatePhotoFileAsync()

@@ -23,7 +23,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal">
             <AppBarButton
                 Icon="Camera"
-                IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
+                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
                 Click="OnShoot_Click"/>
             <AppBarButton
                 Icon="OpenFile"

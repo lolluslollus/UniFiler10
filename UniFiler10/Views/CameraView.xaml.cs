@@ -127,7 +127,7 @@ namespace UniFiler10.Views
 		{
 			await RunInUiThreadAsync(delegate
 			{
-				VM?.EndShoot(); // LOLLO TODO check this
+				VM?.EndShoot();
 			}).ConfigureAwait(false);
 			await CleanupCameraAsync();
 			await CleanupUiAsync().ConfigureAwait(false);
@@ -144,7 +144,6 @@ namespace UniFiler10.Views
 		/// <param name="args"></param>
 		//     private async void OnSystemMediaControls_PropertyChanged(SystemMediaTransportControls sender, SystemMediaTransportControlsPropertyChangedEventArgs args)
 		//     {
-		//// LOLLO TODO this control has several calls to the dispatcher, which contain awaits. They will not be awaited, check it.
 		//         await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async delegate
 		//         {
 		//             // Only handle this event if this page is currently being displayed
@@ -156,11 +155,11 @@ namespace UniFiler10.Views
 		//		// LOLLO take this away, we dont need it for stills
 		//                 if (sender.SoundLevel == SoundLevel.Muted)
 		//                 {
-		//                     await CleanupCameraAsync();
+		//                     await CleanupCameraAsync(); // this will not be awaited, but it does not matter
 		//                 }
 		//                 else if (!_isInitialized)
 		//                 {
-		//                     await InitializeCameraAsync();
+		//                     await InitializeCameraAsync(); // this will not be awaited, but it does not matter
 		//                 }
 		//             }
 		//         });

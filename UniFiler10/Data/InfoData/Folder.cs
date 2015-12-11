@@ -89,6 +89,9 @@ namespace UniFiler10.Data.Model
 		private bool _isEditingCategories = true;
 		[DataMember]
 		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetProperty(ref _isEditingCategories, value); } }
+
+		[DataMember]
+		public override string ParentId { get { return DEFAULT_ID; } set { SetProperty(ref _parentId, DEFAULT_ID); } }
 		#endregion properties
 
 		protected override bool UpdateDbMustOverride()

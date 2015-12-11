@@ -132,7 +132,7 @@ namespace UniFiler10.Views
 				{
 					// adjust the microphone volume. You need MediaCapture, apparently, and she needs STAThread. Ridiculous.
 					_mediaCapture = new MediaCapture();
-					var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
+					var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance?.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
 					await _mediaCapture.InitializeAsync(settings);
 					_mediaCapture.AudioDeviceController.Muted = false;
 					_mediaCapture.AudioDeviceController.VolumePercent = (float)VolumeSlider.Value;
