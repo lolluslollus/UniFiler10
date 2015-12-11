@@ -68,10 +68,12 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="1.2"/>
 				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.4"/>
 				<LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.8"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.6"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1.4"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="1.2"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="1"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
 			</DoubleAnimationUsingKeyFrames>
 
 			<DoubleAnimationUsingKeyFrames 
@@ -81,10 +83,12 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="1.2"/>
 				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.4"/>
 				<LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.8"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.6"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1.4"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="1.2"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="1"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
 	</ctl:OpenableObservableControl.Resources>
