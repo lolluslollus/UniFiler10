@@ -29,7 +29,7 @@
 			<RowDefinition />
 		</Grid.RowDefinitions>
 
-		<VariableSizedWrapGrid Orientation="Horizontal">
+		<ctl:UniversalWrapPanel Orientation="Horizontal">
 			<Button 
 				Tapped="OnGoToBriefcase_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
@@ -144,7 +144,8 @@
 
 			<Button
 				Tapped="OnImport_Tapped"
-				Style="{StaticResource ButtonLolloStyle}">
+				Style="{StaticResource ButtonLolloStyle}"
+				Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
@@ -155,11 +156,13 @@
 					<SymbolIcon Symbol="Import"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
+						Foreground="{StaticResource FlashyForeground}"
 						Width="{StaticResource LandscapeItemHeight}"
 						Height="{StaticResource LandscapeItemHeight}"/>
 					<TextBlock Grid.Column="2" x:Uid="Import"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"
+						Foreground="{StaticResource FlashyForeground}"
                         HorizontalAlignment="Left"
 						VerticalAlignment="Center"/>
 				</Grid>
@@ -187,7 +190,7 @@
 						VerticalAlignment="Center"/>
 				</Grid>
 			</Button>
-		</VariableSizedWrapGrid>
+		</ctl:UniversalWrapPanel>
 
 		<Border Grid.Row="1"
 			Visibility="{Binding MetaBriefcase.IsElevated, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"

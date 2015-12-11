@@ -12,7 +12,6 @@ using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Popups;
-using Windows.UI.Xaml;
 
 namespace Utilz
 {
@@ -66,7 +65,7 @@ namespace Utilz
 							|| RuntimeData.Instance.TrialResidualDays > TrialLengthDays
 							|| RuntimeData.Instance.TrialResidualDays < 0)
 						{
-							return await AskQuitOrBuyAsync("This trial version has expired", "Trial expired");
+							return await AskQuitOrBuyAsync(RuntimeData.GetText("LicenserTrialExpiredLong"), RuntimeData.GetText("LicenserTrialExpiredShort"));
 						}
 					}
 					else
@@ -77,7 +76,7 @@ namespace Utilz
 				else
 				{
 					RuntimeData.Instance.IsTrial = true;
-					return await AskQuitOrBuyAsync("No licenses found for this app", "No licenses");
+					return await AskQuitOrBuyAsync(RuntimeData.GetText("LicenserNoLicensesLong"), RuntimeData.GetText("LicenserNoLicensesShort"));
 				}
 				return true;
 			}
@@ -85,7 +84,7 @@ namespace Utilz
 			{
 				RuntimeData.Instance.IsTrial = true;
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				return await AskQuitOrBuyAsync("Error checking the license", "No licenses");
+				return await AskQuitOrBuyAsync(RuntimeData.GetText("LicenserErrorChecking"), RuntimeData.GetText("LicenserNoLicensesShort"));
 			}
 		}
 
@@ -205,9 +204,9 @@ namespace Utilz
 		private static async Task<bool> AskQuitOrBuyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
-			UICommand quitCommand = new UICommand("Quit", (command) => { }); // LOLLO TODO localise texts
+			UICommand quitCommand = new UICommand(RuntimeData.GetText("LicenserQuit"), (command) => { });
 			dialog.Commands.Add(quitCommand);
-			UICommand buyCommand = new UICommand("Buy", (command) => { });
+			UICommand buyCommand = new UICommand(RuntimeData.GetText("LicenserBuy"), (command) => { });
 			dialog.Commands.Add(buyCommand);
 			// Set the command that will be invoked by default
 			dialog.DefaultCommandIndex = 1;
@@ -223,13 +222,11 @@ namespace Utilz
 			bool isAlreadyBought = false;
 			if (reply == buyCommand)
 			{
-				//_myRuntimeData.IsBuying = true;
 				isAlreadyBought = await BuyAsync();
-				//_myRuntimeData.IsBuying = false;
 			}
 			if (isAlreadyBought)
 			{
-				//_runtimeData.IsTrial = false; // LOLLO TODO this would be better but risky. I should never arrive here anyway. What then?
+				//_runtimeData.IsTrial = false; // LOLLO this would be better but risky. I should never arrive here anyway. What then?
 				//_runtimeData.TrialResidualDays = 0; // idem
 				return true;
 			}
@@ -277,14 +274,14 @@ namespace Utilz
 				}
 				catch (Exception)
 				{
-					await NotifyAsync("The upgrade transaction failed. You still have a trial license for this app.", "Sorry");
+					await NotifyAsync(RuntimeData.GetText("LicenserUpgradeFailedLong"), RuntimeData.GetText("LicenserUpgradeFailedShort"));
 					return false;
 				}
 			}
 			else
 			{
 				Logger.Add_TPL("ERROR: Licenser.BuyAsync() was called after the product had been bought already", Logger.ForegroundLogFilename);
-				await NotifyAsync("You already bought this app and have a fully-licensed version.", "Done");
+				await NotifyAsync(RuntimeData.GetText("LicenserAlreadyBoughtLong"), RuntimeData.GetText("LicenserAlreadyBoughtShort"));
 				return true;
 			}
 		}
@@ -303,14 +300,14 @@ namespace Utilz
 			}
 			catch (Exception)
 			{
-				await NotifyAsync("Could not open the store", "Sorry");
+				await NotifyAsync(RuntimeData.GetText("LicenserCannotOpenStoreLong"), RuntimeData.GetText("LicenserCannotOpenStoreShort"));
 				return false;
 			}
 		}
 		private static async Task NotifyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
-			UICommand okCommand = new UICommand("Ok", (command) => { });
+			UICommand okCommand = new UICommand(RuntimeData.GetText("Ok"), (command) => { });
 			dialog.Commands.Add(okCommand);
 
 			Task<IUICommand> taskReply = null;
@@ -390,7 +387,7 @@ namespace Utilz
 
 			static LicenserData()
 			{
-				string lastNonNegativeUsageDaysString = Utilz.RegistryAccess.GetValue(LastNonNegativeUsageDaysKey);
+				string lastNonNegativeUsageDaysString = RegistryAccess.GetValue(LastNonNegativeUsageDaysKey);
 				try
 				{
 					_lastNonNegativeUsageDays = Convert.ToInt32(lastNonNegativeUsageDaysString, CultureInfo.InvariantCulture);
@@ -400,7 +397,7 @@ namespace Utilz
 					_lastNonNegativeUsageDays = LastNonNegativeUsageDays_Default;
 				}
 
-				string lastInstallDate = Utilz.RegistryAccess.GetValue(LastInstallDateKey);
+				string lastInstallDate = RegistryAccess.GetValue(LastInstallDateKey);
 				try
 				{
 					_lastInstallDate = Convert.ToDateTime(lastInstallDate, CultureInfo.InvariantCulture);
@@ -410,7 +407,7 @@ namespace Utilz
 					_lastInstallDate = Date_Default;
 				}
 
-				string lastExpiryDate = Utilz.RegistryAccess.GetValue(LastExpiryDateKey);
+				string lastExpiryDate = RegistryAccess.GetValue(LastExpiryDateKey);
 				try
 				{
 					_lastExpiryDate = Convert.ToDateTime(lastExpiryDate, CultureInfo.InvariantCulture);
@@ -424,17 +421,17 @@ namespace Utilz
 			private static void SaveLastNonNegativeUsageDays()
 			{
 				string lastNonNegativeUsageDaysString = _lastNonNegativeUsageDays.ToString(CultureInfo.InvariantCulture);
-				Utilz.RegistryAccess.SetValue(LastNonNegativeUsageDaysKey, lastNonNegativeUsageDaysString);
+				RegistryAccess.SetValue(LastNonNegativeUsageDaysKey, lastNonNegativeUsageDaysString);
 			}
 			private static void SaveLastInstallDate()
 			{
 				string lastInstallDate = _lastInstallDate.ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
-				Utilz.RegistryAccess.SetValue(LastInstallDateKey, lastInstallDate);
+				RegistryAccess.SetValue(LastInstallDateKey, lastInstallDate);
 			}
 			private static void SaveLastExpiryDate()
 			{
 				string lastExpiryDate = _lastExpiryDate.ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
-				Utilz.RegistryAccess.SetValue(LastExpiryDateKey, lastExpiryDate);
+				RegistryAccess.SetValue(LastExpiryDateKey, lastExpiryDate);
 			}
 			public static bool IsDatesEqual(DateTimeOffset one, DateTimeOffset two)
 			{

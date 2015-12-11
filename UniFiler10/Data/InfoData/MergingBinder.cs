@@ -40,7 +40,7 @@ namespace UniFiler10.Data.Model
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
-			_dbManager = new DBManager(_directory, true);
+			_dbManager = new DBManager(_directory, false);
 			await _dbManager.OpenAsync().ConfigureAwait(false);
 
 			await LoadNonDbPropertiesAsync().ConfigureAwait(false);

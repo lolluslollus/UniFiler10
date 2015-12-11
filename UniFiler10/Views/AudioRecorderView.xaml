@@ -52,22 +52,11 @@
 		</Border>
 		<!-- Capture + Record buttons -->
 		<StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-			<StackPanel.Resources>
-				<Style TargetType="Button">
-					<Setter Property="Margin" Value="10,40"/>
-					<Setter Property="Width" Value="80"/>
-					<Setter Property="Height" Value="80"/>
-					<Setter Property="Foreground" Value="White"/>
-					<Setter Property="Background" Value="{StaticResource TranslucentBlackBrush}"/>
-					<Setter Property="BorderBrush" Value="White"/>
-					<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-				</Style>
-			</StackPanel.Resources>
-
-			<Button Tapped="OnOwnBackButton_Tapped">
+			<Button Tapped="OnOwnBackButton_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
 				<Viewbox Height="60" Width="60">
 					<StackPanel Orientation="Vertical">
-						<SymbolIcon Symbol="Back"/>
+						<SymbolIcon Symbol="Stop"/>
 						<TextBlock x:Uid="StopRecording"
                             HorizontalAlignment="Center"/>
 					</StackPanel>
@@ -81,7 +70,6 @@
 				TickFrequency="49" TickPlacement="Outside"/>
 		</StackPanel>
 
-		<!--Background="Gold"-->
 		<Border VerticalAlignment="Bottom">
 			<TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		</Border>

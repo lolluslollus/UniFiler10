@@ -15,24 +15,13 @@
         <SolidColorBrush x:Key="TranslucentBlackBrush" Color="Black" Opacity="0.3"/>
     </UserControl.Resources>
 
-	<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
+	<Grid Background="Gold">
         <!--Camera preview-->
         <CaptureElement Name="PreviewControl" Stretch="Uniform"/>
 
         <!-- Capture + Record buttons -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-            <!--<StackPanel.Resources>
-                <Style TargetType="Button">
-                    <Setter Property="Margin" Value="10,40"/>
-                    <Setter Property="MinWidth" Value="80"/>
-                    <Setter Property="MinHeight" Value="80"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Background" Value="{StaticResource TranslucentBlackBrush}"/>
-                    <Setter Property="BorderBrush" Value="White"/>
-                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-                </Style>
-            </StackPanel.Resources>-->
-
             <Button Name="PhotoButton" 
 				Tapped="OnPhotoButton_Tapped" 
 				IsEnabled="False"
@@ -68,7 +57,7 @@
             </Button>
         </StackPanel>
 
-        <Border Background="Gold" VerticalAlignment="Bottom">
+        <Border VerticalAlignment="Bottom">
             <TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>

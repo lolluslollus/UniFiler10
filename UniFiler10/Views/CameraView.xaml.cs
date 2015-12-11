@@ -701,8 +701,6 @@ namespace UniFiler10.Views
 			{
 				file = await VM.CreatePhotoFileAsync();
 
-				//using (var inputStream = stream)
-				//{
 				var decoder = await BitmapDecoder.CreateAsync(inputStream);
 
 				using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
@@ -714,7 +712,6 @@ namespace UniFiler10.Views
 					await encoder.BitmapProperties.SetPropertiesAsync(properties);
 					await encoder.FlushAsync();
 				}
-				//}
 			}
 			catch (Exception ex)
 			{

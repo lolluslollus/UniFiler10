@@ -468,11 +468,6 @@ namespace UniFiler10.Data.Model
 					.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
 					.AsTask().ConfigureAwait(false);
 				await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
-				//var fromFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
-				//foreach (var ff in fromFiles)
-				//{
-				//	await ff.CopyAsync(tempDirectory).AsTask().ConfigureAwait(false);
-				//}
 
 				var mergingBinder = MergingBinder.GetCreateInstance(_dbName, tempDirectory);
 				await mergingBinder.OpenAsync().ConfigureAwait(false);
