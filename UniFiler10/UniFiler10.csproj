@@ -351,7 +351,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoStore|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\DebugNoStore\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_UWP;CODE_ANALYSIS;NOSTORE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_UWP;CODE_ANALYSIS;NOSTORE;TRIALTESTING</DefineConstants>
     <NoWarn>;2008</NoWarn>
     <NoStdLib>true</NoStdLib>
     <DebugType>full</DebugType>

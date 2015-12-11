@@ -19,6 +19,7 @@ namespace UniFiler10.Data.Constants
 		public const string DB_EXTENSION = ".db";
 		public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
+		public const int TRIAL_LENGTH_DAYS = 7;
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()
             + "."
