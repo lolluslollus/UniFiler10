@@ -98,6 +98,7 @@ namespace UniFiler10.Views
 
 		private void OnAbout_Tapped(object sender, TappedRoutedEventArgs e)
 		{
+			// LOLLO TODO when going back, go back...
 			// LOLLO TODO show about panel
 			//this.LayoutRoot.
 			AboutFlyout.ShowAt(this);
