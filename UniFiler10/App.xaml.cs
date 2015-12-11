@@ -103,12 +103,7 @@ namespace UniFiler10
 		private async void OnResuming(object sender, object e)
 		{
 			// LOLLO NOTE this is the first OnResuming to fire
-			// throw new NotImplementedException();
-			var briefcase = Briefcase.GetCreateInstance();
-			if (briefcase != null)
-			{
-				await briefcase.OpenAsync().ConfigureAwait(false);
-			}
+			await OpenAsync().ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -123,13 +118,7 @@ namespace UniFiler10
 			// LOLLO NOTE this is the first OnSuspending to fire
 			var deferral = e.SuspendingOperation.GetDeferral();
 			// Save application state and stop any background activity
-			var briefcase = Briefcase.GetCurrentInstance();
-			if (briefcase != null)
-			{
-				await briefcase.CloseAsync().ConfigureAwait(false);
-				briefcase.Dispose();
-				briefcase = null;
-			}
+			await CloseAsync().ConfigureAwait(false);
 
 			deferral.Complete();
 		}
@@ -145,6 +134,31 @@ namespace UniFiler10
 		private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
 			await Logger.AddAsync(e?.Exception?.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+		}
+
+		public async Task Quit()
+		{
+			await CloseAsync().ConfigureAwait(false);
+			Exit();
+		}
+
+		private async Task OpenAsync()
+		{
+			var briefcase = Briefcase.GetCreateInstance();
+			if (briefcase != null)
+			{
+				await briefcase.OpenAsync().ConfigureAwait(false);
+			}
+		}
+		private async Task CloseAsync()
+		{
+			var briefcase = Briefcase.GetCurrentInstance();
+			if (briefcase != null)
+			{
+				await briefcase.CloseAsync().ConfigureAwait(false);
+				briefcase.Dispose();
+				briefcase = null;
+			}
 		}
 	}
 }

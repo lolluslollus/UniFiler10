@@ -227,8 +227,7 @@ namespace Utilz
 			}
 			else
 			{
-				Application.Current.Exit(); // LOLLO TODO test this
-				// await (App.Current as App).Quit();
+				await (App.Current as App).Quit().ConfigureAwait(false);
 				return false;
 			}
 		}

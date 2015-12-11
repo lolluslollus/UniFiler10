@@ -24,9 +24,8 @@ namespace UniFiler10.Views
         private async void OnBuy_Click(object sender, RoutedEventArgs e)
         {
             bool isAlreadyBought = await Licenser.BuyAsync();
-			if (!isAlreadyBought) Application.Current.Exit(); // LOLLO TODO test this
-			// if (!isAlreadyBought) await (App.Current as App).Quit();
-        }
+			if (!isAlreadyBought) await (App.Current as App).Quit().ConfigureAwait(false);
+		}
 
         private async void OnRate_Click(object sender, RoutedEventArgs e)
         {
