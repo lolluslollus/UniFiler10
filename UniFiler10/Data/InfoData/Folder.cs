@@ -140,7 +140,7 @@ namespace UniFiler10.Data.Model
 
 			var dynamicFields = await _dbManager.GetDynamicFieldsAsync(Id).ConfigureAwait(false);
 
-			var dynamicCategories = await _dbManager.GetDynamicCategoriesAsync(Id).ConfigureAwait(false);
+			var dynamicCategories = await _dbManager.GetDynamicCategoriesByParentIdAsync(Id).ConfigureAwait(false);
 
 			// populate my collections
 			await RunInUiThreadAsync(delegate
@@ -311,7 +311,8 @@ namespace UniFiler10.Data.Model
 		}
 		#endregion loading methods
 
-		#region loaded methods
+
+		#region while open methods
 		public Task<bool> SetDbManager(DBManager dbManager)
 		{
 			return RunFunctionWhileOpenAsyncA(delegate
@@ -496,6 +497,6 @@ namespace UniFiler10.Data.Model
 				return false;
 			});
 		}
-		#endregion loaded methods
+		#endregion while open methods
 	}
 }

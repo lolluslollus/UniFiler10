@@ -18,7 +18,7 @@ namespace UniFiler10.Data.Model
 	{
 		#region ctor
 		private static readonly object _instanceLock = new object();
-		public static MergingBinder GetCreateInstance(string dbName, StorageFolder directory)
+		public static MergingBinder CreateInstance(string dbName, StorageFolder directory)
 		{
 			lock (_instanceLock)
 			{

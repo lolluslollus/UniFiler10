@@ -136,16 +136,6 @@ namespace UniFiler10.Data.Model
 			return _dbManager?.UpdateDynamicFields(this) == true;
 		}
 
-		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		//{
-		//	var target = that as DynamicField;
-
-		//	return _parentId == that._parentId && // I don't want it for the folder, but I want it for the smaller objects
-		//		_fieldValueId == target._fieldValueId &&
-		//		_fieldValue == target._fieldValue &&
-		//		_fieldDescriptionId == target._fieldDescriptionId &&
-		//		_fieldDescription == target._fieldDescription;
-		//}
 		private bool IsValueAllowed()
 		{
 			if (_fieldDescription != null && _fieldValue != null)

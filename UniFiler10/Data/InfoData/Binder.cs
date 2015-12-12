@@ -467,11 +467,10 @@ namespace UniFiler10.Data.Model
 						.AsTask().ConfigureAwait(false);
 					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
 
-					mergingBinder = MergingBinder.GetCreateInstance(_dbName, tempDirectory);
+					mergingBinder = MergingBinder.CreateInstance(_dbName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
 
 					// parallelisation here seems ideal, but it screws with SQLite.
-
 					foreach (var fol in mergingBinder.Folders)
 					{
 						await fol.OpenAsync().ConfigureAwait(false);
@@ -487,6 +486,7 @@ namespace UniFiler10.Data.Model
 									var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
 									if (file != null)
 									{
+										// the file name might change to avoid name collisions
 										var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
 										doc.Uri0 = copiedFile.Name;
 									}
@@ -505,7 +505,6 @@ namespace UniFiler10.Data.Model
 				catch (Exception ex)
 				{
 					await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
-					isOk = false;
 				}
 
 				if (mergingBinder != null)
@@ -541,30 +540,30 @@ namespace UniFiler10.Data.Model
 		}
 		private async Task<bool> RemoveFolder2Async(Folder folder)
 		{
-			if (folder != null)
+			if (folder == null) return false;
+
+			if (await _dbManager.DeleteFromFoldersAsync(folder))
 			{
-				if (await _dbManager.DeleteFromFoldersAsync(folder))
+				if (folder.Id == _currentFolderId)
 				{
 					int previousFolderIndex = Math.Max(0, _folders.IndexOf(folder) - 1);
-					if (folder.Id == _currentFolderId)
-					{
-						CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
-						await UpdateCurrentFolder2Async(false);
-					}
-
-					await RunInUiThreadAsync(delegate { _folders.Remove(folder); }).ConfigureAwait(false);
-
-					await folder.OpenAsync().ConfigureAwait(false);
-					await folder.RemoveWalletsAsync().ConfigureAwait(false);
-					await folder.CloseAsync();
-					folder.Dispose();
-
-					return true;
+					CurrentFolderId = _folders.Count > previousFolderIndex ? _folders[previousFolderIndex].Id : DEFAULT_ID;
+					await UpdateCurrentFolder2Async(false);
 				}
-				else
-				{
-					Debugger.Break(); // LOLLO this must never happen, check it
-				}
+
+				await RunInUiThreadAsync(delegate { _folders.Remove(folder); }).ConfigureAwait(false);
+
+				await folder.OpenAsync().ConfigureAwait(false);
+				await folder.RemoveWalletsAsync().ConfigureAwait(false);
+				await folder.CloseAsync().ConfigureAwait(false);
+				folder.Dispose();
+
+				return true;
+			}
+			else
+			{
+				Debugger.Break(); // LOLLO this must never happen, check it
+				await Logger.AddAsync("Attempting to remove folder, the db operation failed", Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
 			return false;
 		}

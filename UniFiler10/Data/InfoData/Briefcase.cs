@@ -310,11 +310,6 @@ namespace UniFiler10.Data.Model
 						.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, toDirectory).ConfigureAwait(false);
-					//var fromFiles = await fromDirectory.GetFilesAsync().AsTask().ConfigureAwait(false);
-					//foreach (var stoFile in fromFiles)
-					//{
-					//	await stoFile.CopyAsync(toDirectory, stoFile.Name, NameCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					//}
 					return true;
 				}
 			}

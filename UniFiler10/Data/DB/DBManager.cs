@@ -127,12 +127,12 @@ namespace UniFiler10.Data.DB
 		#endregion open and close
 
 		#region public methods
-		internal bool UpdateDynamicFields(DynamicField newRecord)
+		internal bool UpdateDynamicFields(DynamicField dynFld)
 		{
 			bool result = false;
 			try
 			{
-				result = Update<DynamicField>(newRecord, _dynamicFieldsSemaphore);
+				result = Update(dynFld, _dynamicFieldsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -142,12 +142,12 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal bool UpdateDynamicCategories(DynamicCategory newRecord)
+		internal bool UpdateDynamicCategories(DynamicCategory dynCat)
 		{
 			bool result = false;
 			try
 			{
-				result = Update<DynamicCategory>(newRecord, _dynamicCategoriesSemaphore);
+				result = Update(dynCat, _dynamicCategoriesSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -157,12 +157,12 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal bool UpdateDocuments(Document newRecord)
+		internal bool UpdateDocuments(Document doc)
 		{
 			bool result = false;
 			try
 			{
-				result = Update<Document>(newRecord, _documentsSemaphore);
+				result = Update(doc, _documentsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -172,12 +172,12 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal bool UpdateWallets(Wallet newRecord)
+		internal bool UpdateWallets(Wallet wallet)
 		{
 			bool result = false;
 			try
 			{
-				result = Update<Wallet>(newRecord, _walletsSemaphore);
+				result = Update(wallet, _walletsSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -187,12 +187,12 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal bool UpdateFolders(Folder newRecord)
+		internal bool UpdateFolders(Folder folder)
 		{
 			bool result = false;
 			try
 			{
-				result = Update<Folder>(newRecord, _foldersSemaphore);
+				result = Update(folder, _foldersSemaphore);
 			}
 			catch (Exception exc)
 			{
@@ -202,17 +202,17 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<bool> InsertIntoDynamicFieldsAsync(DynamicField newFld, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicFieldsAsync(DynamicField newDynFld, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (DynamicField.Check(newFld)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (DynamicField.Check(newDynFld)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var fieldsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicCategory), newFld.ParentId).ConfigureAwait(false);
-					if (!fieldsAlreadyInFolder.Any(fld => fld.FieldDescriptionId == newFld.FieldDescriptionId))
+					var dynFldsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newDynFld.ParentId).ConfigureAwait(false);
+					if (!dynFldsAlreadyInFolder.Any(dynFld => dynFld.FieldDescriptionId == newDynFld.FieldDescriptionId))
 					{
-						var dbResult = await InsertAsync<DynamicField>(newFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+						var dbResult = await InsertAsync(newDynFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 						if (dbResult == InsertResult.Added) result = true;
 					}
 				}
@@ -223,14 +223,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDynamicFieldsAsync(IEnumerable<DynamicField> records, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicFieldsAsync(IEnumerable<DynamicField> dynFlds, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (records.Count() > 0 && DynamicField.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (dynFlds.Count() > 0 && DynamicField.Check(dynFlds)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync<DynamicField>(records, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(dynFlds, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -251,19 +251,19 @@ namespace UniFiler10.Data.DB
 					var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
 					if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
 					{
-						var dbResult = await InsertAsync<DynamicCategory>(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+						var dbResult = await InsertAsync(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 						if (dbResult == InsertResult.Added) result = true;
 						if (result)
 						{
 							// add the fields belonging to the new category, without duplicating existing fields (categories may share fields)
 							var fieldDescriptionIdsAlreadyInFolder = new List<string>();
 
-							var fieldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
-							foreach (var fieldInFolder in fieldsInFolder)
+							var dynFldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newCat.ParentId).ConfigureAwait(false);
+							foreach (var dynFldInFolder in dynFldsInFolder)
 							{
-								if (fieldInFolder?.FieldDescriptionId != null
-									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldInFolder.FieldDescriptionId))
-									fieldDescriptionIdsAlreadyInFolder.Add(fieldInFolder.FieldDescriptionId);
+								if (dynFldInFolder?.FieldDescriptionId != null
+									&& !fieldDescriptionIdsAlreadyInFolder.Contains(dynFldInFolder.FieldDescriptionId))
+									fieldDescriptionIdsAlreadyInFolder.Add(dynFldInFolder.FieldDescriptionId);
 							}
 
 							foreach (var fieldDescriptionId in newCat.Category.FieldDescriptionIds)
@@ -272,7 +272,7 @@ namespace UniFiler10.Data.DB
 									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 								{
 									var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
-									var dbResult2 = await InsertAsync<DynamicField>(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+									var dbResult2 = await InsertAsync(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 									if (dbResult2 == InsertResult.Added)
 									{
 										newDynFlds.Add(dynamicField);
@@ -289,14 +289,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDynamicCategoriesAsync(IEnumerable<DynamicCategory> records, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicCategoriesAsync(IEnumerable<DynamicCategory> dynCats, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (records.Count() > 0 && DynamicCategory.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (dynCats.Count() > 0 && DynamicCategory.Check(dynCats)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync<DynamicCategory>(records, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(dynCats, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -306,20 +306,20 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> DeleteFromDynamicCategoriesAsync(DynamicCategory cat, List<string> deletedFieldDescriptionIds)
+		internal async Task<bool> DeleteFromDynamicCategoriesAsync(DynamicCategory dynCat, List<string> deletedFieldDescriptionIds)
 		{
-			if (cat == null) return true;
+			if (dynCat == null) return true;
 			bool result = false;
 			try
 			{
 				deletedFieldDescriptionIds.Clear();
-				result = await DeleteAsync<DynamicCategory>(cat.Id, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<DynamicCategory>(dynCat.Id, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 				// delete the dynamic fields owned by this category unless they are owned by another category
 				if (result)
 				{
-					var otherCatsInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), cat.ParentId).ConfigureAwait(false);
+					var otherCatsInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), dynCat.ParentId).ConfigureAwait(false);
 
-					List<string> otherFieldDescrIds = new List<string>();
+					var otherFieldDescrIds = new List<string>();
 					foreach (var otherCat in otherCatsInFolder)
 					{
 						if (otherCat?.Category?.FieldDescriptionIds != null)
@@ -327,19 +327,22 @@ namespace UniFiler10.Data.DB
 							foreach (var fieldDescrId in otherCat.Category.FieldDescriptionIds)
 							{
 								if (fieldDescrId != null
-									&& !otherFieldDescrIds.Contains(fieldDescrId))
+									&& !otherFieldDescrIds.Contains(fieldDescrId)
+									&& fieldDescrId != DbBoundObservableData.DEFAULT_ID)
+								{
 									otherFieldDescrIds.Add(fieldDescrId);
+								}
 							}
 						}
 					}
 
-					var dynFldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), cat.ParentId).ConfigureAwait(false);
-					foreach (var fieldToDelete in dynFldsInFolder.Where(dynFld => dynFld?.FieldDescriptionId != null && !otherFieldDescrIds.Contains(dynFld.FieldDescriptionId)))
+					var dynFldsInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), dynCat.ParentId).ConfigureAwait(false);
+					foreach (var dynFldToDelete in dynFldsInFolder.Where(dynFld => dynFld?.FieldDescriptionId != null && !otherFieldDescrIds.Contains(dynFld.FieldDescriptionId)))
 					{
-						bool isDynFldsDeleted = await DeleteAsync<DynamicField>(fieldToDelete.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
+						bool isDynFldsDeleted = await DeleteAsync<DynamicField>(dynFldToDelete.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
 						if (isDynFldsDeleted)
 						{
-							deletedFieldDescriptionIds.Add(fieldToDelete.FieldDescriptionId);
+							deletedFieldDescriptionIds.Add(dynFldToDelete.FieldDescriptionId);
 						}
 					}
 				}
@@ -350,13 +353,13 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> DeleteFromDynamicFieldsAsync(DynamicField fld)
+		internal async Task<bool> DeleteFromDynamicFieldsAsync(DynamicField dynFld)
 		{
-			if (fld == null) return true;
+			if (dynFld == null) return true;
 			bool result = false;
 			try
 			{
-				result = await DeleteAsync<DynamicField>(fld.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
+				result = await DeleteAsync<DynamicField>(dynFld.Id, _dynamicFieldsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -365,14 +368,14 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<bool> InsertIntoDocumentsAsync(Document record, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDocumentsAsync(Document doc, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (Document.Check(record)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (Document.Check(doc)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertAsync<Document>(record, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertAsync(doc, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -382,14 +385,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDocumentsAsync(IEnumerable<Document> records, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDocumentsAsync(IEnumerable<Document> docs, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (records.Count() > 0 && Document.Check(records)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (docs.Count() > 0 && Document.Check(docs)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync<Document>(records, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(docs, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -399,14 +402,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoWalletsAsync(Wallet record, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoWalletsAsync(Wallet wallet, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (Wallet.Check(record)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
+				if (Wallet.Check(wallet)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertAsync<Wallet>(record, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertAsync(wallet, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -416,32 +419,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoWalletsAsync(IEnumerable<Wallet> records, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoWalletsAsync(IEnumerable<Wallet> wallets, bool checkMaxEntries)
 		{
 			bool result = false;
 			try
 			{
-				if (records.Count() > 0 && Wallet.Check(records)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
+				if (wallets.Count() > 0 && Wallet.Check(wallets)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync<Wallet>(records, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
-					if (dbResult == InsertResult.Added) result = true;
-				}
-			}
-			catch (Exception exc)
-			{
-				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-			}
-			return result;
-		}
-
-		internal async Task<bool> InsertIntoFoldersAsync(Folder record, bool checkMaxEntries)
-		{
-			bool result = false;
-			try
-			{
-				if (Folder.Check(record)) // && await CheckForeignKey_TagsInFolderAsync(record).ConfigureAwait(false)) // && await CheckUniqueKeyInEntriesAsync(record).ConfigureAwait(false))
-				{
-					var dbResult = await InsertAsync<Folder>(record, checkMaxEntries, _foldersSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -452,14 +437,30 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<List<DynamicCategory>> GetDynamicCategoriesAsync(string parentId)
+		internal async Task<bool> InsertIntoFoldersAsync(Folder folder, bool checkMaxEntries)
+		{
+			bool result = false;
+			try
+			{
+				if (Folder.Check(folder)) // && await CheckForeignKey_TagsInFolderAsync(record).ConfigureAwait(false)) // && await CheckUniqueKeyInEntriesAsync(record).ConfigureAwait(false))
+				{
+					var dbResult = await InsertAsync(folder, checkMaxEntries, _foldersSemaphore).ConfigureAwait(false);
+					if (dbResult == InsertResult.Added) result = true;
+				}
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return result;
+		}
+
+		internal async Task<List<DynamicCategory>> GetDynamicCategoriesByParentIdAsync(string parentId)
 		{
 			List<DynamicCategory> dynCats = new List<DynamicCategory>();
 			try
 			{
-				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>
-					(_dynamicCategoriesSemaphore, nameof(DynamicCategory), parentId)
-					.ConfigureAwait(false);
+				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), parentId).ConfigureAwait(false);
 				foreach (var dynCat in dynCats)
 				{
 					dynCat.DBManager = this;
@@ -476,9 +477,7 @@ namespace UniFiler10.Data.DB
 			var dynCats = new List<DynamicCategory>();
 			try
 			{
-				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>
-					(_dynamicCategoriesSemaphore, nameof(DynamicCategory), catId, "CategoryId")
-					.ConfigureAwait(false);
+				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), catId, "CategoryId").ConfigureAwait(false);
 				foreach (var dynCat in dynCats)
 				{
 					dynCat.DBManager = this;
@@ -495,9 +494,7 @@ namespace UniFiler10.Data.DB
 			var dynFlds = new List<DynamicField>();
 			try
 			{
-				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>
-					(_dynamicFieldsSemaphore, nameof(DynamicField), fldDscId, "FieldDescriptionId")
-					.ConfigureAwait(false);
+				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), fldDscId, "FieldDescriptionId").ConfigureAwait(false);
 				foreach (var dynFld in dynFlds)
 				{
 					dynFld.DBManager = this;
@@ -514,9 +511,7 @@ namespace UniFiler10.Data.DB
 			var dynFlds = new List<DynamicField>();
 			try
 			{
-				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>
-					(_dynamicFieldsSemaphore, nameof(DynamicField), parentId)
-					.ConfigureAwait(false);
+				dynFlds = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), parentId).ConfigureAwait(false);
 				foreach (var dynFld in dynFlds)
 				{
 					dynFld.DBManager = this;
@@ -568,8 +563,7 @@ namespace UniFiler10.Data.DB
 			var wallets = new List<Wallet>();
 			try
 			{
-				wallets = await ReadRecordsWithParentIdAsync<Wallet>
-					(_walletsSemaphore, nameof(Wallet), parentId).ConfigureAwait(false);
+				wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), parentId).ConfigureAwait(false);
 				foreach (var wal in wallets)
 				{
 					wal.DBManager = this;
@@ -615,7 +609,11 @@ namespace UniFiler10.Data.DB
 			}
 			return folders;
 		}
-
+		/// <summary>
+		/// Make sure you delete the doc files as well, the db does not do it.
+		/// </summary>
+		/// <param name="doc"></param>
+		/// <returns></returns>
 		internal async Task<bool> DeleteFromDocumentsAsync(Document doc)
 		{
 			if (doc == null) return true;
@@ -630,7 +628,11 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-
+		/// <summary>
+		/// Make sure you delete the doc files as well, the db does not do it.
+		/// </summary>
+		/// <param name="wallet"></param>
+		/// <returns></returns>
 		internal async Task<bool> DeleteFromWalletsAsync(Wallet wallet)
 		{
 			if (wallet == null) return true;
@@ -638,7 +640,7 @@ namespace UniFiler10.Data.DB
 			try
 			{
 				result = await DeleteAsync<Wallet>(wallet.Id, _walletsSemaphore).ConfigureAwait(false);
-				await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
+				if (result) await DeleteRecordsWithParentIdAsync<Document>(_documentsSemaphore, nameof(Document), wallet.Id).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -646,6 +648,11 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
+		/// <summary>
+		///  Make sure you delete the doc files as well, the db does not do it.
+		/// </summary>
+		/// <param name="folder"></param>
+		/// <returns></returns>
 		internal async Task<bool> DeleteFromFoldersAsync(Folder folder)
 		{
 			if (folder == null) return true;
@@ -657,7 +664,7 @@ namespace UniFiler10.Data.DB
 				{
 					var wallets = await ReadRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
 
-					bool isWalsDeleted = await DeleteRecordsWithParentIdAsync<Wallet>(_documentsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
+					bool isWalsDeleted = await DeleteRecordsWithParentIdAsync<Wallet>(_walletsSemaphore, nameof(Wallet), folder.Id).ConfigureAwait(false);
 					if (isWalsDeleted)
 					{
 						foreach (var wallet in wallets.Distinct())
@@ -742,12 +749,20 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId) where T : DbBoundObservableData, new()
+		/// <summary>
+		/// DELETE FROM tableName WHERE parentIdFieldName = parentId
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="semaphore"></param>
+		/// <param name="tableName"></param>
+		/// <param name="parentId"></param>
+		/// <returns></returns>
+		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
-				return DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId);
+				return DeleteRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName);
 			});
 		}
 		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
@@ -889,12 +904,21 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<List<T>> ReadRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
+		/// <summary>
+		/// SELECT * FROM tableName WHERE parentIdFieldName = parentId"
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="semaphore"></param>
+		/// <param name="tableName"></param>
+		/// <param name="parentId"></param>
+		/// <param name="parentIdFieldName"></param>
+		/// <returns></returns>
+		private Task<List<T>> ReadRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
-				return ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease, tableName, parentId, parentIdFieldName);
+				return ReadRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName);
 			});
 		}
 		private List<T> ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
@@ -937,12 +961,12 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease, object primaryKey) where T : DbBoundObservableData, new()
+		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 			{
-				return ReadRecordById<T>(SemaphoreSlimSafeRelease, primaryKey);
+				return ReadRecordById<T>(semaphore, primaryKey);
 			});
 		}
 		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
@@ -1105,14 +1129,14 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		private Task<bool> UpdateAsync<T>(object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+		private Task<bool> UpdateAsync<T>(T item, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			{
 				return Update<T>(item, semaphore);
 			});
 		}
-		private bool Update<T>(object item, SemaphoreSlimSafeRelease semaphore) where T : new()
+		private bool Update<T>(T item, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			if (!_isOpen) return false;
 			bool result = false;
