@@ -375,4 +375,10 @@
   <data name="Ok" xml:space="preserve">
     <value>Ok</value>
   </data>
+  <data name="AudioRecordingStarted" xml:space="preserve">
+    <value>Recording...</value>
+  </data>
+  <data name="AudioRecordingStopped" xml:space="preserve">
+    <value>Recording stopped</value>
+  </data>
 </root>

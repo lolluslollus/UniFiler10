@@ -5,6 +5,7 @@ using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
 using Utilz;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -26,7 +27,7 @@ namespace UniFiler10.Views
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
-			_vm = new BinderContentVM();
+			_vm = new BinderContentVM(AudioRecorderView, CameraView);
 			await _vm.OpenAsync();
 			RaisePropertyChanged_UI(nameof(VM));
 		}
@@ -59,5 +60,12 @@ namespace UniFiler10.Views
 			return true;
 		}
 		#endregion user actions
+	}
+
+	public interface IRecorder : IOpenable
+	{
+		// Task<bool> StartAsync();
+		Task<bool> StartAsync(StorageFile file);
+		Task<bool> StopAsync();
 	}
 }

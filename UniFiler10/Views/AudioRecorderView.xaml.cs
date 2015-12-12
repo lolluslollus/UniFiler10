@@ -10,6 +10,7 @@ using Windows.Foundation.Metadata;
 using Windows.Media;
 using Windows.Media.Capture;
 using Windows.Phone.UI.Input;
+using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -23,47 +24,17 @@ namespace UniFiler10.Views
 	/// This control is supposed to run inside a Popup.
 	/// Showing or hiding the popup will open or close the control.
 	/// </summary>
-	public sealed partial class AudioRecorderView : OpenableObservableControl, IMessageWriter
+	public sealed partial class AudioRecorderView : OpenableObservableControl, IMessageWriter, IRecorder
 	{
-		private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		public BinderContentVM VM
-		{
-			get { return (BinderContentVM)GetValue(VMProperty); }
-			set { SetValue(VMProperty, value); }
-		}
-		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(AudioRecorderView), new PropertyMetadata(null/*, OnVMChanged*/));
-		///// <summary>
-		///// LOLLO VM may not be available yet when OnLoaded fires, it is required though, hence the complexity
-		///// </summary>
-		///// <param name="obj"></param>
-		///// <param name="args"></param>
-		//private static async void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		#region properties
+		//private static SemaphoreSlimSafeRelease _vmSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//public BinderContentVM VM
 		//{
-		//	try
-		//	{
-		//		await _vmSemaphore.WaitAsync(); //.ConfigureAwait(false);
-
-		//		var instance = obj as AudioRecorderView;
-		//		if (instance.IsOpen)
-		//		{
-		//			if (instance != null && args.NewValue is BinderContentVM && args.NewValue != args.OldValue)
-		//			{
-		//				await instance.CloseAsync().ConfigureAwait(false);
-		//				await instance.TryOpenAsync().ConfigureAwait(false);
-		//			}
-		//			else if (instance != null && args.NewValue == null)
-		//			{
-		//				await instance.CloseAsync().ConfigureAwait(false);
-		//			}
-		//		}
-		//	}
-		//	finally
-		//	{
-		//		SemaphoreSlimSafeRelease.TryRelease(_vmSemaphore);
-		//	}
+		//	get { return (BinderContentVM)GetValue(VMProperty); }
+		//	set { SetValue(VMProperty, value); }
 		//}
-
+		//public static readonly DependencyProperty VMProperty =
+		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(AudioRecorderView), new PropertyMetadata(null));
 
 		private AudioRecorder _audioRecorder = null;
 
@@ -75,61 +46,23 @@ namespace UniFiler10.Views
 
 		// For listening to media property changes
 		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
+		#endregion properties
 
-		public AudioRecorderView()
-		{
-			Loaded += OnLoaded;
-			Unloaded += OnUnloaded;
-			Application.Current.Resuming += OnResuming;
-			Application.Current.Suspending += OnSuspending;
 
-			InitializeComponent();
-		}
-
-		private bool _isLoaded = false;
-		private bool _isLoadedWhenSuspending = false;
-		private async void OnSuspending(object sender, SuspendingEventArgs e)
-		{
-			var deferral = e.SuspendingOperation.GetDeferral();
-
-			_isLoadedWhenSuspending = _isLoaded;
-			await CloseAsync().ConfigureAwait(false);
-
-			deferral.Complete();
-		}
-
-		private async void OnResuming(object sender, object e)
-		{
-			if (_isLoadedWhenSuspending) await OpenAsync().ConfigureAwait(false);
-		}
-
-		private async void OnLoaded(object sender, RoutedEventArgs e)
-		{
-			_isLoaded = true;
-			await OpenAsync().ConfigureAwait(false);
-		}
-
-		private async void OnUnloaded(object sender, RoutedEventArgs e)
-		{
-			_isLoaded = false;
-			await CloseAsync().ConfigureAwait(false);
-		}
-
-		private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			await CloseAsync().ConfigureAwait(false);
-		}
-		private MediaCapture _mediaCapture;
+		#region IRecorder
+		private SemaphoreSlimSafeRelease _triggerSemaphore = null; // new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
 		[STAThread]
-		protected override async Task OpenMayOverrideAsync()
+		public Task<bool> StartAsync(StorageFile file)
 		{
-			if (VM != null)
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
+				bool isOk = false;
 				RecordingStoryboard.Begin();
-				_audioRecorder = new AudioRecorder(this, VM);
-				await _audioRecorder.OpenAsync();
 				try
 				{
+					_audioRecorder = new AudioRecorder(this, file);
+					_audioRecorder.UnrecoverableError += OnAudioRecorder_UnrecoverableError;
+					await _audioRecorder.OpenAsync();
 					// adjust the microphone volume. You need MediaCapture, apparently, and she needs STAThread. Ridiculous.
 					_mediaCapture = new MediaCapture();
 					var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance?.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
@@ -140,37 +73,155 @@ namespace UniFiler10.Views
 					// The following is useless, it was a feeble attempt at getting a graphical display of audio levels. It fails, don't use it.
 					//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { PreviewControl.Source = _mediaCapture; });
 					//await _mediaCapture.StartPreviewAsync();
+					isOk = await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
+					if (isOk)
+					{
+						_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+						try
+						{
+							await _triggerSemaphore.WaitAsync().ConfigureAwait(false);
+						}
+						catch (Exception ex)
+						{
+							if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
+							{
+								Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+							}
+						}
+					}
+					else
+					{
+						Task beginFailereAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
+					}
 				}
 				catch (Exception ex)
 				{
 					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
 				}
-				await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
-			}
+				return isOk;
+			});
 		}
 		[STAThread]
-		protected override async Task CloseMayOverrideAsync()
+		public Task<bool> StopAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(delegate
+			{
+				return Stop2Async();
+			});
+		}
+		private async Task<bool> Stop2Async()
 		{
 			await StopRecordingAsync().ConfigureAwait(false);
 
-			_mediaCapture?.Dispose();
+			try
+			{
+				_mediaCapture?.Dispose();
+			}
+			catch { }
 			_mediaCapture = null;
 
 			var audioRecorder = _audioRecorder;
 			if (audioRecorder != null)
 			{
+				audioRecorder.UnrecoverableError -= OnAudioRecorder_UnrecoverableError;
 				await audioRecorder.CloseAsync();
 				audioRecorder.Dispose();
 			}
 			_audioRecorder = null;
+
+			StopAllAnimations();
+			return true;
+		}
+		#endregion IRecorder
+
+
+		public AudioRecorderView()
+		{
+			//Loaded += OnLoaded;
+			//Unloaded += OnUnloaded;
+			//Application.Current.Resuming += OnResuming;
+			Application.Current.Suspending += OnSuspending;
+
+			InitializeComponent();
+		}
+		public override Task<bool> CloseAsync()
+		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);			
+			return base.CloseAsync();
+		}
+		protected override async Task CloseMayOverrideAsync()
+		{
+			await Stop2Async().ConfigureAwait(false);
+			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
+			_triggerSemaphore = null;
+		}
+
+		//private bool _isLoaded = false;
+		//private bool _isLoadedWhenSuspending = false;
+		private async void OnSuspending(object sender, SuspendingEventArgs e)
+		{
+			var deferral = e.SuspendingOperation.GetDeferral();
+
+			//_isLoadedWhenSuspending = _isLoaded;
+			await CloseAsync().ConfigureAwait(false);
+
+			deferral.Complete();
+		}
+
+		//private async void OnResuming(object sender, object e)
+		//{
+		//	//if (_isLoadedWhenSuspending) await OpenAsync().ConfigureAwait(false);
+		//}
+
+		//private async void OnLoaded(object sender, RoutedEventArgs e)
+		//{
+		//	_isLoaded = true;
+		//	await OpenAsync().ConfigureAwait(false);
+		//}
+
+		//private async void OnUnloaded(object sender, RoutedEventArgs e)
+		//{
+		//	_isLoaded = false;
+		//	await CloseAsync().ConfigureAwait(false);
+		//}
+
+		private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			Task close = CloseAsync();
+		}
+		private MediaCapture _mediaCapture;
+
+		private async void OnAudioRecorder_UnrecoverableError(object sender, EventArgs e)
+		{
+			await StopRecordingAsync();
+			Task beginFailureAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
 		}
 
 		private async Task StopRecordingAsync()
 		{
-			if (_audioRecorder != null) await _audioRecorder.RecordStopAsync();
-			VM?.EndRecordAudio();
-			RecordingStoryboard.SkipToFill();
-			RecordingStoryboard.Stop();
+			bool isOk = false;
+			if (_audioRecorder != null) isOk = await _audioRecorder.RecordStopAsync();
+			await RunInUiThreadAsync(delegate
+			{
+				//VM?.EndRecordAudio();
+				RecordingStoryboard.SkipToFill();
+				RecordingStoryboard.Stop();
+			}).ConfigureAwait(false);
+			if (!isOk)
+			{
+				Task beginFailureAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
+			}
+		}
+
+		private void StopAllAnimations()
+		{
+			Task stopAllAnims = RunInUiThreadAsync(delegate
+			{
+				RecordingStoryboard.SkipToFill();
+				RecordingStoryboard.Stop();
+				FailureStoryboard.SkipToFill();
+				FailureStoryboard.Stop();
+			});
 		}
 	}
 }

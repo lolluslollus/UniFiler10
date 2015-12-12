@@ -11,7 +11,7 @@ using Utilz;
 namespace UniFiler10.Data.Model
 {
     [DataContract]
-    public abstract class OpenableObservableData : ObservableData, IDisposable
+    public abstract class OpenableObservableData : ObservableData, IDisposable, IOpenable
     {
 		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
@@ -243,4 +243,11 @@ namespace UniFiler10.Data.Model
             return false;
         }
     }
+
+	public interface IOpenable
+	{
+		Task<bool> OpenAsync();
+		Task<bool> CloseAsync();
+		bool IsOpen { get; }
+	}
 }

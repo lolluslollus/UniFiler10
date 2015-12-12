@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
+using UniFiler10.Data.Runtime;
 using Utilz;
 using Windows.Devices.Enumeration;
 using Windows.Media.Audio;
@@ -18,6 +19,7 @@ namespace Utilz
 {
 	public class AudioRecorder : OpenableObservableData
 	{
+		public event EventHandler UnrecoverableError;
 		#region properties
 		private AudioGraph _audioGraph = null;
 		private AudioFileOutputNode _fileOutputNode;
@@ -25,35 +27,62 @@ namespace Utilz
 		private AudioDeviceInputNode _deviceInputNode;
 		private DeviceInformationCollection _outputDevices;
 		private IMessageWriter _messageWriter;
-		private IAudioFileGetter _fileGetter;
+		private StorageFile _file;
 		#endregion properties
 
 		#region construct, dispose, open, close
-		public AudioRecorder(IMessageWriter messageWriter, IAudioFileGetter fileGetter)
+		public AudioRecorder(IMessageWriter messageWriter, StorageFile file)
 		{
 			_messageWriter = messageWriter;
-			_fileGetter = fileGetter;
+			_file = file;
 		}
 
 		protected override async Task OpenMayOverrideAsync()
 		{
 			_messageWriter.LastMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
-			_messageWriter.LastMessage = await SetFileAsync(_fileGetter.GetAudioFile()).ConfigureAwait(false);
+			if (string.IsNullOrWhiteSpace(_messageWriter.LastMessage))
+			{
+				_messageWriter.LastMessage = await SetFileAsync(_file).ConfigureAwait(false);
+			}
+			if (!string.IsNullOrWhiteSpace(_messageWriter.LastMessage))
+			{
+				UnrecoverableError?.Invoke(this, EventArgs.Empty);
+			}
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			DisposeAudioGraph();
-			await Task.CompletedTask; // avoid the warning...
-		}
-		private void DisposeAudioGraph()
-		{
-			if (_audioGraph != null)
+			var ag = _audioGraph;
+			if (ag != null)
 			{
-				_audioGraph.UnrecoverableErrorOccurred -= OnGraph_UnrecoverableErrorOccurred;
-				_audioGraph.Stop();
+				ag.UnrecoverableErrorOccurred -= OnGraph_UnrecoverableErrorOccurred;
+				try
+				{
+					ag.Stop();
+				}
+				catch { }
+				try
+				{
+					ag.Dispose();
+				}
+				catch { }
 			}
-			_audioGraph?.Dispose(); // Disposes the AudioGraph and its nodes.
 			_audioGraph = null;
+			try
+			{
+				_deviceInputNode?.Dispose();
+			}
+			catch { }
+			try
+			{
+				_deviceOutputNode?.Dispose();
+			}
+			catch { }
+			try
+			{
+				_fileOutputNode?.Dispose();
+			}
+			catch { }
+			await Task.CompletedTask; // avoid the warning...
 		}
 		#endregion construct, dispose, open, close
 
@@ -73,19 +102,18 @@ namespace Utilz
 				return "AudioGraph Creation Error: no output devices found";
 			}
 
-			AudioGraphSettings settings = new AudioGraphSettings(AudioRenderCategory.Media);
-			settings.QuantumSizeSelectionMode = QuantumSizeSelectionMode.LowestLatency;
-			settings.PrimaryRenderDevice = _outputDevices[0];
+			AudioGraphSettings settings = new AudioGraphSettings(AudioRenderCategory.Media)
+			{ QuantumSizeSelectionMode = QuantumSizeSelectionMode.LowestLatency, PrimaryRenderDevice = _outputDevices[0] };
 
 			CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
-
 			if (result.Status != AudioGraphCreationStatus.Success)
 			{
 				// Cannot create graph
 				return string.Format("AudioGraph Creation Error because {0}", result.Status.ToString());
 			}
-
 			_audioGraph = result.Graph;
+			// Because we are using lowest latency setting, we need to handle device disconnection errors
+			_audioGraph.UnrecoverableErrorOccurred += OnGraph_UnrecoverableErrorOccurred;
 
 			// Create a device output node
 			CreateAudioDeviceOutputNodeResult deviceOutputNodeResult = await _audioGraph.CreateDeviceOutputNodeAsync();
@@ -94,39 +122,35 @@ namespace Utilz
 				// Cannot create device output node
 				return string.Format("Audio Device Output unavailable because {0}", deviceOutputNodeResult.Status.ToString());
 			}
-
 			_deviceOutputNode = deviceOutputNodeResult.DeviceOutputNode;
 
 			// Create a device input node using the default audio input device
 			CreateAudioDeviceInputNodeResult deviceInputNodeResult = await _audioGraph.CreateDeviceInputNodeAsync(MediaCategory.Other);
-
 			if (deviceInputNodeResult.Status != AudioDeviceNodeCreationStatus.Success)
 			{
 				// Cannot create device input node
 				return string.Format("Audio Device Input unavailable because {0}", deviceInputNodeResult.Status.ToString());
 			}
-
 			_deviceInputNode = deviceInputNodeResult.DeviceInputNode;
 
-			// Because we are using lowest latency setting, we need to handle device disconnection errors
-			_audioGraph.UnrecoverableErrorOccurred += OnGraph_UnrecoverableErrorOccurred;
-
-			// LOLLO set the volume, rather useless coz it is like a mixer and the default value is 1.
-			if (_deviceOutputNode.OutgoingGain < 1.0) _deviceOutputNode.OutgoingGain = 1.0;
-			if (_deviceInputNode.OutgoingGain < 1.0) _deviceInputNode.OutgoingGain = 1.0;
+			//// LOLLO set the volume, rather useless coz it is like a mixer and the default value is 1.
+			//if (_deviceOutputNode.OutgoingGain < 1.0) _deviceOutputNode.OutgoingGain = 1.0;
+			//if (_deviceInputNode.OutgoingGain < 1.0) _deviceInputNode.OutgoingGain = 1.0;
 
 			return string.Empty;
 		}
 
-		private async void OnGraph_UnrecoverableErrorOccurred(AudioGraph sender, AudioGraphUnrecoverableErrorOccurredEventArgs args)
+		private void OnGraph_UnrecoverableErrorOccurred(AudioGraph sender, AudioGraphUnrecoverableErrorOccurredEventArgs args)
 		{
+			_messageWriter.LastMessage = args.Error.ToString();
 			// Recreate the graph and all nodes when this happens
 			//sender.Dispose();
-			DisposeAudioGraph();
+			//DisposeAudioGraph();
 
-			_messageWriter.LastMessage = args.Error.ToString();
-			// Re-query for devices
-			string errorMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
+			UnrecoverableError?.Invoke(this, EventArgs.Empty);
+
+			// Re-query for devices // LOLLO NO!
+			// _messageWriter.LastMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
 		}
 		/// <summary>
 		/// Required before starting recording
@@ -144,13 +168,11 @@ namespace Utilz
 
 			// Operate node at the graph format, but save file at the specified format
 			CreateAudioFileOutputNodeResult fileOutputNodeResult = await _audioGraph.CreateFileOutputNodeAsync(file, fileProfile);
-
 			if (fileOutputNodeResult.Status != AudioFileNodeCreationStatus.Success)
 			{
 				// FileOutputNode creation failed
 				return string.Format("Cannot create output file because {0}", fileOutputNodeResult.Status.ToString());
 			}
-
 			_fileOutputNode = fileOutputNodeResult.FileOutputNode;
 
 			// Connect the input node to both output nodes
@@ -180,12 +202,20 @@ namespace Utilz
 		#endregion init properties before recording
 
 		#region record
-		public Task RecordStartAsync()
+		public Task<bool> RecordStartAsync()
 		{
-			return RunFunctionWhileOpenAsyncA(delegate
+			return RunFunctionWhileOpenAsyncB(delegate
 			{
-				_messageWriter.LastMessage = "Recording...";
-				_audioGraph.Start();
+				_messageWriter.LastMessage = RuntimeData.GetText("AudioRecordingStarted");
+				try
+				{
+					_audioGraph.Start();
+					return true;
+				}
+				catch
+				{
+					return false;
+				}
 			});
 		}
 		public Task<bool> RecordStopAsync()
@@ -193,20 +223,32 @@ namespace Utilz
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
 				// Good idea to stop the graph to avoid data loss
-				_audioGraph?.Stop();
+				try
+				{
+					_audioGraph?.Stop();
+				}
+				catch { }
 
 				if (_fileOutputNode != null)
 				{
-					TranscodeFailureReason finalizeResult = await _fileOutputNode.FinalizeAsync();
-					if (finalizeResult != TranscodeFailureReason.None)
+					try
 					{
-						// Finalization of file failed. Check result code to see why
-						_messageWriter.LastMessage = string.Format("Finalization of file failed because {0}", finalizeResult.ToString());
-						// Logger.Add_TPL(string.Format("Finalization of file failed because {0}", finalizeResult.ToString()), Logger.ForegroundLogFilename);
+						TranscodeFailureReason finalizeResult = await _fileOutputNode.FinalizeAsync();
+						if (finalizeResult != TranscodeFailureReason.None)
+						{
+							// Finalization of file failed. Check result code to see why
+							if (_messageWriter != null) _messageWriter.LastMessage = string.Format("Finalization of file failed because {0}", finalizeResult.ToString());
+							return false;
+						}
+					}
+					catch (Exception ex)
+					{
+						if (_messageWriter != null) _messageWriter.LastMessage = RuntimeData.GetText("AudioRecordingStopped");
+						// if (_messageWriter != null) _messageWriter.LastMessage = string.Format("Finalization of file failed because {0}", ex.ToString());
 						return false;
 					}
 				}
-				if (_messageWriter != null) _messageWriter.LastMessage = string.Empty;
+				if (_messageWriter != null) _messageWriter.LastMessage = RuntimeData.GetText("AudioRecordingStopped");
 				return true;
 			});
 		}
@@ -216,10 +258,5 @@ namespace Utilz
 	public interface IMessageWriter
 	{
 		string LastMessage { get; set; }
-	}
-
-	public interface IAudioFileGetter
-	{
-		StorageFile GetAudioFile();
 	}
 }

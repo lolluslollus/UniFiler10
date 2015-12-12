@@ -29,15 +29,16 @@ using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.Views
 {
-	public sealed partial class CameraView : OpenableObservableControl
+	public sealed partial class CameraView : OpenableObservableControl, IRecorder
 	{
-		public BinderContentVM VM
-		{
-			get { return (BinderContentVM)GetValue(VMProperty); }
-			set { SetValue(VMProperty, value); }
-		}
-		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(CameraView), new PropertyMetadata(null));
+		#region properties
+		//public BinderContentVM VM
+		//{
+		//	get { return (BinderContentVM)GetValue(VMProperty); }
+		//	set { SetValue(VMProperty, value); }
+		//}
+		//public static readonly DependencyProperty VMProperty =
+		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(CameraView), new PropertyMetadata(null));
 
 		private string _lastMessage = string.Empty;
 		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
@@ -64,73 +65,123 @@ namespace UniFiler10.Views
 		private bool _isPreviewing;
 		private bool? _isFlashDesired = false;
 		public bool? IsFlashDesired { get { return _isFlashDesired; } set { _isFlashDesired = value; RaisePropertyChanged_UI(); } }
-		//private bool _isFlashOn = false;
 		//private bool _isRecordingVideo;
 
 		// Information about the camera device
-		private bool _mirroringPreview;
-		private bool _externalCamera;
+		private bool _isMirroringPreview;
+		private bool _isExternalCamera;
+
+		private StorageFile _file = null;
+		#endregion properties
+
+
+		#region IRecorder
+		private SemaphoreSlimSafeRelease _triggerSemaphore = null; // new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+		public Task<bool> StartAsync(StorageFile file)
+		{
+			return RunFunctionWhileOpenAsyncTB(async delegate
+			{
+				_file = file;
+				await SetupUiAsync();
+				bool isOk = await InitializeCameraAsync().ConfigureAwait(false);
+				if (isOk)
+				{
+					_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+					try
+					{
+						await _triggerSemaphore.WaitAsync().ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
+						{
+							Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						}
+					}
+				}
+				//else
+				//{
+				//	Task beginFailureAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
+				//}
+				return isOk;
+			});
+		}
+		public Task<bool> StopAsync()
+		{
+			return RunFunctionWhileOpenAsyncTB(delegate
+			{
+				return Stop2Async();
+			});
+		}
+		private async Task<bool> Stop2Async()
+		{
+			await RunInUiThreadAsync(delegate
+			{
+				//VM?.EndShoot();
+			}).ConfigureAwait(false);
+			await CleanupCameraAsync();
+			await CleanupUiAsync().ConfigureAwait(false);
+
+			return true;
+		}
+		#endregion IRecorder
+
 
 		#region Constructor, lifecycle and navigation
-
 		public CameraView()
 		{
-			Loaded += OnLoaded;
-			Unloaded += OnUnloaded;
-			Application.Current.Resuming += OnResuming;
+			//Loaded += OnLoaded;
+			//Unloaded += OnUnloaded;
+			//Application.Current.Resuming += OnResuming;
 			Application.Current.Suspending += OnSuspending;
 
 			InitializeComponent();
 			//VideoButton.Visibility = Visibility.Collapsed;
 		}
 
-		private bool _isLoaded = false;
-		private bool _isLoadedWhenSuspending = false;
+		//private bool _isLoaded = false;
+		//private bool _isLoadedWhenSuspending = false;
 		private async void OnSuspending(object sender, SuspendingEventArgs e)
 		{
 			var deferral = e.SuspendingOperation.GetDeferral();
 
-			_isLoadedWhenSuspending = _isLoaded;
+			//_isLoadedWhenSuspending = _isLoaded;
 			await CloseAsync().ConfigureAwait(false);
 
 			deferral.Complete();
 		}
 
-		private async void OnResuming(object sender, object e) // LOLLO TODO test OnSuspending and OnResuming
-		{
-			if (_isLoadedWhenSuspending) await OpenAsync().ConfigureAwait(false);
-		}
+		//private async void OnResuming(object sender, object e) // LOLLO TODO test OnSuspending and OnResuming
+		//{
+		//	if (_isLoadedWhenSuspending) await OpenAsync().ConfigureAwait(false);
+		//}
 
-		private async void OnLoaded(object sender, RoutedEventArgs e)
-		{
-			_isLoaded = true;
-			await OpenAsync().ConfigureAwait(false);
-		}
+		//private async void OnLoaded(object sender, RoutedEventArgs e)
+		//{
+		//	_isLoaded = true;
+		//	await OpenAsync().ConfigureAwait(false);
+		//}
 
-		private async void OnUnloaded(object sender, RoutedEventArgs e)
-		{
-			_isLoaded = false;
-			await CloseAsync().ConfigureAwait(false);
-		}
+		//private async void OnUnloaded(object sender, RoutedEventArgs e)
+		//{
+		//	_isLoaded = false;
+		//	await CloseAsync().ConfigureAwait(false);
+		//}
 
 		private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			await CloseAsync().ConfigureAwait(false);
 		}
-
-		protected override async Task OpenMayOverrideAsync()
+		public override Task<bool> CloseAsync()
 		{
-			await SetupUiAsync();
-			await InitializeCameraAsync().ConfigureAwait(false);
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+			return base.CloseAsync();
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await RunInUiThreadAsync(delegate
-			{
-				VM?.EndShoot();
-			}).ConfigureAwait(false);
-			await CleanupCameraAsync();
-			await CleanupUiAsync().ConfigureAwait(false);
+			await Stop2Async().ConfigureAwait(false);
+			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
+			_triggerSemaphore = null;
 		}
 		#endregion Constructor, lifecycle and navigation
 
@@ -252,13 +303,8 @@ namespace UniFiler10.Views
 
 			await CleanupCameraAsync();
 
-			await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
+			//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateCaptureControls());
 		}
-		//     protected override void GoBackMustOverride()
-		//     {
-		//var vm = VM; if (vm == null) return;
-		//         vm.IsCameraOverlayOpen = false;
-		//     }
 		#endregion Event handlers
 
 
@@ -320,15 +366,15 @@ namespace UniFiler10.Views
 				if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Unknown)
 				{
 					// No information on the location of the camera, assume it's an external camera, not integrated on the device
-					_externalCamera = true;
+					_isExternalCamera = true;
 				}
 				else
 				{
 					// Camera is fixed on the device
-					_externalCamera = false;
+					_isExternalCamera = false;
 
 					// Only mirror the preview if the camera is on the front panel
-					_mirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
+					_isMirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
 				}
 
 				await StartPreviewAsync();
@@ -349,7 +395,7 @@ namespace UniFiler10.Views
 
 			// Set the preview source in the UI and mirror it if necessary
 			PreviewControl.Source = _mediaCapture;
-			PreviewControl.FlowDirection = _mirroringPreview ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+			PreviewControl.FlowDirection = _isMirroringPreview ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
 			// Start the preview
 			try
@@ -376,13 +422,13 @@ namespace UniFiler10.Views
 		private async Task SetPreviewRotationAsync()
 		{
 			// Only need to update the orientation if the camera is mounted on the device
-			if (_externalCamera) return;
+			if (_isExternalCamera) return;
 
 			// Calculate which way and how far to rotate the preview
 			int rotationDegrees = ConvertDisplayOrientationToDegrees(_displayOrientation);
 
 			// The rotation direction needs to be inverted if the preview is being mirrored
-			if (_mirroringPreview)
+			if (_isMirroringPreview)
 			{
 				rotationDegrees = (360 - rotationDegrees) % 360;
 			}
@@ -544,11 +590,16 @@ namespace UniFiler10.Views
 			{
 				//_mediaCapture.RecordLimitationExceeded -= OnMediaCapture_RecordLimitationExceeded;
 				_mediaCapture.Failed -= OnMediaCapture_Failed;
-				_mediaCapture.Dispose();
+				try
+				{
+					_mediaCapture.Dispose();
+				}
+				catch { }
 				_mediaCapture = null;
 			}
 		}
 		#endregion MediaCapture methods
+
 
 		#region Helper functions
 		/// <summary>
@@ -696,14 +747,11 @@ namespace UniFiler10.Views
 		/// <returns></returns>
 		private async Task ReencodeAndSavePhotoAsync(IRandomAccessStream inputStream, PhotoOrientation photoOrientation)
 		{
-			StorageFile file = null;
 			try
 			{
-				file = await VM.CreatePhotoFileAsync();
-
 				var decoder = await BitmapDecoder.CreateAsync(inputStream);
 
-				using (var outputStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+				using (var outputStream = await _file.OpenAsync(FileAccessMode.ReadWrite))
 				{
 					var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
 
@@ -720,10 +768,11 @@ namespace UniFiler10.Views
 			}
 			finally
 			{
-				VM?.EndShoot();
+				//VM?.ForceEndShootAsync();
 			}
 		}
 		#endregion Helper functions
+
 
 		#region Rotation helpers
 		/// <summary>
@@ -732,7 +781,7 @@ namespace UniFiler10.Views
 		/// <returns>The camera orientation in space, with an inverted rotation in the case the camera is mounted on the device and is facing the user</returns>
 		private SimpleOrientation GetCameraOrientation()
 		{
-			if (_externalCamera)
+			if (_isExternalCamera)
 			{
 				// Cameras that are not attached to the device do not rotate along with it, so apply no rotation
 				return SimpleOrientation.NotRotated;
@@ -761,7 +810,7 @@ namespace UniFiler10.Views
 			}
 
 			// If the preview is being mirrored for a front-facing camera, then the rotation should be inverted
-			if (_mirroringPreview)
+			if (_isMirroringPreview)
 			{
 				// This only affects the 90 and 270 degree cases, because rotating 0 and 180 degrees is the same clockwise and counter-clockwise
 				switch (result)

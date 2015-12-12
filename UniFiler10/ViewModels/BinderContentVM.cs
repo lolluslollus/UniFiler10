@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
+using UniFiler10.Views;
 using Utilz;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 
 namespace UniFiler10.ViewModels
 {
-	public sealed class BinderContentVM : OpenableObservableData, IAudioFileGetter
+	public sealed class BinderContentVM : OpenableObservableData
 	{
 		#region properties
 		private Binder _binder = null;
@@ -19,11 +20,18 @@ namespace UniFiler10.ViewModels
 
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
+
+		private IRecorder _audioRecorder = null;
+		private IRecorder _camera = null;
 		#endregion properties
 
 
 		#region construct dispose open close
-		public BinderContentVM() { }
+		public BinderContentVM(IRecorder audioRecorder, IRecorder camera)
+		{
+			_audioRecorder = audioRecorder;
+			_camera = camera;
+		}
 		protected async override Task OpenMayOverrideAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
@@ -40,18 +48,16 @@ namespace UniFiler10.ViewModels
 			RuntimeData = RuntimeData.Instance;
 			UpdateCurrentFolderCategories();
 		}
-		protected override Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync()
 		{
 			var binder = _binder;
 			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 
-			EndRecordAudio();
-			EndShoot();
+			await ForceEndRecordAudioAsync();
+			await ForceEndShootAsync();
 
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
-			Binder = null;
-
-			return Task.CompletedTask;
+			_binder = null;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -145,103 +151,114 @@ namespace UniFiler10.ViewModels
 				await parentWallet.ImportMediaFileAsync(file, true).ConfigureAwait(false);
 			}
 		}
-
 		public async Task ShootAsync(Folder parentFolder)
 		{
 			var binder = _binder;
-			if (binder != null && binder.IsOpen && !_isCameraOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsCameraAvailable == true)
+			if (binder?.IsOpen == true && parentFolder != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
 			{
 				await RunFunctionWhileOpenAsyncT(async delegate
 				{
-					IsCameraOverlayOpen = true; // opens the Camera control
-					await _photoTriggerSemaphore.WaitAsync();
-					await _photoTriggerSemaphore.WaitAsync(); // wait until someone calls EndShoot
-
-					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetPhotoFile(), false).ConfigureAwait(false);
+					if (binder?.IsOpen == true && parentFolder != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+					{
+						var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
+						if (file != null)
+						{
+							IsCameraOverlayOpen = true;
+							await _camera.OpenAsync();
+							await _camera.StartAsync(file);
+							await _camera.CloseAsync();
+							await parentFolder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
+							IsCameraOverlayOpen = false;
+						}
+					}
 				}).ConfigureAwait(false);
 			}
 		}
 		public async Task ShootAsync(Wallet parentWallet)
 		{
 			var binder = _binder;
-			if (binder != null && binder.IsOpen && !_isCameraOverlayOpen && parentWallet != null && RuntimeData.Instance?.IsCameraAvailable == true)
+			if (binder?.IsOpen == true && parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
 			{
 				await RunFunctionWhileOpenAsyncT(async delegate
 				{
-					IsCameraOverlayOpen = true; // opens the Camera control
-					await _photoTriggerSemaphore.WaitAsync();
-					await _photoTriggerSemaphore.WaitAsync(); // wait until someone calls EndShoot
-
-					await parentWallet.ImportMediaFileAsync(GetPhotoFile(), false).ConfigureAwait(false);
+					if (binder?.IsOpen == true && parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+					{
+						var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
+						if (file != null)
+						{
+							IsCameraOverlayOpen = true;
+							await _camera.OpenAsync();
+							await _camera.StartAsync(file);
+							await _camera.CloseAsync();
+							await parentWallet.ImportMediaFileAsync(file, false).ConfigureAwait(false);
+							IsCameraOverlayOpen = false;
+						}
+					}
 				}).ConfigureAwait(false);
 			}
 		}
-		public void EndShoot()
+		public Task ForceEndShootAsync()
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_photoTriggerSemaphore);
-			IsCameraOverlayOpen = false; // closes the Camera control
+			var cam = _camera;
+			if (cam != null)
+			{
+				return cam.CloseAsync();
+			}
+			else
+			{
+				return Task.CompletedTask;
+			}
 		}
 
 		public async Task RecordAudioAsync(Folder parentFolder)
 		{
 			var binder = _binder;
-			if (binder != null && binder.IsOpen && !_isAudioRecorderOverlayOpen && parentFolder != null && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+			if (binder?.IsOpen == true && parentFolder != null && !_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 			{
 				await RunFunctionWhileOpenAsyncT(async delegate
 				{
-					await CreateAudioFileAsync(); // required before we start any audio recording
-					IsAudioRecorderOverlayOpen = true; // opens the AudioRecorder control
-					await _audioTriggerSemaphore.WaitAsync();
-					await _audioTriggerSemaphore.WaitAsync(); // wait until someone calls EndRecordAudio
-
-					await parentFolder.ImportMediaFileIntoNewWalletAsync(GetAudioFile(), false).ConfigureAwait(false);
+					if (binder?.IsOpen == true && parentFolder != null && !_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
+					{
+						var file = await CreateAudioPhotoFileAsync(DEFAULT_AUDIO_FILE_NAME); // required before we start any audio recording
+						if (file != null)
+						{
+							IsAudioRecorderOverlayOpen = true;
+							await _audioRecorder.OpenAsync();
+							await _audioRecorder.StartAsync(file);
+							await _audioRecorder.CloseAsync();
+							await parentFolder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
+							IsAudioRecorderOverlayOpen = false;
+						}
+					}
 				}).ConfigureAwait(false);
 			}
 		}
-		public void EndRecordAudio()
+		public Task ForceEndRecordAudioAsync()
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_audioTriggerSemaphore);
-			IsAudioRecorderOverlayOpen = false; // closes the AudioRecorder control
+			var ar = _audioRecorder;
+			if (ar != null)
+			{
+				return ar.CloseAsync();
+			}
+			else
+			{
+				return Task.CompletedTask;
+			}
 		}
-
-		private static SemaphoreSlimSafeRelease _audioTriggerSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-
-		private StorageFile _audioFile = null;
-		private async Task<StorageFile> CreateAudioFileAsync()
+		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3";
+		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpeg";
+		private async Task<StorageFile> CreateAudioPhotoFileAsync(string fileName)
 		{
 			try
 			{
-				//var directory = ApplicationData.Current.LocalCacheFolder;
-				_audioFile = await _binder.Directory.CreateFileAsync("Audio.mp3", CreationCollisionOption.GenerateUniqueName);
-				return _audioFile;
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-			return null;
-		}
-		public StorageFile GetAudioFile()
-		{
-			return _audioFile;
-		}
-
-		private static SemaphoreSlimSafeRelease _photoTriggerSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-
-		private StorageFile _photoFile = null;
-		public async Task<StorageFile> CreatePhotoFileAsync()
-		{
-			try
-			{
-				//var directory = ApplicationData.Current.LocalCacheFolder;
 				var binder = _binder;
 				if (binder != null)
 				{
-					var dir = _binder?.Directory;
+					var dir = binder.Directory;
 					if (dir != null)
 					{
-						_photoFile = await dir.CreateFileAsync("Photo.jpeg", CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-						return _photoFile;
+						var file = await dir.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+						return file;
 					}
 				}
 			}
@@ -251,11 +268,6 @@ namespace UniFiler10.ViewModels
 			}
 			return null;
 		}
-		private StorageFile GetPhotoFile()
-		{
-			return _photoFile;
-		}
-		//}
 		#endregion save media
 
 

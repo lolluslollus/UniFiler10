@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using UniFiler10.Data.Model;
 using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel;
@@ -23,7 +24,7 @@ namespace UniFiler10.Controlz
 	/// It will stay disabled as long as it is closed.
 	/// Do not bind to IsEnabled, but to IsEnabledOverride instead.
 	/// </summary>
-	public abstract class OpenableObservableControl : ObservableControl
+	public abstract class OpenableObservableControl : ObservableControl, IOpenable
 	{
 		#region properties
 		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
@@ -75,7 +76,7 @@ namespace UniFiler10.Controlz
 
 
 		#region open close
-		public async Task<bool> OpenAsync(bool enable = true)
+		public async Task<bool> OpenAsync()
 		{
 			if (!_isOpen)
 			{
@@ -87,7 +88,7 @@ namespace UniFiler10.Controlz
 					{
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 						IsOpen = true;
-						if (enable) await RunInUiThreadAsync(delegate
+						await RunInUiThreadAsync(delegate
 						{
 							IsEnabledAllowed = true;
 						}).ConfigureAwait(false);
@@ -104,7 +105,7 @@ namespace UniFiler10.Controlz
 					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
 				}
 			}
-			if (_isOpen && enable) await SetIsEnabledAsync(true).ConfigureAwait(false);
+			if (_isOpen) await SetIsEnabledAsync(true).ConfigureAwait(false);
 			return false;
 		}
 
@@ -113,7 +114,7 @@ namespace UniFiler10.Controlz
 			return Task.CompletedTask; // avoid warning
 		}
 
-		public async Task<bool> CloseAsync()
+		public virtual async Task<bool> CloseAsync()
 		{
 			if (_isOpen)
 			{

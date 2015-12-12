@@ -31,15 +31,15 @@
 
 				<Popup
 					IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
-					<local:CameraView
-						VM="{x:Bind VM, Mode=OneWay}"
+					<!--VM="{x:Bind VM, Mode=OneWay}"-->
+					<local:CameraView x:Name="CameraView"
 						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
 				</Popup>
 
 				<Popup
 					IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=False}">
-					<local:AudioRecorderView
-						VM="{x:Bind VM, Mode=OneWay}"
+					<!--VM="{x:Bind VM, Mode=OneWay}"-->
+					<local:AudioRecorderView x:Name="AudioRecorderView"
 						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
 				</Popup>
 			</Grid>
