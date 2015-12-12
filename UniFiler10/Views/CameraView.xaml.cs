@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
@@ -256,6 +257,7 @@ namespace UniFiler10.Views
 		private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
+			Task close = CloseAsync();
 		}
 
 		private void OnIsFlashDesired_Tapped(object sender, TappedRoutedEventArgs e)
@@ -267,6 +269,7 @@ namespace UniFiler10.Views
 		private async void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
 		{
 			await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
+			Task close = CloseAsync();
 		}
 
 		//private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -751,13 +754,15 @@ namespace UniFiler10.Views
 			{
 				var decoder = await BitmapDecoder.CreateAsync(inputStream);
 
+				//StorageFile file = await GetFileAsync();
+
 				using (var outputStream = await _file.OpenAsync(FileAccessMode.ReadWrite))
 				{
 					var encoder = await BitmapEncoder.CreateForTranscodingAsync(outputStream, decoder);
 
-					var properties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(photoOrientation, PropertyType.UInt16) } };
+					var bitmapProperties = new BitmapPropertySet { { "System.Photo.Orientation", new BitmapTypedValue(photoOrientation, PropertyType.UInt16) } };
 
-					await encoder.BitmapProperties.SetPropertiesAsync(properties);
+					await encoder.BitmapProperties.SetPropertiesAsync(bitmapProperties);
 					await encoder.FlushAsync();
 				}
 			}
@@ -771,6 +776,30 @@ namespace UniFiler10.Views
 				//VM?.ForceEndShootAsync();
 			}
 		}
+		///// <summary>
+		///// If I take multiple photos, I need multiple files
+		///// </summary>
+		///// <returns></returns>
+		//private async Task<StorageFile> GetFileAsync()
+		//{
+		//	StorageFile result = null;
+		//	if (_file == null) return result;
+
+		//	BasicProperties fileProperties = await _file.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+		//	if (fileProperties?.Size > 0)
+		//	{
+		//		var dir = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(_file.Path));
+		//		if (dir != null)
+		//		{
+		//			result = await dir.CreateFileAsync(_file.Name, CreationCollisionOption.GenerateUniqueName);
+		//		}
+		//	}
+		//	else if (fileProperties?.Size == 0)
+		//	{
+		//		result = _file;
+		//	}
+		//	return result;
+		//}
 		#endregion Helper functions
 
 
