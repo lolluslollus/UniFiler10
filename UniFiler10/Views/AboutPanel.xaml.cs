@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Runtime;
 using Utilz;
@@ -11,16 +12,25 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Views
 {
-    public sealed partial class AboutPanel : UserControl
+    public sealed partial class AboutPanel : ObservableControl
     {
-        public string AppName { get { return ConstantData.AppName; } }
+		#region properties
+		public string AppName { get { return ConstantData.AppName; } }
         public string AppVersion { get { return ConstantData.Version; } }
 
-        public AboutPanel()
+		private string _logText;
+		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
+		#endregion properties
+
+
+		public AboutPanel()
         {
             InitializeComponent();
             DataContext = RuntimeData.Instance;
-        }
+#if NOSTORE
+			LogsGrid.Visibility = Visibility.Visible;
+#endif
+		}
         private async void OnBuy_Click(object sender, RoutedEventArgs e)
         {
             bool isAlreadyBought = await Licenser.BuyAsync();
@@ -55,5 +65,42 @@ namespace UniFiler10.Views
                 Debug.WriteLine("ERROR: OnSendMailWithLog_Click caused an exception: " + ex.ToString());
             }
         }
-    }
+
+		private async void OnLogButton_Click(object sender, RoutedEventArgs e)
+		{
+			String cnt = (sender as Button).Content.ToString();
+			if (cnt == "FileError")
+			{
+				LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);
+			}
+			else if (cnt == "MyPersistentData")
+			{
+				LogText = await Logger.ReadAsync(Logger.PersistentDataLogFilename);
+			}
+			else if (cnt == "Fgr")
+			{
+				LogText = await Logger.ReadAsync(Logger.ForegroundLogFilename);
+			}
+			else if (cnt == "Bgr")
+			{
+				LogText = await Logger.ReadAsync(Logger.BackgroundLogFilename);
+			}
+			else if (cnt == "BgrCanc")
+			{
+				LogText = await Logger.ReadAsync(Logger.BackgroundCancelledLogFilename);
+			}
+			else if (cnt == "AppExc")
+			{
+				LogText = await Logger.ReadAsync(Logger.AppExceptionLogFilename);
+			}
+			else if (cnt == "Clear")
+			{
+				Logger.ClearAll();
+			}
+		}
+		private void OnLogText_Unloaded(object sender, RoutedEventArgs e)
+		{
+			LogText = string.Empty;
+		}
+	}
 }

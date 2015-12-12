@@ -1,13 +1,14 @@
-﻿<UserControl
+﻿<ctl:ObservableControl
     x:Class="UniFiler10.Views.AboutPanel"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
+	xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    d:DesignHeight="300"
+    d:DesignHeight="800"
     d:DesignWidth="400">
 
     <Grid>
@@ -23,7 +24,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
             <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+			<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
             Text="{Binding ElementName=me, Path=AppName}"
@@ -109,5 +112,43 @@
                 Margin="{StaticResource PanelMargin2}"
                 VerticalAlignment="Center"/>
         </HyperlinkButton>
-    </Grid>
-</UserControl>
+
+		<!-- logs panel -->
+		<Grid Grid.Row="12" 
+			x:Name="LogsGrid"
+			Visibility="Collapsed"
+			Canvas.ZIndex="600"
+			VerticalAlignment="Top"                
+			Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+			Margin="{StaticResource PanelMargin2}">
+
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+			<StackPanel Grid.Row="0" Orientation="Horizontal">
+				<Button Content="Fgr" Click="OnLogButton_Click"/>
+				<Button Content="Bgr" Click="OnLogButton_Click"/>
+				<Button Content="BgrCanc" Click="OnLogButton_Click"/>
+			</StackPanel>
+			<StackPanel Grid.Row="1" Orientation="Horizontal">
+				<Button Content="FileError" Click="OnLogButton_Click"/>
+				<Button Content="MyPersistentData" Click="OnLogButton_Click"/>
+				<Button Content="AppExc" Click="OnLogButton_Click"/>
+			</StackPanel>
+			<StackPanel Grid.Row="2" Orientation="Horizontal">
+				<Button Content="Clear" Click="OnLogButton_Click"/>
+			</StackPanel>
+			<Border Grid.Row="3"
+				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+				BorderThickness="0"
+				Margin="{StaticResource PanelMargin2}">
+				<TextBlock Grid.Row="3" TextWrapping="Wrap"
+					Text="{Binding ElementName=me, Path=LogText}"
+					MinHeight="400" Unloaded="OnLogText_Unloaded" ScrollViewer.HorizontalScrollBarVisibility="Visible"/>
+			</Border>
+		</Grid>
+	</Grid>
+</ctl:ObservableControl>
