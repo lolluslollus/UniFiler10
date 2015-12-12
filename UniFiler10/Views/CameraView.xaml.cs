@@ -169,9 +169,9 @@ namespace UniFiler10.Views
 		//	await CloseAsync().ConfigureAwait(false);
 		//}
 
-		private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			await CloseAsync().ConfigureAwait(false);
+			Task close = CloseAsync();
 		}
 		public override Task<bool> CloseAsync()
 		{
@@ -256,6 +256,7 @@ namespace UniFiler10.Views
 
 		private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
 			await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
 			Task close = CloseAsync();
 		}
@@ -268,6 +269,7 @@ namespace UniFiler10.Views
 
 		private async void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
 		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
 			await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
 			Task close = CloseAsync();
 		}
@@ -465,9 +467,12 @@ namespace UniFiler10.Views
 			{
 				// Cleanup the UI
 				PreviewControl.Source = null;
-
-				// Allow the device screen to sleep now that the preview is stopped
-				_displayRequest.RequestRelease();
+				try
+				{
+					// Allow the device screen to sleep now that the preview is stopped
+					_displayRequest.RequestRelease();
+				}
+				catch { }
 			});
 		}
 
@@ -636,8 +641,10 @@ namespace UniFiler10.Views
 		/// <returns></returns>
 		private async Task CleanupUiAsync()
 		{
-			UnregisterEventHandlers();
-
+			await RunInUiThreadAsync(delegate
+			{
+				UnregisterEventHandlers();
+			});
 			// Show the status bar
 			if (ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
 			{
