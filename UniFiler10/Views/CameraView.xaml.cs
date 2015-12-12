@@ -331,7 +331,6 @@ namespace UniFiler10.Views
 				if (cameraDevice == null)
 				{
 					LastMessage = RuntimeData.GetText("CameraDeviceNotFound");
-
 					return false;
 				}
 
@@ -353,7 +352,6 @@ namespace UniFiler10.Views
 				catch (UnauthorizedAccessException)
 				{
 					LastMessage = RuntimeData.GetText("CameraNoAccess");
-
 					return false;
 				}
 				catch (Exception ex)
@@ -382,6 +380,7 @@ namespace UniFiler10.Views
 					_isMirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
 				}
 
+				LastMessage = string.Empty;
 				await StartPreviewAsync();
 
 				UpdateCaptureControls();
