@@ -222,7 +222,7 @@ namespace UniFiler10.Views
 		/// </summary>
 		/// <param name="sender">The event source.</param>
 		/// <param name="args">The event data.</param>
-		private async void OnOrientationSensor_OrientationChanged(SimpleOrientationSensor sender, SimpleOrientationSensorOrientationChangedEventArgs args)
+		private void OnOrientationSensor_OrientationChanged(SimpleOrientationSensor sender, SimpleOrientationSensorOrientationChangedEventArgs args)
 		{
 			if (args.Orientation != SimpleOrientation.Faceup && args.Orientation != SimpleOrientation.Facedown)
 			{
@@ -233,7 +233,7 @@ namespace UniFiler10.Views
 				//      on other panels, this logic should be adjusted.
 				_deviceOrientation = args.Orientation;
 
-				await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateButtonOrientation());
+				//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateButtonOrientation());
 			}
 		}
 
@@ -251,7 +251,7 @@ namespace UniFiler10.Views
 				await SetPreviewRotationAsync();
 			}
 
-			await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateButtonOrientation());
+			//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateButtonOrientation());
 		}
 
 		private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -480,6 +480,7 @@ namespace UniFiler10.Views
 		/// Takes a photo to a StorageFile and adds rotation metadata to it
 		/// </summary>
 		/// <returns></returns>
+		[STAThread] // LOLLO test
 		private async Task TakePhotoAsync()
 		{
 			// While taking a photo, keep the video button enabled only if the camera supports simultaneously taking pictures and recording video
@@ -706,7 +707,7 @@ namespace UniFiler10.Views
 				_orientationSensor.OrientationChanged += OnOrientationSensor_OrientationChanged;
 
 				// Update orientation of buttons with the current orientation
-				UpdateButtonOrientation();
+				//UpdateButtonOrientation();
 			}
 
 			_displayInformation.OrientationChanged += OnDisplayInformation_OrientationChanged;
@@ -928,26 +929,26 @@ namespace UniFiler10.Views
 		/// Uses the current device orientation in space and page orientation on the screen to calculate the rotation
 		/// transformation to apply to the controls
 		/// </summary>
-		private void UpdateButtonOrientation()
-		{
-			int device = ConvertDeviceOrientationToDegrees(_deviceOrientation);
-			int display = ConvertDisplayOrientationToDegrees(_displayOrientation);
+		//private void UpdateButtonOrientation()
+		//{
+		//	int device = ConvertDeviceOrientationToDegrees(_deviceOrientation);
+		//	int display = ConvertDisplayOrientationToDegrees(_displayOrientation);
 
-			if (_displayInformation.NativeOrientation == DisplayOrientations.Portrait)
-			{
-				device -= 90;
-			}
+		//	if (_displayInformation.NativeOrientation == DisplayOrientations.Portrait)
+		//	{
+		//		device -= 90;
+		//	}
 
-			// Combine both rotations and make sure that 0 <= result < 360
-			var angle = (360 + display + device) % 360;
+		//	// Combine both rotations and make sure that 0 <= result < 360
+		//	var angle = (360 + display + device) % 360;
 
-			// Rotate the buttons in the UI to match the rotation of the device
-			var transform = new RotateTransform { Angle = angle };
+		//	// Rotate the buttons in the UI to match the rotation of the device
+		//	var transform = new RotateTransform { Angle = angle };
 
-			// The RenderTransform is safe to use (i.e. it won't cause layout issues) in this case, because these buttons have a 1:1 aspect ratio
-			PhotoButton.RenderTransform = transform;
-			//VideoButton.RenderTransform = transform;
-		}
+		//	// The RenderTransform is safe to use (i.e. it won't cause layout issues) in this case, because these buttons have a 1:1 aspect ratio
+		//	PhotoButton.RenderTransform = transform;
+		//	//VideoButton.RenderTransform = transform;
+		//}
 		#endregion Rotation helpers
 	}
 }
