@@ -792,7 +792,7 @@ namespace UniFiler10.Views
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
-				Debugger.Break(); // LOLLO TODO check how the file looks when these errors happen
+				Debugger.Break();
 			}
 			finally
 			{

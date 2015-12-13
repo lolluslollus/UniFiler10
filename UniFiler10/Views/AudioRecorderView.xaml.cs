@@ -72,8 +72,6 @@ namespace UniFiler10.Views
 					_mediaCapture.AudioDeviceController.Muted = false;
 					_mediaCapture.AudioDeviceController.VolumePercent = (float)VolumeSlider.Value;
 
-					// LOLLO TODO mute or turn down the speaker to avoid echo
-
 					//_mediaCapture.AudioDeviceController.VolumePercent = 100.0F;
 					// The following is useless, it was a feeble attempt at getting a graphical display of audio levels. It fails, don't use it.
 					//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { PreviewControl.Source = _mediaCapture; });

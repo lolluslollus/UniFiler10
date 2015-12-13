@@ -23,7 +23,7 @@ namespace Utilz
 		#region properties
 		private AudioGraph _audioGraph = null;
 		private AudioFileOutputNode _fileOutputNode;
-		private AudioDeviceOutputNode _deviceOutputNode;
+		//private AudioDeviceOutputNode _deviceOutputNode; // away, so we get no echo
 		private AudioDeviceInputNode _deviceInputNode;
 		private DeviceInformationCollection _outputDevices;
 		private IMessageWriter _messageWriter;
@@ -115,14 +115,14 @@ namespace Utilz
 			// Because we are using lowest latency setting, we need to handle device disconnection errors
 			_audioGraph.UnrecoverableErrorOccurred += OnGraph_UnrecoverableErrorOccurred;
 
-			// Create a device output node
-			CreateAudioDeviceOutputNodeResult deviceOutputNodeResult = await _audioGraph.CreateDeviceOutputNodeAsync();
-			if (deviceOutputNodeResult.Status != AudioDeviceNodeCreationStatus.Success)
-			{
-				// Cannot create device output node
-				return string.Format("Audio Device Output unavailable because {0}", deviceOutputNodeResult.Status.ToString());
-			}
-			_deviceOutputNode = deviceOutputNodeResult.DeviceOutputNode;
+			//// Create a device output node // away, so we get no echo
+			//CreateAudioDeviceOutputNodeResult deviceOutputNodeResult = await _audioGraph.CreateDeviceOutputNodeAsync();
+			//if (deviceOutputNodeResult.Status != AudioDeviceNodeCreationStatus.Success)
+			//{
+			//	// Cannot create device output node
+			//	return string.Format("Audio Device Output unavailable because {0}", deviceOutputNodeResult.Status.ToString());
+			//}
+			//_deviceOutputNode = deviceOutputNodeResult.DeviceOutputNode;
 
 			// Create a device input node using the default audio input device
 			CreateAudioDeviceInputNodeResult deviceInputNodeResult = await _audioGraph.CreateDeviceInputNodeAsync(MediaCategory.Other);
@@ -177,7 +177,7 @@ namespace Utilz
 
 			// Connect the input node to both output nodes
 			_deviceInputNode.AddOutgoingConnection(_fileOutputNode);
-			_deviceInputNode.AddOutgoingConnection(_deviceOutputNode);
+			//_deviceInputNode.AddOutgoingConnection(_deviceOutputNode); // away, so we get no echo
 
 			return string.Empty;
 		}
