@@ -71,7 +71,7 @@ namespace UniFiler10.ViewModels
 			IsCameraOverlayOpen = false;
 
 
-			return await base.CloseAsync();
+			return await base.CloseAsync().ConfigureAwait(false);
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
