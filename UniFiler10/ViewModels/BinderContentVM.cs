@@ -52,10 +52,9 @@ namespace UniFiler10.ViewModels
 			RuntimeData = RuntimeData.Instance;
 			UpdateCurrentFolderCategories();
 		}
-		protected override async Task CloseMayOverrideAsync()
+		public override async Task<bool> CloseAsync()
 		{
-			var binder = _binder;
-			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
+			if (!_isOpen) return false;
 
 			var ar = _audioRecorder;
 			if (ar != null)
@@ -71,8 +70,18 @@ namespace UniFiler10.ViewModels
 			}
 			IsCameraOverlayOpen = false;
 
+
+			return await base.CloseAsync();
+		}
+		protected override Task CloseMayOverrideAsync()
+		{
+			var binder = _binder;
+			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
+
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			_binder = null;
+
+			return Task.CompletedTask;
 		}
 		protected override void Dispose(bool isDisposing)
 		{

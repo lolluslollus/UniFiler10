@@ -180,9 +180,14 @@ namespace UniFiler10.Views
 		{
 			Task stop = StopAsync();
 		}
+		public override Task<bool> CloseAsync()
+		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+			return base.CloseAsync();
+		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await StopAsync().ConfigureAwait(false);
+			await Stop2Async().ConfigureAwait(false);
 			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
 			_triggerSemaphore = null;
 		}

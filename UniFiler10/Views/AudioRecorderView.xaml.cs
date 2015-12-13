@@ -70,6 +70,9 @@ namespace UniFiler10.Views
 					await _mediaCapture.InitializeAsync(settings);
 					_mediaCapture.AudioDeviceController.Muted = false;
 					_mediaCapture.AudioDeviceController.VolumePercent = (float)VolumeSlider.Value;
+
+					// LOLLO TODO mute or turn down the speaker to avoid echo
+
 					//_mediaCapture.AudioDeviceController.VolumePercent = 100.0F;
 					// The following is useless, it was a feeble attempt at getting a graphical display of audio levels. It fails, don't use it.
 					//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { PreviewControl.Source = _mediaCapture; });
@@ -106,29 +109,33 @@ namespace UniFiler10.Views
 		public Task<bool> StopAsync()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				await StopRecordingAsync().ConfigureAwait(false);
-
-				try
-				{
-					_mediaCapture?.Dispose();
-				}
-				catch { }
-				_mediaCapture = null;
-
-				var audioRecorder = _audioRecorder;
-				if (audioRecorder != null)
-				{
-					audioRecorder.UnrecoverableError -= OnAudioRecorder_UnrecoverableError;
-					await audioRecorder.CloseAsync();
-					audioRecorder.Dispose();
-				}
-				_audioRecorder = null;
-
-				StopAllAnimations();
-				return true;
+				return Stop2Async();
 			});
+		}
+		private async Task<bool> Stop2Async()
+		{
+			await StopRecordingAsync().ConfigureAwait(false);
+
+			try
+			{
+				_mediaCapture?.Dispose();
+			}
+			catch { }
+			_mediaCapture = null;
+
+			var audioRecorder = _audioRecorder;
+			if (audioRecorder != null)
+			{
+				audioRecorder.UnrecoverableError -= OnAudioRecorder_UnrecoverableError;
+				await audioRecorder.CloseAsync();
+				audioRecorder.Dispose();
+			}
+			_audioRecorder = null;
+
+			StopAllAnimations();
+			return true;
 		}
 		#endregion IRecorder
 
@@ -142,14 +149,14 @@ namespace UniFiler10.Views
 
 			InitializeComponent();
 		}
-		//public override Task<bool> CloseAsync()
-		//{
-		//	SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-		//	return base.CloseAsync();
-		//}
+		public override Task<bool> CloseAsync()
+		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+			return base.CloseAsync();
+		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await StopAsync().ConfigureAwait(false);
+			await Stop2Async().ConfigureAwait(false);
 			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
 			_triggerSemaphore = null;
 		}

@@ -114,7 +114,7 @@ namespace UniFiler10.Controlz
 			return Task.CompletedTask; // avoid warning
 		}
 
-		public async Task<bool> CloseAsync()
+		public virtual async Task<bool> CloseAsync()
 		{
 			if (_isOpen)
 			{
