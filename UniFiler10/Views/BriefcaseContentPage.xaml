@@ -14,11 +14,11 @@
     d:DesignWidth="400">
 
 	<Grid x:Name="LayoutRoot"
-		d:DataContext="{d:DesignInstance vm:BriefcaseContentVM, IsDesignTimeCreatable=True}"
-		DataContext="{x:Bind VM, Mode=OneWay}">
+		d:DataContext="{d:DesignInstance vm:BriefcaseContentVM, IsDesignTimeCreatable=True}">
+		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 		<ctl:LolloSplitView
             IsPaneOpen="True"
-            IsEnabled="{Binding IsOpen, Mode=OneWay, FallbackValue=False}"
+            IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=False}"
             ClosedPaneLength="{StaticResource CompactPaneLength}"
             OpenPaneLength="{StaticResource CompactPaneLength}">
 			<ctl:LolloSplitView.BodyContent>

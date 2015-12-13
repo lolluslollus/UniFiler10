@@ -101,11 +101,11 @@ namespace UniFiler10.ViewModels
 				return dynFld?.TrySetFieldValueAsync(newValue);
 			});
 		}
-		public Task<bool> RemoveWalletFromFolderAsync(Folder folder, Wallet wallet)
+		public Task<bool> RemoveWalletFromFolderAsync(Wallet wallet)
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				return folder?.RemoveWalletAsync(wallet);
+				return _folder?.RemoveWalletAsync(wallet);
 			});
 		}
 		public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)

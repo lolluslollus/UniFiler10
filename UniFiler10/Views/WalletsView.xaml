@@ -54,7 +54,7 @@
             IsItemClickEnabled="False"-->
 
         <ItemsControl Grid.Row="1"
-            ItemsSource="{Binding Wallets}"
+            ItemsSource="{x:Bind VM.Folder.Wallets, Mode=OneWay}"
             ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -71,10 +71,9 @@
 							<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
 						</Grid.RowDefinitions>
 
-                        <local:WalletView
+						<local:WalletView
                             VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
-                            DataContext="{Binding}"
-                            Folder="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
+                            DataContext="{Binding}"/>
                     </Grid>
                     <!--</Border>-->
                 </DataTemplate>

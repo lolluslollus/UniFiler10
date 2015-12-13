@@ -88,7 +88,6 @@ namespace UniFiler10.Views
 
 		#region render
 		private string _previousUri = null;
-		//public string PreviousUri { get { return _previousUri; } private set { _previousUri = value; RaisePropertyChanged_UI(); } }
 
 		private static SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
@@ -96,23 +95,18 @@ namespace UniFiler10.Views
 			try
 			{
 				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
-														 //if (args != null)
-														 //{
-														 // var newDoc = args.NewValue as Document;
+
 				var newDoc = DataContext as Document;
 				if (newDoc == null)
 				{
 					_previousUri = null;
 					Task render = RenderPreviewAsync(newDoc);
-					// await RenderPreviewAsync(newDoc).ConfigureAwait(false);
 				}
 				else if (newDoc.GetFullUri0() != _previousUri)
 				{
 					_previousUri = newDoc.GetFullUri0();
 					Task render = RenderPreviewAsync(newDoc);
-					// await RenderPreviewAsync(newDoc).ConfigureAwait(false);
 				}
-				//}
 			}
 			finally
 			{
@@ -435,7 +429,7 @@ namespace UniFiler10.Views
 					{
 						if (Wallet?.Documents?.Count <= 0)
 						{
-							Task del2 = FolderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
+							Task del2 = FolderVM?.RemoveWalletFromFolderAsync(Wallet);
 						}
 					}).AsTask().ConfigureAwait(false);
 				}

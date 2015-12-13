@@ -14,13 +14,13 @@
         <!--DisplayMode="CompactInline"
         CompactPaneLength="{StaticResource CompactPaneLength}"-->
 	<Grid x:Name="LayoutRoot"
-		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}"
-		DataContext="{x:Bind VM, Mode=OneWay}">
+		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
+		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 
 		<local:BriefcaseCoverView x:Name="BriefcaseCoverView"
             VM="{x:Bind VM, Mode=OneWay}"
 			GoToBinderContentRequested="OnBriefcaseCoverView_GoToBinderContentRequested"
 			GoToSettingsRequested="OnBriefcaseCoverView_GoToSettingsRequested"
-			IsEnabled="{Binding IsOpen, Mode=OneWay, FallbackValue=False}"/>
+			IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=False}"/>
 	</Grid>
 </ctl:OpenableObservablePage>

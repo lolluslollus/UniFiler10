@@ -21,7 +21,8 @@
             <conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>
             <conv:BooleanToVisibleConverter x:Key="BooleanToVisibleConverter"/>
             <conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
-            <conv:IsNotNullToTrue x:Key="IsNotNullToTrue"/>
+			<conv:BoolNullableBoolConverter x:Key="BoolNullableBoolConverter"/>
+			<conv:IsNotNullToTrue x:Key="IsNotNullToTrue"/>
             <conv:IsNotNullToVisible x:Key="IsNotNullToVisible"/>
             <conv:IListNotEmptyToTrue x:Key="IListNotEmptyToTrue"/>
             <conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>

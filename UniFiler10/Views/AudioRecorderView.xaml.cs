@@ -96,7 +96,7 @@ namespace UniFiler10.Views
 					}
 					else
 					{
-						Task beginFailereAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
+						NotifyOfFailure();
 					}
 				}
 				catch (Exception ex)
@@ -204,7 +204,7 @@ namespace UniFiler10.Views
 		private async void OnAudioRecorder_UnrecoverableError(object sender, EventArgs e)
 		{
 			await StopRecordingAsync();
-			Task beginFailureAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
+			NotifyOfFailure();
 		}
 
 		private async Task StopRecordingAsync()
@@ -219,7 +219,7 @@ namespace UniFiler10.Views
 			}).ConfigureAwait(false);
 			if (!isOk)
 			{
-				Task beginFailureAnim = RunInUiThreadAsync(delegate { FailureStoryboard.Begin(); });
+				NotifyOfFailure();
 			}
 		}
 
@@ -231,6 +231,18 @@ namespace UniFiler10.Views
 				RecordingStoryboard.Stop();
 				FailureStoryboard.SkipToFill();
 				FailureStoryboard.Stop();
+			});
+		}
+
+		private void NotifyOfFailure()
+		{
+			Task beginFailureAnim = RunInUiThreadAsync(delegate
+			{
+				FailureStoryboard.Begin();
+				if (LastMessage == RuntimeData.GetText("AudioRecordingStarted") || LastMessage == RuntimeData.GetText("AudioRecordingStopped"))
+				{
+					LastMessage = RuntimeData.GetText("AudioRecordingInterrupted");
+				}
 			});
 		}
 	}

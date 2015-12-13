@@ -16,11 +16,11 @@
 	<ctl:LolloSplitView
 		x:Name="LayoutRoot"
         IsPaneOpen="True"
-        IsEnabled="{Binding IsOpen, Mode=OneWay, FallbackValue=False}"
+        IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=False}"
         ClosedPaneLength="{StaticResource CompactPaneLength}"
         OpenPaneLength="{StaticResource CompactPaneLength}"
-		d:DataContext="{d:DesignInstance vm:BinderContentVM, IsDesignTimeCreatable=True, CreateList=True}"
-		DataContext="{x:Bind VM, Mode=OneWay}">
+		d:DataContext="{d:DesignInstance vm:BinderContentVM, IsDesignTimeCreatable=True, CreateList=True}">
+		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 
 		<ctl:LolloSplitView.BodyContent>
 			<Grid>
@@ -28,7 +28,7 @@
 				<local:FolderView
 					x:Name="MyFolderView"
 					HorizontalAlignment="Left"
-					DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
+					DataContext="{x:Bind Path=VM.Binder.CurrentFolder, Mode=OneWay}"/>
 
 				<!--<Popup
 					IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
@@ -66,10 +66,10 @@
 
 					<!--SelectedIndexTolerant="{Binding CurrentFolder, Mode=OneWay, Converter={StaticResource FolderIdToIndex}}"-->
 					<ctl:TolerantListView Grid.Row="1"
-                        ItemsSource="{Binding Binder.Folders, Mode=OneWay}"
+                        ItemsSource="{x:Bind Path=VM.Binder.Folders, Mode=OneWay}"
                         IsMultiSelectCheckBoxEnabled="False" 
                         IsItemClickEnabled="True"
-                        SelectedItem="{Binding Binder.CurrentFolder, Mode=OneWay}"
+                        SelectedItem="{x:Bind Path=VM.Binder.CurrentFolder, Mode=OneWay}"
 						ItemClick="OnFolderPreview_Click"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
 						<ItemsControl.ItemsPanel>

@@ -41,13 +41,13 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty VMProperty =
 			DependencyProperty.Register("VM", typeof(FolderVM), typeof(WalletView), new PropertyMetadata(null));
 
-		public Folder Folder
-		{
-			get { return (Folder)GetValue(FolderProperty); }
-			set { SetValue(FolderProperty, value); }
-		}
-		public static readonly DependencyProperty FolderProperty =
-			DependencyProperty.Register("Folder", typeof(Folder), typeof(WalletView), new PropertyMetadata(null));
+		//public Folder Folder
+		//{
+		//	get { return (Folder)GetValue(FolderProperty); }
+		//	set { SetValue(FolderProperty, value); }
+		//}
+		//public static readonly DependencyProperty FolderProperty =
+		//	DependencyProperty.Register("Folder", typeof(Folder), typeof(WalletView), new PropertyMetadata(null));
 
 		public WalletView()
 		{
@@ -61,7 +61,7 @@ namespace UniFiler10.Views
 
 		private void OnItemDelete_Click(object sender, RoutedEventArgs e)
 		{
-			Task del = VM?.RemoveWalletFromFolderAsync(Folder, DataContext as Wallet);
+			Task del = VM?.RemoveWalletFromFolderAsync(DataContext as Wallet);
 		}
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)

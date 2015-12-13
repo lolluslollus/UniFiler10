@@ -44,11 +44,6 @@ namespace UniFiler10.Views
 			InitializeComponent();
 		}
 
-		//private void OnAdd_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task add = VM?.AddWalletToFolderAsync(DataContext as Folder);
-		//}
-
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
 			Task shoot = VM?.ShootAsync();

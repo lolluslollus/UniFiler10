@@ -20,13 +20,16 @@ namespace UniFiler10.Views
 
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
+
+		private RuntimeData _runtimeData = null;
+		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value;  RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 
 		public AboutPanel()
         {
             InitializeComponent();
-            DataContext = RuntimeData.Instance;
+            RuntimeData = RuntimeData.Instance;
 #if NOSTORE
 			LogsGrid.Visibility = Visibility.Visible;
 #endif

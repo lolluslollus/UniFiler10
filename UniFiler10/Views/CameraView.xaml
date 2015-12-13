@@ -59,7 +59,7 @@
         </StackPanel>
 
         <Border VerticalAlignment="Bottom" Background="Gold">
-            <TextBlock Text="{Binding ElementName=me, Path=LastMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="{x:Bind LastMessage, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
     </Grid>
 </ctl:OpenableObservableControl>

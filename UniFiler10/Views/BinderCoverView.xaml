@@ -94,7 +94,8 @@
 	</ctl:OpenableObservableControl.Resources>
 
 	<ScrollViewer>
-		<Grid Background="LavenderBlush" x:Name="LayoutRoot" DataContext="{x:Bind VM, Mode=OneWay}">
+		<!--DataContext="{x:Bind VM, Mode=OneWay}"-->
+		<Grid Background="LavenderBlush" x:Name="LayoutRoot">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
@@ -251,7 +252,7 @@
 
 				<!-- recent folders header -->
 				<ToggleButton 
-                    IsChecked="{Binding IsRecentFoldersPaneOpen, Mode=TwoWay}"
+                    IsChecked="{x:Bind VM.IsRecentFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
 					<Grid>
@@ -267,14 +268,6 @@
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"/>
-						<!--Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-						<SymbolIcon 
-                            Symbol="Up" 
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
-                            Visibility="{Binding IsRecentFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2" 
                             x:Uid="RecentFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -286,7 +279,7 @@
 
 				<!-- all folders header -->
 				<ToggleButton 
-						IsChecked="{Binding IsAllFoldersPaneOpen, Mode=TwoWay}"
+						IsChecked="{x:Bind VM.IsAllFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
 						Style="{StaticResource ToggleButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
@@ -301,14 +294,6 @@
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"/>
-						<!--Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-						<SymbolIcon 
-                            Symbol="Up"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"							
-                            Visibility="{Binding IsAllFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2" 
                             x:Uid="AllFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -320,7 +305,7 @@
 
 				<!-- folders by category header -->
 				<ToggleButton 
-                    IsChecked="{Binding IsByCatFoldersPaneOpen, Mode=TwoWay}"
+                    IsChecked="{x:Bind VM.IsByCatFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
 					<Grid>
@@ -336,14 +321,6 @@
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"/>
-						<!--Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-						<SymbolIcon 
-							Symbol="Up"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
-							Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByCatFolders" 
@@ -355,7 +332,7 @@
 
 				<!-- folders by field header -->
 				<ToggleButton 
-                    IsChecked="{Binding IsByFldFoldersPaneOpen, Mode=TwoWay}"
+                    IsChecked="{x:Bind VM.IsByFldFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
 					<Grid>
@@ -371,14 +348,6 @@
 							VerticalAlignment="Center"
 							Width="{StaticResource LandscapeItemHeight}"
 							Height="{StaticResource LandscapeItemHeight}"/>
-						<!--Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-						<SymbolIcon 
-							Symbol="Up"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
-							Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}}"/>-->
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByFldFolders" 
@@ -399,11 +368,11 @@
 				Style="{StaticResource LolloTextBoxStyle}"
 				IsReadOnly="True"
 				IsEmptyValueAllowedEvenIfNotInList="False"
-				Visibility="{Binding IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-				ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
+				Visibility="{x:Bind VM.IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+				ItemsSource="{x:Bind VM.MetaBriefcase.Categories, Mode=OneWay}"
 				DisplayMemberPath="Name"
 				MaxLength="{StaticResource MaxTagLength}"
-				Text="{Binding CatNameForCatFilter, Mode=TwoWay}">
+				Text="{x:Bind VM.CatNameForCatFilter, Mode=TwoWay}">
 				<ctl:LolloTextBox.ListItemTemplate>
 					<DataTemplate>
 						<Grid Width="{StaticResource LandscapeItemWidth}">
@@ -419,7 +388,7 @@
 			<!-- fld filter parameters -->
 			<VariableSizedWrapGrid Grid.Row="2" 
 				Orientation="Horizontal"
-				Visibility="{Binding IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+				Visibility="{x:Bind VM.IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
 				<!--VerticalAlignment="Center"-->
 				<ctl:LolloTextBox
 					BorderThickness="0"
@@ -428,10 +397,10 @@
 					Style="{StaticResource LolloTextBoxStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
-					ItemsSource="{Binding MetaBriefcase.Categories, Mode=OneWay}"
+					ItemsSource="{x:Bind VM.MetaBriefcase.Categories, Mode=OneWay}"
 					DisplayMemberPath="Name"
 					MaxLength="{StaticResource MaxTagLength}"
-					Text="{Binding CatNameForFldFilter, Mode=TwoWay}">
+					Text="{x:Bind VM.CatNameForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>
 							<Grid Width="{StaticResource LandscapeItemWidth}">
@@ -452,10 +421,10 @@
 					Style="{StaticResource LolloTextBoxStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
-					ItemsSource="{Binding FldDscsInCat, Mode=OneWay}"
+					ItemsSource="{x:Bind VM.FldDscsInCat, Mode=OneWay}"
 					DisplayMemberPath="Caption"
 					MaxLength="{StaticResource MaxTagLength}"
-					Text="{Binding FldDscCaptionForFldFilter, Mode=TwoWay}">
+					Text="{x:Bind VM.FldDscCaptionForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>
 							<Grid Width="{StaticResource LandscapeItemWidth}">
@@ -476,10 +445,10 @@
 					Style="{StaticResource LolloTextBoxStyle}"
 					IsReadOnly="True"
 					IsEmptyValueAllowedEvenIfNotInList="False"
-					ItemsSource="{Binding FldValsInFldDscs, Mode=OneWay}"
+					ItemsSource="{x:Bind VM.FldValsInFldDscs, Mode=OneWay}"
 					DisplayMemberPath="Vaalue"
 					MaxLength="{StaticResource MaxVaalueLength}"
-					Text="{Binding FldValVaalueForFldFilter, Mode=TwoWay}">
+					Text="{x:Bind VM.FldValVaalueForFldFilter, Mode=TwoWay}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>
 							<Grid Width="{StaticResource LandscapeItemWidth}">
@@ -495,7 +464,7 @@
 
 			<!-- folders grid -->
 			<ctl:TolerantListView Grid.Row="3"
-                ItemsSource="{Binding FolderPreviews}"
+                ItemsSource="{x:Bind VM.FolderPreviews, Mode=OneWay}"
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
                 ItemClick="OnFolderPreviews_ItemClick"

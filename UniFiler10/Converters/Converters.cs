@@ -79,7 +79,22 @@ namespace UniFiler10.Converters
         }
 
     }
-    public class BooleanToVisibleConverter : IValueConverter
+
+	public class BoolNullableBoolConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return false;
+			return ((bool)value);
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return false;
+			return ((bool)value);
+		}
+
+	}
+	public class BooleanToVisibleConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

@@ -245,7 +245,7 @@ namespace Utilz
 					catch (Exception ex)
 #pragma warning restore 0168
 					{
-						if (_messageWriter != null) _messageWriter.LastMessage = RuntimeData.GetText("AudioRecordingStopped");
+						if (_messageWriter != null) _messageWriter.LastMessage = RuntimeData.GetText("AudioRecordingInterrupted");
 						// if (_messageWriter != null) _messageWriter.LastMessage = string.Format("Finalization of file failed because {0}", ex.ToString());
 						return false;
 					}

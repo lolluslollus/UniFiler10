@@ -95,8 +95,8 @@
 	<ScrollViewer>
 		<Grid Background="Lavender" 
 			x:Name="LayoutRoot"
-			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
-			DataContext="{x:Bind VM, Mode=OneWay}">
+			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}">
+			<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
@@ -245,14 +245,14 @@
 			<!-- fields to add new binder -->
 			<ctl:UniversalWrapPanel Orientation="Horizontal" Grid.Row="1">
 				<Grid Grid.Row="1"
-					Visibility="{Binding IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
+					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
 					</Grid.RowDefinitions>
 					
 					<ctl:LolloTextBox
-						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+						Text="{x:Bind VM.NewDbName, Mode=TwoWay}"
 						Style="{StaticResource LolloTextBoxStyle}"
 						BorderThickness="0"
 						MaxLength="{StaticResource MaxDbNameLength}"
@@ -266,34 +266,34 @@
 
 					<StackPanel Grid.Row="1"
 						VerticalAlignment="Center"					
-						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+						Visibility="{x:Bind VM.NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay}">
 						<TextBlock
 							x:Uid="NameAlreadyInUse"
 							TextWrapping="Wrap"
 							HorizontalAlignment="Left"
 							Foreground="{StaticResource FlashyForeground}"
 							MaxWidth="{StaticResource LandscapeItemWidth}"
-							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+							Visibility="{x:Bind VM.IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
 					</StackPanel>
 
 					<Border Grid.RowSpan="2"
 						VerticalAlignment="Stretch"
 						HorizontalAlignment="Stretch"
-						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+						Visibility="{x:Bind VM.NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay}">
 						<Border
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
 							BorderBrush="{StaticResource FlashyForeground}"
 							BorderThickness="{StaticResource Thickness2222}"
-							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+							Visibility="{x:Bind VM.IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
 					</Border>
 				</Grid>
 
 				<Button
                     Tapped="OnAddBinderStep1_Tapped"
                     Style="{StaticResource ButtonLolloStyle}"
-					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+					IsEnabled="{x:Bind VM.IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+					Visibility="{x:Bind VM.NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
@@ -335,7 +335,7 @@
 
 			<!-- all binder miniatures -->
 			<ctl:TolerantListView Grid.Row="3"
-                ItemsSource="{Binding Briefcase.DbNames}"
+                ItemsSource="{x:Bind VM.Briefcase.DbNames, Mode=OneWay}"
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
                 ItemClick="OnBinderPreviews_ItemClick"

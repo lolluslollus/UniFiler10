@@ -48,11 +48,9 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <local:DocumentView 
+					<local:DocumentView 
                         DataContext="{Binding}" 
-                        FolderVM="{Binding ElementName=me, Path=VM}"
-                        Folder="{Binding ElementName=me, Path=Folder}"
-                        Wallet="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
+                        FolderVM="{Binding ElementName=me, Path=VM, Mode=OneWay}"/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

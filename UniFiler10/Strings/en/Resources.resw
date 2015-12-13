@@ -381,4 +381,7 @@
   <data name="AudioRecordingStopped" xml:space="preserve">
     <value>Recording stopped</value>
   </data>
+  <data name="AudioRecordingInterrupted" xml:space="preserve">
+    <value>Recording interrupted</value>
+  </data>
 </root>
