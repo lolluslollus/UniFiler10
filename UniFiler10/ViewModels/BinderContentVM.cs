@@ -189,7 +189,7 @@ namespace UniFiler10.ViewModels
 						{
 							IsCameraOverlayOpen = true;
 							await _camera.OpenAsync();
-							await _camera.StartAsync(file);
+							await _camera.StartAsync(file); // this locks until explicitly unlocked
 							await _camera.CloseAsync();
 							await parentFolder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
 							IsCameraOverlayOpen = false;
@@ -212,7 +212,7 @@ namespace UniFiler10.ViewModels
 						{
 							IsCameraOverlayOpen = true;
 							await _camera.OpenAsync();
-							await _camera.StartAsync(file);
+							await _camera.StartAsync(file); // this locks until explicitly unlocked
 							await _camera.CloseAsync();
 							await parentWallet.ImportMediaFileAsync(file, false).ConfigureAwait(false);
 							IsCameraOverlayOpen = false;
@@ -236,7 +236,7 @@ namespace UniFiler10.ViewModels
 						{
 							IsAudioRecorderOverlayOpen = true;
 							await _audioRecorder.OpenAsync();
-							await _audioRecorder.StartAsync(file);
+							await _audioRecorder.StartAsync(file); // this locks until explicitly unlocked
 							await _audioRecorder.CloseAsync();
 							await parentFolder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
 							IsAudioRecorderOverlayOpen = false;

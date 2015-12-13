@@ -51,7 +51,13 @@ namespace UniFiler10.Views
 
 
 		#region IRecorder
-		private SemaphoreSlimSafeRelease _triggerSemaphore = null; // new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
+
+		/// <summary>
+		/// This locks the caller asynchronously. StopAsync or CloseAsync unlock.
+		/// </summary>
+		/// <param name="file"></param>
+		/// <returns></returns>
 		[STAThread]
 		public Task<bool> StartAsync(StorageFile file)
 		{

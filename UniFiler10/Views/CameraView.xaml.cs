@@ -77,7 +77,13 @@ namespace UniFiler10.Views
 
 
 		#region IRecorder
-		private SemaphoreSlimSafeRelease _triggerSemaphore = null; // new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
+		/// <summary>
+		/// This locks the caller asynchronously. StopAsync or CloseAsync unlock.
+		/// </summary>
+		/// <param name="file"></param>
+		/// <returns></returns>
+		[STAThread] //LOLLO test
 		public Task<bool> StartAsync(StorageFile file)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
@@ -389,7 +395,7 @@ namespace UniFiler10.Views
 				LastMessage = string.Empty;
 				await StartPreviewAsync();
 
-				UpdateCaptureControls();
+				await UpdateCaptureControlsAsync();
 			}
 			return true;
 		}
@@ -443,10 +449,13 @@ namespace UniFiler10.Views
 				rotationDegrees = (360 - rotationDegrees) % 360;
 			}
 
-			// Add rotation metadata to the preview stream to make sure the aspect ratio / dimensions match when rendering and getting preview frames
-			var props = _mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview);
-			props.Properties.Add(RotationKey, rotationDegrees);
-			await _mediaCapture.SetEncodingPropertiesAsync(MediaStreamType.VideoPreview, props, null);
+			if (_mediaCapture != null)
+			{
+				// Add rotation metadata to the preview stream to make sure the aspect ratio / dimensions match when rendering and getting preview frames
+				var props = _mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview);
+				props.Properties.Add(RotationKey, rotationDegrees);
+				await _mediaCapture.SetEncodingPropertiesAsync(MediaStreamType.VideoPreview, props, null);
+			}
 		}
 
 		/// <summary>
@@ -593,6 +602,7 @@ namespace UniFiler10.Views
 					// safely removed if a call to MediaCapture.Dispose() is being made later,
 					// as the preview will be automatically stopped at that point
 					await StopPreviewAsync();
+					await UpdateCaptureControlsAsync();
 				}
 
 				_isInitialized = false;
@@ -662,24 +672,27 @@ namespace UniFiler10.Views
 		/// <summary>
 		/// This method will update the icons, enable/disable and show/hide the photo/video buttons depending on the current state of the app and the capabilities of the device
 		/// </summary>
-		private void UpdateCaptureControls()
+		private Task UpdateCaptureControlsAsync()
 		{
-			// The buttons should only be enabled if the preview started sucessfully
-			PhotoButton.IsEnabled = _isPreviewing;
-			//VideoButton.IsEnabled = false; // _isPreviewing;
+			return RunInUiThreadAsync(delegate
+			{
+				// The buttons should only be enabled if the preview started sucessfully
+				PhotoButton.IsEnabled = _isPreviewing;
+				//VideoButton.IsEnabled = false; // _isPreviewing;
 
-			// Update recording button to show "Stop" icon instead of red "Record" icon
-			//StartRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Collapsed : Visibility.Visible;
-			//StopRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Visible : Visibility.Collapsed;
+				// Update recording button to show "Stop" icon instead of red "Record" icon
+				//StartRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Collapsed : Visibility.Visible;
+				//StopRecordingIcon.Visibility = _isRecordingVideo ? Visibility.Visible : Visibility.Collapsed;
 
-			// If the camera doesn't support simultaneosly taking pictures and recording video, disable the photo button on record
-			//    if (_isInitialized && !_mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported)
-			//    {
-			//        PhotoButton.IsEnabled = !_isRecordingVideo;
+				// If the camera doesn't support simultaneosly taking pictures and recording video, disable the photo button on record
+				//    if (_isInitialized && !_mediaCapture.MediaCaptureSettings.ConcurrentRecordAndPhotoSupported)
+				//    {
+				//        PhotoButton.IsEnabled = !_isRecordingVideo;
 
-			//        // Make the button invisible if it's disabled, so it's obvious it cannot be interacted with
-			//        PhotoButton.Opacity = PhotoButton.IsEnabled ? 1 : 0;
-			//    }
+				//        // Make the button invisible if it's disabled, so it's obvious it cannot be interacted with
+				//        PhotoButton.Opacity = PhotoButton.IsEnabled ? 1 : 0;
+				//    }
+			});
 		}
 
 		private void UpdateFlash()
