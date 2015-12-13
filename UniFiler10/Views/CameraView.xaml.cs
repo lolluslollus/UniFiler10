@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
@@ -15,6 +17,7 @@ using Windows.Graphics.Display;
 using Windows.Graphics.Imaging;
 using Windows.Media;
 using Windows.Media.Capture;
+using Windows.Media.Devices;
 using Windows.Media.MediaProperties;
 using Windows.Phone.UI.Input;
 using Windows.Storage;
@@ -78,7 +81,7 @@ namespace UniFiler10.Views
 
 
 		#region IRecorder
-		[STAThread] //LOLLO test
+		[STAThread]
 		public Task<bool> StartAsync(StorageFile file)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
@@ -108,7 +111,7 @@ namespace UniFiler10.Views
 				return isOk;
 			});
 		}
-		[STAThread] //LOLLO test
+		[STAThread]
 		public Task<bool> StopAsync()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
@@ -119,6 +122,8 @@ namespace UniFiler10.Views
 		}
 		private async Task TakePhotoAndStopAsync()
 		{
+			// LOLLO TODO it may get stuck taking the photo, locking the semaphore forever.
+			// betterngive it a timeout.
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
 			await RunFunctionWhileOpenAsyncT(async delegate
 			{
@@ -342,9 +347,19 @@ namespace UniFiler10.Views
 					LastMessage = RuntimeData.GetText("CameraDeviceNotFound");
 					return false;
 				}
-				// LOLLO TODO test this
-				var test = cameraDevice.Properties;
-				var keys = test.Keys;
+				// LOLLO TEST the following should find out what a device is capable of: check it
+				// according to https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
+				// but my pad has no profiles it seems
+				// so maybe https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt592658.aspx helps?
+				// i already copied its helper class here at the bottom of the include.
+				var profiles = MediaCapture.FindAllVideoProfiles(cameraDevice.Id);
+
+				var match = (from profile in profiles
+							 from desc in profile.SupportedRecordMediaDescription
+								 //where desc.Width == 640 && desc.Height == 480 && Math.Round(desc.FrameRate) == 30
+							 select new { profile, desc, desc.Width, desc.Height });
+				int test = profiles.Count; // LOLLO TODO it does not find any profiles, even though the device is video capable.
+										   // how can i find out the max resolution then? if i set it too high, it will get stuck.
 
 				// Create MediaCapture and its settings
 				_mediaCapture = new MediaCapture();
@@ -391,6 +406,8 @@ namespace UniFiler10.Views
 					// Only mirror the preview if the camera is on the front panel
 					_isMirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
 				}
+				// LOLLO TODO https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
+				// explains how to check what a device is capable of
 
 				UpdateFlash();
 
@@ -512,10 +529,15 @@ namespace UniFiler10.Views
 				try
 				{
 					LastMessage = RuntimeData.GetText("CameraTakingPhoto");
-					await _mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), stream);
+					var test2 = _mediaCapture.VideoDeviceController.AdvancedPhotoControl.SupportedModes;
+					var test3 = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo);
+
+					var test = ImageEncodingProperties.CreateJpeg(); test.Height = 20000; test.Width = 32000;
+					await _mediaCapture.CapturePhotoToStreamAsync(test, stream);
 
 					// LOLLO TODO check this
-					var test = ImageEncodingProperties.CreateJpeg();
+					// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt243896.aspx
+
 					var keys = test.Properties.Keys;
 					var testXR = ImageEncodingProperties.CreateJpegXR();
 					var keysXR = testXR.Properties.Keys;
@@ -707,15 +729,19 @@ namespace UniFiler10.Views
 		private void UpdateFlash()
 		{
 			if (_mediaCapture == null) return;
-			if (_mediaCapture.VideoDeviceController.FlashControl.Supported && _isFlashDesired == true)
+			try
 			{
-				_mediaCapture.VideoDeviceController.FlashControl.Auto = true;
-				_mediaCapture.VideoDeviceController.FlashControl.Enabled = true;
+				if (_mediaCapture.VideoDeviceController.FlashControl.Supported && _isFlashDesired == true)
+				{
+					_mediaCapture.VideoDeviceController.FlashControl.Auto = true;
+					_mediaCapture.VideoDeviceController.FlashControl.Enabled = true;
+				}
+				else
+				{
+					_mediaCapture.VideoDeviceController.FlashControl.Enabled = false;
+				}
 			}
-			else
-			{
-				_mediaCapture.VideoDeviceController.FlashControl.Enabled = false;
-			}
+			catch { }
 		}
 		/// <summary>
 		/// Registers event handlers for hardware buttons and orientation sensors, and performs an initial update of the UI rotation
@@ -785,6 +811,8 @@ namespace UniFiler10.Views
 		{
 			try
 			{
+				// LOLLO this decoder already has 480 × 640. if i set a different size when capturing the pic,
+				// this decoder will respect it.
 				var decoder = await BitmapDecoder.CreateAsync(inputStream);
 
 				//StorageFile file = await GetFileAsync();
@@ -976,4 +1004,105 @@ namespace UniFiler10.Views
 		//}
 		#endregion Rotation helpers
 	}
+
+	class StreamPropertiesHelper
+	{
+		private IMediaEncodingProperties _properties;
+
+		public StreamPropertiesHelper(IMediaEncodingProperties properties)
+		{
+			if (properties == null)
+			{
+				throw new ArgumentNullException(nameof(properties));
+			}
+
+			// This helper class only uses VideoEncodingProperties or VideoEncodingProperties
+			if (!(properties is ImageEncodingProperties) && !(properties is VideoEncodingProperties))
+			{
+				throw new ArgumentException("Argument is of the wrong type. Required: " + typeof(ImageEncodingProperties).Name
+					+ " or " + typeof(VideoEncodingProperties).Name + ".", nameof(properties));
+			}
+
+			// Store the actual instance of the IMediaEncodingProperties for setting them later
+			_properties = properties;
+		}
+
+		public uint Width
+		{
+			get
+			{
+				if (_properties is ImageEncodingProperties)
+				{
+					return (_properties as ImageEncodingProperties).Width;
+				}
+				else if (_properties is VideoEncodingProperties)
+				{
+					return (_properties as VideoEncodingProperties).Width;
+				}
+
+				return 0;
+			}
+		}
+
+		public uint Height
+		{
+			get
+			{
+				if (_properties is ImageEncodingProperties)
+				{
+					return (_properties as ImageEncodingProperties).Height;
+				}
+				else if (_properties is VideoEncodingProperties)
+				{
+					return (_properties as VideoEncodingProperties).Height;
+				}
+
+				return 0;
+			}
+		}
+
+		public uint FrameRate
+		{
+			get
+			{
+				if (_properties is VideoEncodingProperties)
+				{
+					if ((_properties as VideoEncodingProperties).FrameRate.Denominator != 0)
+					{
+						return (_properties as VideoEncodingProperties).FrameRate.Numerator /
+							(_properties as VideoEncodingProperties).FrameRate.Denominator;
+					}
+				}
+
+				return 0;
+			}
+		}
+
+		public double AspectRatio
+		{
+			get { return Math.Round((Height != 0) ? (Width / (double)Height) : double.NaN, 2); }
+		}
+
+		public IMediaEncodingProperties EncodingProperties
+		{
+			get { return _properties; }
+		}
+
+		public string GetFriendlyName(bool showFrameRate = true)
+		{
+			if (_properties is ImageEncodingProperties ||
+				!showFrameRate)
+			{
+				return Width + "x" + Height + " [" + AspectRatio + "] " + _properties.Subtype;
+			}
+			else if (_properties is VideoEncodingProperties)
+			{
+				return Width + "x" + Height + " [" + AspectRatio + "] " + FrameRate + "FPS " + _properties.Subtype;
+			}
+
+			return String.Empty;
+		}
+
+	}
+
 }
