@@ -107,6 +107,7 @@ namespace UniFiler10.Views
 				return isOk;
 			});
 		}
+		[STAThread] //LOLLO test
 		public Task<bool> StopAsync()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
@@ -376,6 +377,8 @@ namespace UniFiler10.Views
 					// Only mirror the preview if the camera is on the front panel
 					_isMirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
 				}
+
+				UpdateFlash();
 
 				LastMessage = string.Empty;
 				await StartPreviewAsync();
