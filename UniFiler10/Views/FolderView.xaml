@@ -1,4 +1,4 @@
-﻿<UserControl
+﻿<ctl:OpenableObservableControl
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
@@ -17,6 +17,16 @@
 	<!--Background="{StaticResource SystemControlBackgroundBaseLowBrush}"-->
 	<Grid x:Name="LayoutRoot" 
 		Background="#FFDEEADE">
+
+		<Popup IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
+			<local:CameraView x:Name="CameraView"
+				DataContext="{Binding ElementName=me, Path='', Mode=OneWay}"/>
+		</Popup>
+
+		<Popup IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=False}">
+			<local:AudioRecorderView x:Name="AudioRecorderView"
+				DataContext="{Binding ElementName=me, Path='', Mode=OneWay}"/>
+		</Popup>
 
 		<ScrollViewer IsEnabled="{Binding IsOpen}"
 			VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
@@ -144,10 +154,11 @@
                 </ItemsControl>
 
                 <!-- Wallets -->
-                <local:WalletsView Grid.Row="6"
-					VM="{Binding VM, ElementName=me}"
+				<!--VM="{Binding VM, ElementName=me, Mode=OneWay}"-->
+                <local:WalletsView Grid.Row="6"					
+					VM="{Binding VM, ElementName=me, Mode=OneWay}"
 					DataContext="{Binding}"/>
             </Grid>
         </ScrollViewer>
     </Grid>
-</UserControl>
+</ctl:OpenableObservableControl>

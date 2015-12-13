@@ -40,13 +40,13 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty IsDeleteEnabledProperty =
 			DependencyProperty.Register("IsDeleteEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
-		public BinderContentVM BinderContentVM
+		public FolderVM FolderVM
 		{
-			get { return (BinderContentVM)GetValue(BinderVMProperty); }
+			get { return (FolderVM)GetValue(BinderVMProperty); }
 			set { SetValue(BinderVMProperty, value); }
 		}
 		public static readonly DependencyProperty BinderVMProperty =
-			DependencyProperty.Register("BinderContentVM", typeof(BinderContentVM), typeof(DocumentView), new PropertyMetadata(null));
+			DependencyProperty.Register("FolderVM", typeof(FolderVM), typeof(DocumentView), new PropertyMetadata(null));
 
 		private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
 
@@ -426,18 +426,18 @@ namespace UniFiler10.Views
 		private async void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			if (IsDeleteEnabled && BinderContentVM != null)
+			if (IsDeleteEnabled && FolderVM != null)
 			{
-				if (await BinderContentVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
+				if (await FolderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
 				{
 					// if there are no more documents in the wallet, delete the wallet
 					await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+					{
+						if (Wallet?.Documents?.Count <= 0)
 						{
-							if (Wallet.Documents.Count <= 0)
-							{
-								Task del2 = BinderContentVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
-							}
-						}).AsTask().ConfigureAwait(false);
+							Task del2 = FolderVM?.RemoveWalletFromFolderAsync(Folder, Wallet);
+						}
+					}).AsTask().ConfigureAwait(false);
 				}
 			}
 		}

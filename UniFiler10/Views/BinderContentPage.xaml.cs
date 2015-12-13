@@ -27,12 +27,17 @@ namespace UniFiler10.Views
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
-			_vm = new BinderContentVM(AudioRecorderView, CameraView);
+			//_vm = new BinderContentVM(AudioRecorderView, CameraView);
+			_vm = new BinderContentVM();
 			await _vm.OpenAsync();
 			RaisePropertyChanged_UI(nameof(VM));
+
+			await MyFolderView.OpenAsync();
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
+			await MyFolderView.CloseAsync();
+
 			var vm = _vm;
 			if (vm != null)
 			{
@@ -41,17 +46,17 @@ namespace UniFiler10.Views
 				VM = null;
 			}
 
-			var ar = AudioRecorderView;
-			if (ar != null)
-			{
-				await ar.CloseAsync();
-			}
+			//var ar = AudioRecorderView;
+			//if (ar != null)
+			//{
+			//	await ar.CloseAsync();
+			//}
 
-			var cam = CameraView;
-			if (cam != null)
-			{
-				await cam.CloseAsync();
-			}
+			//var cam = CameraView;
+			//if (cam != null)
+			//{
+			//	await cam.CloseAsync();
+			//}
 		}
 		#endregion construct, open, close
 
@@ -59,7 +64,7 @@ namespace UniFiler10.Views
 		#region user actions
 		private void OnFolderPreview_Click(object sender, ItemClickEventArgs e)
 		{
-			Task sss = _vm?.SetCurrentFolderAsync((e.ClickedItem as Folder)?.Id);
+			Task setCurFol = _vm?.SetCurrentFolderAsync((e.ClickedItem as Folder)?.Id);
 		}
 
 		private void OnOpenCover_Click(object sender, RoutedEventArgs e)
@@ -72,12 +77,5 @@ namespace UniFiler10.Views
 			return true;
 		}
 		#endregion user actions
-	}
-
-	public interface IRecorder : IOpenable
-	{
-		// Task<bool> StartAsync();
-		Task<bool> StartAsync(StorageFile file);
-		Task<bool> StopAsync();
 	}
 }

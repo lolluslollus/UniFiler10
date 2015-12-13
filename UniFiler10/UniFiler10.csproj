@@ -149,6 +149,7 @@
     <Compile Include="ViewModels\BinderContentVM.cs" />
     <Compile Include="ViewModels\BriefcaseContentVM.cs" />
     <Compile Include="ViewModels\BriefcaseVM.cs" />
+    <Compile Include="ViewModels\FolderVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="Views\AboutPanel.xaml.cs" />
     <Compile Include="Views\AudioRecorderView.xaml.cs">

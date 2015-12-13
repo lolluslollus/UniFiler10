@@ -26,7 +26,7 @@
 				HorizontalAlignment="Center"
 				Width="{StaticResource LandscapeItemHeight}"
 				Height="{StaticResource LandscapeItemHeight}"
-                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
+                IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
                 Click="OnShoot_Click"
 				x:Uid="Shoot"/>
             <AppBarButton
@@ -35,7 +35,7 @@
 				HorizontalAlignment="Center"
 				Width="{StaticResource LandscapeItemHeight}"
 				Height="{StaticResource LandscapeItemHeight}"
-                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsMicrophoneAvailable, Mode=OneWay, FallbackValue=false}"
+                IsEnabled="{x:Bind Path=VM.RuntimeData.IsMicrophoneAvailable, Mode=OneWay, FallbackValue=false}"
                 Click="OnRecordSound_Click"
 				x:Uid="RecordAudio"/>
             <AppBarButton
@@ -72,7 +72,7 @@
 						</Grid.RowDefinitions>
 
                         <local:WalletView
-                            VM="{Binding ElementName=me, Path=VM}"
+                            VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
                             DataContext="{Binding}"
                             Folder="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
                     </Grid>

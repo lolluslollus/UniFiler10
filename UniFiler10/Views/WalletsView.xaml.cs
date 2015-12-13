@@ -23,37 +23,45 @@ namespace UniFiler10.Views
 {
 	public sealed partial class WalletsView : UserControl
 	{
-		public BinderContentVM VM
+		//public BinderContentVM VM
+		//{
+		//	get { return (BinderContentVM)GetValue(VMProperty); }
+		//	set { SetValue(VMProperty, value); }
+		//}
+		//public static readonly DependencyProperty VMProperty =
+		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(WalletsView), new PropertyMetadata(null));
+
+		public FolderVM VM
 		{
-			get { return (BinderContentVM)GetValue(VMProperty); }
+			get { return (FolderVM)GetValue(VMProperty); }
 			set { SetValue(VMProperty, value); }
 		}
 		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(WalletsView), new PropertyMetadata(null));
+			DependencyProperty.Register("VM", typeof(FolderVM), typeof(WalletsView), new PropertyMetadata(null));
 
 		public WalletsView()
 		{
 			InitializeComponent();
 		}
 
-		private void OnAdd_Click(object sender, RoutedEventArgs e)
-		{
-			Task add = VM?.AddWalletToFolderAsync(DataContext as Folder);
-		}
+		//private void OnAdd_Click(object sender, RoutedEventArgs e)
+		//{
+		//	Task add = VM?.AddWalletToFolderAsync(DataContext as Folder);
+		//}
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			Task shoot = VM?.ShootAsync(DataContext as Folder);
+			Task shoot = VM?.ShootAsync();
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
 		{
-			Task openFile = VM?.LoadMediaFileAsync(DataContext as Folder);
+			Task openFile = VM?.LoadMediaFileAsync();
 		}
 
 		private void OnRecordSound_Click(object sender, RoutedEventArgs e)
 		{
-			Task record = VM?.RecordAudioAsync(DataContext as Folder);
+			Task record = VM?.RecordAudioAsync();
 		}
 	}
 }

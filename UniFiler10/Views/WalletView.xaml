@@ -23,7 +23,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal">
             <AppBarButton
                 Icon="Camera"
-                IsEnabled="{Binding ElementName=me, Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
+                IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
                 Click="OnShoot_Click"/>
             <AppBarButton
                 Icon="OpenFile"
@@ -50,7 +50,7 @@
                 <DataTemplate>
                     <local:DocumentView 
                         DataContext="{Binding}" 
-                        BinderContentVM="{Binding ElementName=me, Path=VM}"
+                        FolderVM="{Binding ElementName=me, Path=VM}"
                         Folder="{Binding ElementName=me, Path=Folder}"
                         Wallet="{Binding ElementName=LayoutRoot, Path=DataContext}"/>
                 </DataTemplate>

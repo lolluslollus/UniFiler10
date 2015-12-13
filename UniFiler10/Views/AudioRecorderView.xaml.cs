@@ -47,17 +47,12 @@ namespace UniFiler10.Views
 
 		// For listening to media property changes
 		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
+
+		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
 		#endregion properties
 
 
 		#region IRecorder
-		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
-
-		/// <summary>
-		/// This locks the caller asynchronously. StopAsync or CloseAsync unlock.
-		/// </summary>
-		/// <param name="file"></param>
-		/// <returns></returns>
 		[STAThread]
 		public Task<bool> StartAsync(StorageFile file)
 		{
@@ -155,6 +150,10 @@ namespace UniFiler10.Views
 
 			InitializeComponent();
 		}
+		/// <summary>
+		/// I need this override to stop any running media recording
+		/// </summary>
+		/// <returns></returns>
 		public override async Task<bool> CloseAsync()
 		{
 			if (!_isOpen) return false;

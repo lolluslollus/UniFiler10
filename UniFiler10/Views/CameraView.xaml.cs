@@ -73,16 +73,11 @@ namespace UniFiler10.Views
 		private bool _isExternalCamera;
 
 		private StorageFile _file = null;
+		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
 		#endregion properties
 
 
 		#region IRecorder
-		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
-		/// <summary>
-		/// This locks the caller asynchronously. StopAsync or CloseAsync unlock.
-		/// </summary>
-		/// <param name="file"></param>
-		/// <returns></returns>
 		[STAThread] //LOLLO test
 		public Task<bool> StartAsync(StorageFile file)
 		{
@@ -186,6 +181,10 @@ namespace UniFiler10.Views
 		{
 			Task stop = StopAsync();
 		}
+		/// <summary>
+		/// I need this override to stop any running media recording
+		/// </summary>
+		/// <returns></returns>
 		public override async Task<bool> CloseAsync()
 		{
 			if (!_isOpen) return false;

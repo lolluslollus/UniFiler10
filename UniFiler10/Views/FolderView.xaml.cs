@@ -19,61 +19,93 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media.Animation;
+using UniFiler10.Controlz;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace UniFiler10.Views
 {
-    public sealed partial class FolderView : UserControl
-    {
-        public BinderContentVM VM
-        {
-            get { return (BinderContentVM)GetValue(VMProperty); }
-            set { SetValue(VMProperty, value); }
-        }
-        public static readonly DependencyProperty VMProperty =
-            DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(FolderView), new PropertyMetadata(null));
+	public sealed partial class FolderView : OpenableObservableControl
+	{
+		//public BinderContentVM VM
+		//{
+		//	get { return (BinderContentVM)GetValue(VMProperty); }
+		//	set { SetValue(VMProperty, value); }
+		//}
+		//public static readonly DependencyProperty VMProperty =
+		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(FolderView), new PropertyMetadata(null));
 
-        public FolderView()
-        {
-            InitializeComponent();
-        }
+		private FolderVM _vm = null;
+		public FolderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
-        //private void OnDynamicFieldValueSelectComboBox_Opened(object sender, object e)
-        //{
-        //    var cb = sender as ComboBox;
-        //    if (cb != null && cb.DataContext is DynamicField)
-        //    {
-        //        cb.ItemsSource = (cb.DataContext as DynamicField).FieldDescription.PossibleValues;
-        //    }
-        //}
 
-        //private void OnDynamicFieldValueSelectComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
-        //    var cb = sender as ComboBox;
-        //    if (cb != null && cb.DataContext is DynamicField && cb.SelectedItem is FieldValue)
-        //    {
-        //        (cb.DataContext as DynamicField).FieldValueId = (cb.SelectedItem as FieldValue).Id;
-        //    }
-        //}
+		public FolderView()
+		{
+			DataContextChanged += OnDataContextChanged;
+			InitializeComponent();
+		}
 
-        private void OnVaalue_LostFocus(object sender, RoutedEventArgs e)
-        {
-            var textBox = sender as TextBox;
-            if (textBox != null)
-            {
-                Task setVal = VM?.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
-            }
-        }
+		protected override Task OpenMayOverrideAsync()
+		{
+			return UpdateFolderVMAsync();
+		}
 
-        //private void DFGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
-        //{
-        //    ((Storyboard)((sender as Grid).Resources["EvidenceGrid"])).Begin();
-        //}
+		protected override async Task CloseMayOverrideAsync()
+		{
+			await DisposeFolderVMAsync().ConfigureAwait(false);
+		}
 
-        //private void DFGrid_PointerExited(object sender, PointerRoutedEventArgs e)
-        //{
-        //    ((Storyboard)((sender as Grid).Resources["EvidenceGrid"])).Stop();
-        //}
-    }
+		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		{
+			Task upd = RunFunctionWhileOpenAsyncT(delegate
+			{
+				return UpdateFolderVMAsync();
+			});
+		}
+		private async Task UpdateFolderVMAsync()
+		{
+			var folder = DataContext as Folder;
+			if (folder != null && !folder.IsDisposed)
+			{
+				if (_vm == null)
+				{
+					_vm = new FolderVM(DataContext as Folder, AudioRecorderView, CameraView);
+					await _vm.OpenAsync();
+					RaisePropertyChanged_UI(nameof(VM));
+				}
+				else if (_vm.Folder != folder)
+				{
+					await DisposeFolderVMAsync();
+
+					_vm = new FolderVM(DataContext as Folder, AudioRecorderView, CameraView);
+					await _vm.OpenAsync();
+					RaisePropertyChanged_UI(nameof(VM));
+				}
+			}
+			else
+			{
+				await DisposeFolderVMAsync().ConfigureAwait(false);
+			}
+		}
+
+		private async Task DisposeFolderVMAsync()
+		{
+			var fvm = _vm;
+			if (fvm != null)
+			{
+				await fvm.CloseAsync();
+				fvm.Dispose();
+			}
+			_vm = null;
+		}
+
+		private void OnVaalue_LostFocus(object sender, RoutedEventArgs e)
+		{
+			var textBox = sender as TextBox;
+			if (textBox != null)
+			{
+				Task setVal = VM?.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
+			}
+		}
+	}
 }

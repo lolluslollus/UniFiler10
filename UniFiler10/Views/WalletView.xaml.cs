@@ -25,13 +25,21 @@ namespace UniFiler10.Views
 {
 	public sealed partial class WalletView : UserControl
 	{
-		public BinderContentVM VM
+		//public BinderContentVM VM
+		//{
+		//	get { return (BinderContentVM)GetValue(VMProperty); }
+		//	set { SetValue(VMProperty, value); }
+		//}
+		//public static readonly DependencyProperty VMProperty =
+		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(WalletView), new PropertyMetadata(null));
+
+		public FolderVM VM
 		{
-			get { return (BinderContentVM)GetValue(VMProperty); }
+			get { return (FolderVM)GetValue(VMProperty); }
 			set { SetValue(VMProperty, value); }
 		}
 		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(WalletView), new PropertyMetadata(null));
+			DependencyProperty.Register("VM", typeof(FolderVM), typeof(WalletView), new PropertyMetadata(null));
 
 		public Folder Folder
 		{
@@ -46,9 +54,14 @@ namespace UniFiler10.Views
 			InitializeComponent();
 		}
 
-		private void OnAdd_Click(object sender, RoutedEventArgs e)
+		//private void OnAdd_Click(object sender, RoutedEventArgs e)
+		//{
+		//	Task add = VM?.AddEmptyDocumentToWalletAsync(DataContext as Wallet);
+		//}
+
+		private void OnItemDelete_Click(object sender, RoutedEventArgs e)
 		{
-			Task add = VM?.AddEmptyDocumentToWalletAsync(DataContext as Wallet);
+			Task del = VM?.RemoveWalletFromFolderAsync(Folder, DataContext as Wallet);
 		}
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
@@ -59,11 +72,6 @@ namespace UniFiler10.Views
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
 		{
 			Task openFile = VM?.LoadMediaFileAsync(DataContext as Wallet);
-		}
-
-		private void OnItemDelete_Click(object sender, RoutedEventArgs e)
-		{
-			Task del = VM?.RemoveWalletFromFolderAsync(Folder, DataContext as Wallet);
 		}
 	}
 }

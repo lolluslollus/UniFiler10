@@ -24,24 +24,25 @@
 
 		<ctl:LolloSplitView.BodyContent>
 			<Grid>
+				<!--VM="{x:Bind VM, Mode=OneWay}"-->
 				<local:FolderView
+					x:Name="MyFolderView"
 					HorizontalAlignment="Left"
-					VM="{x:Bind VM, Mode=OneWay}"
 					DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
 
-				<Popup
+				<!--<Popup
 					IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
-					<!--VM="{x:Bind VM, Mode=OneWay}"-->
+					--><!--VM="{x:Bind VM, Mode=OneWay}"--><!--
 					<local:CameraView x:Name="CameraView"
 						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
 				</Popup>
 
 				<Popup
 					IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=False}">
-					<!--VM="{x:Bind VM, Mode=OneWay}"-->
+					--><!--VM="{x:Bind VM, Mode=OneWay}"--><!--
 					<local:AudioRecorderView x:Name="AudioRecorderView"
 						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
-				</Popup>
+				</Popup>-->
 			</Grid>
 		</ctl:LolloSplitView.BodyContent>
 
