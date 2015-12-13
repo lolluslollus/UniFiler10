@@ -14,9 +14,11 @@ namespace UniFiler10.Data.Model
 	public class DynamicCategory : DbBoundObservableData
 	{
 		public DynamicCategory() { }
-		public DynamicCategory(DBManager dbManager)
+		public DynamicCategory(DBManager dbManager, string parentId, string categoryId)
 		{
 			_dbManager = dbManager;
+			ParentId = parentId;
+			CategoryId = categoryId;
 		}
 		protected override void Dispose(bool isDisposing)
 		{

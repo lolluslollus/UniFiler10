@@ -14,9 +14,11 @@ namespace UniFiler10.Data.Model
 	public class DynamicField : DbBoundObservableData
 	{
 		public DynamicField() { }
-		public DynamicField(DBManager dbManager)
+		public DynamicField(DBManager dbManager, string parentId, string fieldDescriptionId)
 		{
 			_dbManager = dbManager;
+			ParentId = parentId;
+			FieldDescriptionId = fieldDescriptionId;
 		}
 		protected override void Dispose(bool isDisposing)
 		{

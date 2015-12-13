@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
@@ -15,6 +16,9 @@ namespace UniFiler10.ViewModels
 	public sealed class BinderContentVM : OpenableObservableData
 	{
 		#region properties
+		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3";
+		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpeg";
+
 		private Binder _binder = null;
 		public Binder Binder { get { return _binder; } private set { _binder = value; RaisePropertyChanged_UI(); } }
 
@@ -53,8 +57,19 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null) binder.PropertyChanged -= OnBinder_PropertyChanged;
 
-			await ForceEndRecordAudioAsync();
-			await ForceEndShootAsync();
+			var ar = _audioRecorder;
+			if (ar != null)
+			{
+				await ar.CloseAsync().ConfigureAwait(false);
+			}
+			IsAudioRecorderOverlayOpen = false;
+
+			var cam = _camera;
+			if (cam != null)
+			{
+				await cam.CloseAsync().ConfigureAwait(false);
+			}
+			IsCameraOverlayOpen = false;
 
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			_binder = null;
@@ -197,18 +212,6 @@ namespace UniFiler10.ViewModels
 				}).ConfigureAwait(false);
 			}
 		}
-		public Task ForceEndShootAsync()
-		{
-			var cam = _camera;
-			if (cam != null)
-			{
-				return cam.CloseAsync();
-			}
-			else
-			{
-				return Task.CompletedTask;
-			}
-		}
 
 		public async Task RecordAudioAsync(Folder parentFolder)
 		{
@@ -219,7 +222,7 @@ namespace UniFiler10.ViewModels
 				{
 					if (binder?.IsOpen == true && parentFolder != null && !_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 					{
-						var file = await CreateAudioPhotoFileAsync(DEFAULT_AUDIO_FILE_NAME); // required before we start any audio recording
+						var file = await CreateAudioPhotoFileAsync(DEFAULT_AUDIO_FILE_NAME);
 						if (file != null)
 						{
 							IsAudioRecorderOverlayOpen = true;
@@ -233,20 +236,6 @@ namespace UniFiler10.ViewModels
 				}).ConfigureAwait(false);
 			}
 		}
-		public Task ForceEndRecordAudioAsync()
-		{
-			var ar = _audioRecorder;
-			if (ar != null)
-			{
-				return ar.CloseAsync();
-			}
-			else
-			{
-				return Task.CompletedTask;
-			}
-		}
-		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3";
-		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpeg";
 		private async Task<StorageFile> CreateAudioPhotoFileAsync(string fileName)
 		{
 			try

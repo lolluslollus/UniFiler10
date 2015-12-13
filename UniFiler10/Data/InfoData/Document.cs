@@ -18,9 +18,10 @@ namespace UniFiler10.Data.Model
 	public class Document : DbBoundObservableData
 	{
 		public Document() { }
-		public Document(DBManager dbManager)
+		public Document(DBManager dbManager, string parentId)
 		{
 			_dbManager = dbManager;
+			ParentId = parentId;
 		}
 		protected override void Dispose(bool isDisposing)
 		{

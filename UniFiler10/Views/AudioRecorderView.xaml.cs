@@ -37,6 +37,7 @@ namespace UniFiler10.Views
 		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(AudioRecorderView), new PropertyMetadata(null));
 
 		private AudioRecorder _audioRecorder = null;
+		private MediaCapture _mediaCapture;
 
 		private string _lastMessage = string.Empty;
 		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
@@ -104,33 +105,30 @@ namespace UniFiler10.Views
 		[STAThread]
 		public Task<bool> StopAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				return Stop2Async();
+				await StopRecordingAsync().ConfigureAwait(false);
+
+				try
+				{
+					_mediaCapture?.Dispose();
+				}
+				catch { }
+				_mediaCapture = null;
+
+				var audioRecorder = _audioRecorder;
+				if (audioRecorder != null)
+				{
+					audioRecorder.UnrecoverableError -= OnAudioRecorder_UnrecoverableError;
+					await audioRecorder.CloseAsync();
+					audioRecorder.Dispose();
+				}
+				_audioRecorder = null;
+
+				StopAllAnimations();
+				return true;
 			});
-		}
-		private async Task<bool> Stop2Async()
-		{
-			await StopRecordingAsync().ConfigureAwait(false);
-
-			try
-			{
-				_mediaCapture?.Dispose();
-			}
-			catch { }
-			_mediaCapture = null;
-
-			var audioRecorder = _audioRecorder;
-			if (audioRecorder != null)
-			{
-				audioRecorder.UnrecoverableError -= OnAudioRecorder_UnrecoverableError;
-				await audioRecorder.CloseAsync();
-				audioRecorder.Dispose();
-			}
-			_audioRecorder = null;
-
-			StopAllAnimations();
-			return true;
 		}
 		#endregion IRecorder
 
@@ -140,33 +138,33 @@ namespace UniFiler10.Views
 			//Loaded += OnLoaded;
 			//Unloaded += OnUnloaded;
 			//Application.Current.Resuming += OnResuming;
-			Application.Current.Suspending += OnSuspending;
+			//Application.Current.Suspending += OnSuspending;
 
 			InitializeComponent();
 		}
-		public override Task<bool> CloseAsync()
-		{
-			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);			
-			return base.CloseAsync();
-		}
+		//public override Task<bool> CloseAsync()
+		//{
+		//	SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+		//	return base.CloseAsync();
+		//}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await Stop2Async().ConfigureAwait(false);
+			await StopAsync().ConfigureAwait(false);
 			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
 			_triggerSemaphore = null;
 		}
 
 		//private bool _isLoaded = false;
 		//private bool _isLoadedWhenSuspending = false;
-		private async void OnSuspending(object sender, SuspendingEventArgs e)
-		{
-			var deferral = e.SuspendingOperation.GetDeferral();
+		//private async void OnSuspending(object sender, SuspendingEventArgs e)
+		//{
+		//	var deferral = e.SuspendingOperation.GetDeferral();
 
-			//_isLoadedWhenSuspending = _isLoaded;
-			await CloseAsync().ConfigureAwait(false);
+		//	//_isLoadedWhenSuspending = _isLoaded;
+		//	await CloseAsync().ConfigureAwait(false);
 
-			deferral.Complete();
-		}
+		//	deferral.Complete();
+		//}
 
 		//private async void OnResuming(object sender, object e)
 		//{
@@ -187,9 +185,8 @@ namespace UniFiler10.Views
 
 		private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task close = CloseAsync();
+			Task stop = StopAsync();
 		}
-		private MediaCapture _mediaCapture;
 
 		private async void OnAudioRecorder_UnrecoverableError(object sender, EventArgs e)
 		{

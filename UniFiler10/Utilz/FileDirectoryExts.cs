@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Storage.FileProperties;
 
-namespace UniFiler10.Utilz
+namespace Utilz
 {
 	public class FileDirectoryExts
 	{
@@ -30,6 +31,14 @@ namespace UniFiler10.Utilz
 				var dirTo = await to.CreateFolderAsync(dirFrom.Name, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
 				await CopyDirContentsAsync(dirFrom, dirTo).ConfigureAwait(false);
 			}
+		}
+		public static async Task<ulong> GetFileSizeAsync(StorageFile file)
+		{
+			if (file == null) return 0;
+
+			BasicProperties fileProperties = await file.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+			if (fileProperties != null) return fileProperties.Size;
+			else return 0;
 		}
 	}
 }

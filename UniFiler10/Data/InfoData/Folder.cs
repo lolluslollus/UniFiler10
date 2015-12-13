@@ -296,7 +296,7 @@ namespace UniFiler10.Data.Model
 			var newFldDscs = shouldBeFldDscs.Where(fldDsc => !DynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
 			foreach (var newFldDsc in newFldDscs)
 			{
-				var dynFld = new DynamicField(_dbManager) { ParentId = Id, FieldDescriptionId = newFldDsc.Id };
+				var dynFld = new DynamicField(_dbManager, Id, newFldDsc.Id);
 				var dbM = _dbManager;
 				if (dbM != null
 					&& await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
@@ -340,7 +340,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				var wallet = new Wallet(_dbManager);
+				var wallet = new Wallet(_dbManager, Id);
 				return await AddWallet2Async(wallet).ConfigureAwait(false);
 			});
 		}
@@ -349,8 +349,6 @@ namespace UniFiler10.Data.Model
 		{
 			if (wallet != null)
 			{
-				wallet.ParentId = Id;
-
 				if (Wallet.Check(wallet))
 				{
 					var dbM = _dbManager;
@@ -374,7 +372,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				while (_wallets.Count > 0)
+				while (_wallets?.Count > 0)
 				{
 					await _wallets[0].OpenAsync().ConfigureAwait(false);
 					await RemoveWallet2Async(_wallets[0]).ConfigureAwait(false);
@@ -413,7 +411,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
-					var newDynCat = new DynamicCategory(_dbManager) { ParentId = Id, CategoryId = catId };
+					var newDynCat = new DynamicCategory(_dbManager, Id, catId);
 
 					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
 					{
@@ -481,7 +479,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (_dbManager != null && file != null)
 				{
-					var newWallet = new Wallet(_dbManager);
+					var newWallet = new Wallet(_dbManager, Id);
 					await newWallet.OpenAsync().ConfigureAwait(false); // open the wallet or the following won't run
 					bool isOk = await newWallet.ImportMediaFileAsync(file, copyFile).ConfigureAwait(false)
 						&& await AddWallet2Async(newWallet).ConfigureAwait(false);
@@ -491,6 +489,7 @@ namespace UniFiler10.Data.Model
 					}
 					else
 					{
+						var test = await FileDirectoryExts.GetFileSizeAsync(file);
 						await RemoveWallet2Async(newWallet).ConfigureAwait(false);
 					}
 				}

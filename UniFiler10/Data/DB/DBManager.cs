@@ -271,7 +271,7 @@ namespace UniFiler10.Data.DB
 								if (fieldDescriptionId != null
 									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 								{
-									var dynamicField = new DynamicField(this) { FieldDescriptionId = fieldDescriptionId, ParentId = newCat.ParentId };
+									var dynamicField = new DynamicField(this, newCat.ParentId, fieldDescriptionId);
 									var dbResult2 = await InsertAsync(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 									if (dbResult2 == InsertResult.Added)
 									{

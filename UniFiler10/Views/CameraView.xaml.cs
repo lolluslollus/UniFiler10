@@ -62,8 +62,8 @@ namespace UniFiler10.Views
 
 		// MediaCapture and its state variables
 		private MediaCapture _mediaCapture;
-		private bool _isInitialized;
-		private bool _isPreviewing;
+		private volatile bool _isInitialized;
+		private volatile bool _isPreviewing;
 		private bool? _isFlashDesired = false;
 		public bool? IsFlashDesired { get { return _isFlashDesired; } set { _isFlashDesired = value; RaisePropertyChanged_UI(); } }
 		//private bool _isRecordingVideo;
@@ -109,17 +109,23 @@ namespace UniFiler10.Views
 		}
 		public Task<bool> StopAsync()
 		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
 			return RunFunctionWhileOpenAsyncTB(delegate
 			{
 				return Stop2Async();
 			});
 		}
+		private async Task TakePhotoAndStopAsync()
+		{
+			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+			await RunFunctionWhileOpenAsyncT(async delegate
+			{
+				await TakePhotoAsync();
+				await Stop2Async();
+			}).ConfigureAwait(false);
+		}
 		private async Task<bool> Stop2Async()
 		{
-			await RunInUiThreadAsync(delegate
-			{
-				//VM?.EndShoot();
-			}).ConfigureAwait(false);
 			await CleanupCameraAsync();
 			await CleanupUiAsync().ConfigureAwait(false);
 
@@ -134,7 +140,7 @@ namespace UniFiler10.Views
 			//Loaded += OnLoaded;
 			//Unloaded += OnUnloaded;
 			//Application.Current.Resuming += OnResuming;
-			Application.Current.Suspending += OnSuspending;
+			//Application.Current.Suspending += OnSuspending;
 
 			InitializeComponent();
 			//VideoButton.Visibility = Visibility.Collapsed;
@@ -142,15 +148,15 @@ namespace UniFiler10.Views
 
 		//private bool _isLoaded = false;
 		//private bool _isLoadedWhenSuspending = false;
-		private async void OnSuspending(object sender, SuspendingEventArgs e)
-		{
-			var deferral = e.SuspendingOperation.GetDeferral();
+		//private async void OnSuspending(object sender, SuspendingEventArgs e)
+		//{
+		//	var deferral = e.SuspendingOperation.GetDeferral();
 
-			//_isLoadedWhenSuspending = _isLoaded;
-			await CloseAsync().ConfigureAwait(false);
+		//	//_isLoadedWhenSuspending = _isLoaded;
+		//	await CloseAsync().ConfigureAwait(false);
 
-			deferral.Complete();
-		}
+		//	deferral.Complete();
+		//}
 
 		//private async void OnResuming(object sender, object e) // LOLLO TODO test OnSuspending and OnResuming
 		//{
@@ -171,16 +177,11 @@ namespace UniFiler10.Views
 
 		private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task close = CloseAsync();
-		}
-		public override Task<bool> CloseAsync()
-		{
-			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			return base.CloseAsync();
+			Task stop = StopAsync();
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await Stop2Async().ConfigureAwait(false);
+			await StopAsync().ConfigureAwait(false);
 			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
 			_triggerSemaphore = null;
 		}
@@ -254,11 +255,9 @@ namespace UniFiler10.Views
 			//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UpdateButtonOrientation());
 		}
 
-		private async void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnPhotoButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
-			Task close = CloseAsync();
+			Task stop = TakePhotoAndStopAsync();
 		}
 
 		private void OnIsFlashDesired_Tapped(object sender, TappedRoutedEventArgs e)
@@ -267,11 +266,9 @@ namespace UniFiler10.Views
 			UpdateFlash();
 		}
 
-		private async void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
+		private void OnHardwareButtons_CameraPressed(object sender, CameraEventArgs e)
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			await RunFunctionWhileOpenAsyncT(TakePhotoAsync).ConfigureAwait(false);
-			Task close = CloseAsync();
+			Task stop = TakePhotoAndStopAsync();
 		}
 
 		//private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -507,7 +504,7 @@ namespace UniFiler10.Views
 				}
 				finally
 				{
-					await ReencodeAndSavePhotoAsync(stream, photoOrientation);
+					await ReencodeAndSavePhotoAsync(stream, photoOrientation).ConfigureAwait(false);
 				}
 			}
 
@@ -573,8 +570,6 @@ namespace UniFiler10.Views
 		/// <returns></returns>
 		private async Task CleanupCameraAsync()
 		{
-			//LastMessage = "CleanupCameraAsync";
-
 			if (_isInitialized)
 			{
 				// If a recording is in progress during cleanup, stop it to save the recording

@@ -15,9 +15,10 @@ namespace UniFiler10.Data.Model
 	public class Wallet : DbBoundObservableData
 	{
 		public Wallet() { }
-		public Wallet(DBManager dbManager)
+		public Wallet(DBManager dbManager, string parentId)
 		{
 			_dbManager = dbManager;
+			ParentId = parentId;
 		}
 
 		#region properties
@@ -86,17 +87,6 @@ namespace UniFiler10.Data.Model
 			return _dbManager?.UpdateWallets(this) == true;
 		}
 
-		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		//{
-		//	var target = that as Wallet;
-
-		//	return _parentId == that._parentId && // I don't want it for the folder, but I want it for the smaller objects
-		//		Date0 == target.Date0 &&
-		//		Descr0 == target.Descr0 &&
-		//		Name == target.Name &&
-		//		Document.AreEqual(Documents, target.Documents);
-		//}
-
 		protected override bool CheckMeMustOverride()
 		{
 			bool result = _id != DEFAULT_ID && _parentId != DEFAULT_ID && _documents != null && Check(_documents);
@@ -108,14 +98,12 @@ namespace UniFiler10.Data.Model
 		{
 			if (doc != null)
 			{
-				doc.ParentId = Id;
-
 				if (Document.Check(doc))
 				{
 					var dbM = _dbManager;
 					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc, true))
 					{
-						_documents.Add(doc);
+						await RunInUiThreadAsync(delegate { _documents.Add(doc); }).ConfigureAwait(false);
 						await doc.OpenAsync().ConfigureAwait(false);
 						return true;
 					}
@@ -127,7 +115,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				var doc = new Document(_dbManager);
+				var doc = new Document(_dbManager, Id);
 				return await AddDocument2Async(doc).ConfigureAwait(false);
 			});
 		}
@@ -154,7 +142,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				while (_documents.Count > 0)
+				while (_documents?.Count > 0)
 				{
 					await RemoveDocument2Async(_documents[0]).ConfigureAwait(false);
 				}
@@ -174,9 +162,9 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (_dbManager != null && file != null)
+				if (_dbManager != null && file != null && await FileDirectoryExts.GetFileSizeAsync(file) > 0)
 				{
-					var newDoc = new Document(_dbManager);
+					var newDoc = new Document(_dbManager, Id);
 
 					StorageFile newFile = null;
 					if (copyFile)
