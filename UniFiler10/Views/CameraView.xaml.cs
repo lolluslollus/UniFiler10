@@ -342,6 +342,9 @@ namespace UniFiler10.Views
 					LastMessage = RuntimeData.GetText("CameraDeviceNotFound");
 					return false;
 				}
+				// LOLLO TODO test this
+				var test = cameraDevice.Properties;
+				var keys = test.Keys;
 
 				// Create MediaCapture and its settings
 				_mediaCapture = new MediaCapture();
@@ -493,7 +496,7 @@ namespace UniFiler10.Views
 		/// Takes a photo to a StorageFile and adds rotation metadata to it
 		/// </summary>
 		/// <returns></returns>
-		[STAThread] // LOLLO test
+		[STAThread]
 		private async Task TakePhotoAsync()
 		{
 			// While taking a photo, keep the video button enabled only if the camera supports simultaneously taking pictures and recording video
@@ -510,6 +513,13 @@ namespace UniFiler10.Views
 				{
 					LastMessage = RuntimeData.GetText("CameraTakingPhoto");
 					await _mediaCapture.CapturePhotoToStreamAsync(ImageEncodingProperties.CreateJpeg(), stream);
+
+					// LOLLO TODO check this
+					var test = ImageEncodingProperties.CreateJpeg();
+					var keys = test.Properties.Keys;
+					var testXR = ImageEncodingProperties.CreateJpegXR();
+					var keysXR = testXR.Properties.Keys;
+
 					LastMessage = RuntimeData.GetText("CameraTakenPhoto");
 
 					photoOrientation = ConvertOrientationToPhotoOrientation(GetCameraOrientation());
