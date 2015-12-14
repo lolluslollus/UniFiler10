@@ -95,8 +95,8 @@
 	<ScrollViewer>
 		<Grid Background="Lavender" 
 			x:Name="LayoutRoot"
-			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}">
-			<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
+			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
+			DataContext="{x:Bind VM, Mode=OneWay}">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
