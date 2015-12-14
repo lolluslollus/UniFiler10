@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Windows.Foundation;
+using Windows.Media.Capture;
 using Windows.Storage;
 
 namespace UniFiler10.ViewModels
@@ -15,7 +18,7 @@ namespace UniFiler10.ViewModels
 	{
 		#region properties
 		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3";
-		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpeg";
+		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpg";
 
 		private IRecorder _audioRecorder = null;
 		private IRecorder _camera = null;
@@ -72,6 +75,9 @@ namespace UniFiler10.ViewModels
 		public override async Task<bool> CloseAsync()
 		{
 			if (!_isOpen) return false;
+
+			CancelCts();
+			//_captureUI = null; // LOLLO TODO test this
 
 			var ar = _audioRecorder;
 			if (ar != null)
@@ -148,27 +154,119 @@ namespace UniFiler10.ViewModels
 				}
 			});
 		}
+		//public async Task ShootAsync()
+		//{
+		//	if (!_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+		//	{
+		//		await RunFunctionWhileOpenAsyncT(async delegate
+		//		{
+		//			if (!_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+		//			{
+		//				var folder = _folder;
+		//				var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
+		//				if (folder != null && file != null)
+		//				{
+		//					IsCameraOverlayOpen = true;
+		//					await _camera.OpenAsync();
+		//					await _camera.StartAsync(file); // this locks until explicitly unlocked
+		//					await _camera.CloseAsync();
+		//					await folder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
+		//					IsCameraOverlayOpen = false;
+		//				}
+		//			}
+		//		}).ConfigureAwait(false);
+		//	}
+		//}
+		//private CameraCaptureUI _captureUI = null;
+		//private Task _captureTask = null;
+		private CancellationTokenSource _cts = null;
 		public async Task ShootAsync()
 		{
-			if (!_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+			if (RuntimeData.Instance?.IsCameraAvailable == true)
 			{
 				await RunFunctionWhileOpenAsyncT(async delegate
 				{
-					if (!_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+					if (RuntimeData.Instance?.IsCameraAvailable == true)
 					{
 						var folder = _folder;
-						var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
-						if (folder != null && file != null)
+						//var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
+						if (folder != null)
 						{
-							IsCameraOverlayOpen = true;
-							await _camera.OpenAsync();
-							await _camera.StartAsync(file); // this locks until explicitly unlocked
-							await _camera.CloseAsync();
-							await folder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
-							IsCameraOverlayOpen = false;
+							StorageFile photoFile = null;
+
+							DisposeCts();
+							_cts = new CancellationTokenSource();
+							var semaphore = new SemaphoreSlimSafeRelease(1, 1);
+							try
+							{
+								await semaphore.WaitAsync();
+								var ttt = new Task(async delegate {
+									CameraCaptureUI captureUI = new CameraCaptureUI();
+									captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
+									captureUI.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
+
+									photoFile = await captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo);
+									SemaphoreSlimSafeRelease.TryRelease(semaphore);
+								}, _cts.Token);
+								ttt.Start(TaskScheduler.FromCurrentSynchronizationContext()); // LOLLO important coz CameraCaptureUI is not agile
+								await ttt;
+								await semaphore.WaitAsync();
+							}
+							catch (Exception ex)
+							{
+
+							}
+							finally
+							{
+								SemaphoreSlimSafeRelease.TryRelease(semaphore);
+								SemaphoreSlimSafeRelease.TryRelease(semaphore);
+								DisposeCts();
+							}
+
+							if (photoFile == null)
+							{
+								// User cancelled photo capture
+								return;
+							}
+							else
+							{
+								await folder.ImportMediaFileIntoNewWalletAsync(photoFile, true).ConfigureAwait(false);
+								await photoFile.DeleteAsync();
+							}
 						}
 					}
 				}).ConfigureAwait(false);
+			}
+		}
+		private void CancelCts()
+		{
+			var cts = _cts;
+			if (cts != null)
+			{
+				try
+				{
+					cts.Cancel(true);
+				}
+				catch (Exception ex)
+				{
+
+				}
+			}
+		}
+		private void DisposeCts()
+		{
+			var cts = _cts;
+			if (cts != null)
+			{
+				try
+				{
+					cts.Dispose();
+				}
+				catch (Exception ex)
+				{
+
+				}
+				_cts = null;
 			}
 		}
 		public async Task ShootAsync(Wallet parentWallet)
@@ -234,6 +332,23 @@ namespace UniFiler10.ViewModels
 			}
 			return null;
 		}
+		//private async Task<string> CreateAudioPhotoFileNameAsync(string fileName)
+		//{
+		//	try
+		//	{
+		//		var dir = _folder?.DBManager?.Directory;
+		//		if (dir != null)
+		//		{
+		//			var file = await dir.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+		//			return file;
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//	return null;
+		//}
 		#endregion save media
 
 
