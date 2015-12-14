@@ -49,7 +49,15 @@
                 </Grid>
             </Button>-->
 
-            <Button
+			<Slider x:Name="CaptureResolutionSlider"
+				Minimum="1" Maximum="2"
+				Value="1"
+				Width="80" Height="80" 
+				TickFrequency="1" TickPlacement="Outside" 
+				LargeChange="1"
+				SmallChange="1"/>
+
+			<Button
 				Tapped="OnOwnBackButton_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
                 <Viewbox MaxHeight="40" MaxWidth="40">

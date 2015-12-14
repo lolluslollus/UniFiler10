@@ -366,6 +366,8 @@ namespace UniFiler10.Views
 				//int test = profiles.Count; // LOLLO TODO it does not find any profiles, even though the device is video capable.
 				//						   // how can i find out the max resolution then? if i set it too high, it will get stuck.
 
+				// LOLLO TODO check https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt282142.aspx
+				// it may be easier and more flexible
 
 				// Create MediaCapture and its settings
 				_mediaCapture = new MediaCapture();
@@ -579,6 +581,17 @@ namespace UniFiler10.Views
 			// Done taking a photo, so re-enable the button
 			//VideoButton.IsEnabled = true;
 			//VideoButton.Opacity = 1;
+		}
+
+		private bool IsPreviewAndCaptureStreamsIdentical()
+		{
+			if (_mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic == VideoDeviceCharacteristic.AllStreamsIdentical ||
+				_mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic == VideoDeviceCharacteristic.PreviewRecordStreamsIdentical)
+			{
+				return true;
+				// ShowMessageToUser("Preview and video streams for this device are identical. Changing one will affect the other");
+			}
+			return false;
 		}
 
 		/// <summary>
