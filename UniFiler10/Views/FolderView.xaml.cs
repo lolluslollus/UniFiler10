@@ -69,7 +69,7 @@ namespace UniFiler10.Views
 			{
 				if (_vm == null)
 				{
-					_vm = new FolderVM(DataContext as Folder, AudioRecorderView, CameraView);
+					_vm = new FolderVM(DataContext as Folder, AudioRecorderView/*, CameraView*/);
 					await _vm.OpenAsync();
 					RaisePropertyChanged_UI(nameof(VM));
 				}
@@ -77,7 +77,7 @@ namespace UniFiler10.Views
 				{
 					await DisposeFolderVMAsync();
 
-					_vm = new FolderVM(DataContext as Folder, AudioRecorderView, CameraView);
+					_vm = new FolderVM(DataContext as Folder, AudioRecorderView/*, CameraView*/);
 					await _vm.OpenAsync();
 					RaisePropertyChanged_UI(nameof(VM));
 				}

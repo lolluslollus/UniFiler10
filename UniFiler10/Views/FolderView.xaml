@@ -18,10 +18,10 @@
 	<Grid x:Name="LayoutRoot" 
 		Background="#FFDEEADE">
 
-		<Popup IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
+		<!--<Popup IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
 			<local:CameraView x:Name="CameraView"/>
-			<!--DataContext="{x:Bind Path=VM.Folder, Mode=OneWay}"/>-->
-		</Popup>
+			--><!--DataContext="{x:Bind Path=VM.Folder, Mode=OneWay}"/>--><!--
+		</Popup>-->
 
 		<Popup IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=False}">
 			<local:AudioRecorderView x:Name="AudioRecorderView"/>

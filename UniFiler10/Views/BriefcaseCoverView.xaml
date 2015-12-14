@@ -252,7 +252,7 @@
 					</Grid.RowDefinitions>
 					
 					<ctl:LolloTextBox
-						Text="{x:Bind VM.NewDbName, Mode=TwoWay}"
+						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 						Style="{StaticResource LolloTextBoxStyle}"
 						BorderThickness="0"
 						MaxLength="{StaticResource MaxDbNameLength}"
@@ -266,34 +266,34 @@
 
 					<StackPanel Grid.Row="1"
 						VerticalAlignment="Center"					
-						Visibility="{x:Bind VM.NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay}">
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
 						<TextBlock
 							x:Uid="NameAlreadyInUse"
 							TextWrapping="Wrap"
 							HorizontalAlignment="Left"
 							Foreground="{StaticResource FlashyForeground}"
 							MaxWidth="{StaticResource LandscapeItemWidth}"
-							Visibility="{x:Bind VM.IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
+							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 					</StackPanel>
 
 					<Border Grid.RowSpan="2"
 						VerticalAlignment="Stretch"
 						HorizontalAlignment="Stretch"
-						Visibility="{x:Bind VM.NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay}">
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
 						<Border
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
 							BorderBrush="{StaticResource FlashyForeground}"
 							BorderThickness="{StaticResource Thickness2222}"
-							Visibility="{x:Bind VM.IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
+							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 					</Border>
 				</Grid>
 
 				<Button
                     Tapped="OnAddBinderStep1_Tapped"
                     Style="{StaticResource ButtonLolloStyle}"
-					IsEnabled="{x:Bind VM.IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-					Visibility="{x:Bind VM.NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay}">
+					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>

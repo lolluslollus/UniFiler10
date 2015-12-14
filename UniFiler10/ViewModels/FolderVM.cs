@@ -21,19 +21,19 @@ namespace UniFiler10.ViewModels
 		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpg";
 
 		private IRecorder _audioRecorder = null;
-		private IRecorder _camera = null;
+		//private IRecorder _camera = null;
 		private Folder _folder = null;
 		public Folder Folder { get { return _folder; } }
 
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isCameraOverlayOpen = false;
-		public bool IsCameraOverlayOpen
-		{
-			get { return _isCameraOverlayOpen; }
-			set { _isCameraOverlayOpen = value; RaisePropertyChanged_UI(); }
-		}
+		//private bool _isCameraOverlayOpen = false;
+		//public bool IsCameraOverlayOpen
+		//{
+		//	get { return _isCameraOverlayOpen; }
+		//	set { _isCameraOverlayOpen = value; RaisePropertyChanged_UI(); }
+		//}
 		private bool _isAudioRecorderOverlayOpen = false;
 		public bool IsAudioRecorderOverlayOpen
 		{
@@ -44,11 +44,11 @@ namespace UniFiler10.ViewModels
 
 
 		#region ctor and dispose
-		public FolderVM(Folder folder, IRecorder audioRecorder, IRecorder camera)
+		public FolderVM(Folder folder, IRecorder audioRecorder/*, IRecorder camera*/)
 		{
 			_folder = folder;
 			_audioRecorder = audioRecorder;
-			_camera = camera;
+			//_camera = camera;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -66,8 +66,10 @@ namespace UniFiler10.ViewModels
 		{
 			RuntimeData = RuntimeData.Instance;
 			UpdateCurrentFolderCategories();
+
 			return Task.CompletedTask;
 		}
+
 		/// <summary>
 		/// I need this override to stop any running media recording
 		/// </summary>
@@ -76,9 +78,6 @@ namespace UniFiler10.ViewModels
 		{
 			if (!_isOpen) return false;
 
-			CancelCts();
-			//_captureUI = null; // LOLLO TODO test this
-
 			var ar = _audioRecorder;
 			if (ar != null)
 			{
@@ -86,12 +85,12 @@ namespace UniFiler10.ViewModels
 			}
 			IsAudioRecorderOverlayOpen = false;
 
-			var cam = _camera;
-			if (cam != null)
-			{
-				await cam.CloseAsync().ConfigureAwait(false);
-			}
-			IsCameraOverlayOpen = false;
+			//var cam = _camera;
+			//if (cam != null)
+			//{
+			//	await cam.CloseAsync().ConfigureAwait(false);
+			//}
+			//IsCameraOverlayOpen = false;
 
 
 			return await base.CloseAsync().ConfigureAwait(false);
@@ -177,120 +176,76 @@ namespace UniFiler10.ViewModels
 		//		}).ConfigureAwait(false);
 		//	}
 		//}
-		//private CameraCaptureUI _captureUI = null;
-		//private Task _captureTask = null;
-		private CancellationTokenSource _cts = null;
-		public async Task ShootAsync()
+		private readonly object _captureLock = new object();
+		private bool _isCapturing = false;
+		public async Task ShootAsync(Wallet parentWallet = null)
 		{
-			if (RuntimeData.Instance?.IsCameraAvailable == true)
+			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
+			await RunFunctionWhileOpenAsyncA(delegate
 			{
-				await RunFunctionWhileOpenAsyncT(async delegate
+				if (RuntimeData.Instance?.IsCameraAvailable != true) return;
+				var folder = _folder;
+				if (folder != null)
 				{
-					if (RuntimeData.Instance?.IsCameraAvailable == true)
+					try
 					{
-						var folder = _folder;
-						//var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
-						if (folder != null)
+						lock (_captureLock) { if (_isCapturing) return; else _isCapturing = true; }
+
+						var captureUI = new CameraCaptureUI();
+						captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
+						captureUI.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
+
+						var captureTask = captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo).AsTask();
+						var afterCaptureTask = captureTask.ContinueWith(async delegate
 						{
-							StorageFile photoFile = null;
-
-							DisposeCts();
-							_cts = new CancellationTokenSource();
-							var semaphore = new SemaphoreSlimSafeRelease(1, 1);
-							try
-							{
-								await semaphore.WaitAsync();
-								var ttt = new Task(async delegate {
-									CameraCaptureUI captureUI = new CameraCaptureUI();
-									captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
-									captureUI.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
-
-									photoFile = await captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo);
-									SemaphoreSlimSafeRelease.TryRelease(semaphore);
-								}, _cts.Token);
-								ttt.Start(TaskScheduler.FromCurrentSynchronizationContext()); // LOLLO important coz CameraCaptureUI is not agile
-								await ttt;
-								await semaphore.WaitAsync();
-							}
-							catch (Exception ex)
-							{
-
-							}
-							finally
-							{
-								SemaphoreSlimSafeRelease.TryRelease(semaphore);
-								SemaphoreSlimSafeRelease.TryRelease(semaphore);
-								DisposeCts();
-							}
-
-							if (photoFile == null)
+							var photoFile = captureTask.Result;
+							if (photoFile == null || folder == null)
 							{
 								// User cancelled photo capture
 								return;
 							}
 							else
 							{
-								await folder.ImportMediaFileIntoNewWalletAsync(photoFile, true).ConfigureAwait(false);
+								if (parentWallet == null)
+								{
+									await folder.ImportMediaFileIntoNewWalletAsync(photoFile, true).ConfigureAwait(false);
+								}
+								else
+								{
+									await parentWallet.ImportMediaFileAsync(photoFile, true).ConfigureAwait(false);
+								}
 								await photoFile.DeleteAsync();
 							}
-						}
+							lock (_captureLock) { _isCapturing = false; }
+						});
 					}
-				}).ConfigureAwait(false);
-			}
-		}
-		private void CancelCts()
-		{
-			var cts = _cts;
-			if (cts != null)
-			{
-				try
-				{
-					cts.Cancel(true);
+					catch (Exception ex) { }
 				}
-				catch (Exception ex)
-				{
+			}).ConfigureAwait(false);
+		}
 
-				}
-			}
-		}
-		private void DisposeCts()
-		{
-			var cts = _cts;
-			if (cts != null)
-			{
-				try
-				{
-					cts.Dispose();
-				}
-				catch (Exception ex)
-				{
-
-				}
-				_cts = null;
-			}
-		}
-		public async Task ShootAsync(Wallet parentWallet)
-		{
-			if (parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
-			{
-				await RunFunctionWhileOpenAsyncT(async delegate
-				{
-					if (parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
-					{
-						var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
-						if (file != null)
-						{
-							IsCameraOverlayOpen = true;
-							await _camera.OpenAsync();
-							await _camera.StartAsync(file); // this locks until explicitly unlocked
-							await _camera.CloseAsync();
-							await parentWallet.ImportMediaFileAsync(file, false).ConfigureAwait(false);
-							IsCameraOverlayOpen = false;
-						}
-					}
-				}).ConfigureAwait(false);
-			}
-		}
+		//public async Task ShootAsync(Wallet parentWallet)
+		//{
+		//	if (parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+		//	{
+		//		await RunFunctionWhileOpenAsyncT(async delegate
+		//		{
+		//			if (parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
+		//			{
+		//				var file = await CreateAudioPhotoFileAsync(DEFAULT_PHOTO_FILE_NAME);
+		//				if (file != null)
+		//				{
+		//					IsCameraOverlayOpen = true;
+		//					await _camera.OpenAsync();
+		//					await _camera.StartAsync(file); // this locks until explicitly unlocked
+		//					await _camera.CloseAsync();
+		//					await parentWallet.ImportMediaFileAsync(file, false).ConfigureAwait(false);
+		//					IsCameraOverlayOpen = false;
+		//				}
+		//			}
+		//		}).ConfigureAwait(false);
+		//	}
+		//}
 
 		public async Task RecordAudioAsync()
 		{
@@ -332,23 +287,6 @@ namespace UniFiler10.ViewModels
 			}
 			return null;
 		}
-		//private async Task<string> CreateAudioPhotoFileNameAsync(string fileName)
-		//{
-		//	try
-		//	{
-		//		var dir = _folder?.DBManager?.Directory;
-		//		if (dir != null)
-		//		{
-		//			var file = await dir.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-		//			return file;
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//	}
-		//	return null;
-		//}
 		#endregion save media
 
 
