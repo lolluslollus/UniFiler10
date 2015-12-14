@@ -21,6 +21,6 @@
             VM="{x:Bind VM, Mode=OneWay}"
 			GoToBinderContentRequested="OnBriefcaseCoverView_GoToBinderContentRequested"
 			GoToSettingsRequested="OnBriefcaseCoverView_GoToSettingsRequested"
-			IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=False}"/>
+			IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=false}"/>
 	</Grid>
 </ctl:OpenableObservablePage>

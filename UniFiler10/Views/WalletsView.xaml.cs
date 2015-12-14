@@ -46,7 +46,7 @@ namespace UniFiler10.Views
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			Task shoot = VM?.ShootAsync();
+			Task shoot = VM?.ShootAsync(true, null);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)

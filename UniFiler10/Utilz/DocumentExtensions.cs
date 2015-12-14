@@ -8,6 +8,7 @@ using Utilz;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using Windows.UI.Xaml;
 
 namespace Utilz
 {
@@ -70,10 +71,37 @@ namespace Utilz
             }
             catch (Exception ex)
             {
-                await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+                await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
             }
             return null;
         }
 
-    }
+		public static async Task<StorageFile> WriteTextIntoFileAsync(string text, string fileName)
+		{
+			try
+			{
+				var file = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
+				if (file != null)
+				{
+					using (var stream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+					{
+						using (var writer = new StreamWriter(stream))
+						{
+							stream.Seek(0, SeekOrigin.Begin);
+							await writer.WriteAsync(text).ConfigureAwait(false);
+							await stream.FlushAsync();
+							await writer.FlushAsync();
+							return file;
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+			return null;
+		}
+
+	}
 }

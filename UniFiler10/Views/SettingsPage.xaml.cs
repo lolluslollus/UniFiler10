@@ -43,6 +43,8 @@ namespace UniFiler10.Views
 		public SettingsPage()
 		{
 			InitializeComponent();
+			// LOLLO NOTE with x:Bind set on a nullable bool property, such as ToggleButton.IsChecked, FallbackValue=True and FallbackValue=False cause errors.
+			// Instead, use Binding ElementName=me, Path=....
 			MBView.DataContext = null; // otherwise, it will try something and run into binding errors. I am going to set its binding later.
 			_animationStarter = new AnimationStarter(new Storyboard[] { SuccessStoryboard, FailureStoryboard });
 		}

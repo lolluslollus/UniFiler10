@@ -18,7 +18,7 @@
 		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 		<ctl:LolloSplitView
             IsPaneOpen="True"
-            IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=False}"
+            IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=false}"
             ClosedPaneLength="{StaticResource CompactPaneLength}"
             OpenPaneLength="{StaticResource CompactPaneLength}">
 			<ctl:LolloSplitView.BodyContent>

@@ -122,8 +122,8 @@ namespace UniFiler10.Views
 		}
 		private async Task TakePhotoAndStopAsync()
 		{
-			// LOLLO TODO it may get stuck taking the photo, locking the semaphore forever.
-			// betterngive it a timeout.
+			// LOLLO it may get stuck taking the photo, locking the semaphore forever.
+			// better give it a timeout, or preventing it getting stuck. how? for example, do not set huge unsupported capture sizes.
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
 			await RunFunctionWhileOpenAsyncT(async delegate
 			{
@@ -152,35 +152,6 @@ namespace UniFiler10.Views
 			InitializeComponent();
 			//VideoButton.Visibility = Visibility.Collapsed;
 		}
-
-		//private bool _isLoaded = false;
-		//private bool _isLoadedWhenSuspending = false;
-		//private async void OnSuspending(object sender, SuspendingEventArgs e)
-		//{
-		//	var deferral = e.SuspendingOperation.GetDeferral();
-
-		//	//_isLoadedWhenSuspending = _isLoaded;
-		//	await CloseAsync().ConfigureAwait(false);
-
-		//	deferral.Complete();
-		//}
-
-		//private async void OnResuming(object sender, object e) // LOLLO TODO test OnSuspending and OnResuming
-		//{
-		//	if (_isLoadedWhenSuspending) await OpenAsync().ConfigureAwait(false);
-		//}
-
-		//private async void OnLoaded(object sender, RoutedEventArgs e)
-		//{
-		//	_isLoaded = true;
-		//	await OpenAsync().ConfigureAwait(false);
-		//}
-
-		//private async void OnUnloaded(object sender, RoutedEventArgs e)
-		//{
-		//	_isLoaded = false;
-		//	await CloseAsync().ConfigureAwait(false);
-		//}
 
 		private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
@@ -363,11 +334,9 @@ namespace UniFiler10.Views
 				//			 from desc in profile.SupportedRecordMediaDescription
 				//				 //where desc.Width == 640 && desc.Height == 480 && Math.Round(desc.FrameRate) == 30
 				//			 select new { profile, desc, desc.Width, desc.Height });
-				//int test = profiles.Count; // LOLLO TODO it does not find any profiles, even though the device is video capable.
-				//						   // how can i find out the max resolution then? if i set it too high, it will get stuck.
-
-				// LOLLO TODO check https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt282142.aspx
-				// it may be easier and more flexible
+				//int test = profiles.Count; // LOLLO it does not find any profiles, even though the device is video capable.
+				// not all devices have profiles. To find out the max resolution, use
+				// check https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt282142.aspx
 
 				// Create MediaCapture and its settings
 				_mediaCapture = new MediaCapture();
@@ -543,20 +512,20 @@ namespace UniFiler10.Views
 					allStreamProperties = allStreamProperties.OrderByDescending(x => x.Height * x.Width).ThenByDescending(x => x.FrameRate);
 
 
-					// set the highest available resolution. // LOLLO TODO allow setting lower resolutions from the screen
+					// set the highest available resolution. // LOLLO allow setting lower resolutions from the screen
 					var imageEncodingProperties = ImageEncodingProperties.CreateJpeg();
 					imageEncodingProperties.Height = allStreamProperties.ElementAt(0).Height;
 					imageEncodingProperties.Width = allStreamProperties.ElementAt(0).Width;
 
 
-					// LOLLO TODO see if I shouldn't rather do something like
+					// LOLLO see if I shouldn't rather do something like
 					// await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.VideoPreview, encodingProperties);
 					// await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.Photo, encodingProperties);
 
 
 					await _mediaCapture.CapturePhotoToStreamAsync(imageEncodingProperties, stream);
 
-					// LOLLO TODO check this
+					// LOLLO check this
 					// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt243896.aspx
 
 					var keys = imageEncodingProperties.Properties.Keys;

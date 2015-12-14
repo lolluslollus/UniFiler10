@@ -179,7 +179,7 @@
 			</Button>
 
 			<ToggleButton
-                IsChecked="{x:Bind VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=False, Converter={StaticResource BoolNullableBoolConverter}}"
+                IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
                 Style="{StaticResource ToggleButtonLolloStyle}"
 				Tapped="OnToggleElevated_Tapped">
 
@@ -319,7 +319,7 @@
 		<local:MetaBriefcaseView Grid.Row="2"
 			x:Name="MBView"            
             VM="{x:Bind VM, Mode=OneWay}"
-			IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=False}"/>
+			IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
 		
 	</Grid>
 </ctl:OpenableObservablePage>

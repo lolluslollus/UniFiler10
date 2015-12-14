@@ -66,7 +66,7 @@ namespace UniFiler10.Views
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			Task shoot = VM?.ShootAsync(DataContext as Wallet);
+			Task shoot = VM?.ShootAsync(false, DataContext as Wallet);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)

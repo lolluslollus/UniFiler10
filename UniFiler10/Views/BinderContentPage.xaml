@@ -16,7 +16,7 @@
 	<ctl:LolloSplitView
 		x:Name="LayoutRoot"
         IsPaneOpen="True"
-        IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=False}"
+        IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"
         ClosedPaneLength="{StaticResource CompactPaneLength}"
         OpenPaneLength="{StaticResource CompactPaneLength}"
 		d:DataContext="{d:DesignInstance vm:BinderContentVM, IsDesignTimeCreatable=True, CreateList=True}">
@@ -31,14 +31,14 @@
 					DataContext="{x:Bind Path=VM.Binder.CurrentFolder, Mode=OneWay}"/>
 
 				<!--<Popup
-					IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=False}">
+					IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=false}">
 					--><!--VM="{x:Bind VM, Mode=OneWay}"--><!--
 					<local:CameraView x:Name="CameraView"
 						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
 				</Popup>
 
 				<Popup
-					IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=False}">
+					IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=false}">
 					--><!--VM="{x:Bind VM, Mode=OneWay}"--><!--
 					<local:AudioRecorderView x:Name="AudioRecorderView"
 						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>

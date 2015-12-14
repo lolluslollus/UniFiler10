@@ -128,7 +128,7 @@ namespace UniFiler10.ViewModels
 		#endregion user actions
 
 
-		#region save media
+		#region add media
 		public async Task LoadMediaFileAsync()
 		{
 			await RunFunctionWhileOpenAsyncT(async delegate
@@ -178,12 +178,14 @@ namespace UniFiler10.ViewModels
 		//}
 		private readonly object _captureLock = new object();
 		private bool _isCapturing = false;
-		public async Task ShootAsync(Wallet parentWallet = null)
+		public async Task ShootAsync(bool createWallet, Wallet parentWallet)
 		{
 			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
+			if (!createWallet && parentWallet == null) return;
 			await RunFunctionWhileOpenAsyncA(delegate
 			{
 				if (RuntimeData.Instance?.IsCameraAvailable != true) return;
+				if (!createWallet && parentWallet == null) return;
 				var folder = _folder;
 				if (folder != null)
 				{
@@ -206,11 +208,11 @@ namespace UniFiler10.ViewModels
 							}
 							else
 							{
-								if (parentWallet == null)
+								if (createWallet)
 								{
 									await folder.ImportMediaFileIntoNewWalletAsync(photoFile, true).ConfigureAwait(false);
 								}
-								else
+								else if (!createWallet && parentWallet != null)
 								{
 									await parentWallet.ImportMediaFileAsync(photoFile, true).ConfigureAwait(false);
 								}
@@ -219,7 +221,10 @@ namespace UniFiler10.ViewModels
 							lock (_captureLock) { _isCapturing = false; }
 						});
 					}
-					catch (Exception ex) { }
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
 				}
 			}).ConfigureAwait(false);
 		}
@@ -287,7 +292,7 @@ namespace UniFiler10.ViewModels
 			}
 			return null;
 		}
-		#endregion save media
+		#endregion add media
 
 
 		#region edit categories

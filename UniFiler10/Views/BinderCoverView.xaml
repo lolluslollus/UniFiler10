@@ -252,7 +252,7 @@
 
 				<!-- recent folders header -->
 				<ToggleButton 
-                    IsChecked="{x:Bind VM.IsRecentFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
+                    IsChecked="{Binding ElementName=me, Path=VM.IsRecentFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
 					<Grid>
@@ -279,8 +279,8 @@
 
 				<!-- all folders header -->
 				<ToggleButton 
-						IsChecked="{x:Bind VM.IsAllFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
-						Style="{StaticResource ToggleButtonLolloStyle}">
+					IsChecked="{Binding ElementName=me, Path=VM.IsAllFoldersPaneOpen, Mode=TwoWay}"
+					Style="{StaticResource ToggleButtonLolloStyle}">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
@@ -305,9 +305,9 @@
 
 				<!-- folders by category header -->
 				<ToggleButton 
-                    IsChecked="{x:Bind VM.IsByCatFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
+                    IsChecked="{Binding ElementName=me, Path=VM.IsByCatFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
-
+					
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
@@ -332,7 +332,7 @@
 
 				<!-- folders by field header -->
 				<ToggleButton 
-                    IsChecked="{x:Bind VM.IsByFldFoldersPaneOpen, Mode=TwoWay, Converter={StaticResource BoolNullableBoolConverter}}"
+                    IsChecked="{Binding ElementName=me, Path=VM.IsByFldFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
 					<Grid>
