@@ -72,8 +72,8 @@ namespace UniFiler10.Views
 		//private bool _isRecordingVideo;
 
 		// Information about the camera device
-		private bool _isMirroringPreview;
-		private bool _isExternalCamera;
+		private bool _isMirroringPreview = false;
+		private bool _isExternalCamera = false;
 
 		private StorageFile _file = null;
 		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
@@ -347,19 +347,20 @@ namespace UniFiler10.Views
 					LastMessage = RuntimeData.GetText("CameraDeviceNotFound");
 					return false;
 				}
-				// LOLLO TEST the following should find out what a device is capable of: check it
-				// according to https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
-				// but my pad has no profiles it seems
-				// so maybe https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt592658.aspx helps?
-				// i already copied its helper class here at the bottom of the include.
-				var profiles = MediaCapture.FindAllVideoProfiles(cameraDevice.Id);
+				//// LOLLO TEST the following should find out what a device is capable of: check it
+				//// according to https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
+				//// but my pad has no profiles it seems
+				//// so maybe https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt592658.aspx helps?
+				//// i already copied its helper class here at the bottom of the include.
+				//var profiles = MediaCapture.FindAllVideoProfiles(cameraDevice.Id);
 
-				var match = (from profile in profiles
-							 from desc in profile.SupportedRecordMediaDescription
-								 //where desc.Width == 640 && desc.Height == 480 && Math.Round(desc.FrameRate) == 30
-							 select new { profile, desc, desc.Width, desc.Height });
-				int test = profiles.Count; // LOLLO TODO it does not find any profiles, even though the device is video capable.
-										   // how can i find out the max resolution then? if i set it too high, it will get stuck.
+				//var match = (from profile in profiles
+				//			 from desc in profile.SupportedRecordMediaDescription
+				//				 //where desc.Width == 640 && desc.Height == 480 && Math.Round(desc.FrameRate) == 30
+				//			 select new { profile, desc, desc.Width, desc.Height });
+				//int test = profiles.Count; // LOLLO TODO it does not find any profiles, even though the device is video capable.
+				//						   // how can i find out the max resolution then? if i set it too high, it will get stuck.
+
 
 				// Create MediaCapture and its settings
 				_mediaCapture = new MediaCapture();
@@ -397,6 +398,7 @@ namespace UniFiler10.Views
 				{
 					// No information on the location of the camera, assume it's an external camera, not integrated on the device
 					_isExternalCamera = true;
+					_isMirroringPreview = false;
 				}
 				else
 				{
@@ -406,8 +408,6 @@ namespace UniFiler10.Views
 					// Only mirror the preview if the camera is on the front panel
 					_isMirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
 				}
-				// LOLLO TODO https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
-				// explains how to check what a device is capable of
 
 				UpdateFlash();
 
@@ -529,16 +529,26 @@ namespace UniFiler10.Views
 				try
 				{
 					LastMessage = RuntimeData.GetText("CameraTakingPhoto");
-					var test2 = _mediaCapture.VideoDeviceController.AdvancedPhotoControl.SupportedModes;
-					var test3 = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo);
+					// var test2 = _mediaCapture.VideoDeviceController.AdvancedPhotoControl.SupportedModes;
+					// Query all properties of the specified stream type (photo)
+					var allStreamProperties = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo).Select(x => new StreamPropertiesHelper(x));
+					// Order them by resolution then frame rate
+					allStreamProperties = allStreamProperties.OrderByDescending(x => x.Height * x.Width).ThenByDescending(x => x.FrameRate);
 
-					var test = ImageEncodingProperties.CreateJpeg(); test.Height = 20000; test.Width = 32000;
-					await _mediaCapture.CapturePhotoToStreamAsync(test, stream);
+
+					// set the highest available resolution. // LOLLO TODO allow setting lower resolutions from the screen
+					var imageEncodingProperties = ImageEncodingProperties.CreateJpeg();
+					imageEncodingProperties.Height = allStreamProperties.ElementAt(0).Height;
+					imageEncodingProperties.Width = allStreamProperties.ElementAt(0).Width;
+
+
+
+					await _mediaCapture.CapturePhotoToStreamAsync(imageEncodingProperties, stream);
 
 					// LOLLO TODO check this
 					// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt243896.aspx
 
-					var keys = test.Properties.Keys;
+					var keys = imageEncodingProperties.Properties.Keys;
 					var testXR = ImageEncodingProperties.CreateJpegXR();
 					var keysXR = testXR.Properties.Keys;
 
