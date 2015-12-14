@@ -351,6 +351,11 @@ namespace UniFiler10.Views
 				//// according to https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
 				//// but my pad has no profiles it seems
 				//// so maybe https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt592658.aspx helps?
+				// it seems so. However, I still need to 
+				// Match the aspect ratio of the preview and capture streams
+				// and
+				// Determine if the preview and capture streams are independent
+				//
 				//// i already copied its helper class here at the bottom of the include.
 				//var profiles = MediaCapture.FindAllVideoProfiles(cameraDevice.Id);
 
@@ -541,6 +546,10 @@ namespace UniFiler10.Views
 					imageEncodingProperties.Height = allStreamProperties.ElementAt(0).Height;
 					imageEncodingProperties.Width = allStreamProperties.ElementAt(0).Width;
 
+
+					// LOLLO TODO see if I shouldn't rather do something like
+					// await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.VideoPreview, encodingProperties);
+					// await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.Photo, encodingProperties);
 
 
 					await _mediaCapture.CapturePhotoToStreamAsync(imageEncodingProperties, stream);
