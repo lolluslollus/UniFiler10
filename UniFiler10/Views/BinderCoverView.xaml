@@ -498,8 +498,10 @@
 								</ctl:TextBlockScaler.TextBlock>
 							</ctl:TextBlockScaler>
 							
+							<!-- LOLLO TODO hide the open buttons -->
 							<local:DocumentView Canvas.ZIndex="100"
         						IsDeleteEnabled="False"
+												
         						DataContext="{Binding Document, Mode=OneWay}"/>
 
 							<AppBarButton Icon="Delete"

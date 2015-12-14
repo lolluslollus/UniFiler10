@@ -58,13 +58,13 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty WalletProperty =
 			DependencyProperty.Register("Wallet", typeof(Wallet), typeof(DocumentView), new PropertyMetadata(null));
 
-		public Folder Folder
-		{
-			get { return (Folder)GetValue(FolderProperty); }
-			set { SetValue(FolderProperty, value); }
-		}
-		public static readonly DependencyProperty FolderProperty =
-			DependencyProperty.Register("Folder", typeof(Folder), typeof(DocumentView), new PropertyMetadata(null));
+		//public Folder Folder
+		//{
+			//get { return (Folder)GetValue(FolderProperty); }
+			//set { SetValue(FolderProperty, value); }
+		//}
+		//public static readonly DependencyProperty FolderProperty =
+			//DependencyProperty.Register("Folder", typeof(Folder), typeof(DocumentView), new PropertyMetadata(null));
 
 		private bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
