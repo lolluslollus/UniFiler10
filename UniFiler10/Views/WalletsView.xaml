@@ -73,7 +73,7 @@
 
 						<local:WalletView
                             VM="{Binding ElementName=me, Path=VM, Mode=OneWay}"
-                            DataContext="{Binding}"/>
+							Wallet="{Binding}"/>
                     </Grid>
                     <!--</Border>-->
                 </DataTemplate>

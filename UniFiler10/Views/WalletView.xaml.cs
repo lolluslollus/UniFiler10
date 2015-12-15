@@ -1,23 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Diagnostics;
 using System.Threading.Tasks;
-using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
 using Utilz;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.ViewManagement;
+using Windows.Storage;
+using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -25,14 +15,6 @@ namespace UniFiler10.Views
 {
 	public sealed partial class WalletView : UserControl
 	{
-		//public BinderContentVM VM
-		//{
-		//	get { return (BinderContentVM)GetValue(VMProperty); }
-		//	set { SetValue(VMProperty, value); }
-		//}
-		//public static readonly DependencyProperty VMProperty =
-		//	DependencyProperty.Register("VM", typeof(BinderContentVM), typeof(WalletView), new PropertyMetadata(null));
-
 		public FolderVM VM
 		{
 			get { return (FolderVM)GetValue(VMProperty); }
@@ -41,37 +23,69 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty VMProperty =
 			DependencyProperty.Register("VM", typeof(FolderVM), typeof(WalletView), new PropertyMetadata(null));
 
-		//public Folder Folder
-		//{
-		//	get { return (Folder)GetValue(FolderProperty); }
-		//	set { SetValue(FolderProperty, value); }
-		//}
-		//public static readonly DependencyProperty FolderProperty =
-		//	DependencyProperty.Register("Folder", typeof(Folder), typeof(WalletView), new PropertyMetadata(null));
+		public Wallet Wallet
+		{
+			get { return (Wallet)GetValue(WalletProperty); }
+			set { SetValue(WalletProperty, value); }
+		}
+		public static readonly DependencyProperty WalletProperty =
+			DependencyProperty.Register("Wallet", typeof(Wallet), typeof(WalletView), new PropertyMetadata(null));
 
 		public WalletView()
 		{
 			InitializeComponent();
 		}
 
-		//private void OnAdd_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task add = VM?.AddEmptyDocumentToWalletAsync(DataContext as Wallet);
-		//}
-
 		private void OnItemDelete_Click(object sender, RoutedEventArgs e)
 		{
-			Task del = VM?.RemoveWalletFromFolderAsync(DataContext as Wallet);
+			Task del = VM?.RemoveWalletFromFolderAsync(Wallet);
 		}
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			Task shoot = VM?.ShootAsync(false, DataContext as Wallet);
+			Task shoot = VM?.ShootAsync(false, Wallet);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
 		{
-			Task openFile = VM?.LoadMediaFileAsync(DataContext as Wallet);
+			Task openFile = VM?.LoadMediaFileAsync(Wallet);
+		}
+
+		private async void OnDocumentView_DocumentClicked(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			var doc = e?.Document;
+			if (doc != null && !string.IsNullOrWhiteSpace(doc.Uri0))
+			{
+				var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
+				if (file != null)
+				{
+					bool isOk = false;
+					try
+					{
+						//isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
+						isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						Debugger.Break();
+						await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+					}
+				}
+			}
+		}
+
+		private async void OnDocumentView_DeleteClicked(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			bool isOk = false;
+			var vm = VM;
+			if (vm != null && e != null)
+			{
+				if (await vm.RemoveDocumentFromWalletAsync(e.Wallet, e.Document).ConfigureAwait(false))
+				{
+					// if there are no more documents in the wallet, delete the wallet, too
+					isOk = await vm.RemoveWalletFromFolderAsync(e.Wallet).ConfigureAwait(false);
+				}
+			}
 		}
 	}
 }

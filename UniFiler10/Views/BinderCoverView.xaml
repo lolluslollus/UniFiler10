@@ -498,20 +498,19 @@
 								</ctl:TextBlockScaler.TextBlock>
 							</ctl:TextBlockScaler>
 							
-							<!-- LOLLO TODO hide the open buttons -->
 							<local:DocumentView Canvas.ZIndex="100"
-        						IsDeleteEnabled="False"
-												
-        						DataContext="{Binding Document, Mode=OneWay}"/>
+								IsClickSensitive="False"
+								DeleteClicked="OnDocumentView_DeleteClicked"
+								Document="{Binding Document, Mode=OneWay}"/>
 
-							<AppBarButton Icon="Delete"
+							<!--<AppBarButton Icon="Delete"
 								Tapped="OnDeleteFolder_Tapped"
 								Canvas.ZIndex="200"
 								Style="{StaticResource AppBarButtonRecoloured}"
 								IsCompact="True"
 								Foreground="{StaticResource FlashyForeground}"
 								Opacity="1"
-								HorizontalAlignment="Right" VerticalAlignment="Top"/>
+								HorizontalAlignment="Right" VerticalAlignment="Top"/>-->
 						</Grid>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>

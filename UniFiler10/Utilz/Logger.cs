@@ -215,86 +215,86 @@ namespace Utilz
 			});
 		}
 
-		//public static async Task SendEmailWithLogsAsync(string recipient)
-		//{
-		//	EmailRecipient emailRecipient = new EmailRecipient(recipient);
+		public static async Task SendEmailWithLogsAsync(string recipient)
+		{
+			EmailRecipient emailRecipient = new EmailRecipient(recipient);
 
-		//	EmailMessage emailMsg = new EmailMessage();
-		//	emailMsg.Subject = string.Format("Feedback from {0} with logs", ConstantData.APPNAME);
-		//	emailMsg.To.Add(emailRecipient);
-		//	//emailMsg.Body = await ReadAllLogsIntoStringAsync(); // LOLLO this only works with a short body...
+			EmailMessage emailMsg = new EmailMessage();
+			emailMsg.Subject = string.Format("Feedback from {0} with logs", ConstantData.APPNAME);
+			emailMsg.To.Add(emailRecipient);
+			//emailMsg.Body = await ReadAllLogsIntoStringAsync(); // LOLLO this only works with a short body...
 
-		//	string body = await ReadAllLogsIntoStringAsync();
+			string body = await ReadAllLogsIntoStringAsync();
 
-		//	using (var ms = new InMemoryRandomAccessStream())
-		//	{
-		//		using (var s4w = ms.AsStreamForWrite())
+			using (var ms = new InMemoryRandomAccessStream())
+			{
+				using (var s4w = ms.AsStreamForWrite())
+				{
+					using (var sw = new StreamWriter(s4w, Encoding.Unicode))
+					{
+						await sw.WriteAsync(body);
+						await sw.FlushAsync();
+
+						// LOLLO TODO the emails are broken (again)
+						// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
+						// the following brings up a preview with only the beginning of the body, at least with Outlook.
+						// it truncates the body if it is too long, like with mailto:
+						// emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
+
+						// the following instead does not work at all, at least with Outlook: no attachments are attached
+						emailMsg.Body = "I have attached the logs";
+
+						ms.Seek(0);
+						var att = new EmailAttachment("Logs.txt", RandomAccessStreamReference.CreateFromStream(ms)); //, "text/plain");
+						emailMsg.Attachments.Add(att);
+
+						//await s4w.FlushAsync();
+						//await ms.FlushAsync();
+
+						emailMsg.Attachments[0].EstimatedDownloadSizeInBytes = ms.Size;
+
+						await EmailManager.ShowComposeNewEmailAsync(emailMsg); //.AsTask().ConfigureAwait(false);
+					}
+				}
+			}
+		}
+
+		//		public static async Task SendEmailWithLogsAsync(string recipient)
 		//		{
-		//			using (var sw = new StreamWriter(s4w, Encoding.Unicode))
+		//			try
 		//			{
-		//				await sw.WriteAsync(body);
-		//				await sw.FlushAsync();
+		//				EmailRecipient emailRecipient = new EmailRecipient(recipient);
 
-		//				// LOLLO TODO the emails are broken (again)
-		//				// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
-		//				// the following brings up a preview with only the beginning of the body, at least with Outlook.
-		//				// it truncates the body if it is too long, like with mailto:
-		//				// emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
-
-		//				// the following instead does not work at all, at least with Outlook: no attachments are attached
+		//				EmailMessage emailMsg = new EmailMessage();
+		//				//emailMsg.Body = await ReadAllLogsIntoStringAsync(); // LOLLO this only works with a short body...
 		//				emailMsg.Body = "I have attached the logs";
 
-		//				ms.Seek(0);
-		//				var att = new EmailAttachment("Logs.txt", RandomAccessStreamReference.CreateFromStream(ms)); //, "text/plain");
-		//				emailMsg.Attachments.Add(att);
+		//				string body = await ReadAllLogsIntoStringAsync();
+		//				var attachmentFile = await DocumentExtensions.WriteTextIntoFileAsync(body, "Logs.txt");
 
-		//				//await s4w.FlushAsync();
-		//				//await ms.FlushAsync();
+		//				// LOLLO TODO this is broken too, even if it was copied from the MS tutorial
+		//				// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
+		//				// the following brings up a preview with only the beginning of the body, with Outlook (The mail app works fine)
+		//				//emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
 
-		//				emailMsg.Attachments[0].EstimatedDownloadSizeInBytes = ms.Size;
+		//				// the following does not work at all, at least with Outlook
+		//				var attStrRef = RandomAccessStreamReference.CreateFromFile(attachmentFile);
+
+		//				var attachment = new EmailAttachment(attachmentFile.Name, attStrRef, "text/plain");
+		//				emailMsg.Attachments.Add(attachment);
+
+		//				emailMsg.Subject = string.Format("Feedback from {0} with logs", ConstantData.APPNAME);
+		//				emailMsg.To.Add(emailRecipient);
 
 		//				await EmailManager.ShowComposeNewEmailAsync(emailMsg); //.AsTask().ConfigureAwait(false);
 		//			}
+		//#pragma warning disable 0168
+		//			catch (Exception ex)
+		//#pragma warning restore 0168
+		//			{
+
+		//			}
 		//		}
-		//	}
-		//}
-		// private static RandomAccessStreamReference _attStrRef = null;
-		public static async Task SendEmailWithLogsAsync(string recipient)
-		{
-			try
-			{
-				EmailRecipient emailRecipient = new EmailRecipient(recipient);
-
-				EmailMessage emailMsg = new EmailMessage();
-				//emailMsg.Body = await ReadAllLogsIntoStringAsync(); // LOLLO this only works with a short body...
-				emailMsg.Body = "I have attached the logs";
-
-				string body = await ReadAllLogsIntoStringAsync();
-				var attachmentFile = await DocumentExtensions.WriteTextIntoFileAsync(body, "Logs.txt");
-
-				// LOLLO TODO this is broken too, even if it was copied from the MS tutorial
-				// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
-				// the following brings up a preview with only the beginning of the body, at least with Outlook
-				//emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
-
-				// the following does not work at all, at least with Outlook
-				var attStrRef = RandomAccessStreamReference.CreateFromFile(attachmentFile);
-
-				var attachment = new EmailAttachment(attachmentFile.Name, attStrRef, "text/plain");
-				emailMsg.Attachments.Add(attachment);
-
-				emailMsg.Subject = string.Format("Feedback from {0} with logs", ConstantData.APPNAME);
-				emailMsg.To.Add(emailRecipient);
-
-				await EmailManager.ShowComposeNewEmailAsync(emailMsg); //.AsTask().ConfigureAwait(false);
-			}
-#pragma warning disable 0168
-			catch (Exception ex)
-#pragma warning restore 0168
-			{
-
-			}
-		}
 		private static async Task<string> ReadAllLogsIntoStringAsync()
 		{
 			var sb = new StringBuilder();

@@ -37,7 +37,7 @@
             IsItemClickEnabled="True"-->
         <!-- LOLLO no need for a ListView here, the scrolling is already in the parent ListView-->
         <ItemsControl Grid.Row="1"
-            ItemsSource="{Binding Documents}"
+            ItemsSource="{x:Bind Wallet.Documents, Mode=OneWay}"
             IsHoldingEnabled="False" 
             IsDoubleTapEnabled="False"
             IsRightTapEnabled="False">
@@ -48,9 +48,13 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
+					<!--FolderVM="{Binding ElementName=me, Path=VM, Mode=OneWay}"-->
 					<local:DocumentView 
-                        DataContext="{Binding}" 
-                        FolderVM="{Binding ElementName=me, Path=VM, Mode=OneWay}"/>
+                        Document="{Binding}"
+						Wallet="{Binding ElementName=me, Path=Wallet, Mode=OneWay}"
+						IsClickSensitive="True"
+						DocumentClicked="OnDocumentView_DocumentClicked"
+						DeleteClicked="OnDocumentView_DeleteClicked"/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

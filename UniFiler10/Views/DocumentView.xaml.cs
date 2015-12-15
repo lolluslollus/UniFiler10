@@ -1,28 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
-using UniFiler10.ViewModels;
 using Utilz;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using Windows.Data.Pdf;
-using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
-using Windows.System;
-using System.Diagnostics;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // LOLLO WebView: http://blogs.msdn.com/b/wsdevsol/archive/2012/10/18/nine-things-you-need-to-know-about-webview.aspx
@@ -32,23 +20,32 @@ namespace UniFiler10.Views
 	public sealed partial class DocumentView : ObservableControl
 	{
 		#region properties
-		public bool IsDeleteEnabled
+		public bool IsDeleteButtonEnabled
 		{
-			get { return (bool)GetValue(IsDeleteEnabledProperty); }
-			set { SetValue(IsDeleteEnabledProperty, value); }
+			get { return (bool)GetValue(IsDeleteButtonEnabledProperty); }
+			set { SetValue(IsDeleteButtonEnabledProperty, value); }
 		}
-		public static readonly DependencyProperty IsDeleteEnabledProperty =
-			DependencyProperty.Register("IsDeleteEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
+		public static readonly DependencyProperty IsDeleteButtonEnabledProperty =
+			DependencyProperty.Register("IsDeleteButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
-		public FolderVM FolderVM
+		/// <summary>
+		/// This button is useful if I have web content coz the WebView does not relay the clicks
+		/// </summary>
+		public bool IsViewLargeButtonEnabled
 		{
-			get { return (FolderVM)GetValue(BinderVMProperty); }
-			set { SetValue(BinderVMProperty, value); }
+			get { return (bool)GetValue(IsViewLargeButtonEnabledProperty); }
+			set { SetValue(IsViewLargeButtonEnabledProperty, value); }
 		}
-		public static readonly DependencyProperty BinderVMProperty =
-			DependencyProperty.Register("FolderVM", typeof(FolderVM), typeof(DocumentView), new PropertyMetadata(null));
+		public static readonly DependencyProperty IsViewLargeButtonEnabledProperty =
+			DependencyProperty.Register("IsViewLargeButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
-		private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
+		public bool IsClickSensitive
+		{
+			get { return (bool)GetValue(IsClickSensitiveProperty); }
+			set { SetValue(IsClickSensitiveProperty, value); }
+		}
+		public static readonly DependencyProperty IsClickSensitiveProperty =
+			DependencyProperty.Register("IsClickSensitive", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
 		public Wallet Wallet
 		{
@@ -58,13 +55,42 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty WalletProperty =
 			DependencyProperty.Register("Wallet", typeof(Wallet), typeof(DocumentView), new PropertyMetadata(null));
 
-		//public Folder Folder
-		//{
-			//get { return (Folder)GetValue(FolderProperty); }
-			//set { SetValue(FolderProperty, value); }
-		//}
-		//public static readonly DependencyProperty FolderProperty =
-			//DependencyProperty.Register("Folder", typeof(Folder), typeof(DocumentView), new PropertyMetadata(null));
+		public Document Document
+		{
+			get { return (Document)GetValue(DocumentProperty); }
+			set { SetValue(DocumentProperty, value); }
+		}
+		public static readonly DependencyProperty DocumentProperty =
+			DependencyProperty.Register("Document", typeof(Document), typeof(DocumentView), new PropertyMetadata(null, OnDocumentChanged));
+		private static async void OnDocumentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			try
+			{
+				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
+				var instance = obj as DocumentView;
+				if (instance != null)
+				{
+					var newDoc = args.NewValue as Document;
+					if (newDoc == null)
+					{
+						instance._previousUri = null;
+						Task render = instance.RenderPreviewAsync(newDoc);
+					}
+					else if (newDoc.GetFullUri0() != instance._previousUri)
+					{
+						instance._previousUri = newDoc.GetFullUri0();
+						Task render = instance.RenderPreviewAsync(newDoc);
+					}
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_previousUriSemaphore);
+			}
+
+		}
+
+		private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
 
 		private bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
@@ -74,45 +100,45 @@ namespace UniFiler10.Views
 		#endregion properties
 
 
-		#region construct
+		#region ctor
 		public DocumentView()
 		{
 			_height = (uint)(double)Application.Current.Resources["MiniatureHeight"];
 			_width = (uint)(double)Application.Current.Resources["MiniatureWidth"];
-			DataContextChanged += OnDataContextChanged;
+			//DataContextChanged += OnDataContextChanged;
 
 			InitializeComponent();
 		}
-		#endregion construct
+		#endregion ctor
 
 
 		#region render
 		private string _previousUri = null;
 
 		private static SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
-		{
-			try
-			{
-				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
+		//private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+		//{
+		//	try
+		//	{
+		//		await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
 
-				var newDoc = DataContext as Document;
-				if (newDoc == null)
-				{
-					_previousUri = null;
-					Task render = RenderPreviewAsync(newDoc);
-				}
-				else if (newDoc.GetFullUri0() != _previousUri)
-				{
-					_previousUri = newDoc.GetFullUri0();
-					Task render = RenderPreviewAsync(newDoc);
-				}
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_previousUriSemaphore);
-			}
-		}
+		//		var newDoc = DataContext as Document;
+		//		if (newDoc == null)
+		//		{
+		//			_previousUri = null;
+		//			Task render = RenderPreviewAsync(newDoc);
+		//		}
+		//		else if (newDoc.GetFullUri0() != _previousUri)
+		//		{
+		//			_previousUri = newDoc.GetFullUri0();
+		//			Task render = RenderPreviewAsync(newDoc);
+		//		}
+		//	}
+		//	finally
+		//	{
+		//		SemaphoreSlimSafeRelease.TryRelease(_previousUriSemaphore);
+		//	}
+		//}
 
 		private async Task RenderPreviewAsync(Document doc)
 		{
@@ -165,7 +191,7 @@ namespace UniFiler10.Views
 
 		private async Task RenderHtmlMiniatureAsync()
 		{
-			string ssss = await DocumentExtensions.GetTextFromFileAsync((DataContext as Document)?.GetFullUri0()).ConfigureAwait(false);
+			string ssss = await DocumentExtensions.GetTextFromFileAsync(Document?.GetFullUri0()).ConfigureAwait(false);
 			await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 			{
 				ShowWebViewer();
@@ -184,7 +210,7 @@ namespace UniFiler10.Views
 			// LOLLO the WebView sometimes renders, sometimes not. This is pedestrian but works better than the other method.
 			try
 			{
-				Uri uri = new Uri((DataContext as Document)?.GetFullUri0());
+				Uri uri = new Uri(Document?.GetFullUri0());
 				if (uri != null)
 				{
 					await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
@@ -225,7 +251,7 @@ namespace UniFiler10.Views
 		{
 			try
 			{
-				var imgFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.GetFullUri0()).AsTask().ConfigureAwait(false);
+				var imgFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
 				if (imgFile != null)
 				{
 					using (IRandomAccessStream stream = await imgFile.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false))
@@ -243,7 +269,7 @@ namespace UniFiler10.Views
 		{
 			try
 			{
-				var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.GetFullUri0()).AsTask().ConfigureAwait(false);
+				var pdfFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
 				var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile).AsTask().ConfigureAwait(false);
 				if (pdfDocument?.PageCount > 0)
 				{
@@ -272,9 +298,9 @@ namespace UniFiler10.Views
 		//{
 		//	try
 		//	{
-		//		var txtFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.Uri0).AsTask().ConfigureAwait(false);
+		//		var txtFile = await StorageFile.GetFileFromPathAsync(Document?.Uri0).AsTask().ConfigureAwait(false);
 
-		//		string txt = await DocumentExtensions.GetTextFromFileAsync((DataContext as Document)?.Uri0).ConfigureAwait(false);
+		//		string txt = await DocumentExtensions.GetTextFromFileAsync(Document?.Uri0).ConfigureAwait(false);
 
 		//		var pdfDocument = await PdfDocument.LoadFromFileAsync(txtFile).AsTask().ConfigureAwait(false);
 		//		if (pdfDocument?.PageCount > 0)
@@ -305,7 +331,7 @@ namespace UniFiler10.Views
 			// LOLLO TODO MAYBE we could reuse this method across different documents, on condition we reference the file somehow, to check if it already exists
 			try
 			{
-				var pdfFile = await StorageFile.GetFileFromPathAsync((DataContext as Document)?.GetFullUri0()).AsTask().ConfigureAwait(false);
+				var pdfFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
 
 				var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
 
@@ -381,8 +407,6 @@ namespace UniFiler10.Views
 				{
 					ShowImageViewer();
 					BitmapImage src = new BitmapImage() { DecodePixelHeight = (int)_height };
-					//src.RegisterPropertyChangedCallback(BitmapImage.PixelHeightProperty, OnPixelHeightChanged);
-					//src.RegisterPropertyChangedCallback(BitmapImage.PixelWidthProperty, OnPixelWidthChanged);
 					src.SetSource(stream);
 					ImageViewer.Source = src;
 				}).AsTask().ConfigureAwait(false);
@@ -392,78 +416,52 @@ namespace UniFiler10.Views
 		{
 			ImageViewer.Visibility = Visibility.Collapsed;
 			WebViewer.Visibility = Visibility.Visible;
-			//WebViewBox.Visibility = Visibility.Visible;
 		}
 		private void ShowImageViewer()
 		{
 			ImageViewer.Visibility = Visibility.Visible;
-			//WebViewBox.Visibility = Visibility.Collapsed;
 			WebViewer.Visibility = Visibility.Collapsed;
 		}
-
-		//private void WebView_NavigationCompleted(WebView sender, WebViewNavigationCompletedEventArgs args)
-		//{
-		//    Debug.WriteLine("WebViewer.NavigationCompleted fired");
-		//    Debug.WriteLine("WebViewer Visibility = " + WebViewer.Visibility.ToString());
-		//    Debug.WriteLine("ImageViewer Visibility = " + ImageViewer.Visibility.ToString());
-		//}
-
-		//private void WebView_NavigationFailed(object sender, WebViewNavigationFailedEventArgs e)
-		//{
-		//    Debug.WriteLine("WebViewer.NavigationFailed fired");
-		//    Debug.WriteLine("WebViewer Visibility = " + WebViewer.Visibility.ToString());
-		//    Debug.WriteLine("ImageViewer Visibility = " + ImageViewer.Visibility.ToString());
-		//}
 		#endregion render
 
-		#region event handlers
-		private async void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
+
+		#region events
+		public class DocumentClickedArgs : EventArgs
 		{
-			e.Handled = true;
-			if (IsDeleteEnabled && FolderVM != null)
+			private Wallet _wallet = null;
+			public Wallet Wallet { get { return _wallet; } }
+
+			private Document _document = null;
+			public Document Document { get { return _document; } }
+
+			public DocumentClickedArgs(Wallet wallet, Document document)
 			{
-				if (await FolderVM.RemoveDocumentFromWalletAsync(Wallet, DataContext as Document).ConfigureAwait(false))
-				{
-					// if there are no more documents in the wallet, delete the wallet
-					await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
-					{
-						if (Wallet?.Documents?.Count <= 0)
-						{
-							Task del2 = FolderVM?.RemoveWalletFromFolderAsync(Wallet);
-						}
-					}).AsTask().ConfigureAwait(false);
-				}
+				_wallet = wallet;
+				_document = document;
 			}
 		}
+		public event EventHandler<DocumentClickedArgs> DeleteClicked;
 
-		private async void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
+		public event EventHandler<DocumentClickedArgs> DocumentClicked;
+		#endregion events
+
+
+		#region event handlers
+		private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			//Debug.WriteLine("WebViewer Visibility = " + WebViewer.Visibility.ToString());
-			//Debug.WriteLine("ImageViewer Visibility = " + ImageViewer.Visibility.ToString());
-			//WebViewer.Refresh();
-			//return;
-
-			//if (IsRedirectTapped) return;
 			e.Handled = true;
+			if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+		}
 
-			var doc = DataContext as Document;
-			if (doc != null && !string.IsNullOrWhiteSpace(doc.Uri0))
-			{
-				var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
-				if (file != null)
-				{
-					bool isOk = false;
-					try
-					{
-						//isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
-						isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-					}
-				}
-			}
+		private void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			e.Handled = true;
+			DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+		}
+
+		private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			if (IsClickSensitive) OnPreview_Tapped(sender, e);
 		}
 		#endregion event handlers
 	}

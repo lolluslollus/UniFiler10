@@ -30,19 +30,6 @@
 					HorizontalAlignment="Left"
 					DataContext="{x:Bind Path=VM.Binder.CurrentFolder, Mode=OneWay}"/>
 
-				<!--<Popup
-					IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=false}">
-					--><!--VM="{x:Bind VM, Mode=OneWay}"--><!--
-					<local:CameraView x:Name="CameraView"
-						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
-				</Popup>
-
-				<Popup
-					IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=false}">
-					--><!--VM="{x:Bind VM, Mode=OneWay}"--><!--
-					<local:AudioRecorderView x:Name="AudioRecorderView"
-						DataContext="{Binding Binder.CurrentFolder, Mode=OneWay}"/>
-				</Popup>-->
 			</Grid>
 		</ctl:LolloSplitView.BodyContent>
 

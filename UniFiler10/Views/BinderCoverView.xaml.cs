@@ -97,6 +97,11 @@ namespace UniFiler10.Views
 			});
 		}
 
+		private void OnDocumentView_DeleteClicked(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement).DataContext as Binder.FolderPreview);
+		}
+
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			Task upd = RunFunctionWhileOpenAsyncT(async delegate
@@ -113,10 +118,6 @@ namespace UniFiler10.Views
 			});
 		}
 
-		private void OnDeleteFolder_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement).DataContext as Binder.FolderPreview);
-		}
 		private void OnAddFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			Task del = _vm?.AddFolderAsync();
