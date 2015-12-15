@@ -253,7 +253,7 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
-		private Filters _whichFilter = Filters.Recent;
+		private Filters _whichFilter = Filters.All;
 		[DataMember]
 		public Filters WhichFilter { get { return _whichFilter; } private set { _whichFilter = value; RaisePropertyChanged_UI(); } }
 		public void SetFilter(Filters newValue)

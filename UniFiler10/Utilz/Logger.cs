@@ -230,7 +230,7 @@ namespace Utilz
 			{
 				using (var s4w = ms.AsStreamForWrite())
 				{
-					using (var sw = new StreamWriter(s4w, Encoding.Unicode))
+					using (var sw = new StreamWriter(s4w, Encoding.UTF8))
 					{
 						await sw.WriteAsync(body);
 						await sw.FlushAsync();
@@ -242,6 +242,7 @@ namespace Utilz
 						// emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
 
 						// the following instead does not work at all, at least with Outlook: no attachments are attached
+						// the mail app does fine.
 						emailMsg.Body = "I have attached the logs";
 
 						ms.Seek(0);
