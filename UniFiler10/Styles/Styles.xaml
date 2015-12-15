@@ -19,17 +19,28 @@
     <SolidColorBrush x:Key="EmailForeground" Color="Blue" />
     <media:FontFamily x:Key="DefaultFontFamily">Segoe WP</media:FontFamily>
 
-    <GridLength x:Key="MiniatureWidth_ForGrid">200</GridLength>
+    <!--<GridLength x:Key="MiniatureWidth_ForGrid">200</GridLength>
     <GridLength x:Key="MiniatureHeight_ForGrid">200</GridLength>
     <x:Double x:Key="MiniatureWidth">200</x:Double>
     <x:Double x:Key="MiniatureHeight">200</x:Double>
-    <x:Double x:Key="MiniatureQuarterHeight">50</x:Double>
+    <x:Double x:Key="MiniatureQuarterHeight">50</x:Double>-->
+	<GridLength x:Key="MiniatureWidth_ForGrid">240</GridLength>
+	<GridLength x:Key="MiniatureHeight_ForGrid">240</GridLength>
+	<x:Double x:Key="MiniatureWidth">240</x:Double>
+	<x:Double x:Key="MiniatureHeight">240</x:Double>
+	<x:Double x:Key="MiniatureQuarterHeight">60</x:Double>
 
-    <x:Double x:Key="LandscapeItemWidth">200</x:Double>
-	<x:Double x:Key="LandscapeItemWidthMinusPanelPadding">184</x:Double>
-    <x:Double x:Key="LandscapeItemHeight">80</x:Double>
-    <GridLength x:Key="LandscapeItemWidth_ForGrid">200</GridLength>
-	<GridLength x:Key="LandscapeItemHeight_ForGrid">80</GridLength>
+
+	<!--<x:Double x:Key="LandscapeItemWidth">200</x:Double>-->
+	<x:Double x:Key="LandscapeItemWidth">160</x:Double>
+	<!--<x:Double x:Key="LandscapeItemWidthMinusPanelPadding">184</x:Double>-->
+	<x:Double x:Key="LandscapeItemWidthMinusPanelPadding">144</x:Double>
+    <!--<x:Double x:Key="LandscapeItemHeight">80</x:Double>-->
+	<x:Double x:Key="LandscapeItemHeight">60</x:Double>
+    <!--<GridLength x:Key="LandscapeItemWidth_ForGrid">200</GridLength>-->
+	<GridLength x:Key="LandscapeItemWidth_ForGrid">160</GridLength>
+	<!--<GridLength x:Key="LandscapeItemHeight_ForGrid">80</GridLength>-->
+	<GridLength x:Key="LandscapeItemHeight_ForGrid">60</GridLength>
 
 	<GridLength x:Key="CompactPaneLength_ForGrid">64</GridLength>
     <x:Double x:Key="CompactPaneLength">64</x:Double>
@@ -43,7 +54,7 @@
     <x:Double x:Key="MetaItemWidth">200</x:Double>
 	<x:Double x:Key="MetaItemTextWidth">150</x:Double>
 	<x:Double x:Key="MetaItemShortTextWidth">110</x:Double>
-    <x:Double x:Key="MetaItemHeight">50</x:Double>
+    <x:Double x:Key="MetaItemHeight">60</x:Double>
 	<!--<GridLength x:Key="MetaItemHeight_ForGrid">50</GridLength>-->
 
     <LinearGradientBrush x:Key="DiagonalNESWBrush" EndPoint="0.0,1.0" StartPoint="1.0,0.0">
@@ -58,9 +69,9 @@
         <GradientStop Color="Black" Offset="1"/>
     </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="VerticalWBrush" EndPoint="1.0,0.5" StartPoint="0.0,0.5">
-        <GradientStop Color="Black" Offset="0"/>
-        <GradientStop Color="White" Offset="1"/>
+	<LinearGradientBrush x:Key="VerticalWBrush" EndPoint="1.0,0.5" StartPoint="0.0,0.5">
+		<GradientStop Color="{StaticResource SystemBaseLowColor}" Offset="0"/>
+        <GradientStop Color="Transparent" Offset="1"/>
     </LinearGradientBrush>
 
 	<!--<Thickness x:Key="EThickness">2, 2, 0, 2</Thickness>-->

@@ -8,9 +8,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utilz="using:Utilz"
     xmlns:ctl="using:UniFiler10.Controlz"
+	xmlns:metadata="using:UniFiler10.Data.Metadata"
     mc:Ignorable="d"
-    d:DesignHeight="300"
-    d:DesignWidth="400">
+    d:DesignHeight="600"
+    d:DesignWidth="800"
+	d:DataContext="{d:DesignData Type=metadata:MetaBriefcase, IsDesignTimeCreatable=True}">
 
 	<ScrollViewer
         VerticalScrollBarVisibility="Auto"
@@ -31,7 +33,7 @@
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 
@@ -68,7 +70,8 @@
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+									<ColumnDefinition Width="Auto"/>
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 
@@ -80,12 +83,20 @@
 									Width="{StaticResource MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
+									Icon="Zoom"
+                                    IsCompact="True"
+                                    Click="OnSelectCategory_Click"
+                                    VerticalAlignment="Center"/>
+								<AppBarButton Grid.Column="3"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
 								<Rectangle Grid.Column="2"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
+								<Rectangle Grid.Column="3"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
 							</Grid>
@@ -100,7 +111,7 @@
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
@@ -142,7 +153,8 @@
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+									<ColumnDefinition Width="Auto"/>
 									<ColumnDefinition Width="Auto"/>
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
@@ -155,12 +167,17 @@
 									Width="{StaticResource MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
+									Icon="Zoom"
+                                    IsCompact="True"
+                                    Click="OnSelectAssignedFldDsc_Click"
+                                    VerticalAlignment="Center"/>
+								<AppBarButton Grid.Column="3"
 									Icon="Remove"
                                     IsCompact="True"
                                     Loaded="OnUnassignFieldFromCat_Loaded"                                         
                                     Click="OnUnassignFieldFromCurrentCategory_Click"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="3"
+								<AppBarButton Grid.Column="4"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
@@ -172,6 +189,10 @@
 								<Rectangle Grid.Column="3"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
+								<Rectangle Grid.Column="4"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
+
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
@@ -180,7 +201,7 @@
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
@@ -224,7 +245,8 @@
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+									<ColumnDefinition Width="Auto"/>
 									<ColumnDefinition Width="Auto"/>
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
@@ -237,11 +259,16 @@
 									Width="{StaticResource MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
+									Icon="Zoom"
+                                    IsCompact="True"
+                                    Click="OnSelectUnassignedFldDsc_Click"
+                                    VerticalAlignment="Center"/>
+								<AppBarButton Grid.Column="3"
 									Icon="Accept"
                                     IsCompact="True"
                                     Click="OnAssignFieldToCurrentCat_Click"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="3"
+								<AppBarButton Grid.Column="4"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
@@ -251,6 +278,9 @@
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
 								<Rectangle Grid.Column="3"
+									Width="{StaticResource MetaItemHeight}"
+									Height="{StaticResource MetaItemHeight}"/>
+								<Rectangle Grid.Column="4"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
 							</Grid>
@@ -265,7 +295,7 @@
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 
@@ -304,7 +334,7 @@
 						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
-				<ctl:TolerantListView
+				<ctl:TolerantListView x:Name="PossibleValuesLV"
                     ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
@@ -320,7 +350,7 @@
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Large}"/>
+									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
 									<ColumnDefinition Width="Auto"/>
 								</Grid.ColumnDefinitions>
 

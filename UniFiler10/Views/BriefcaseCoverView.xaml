@@ -166,7 +166,7 @@
 			</Viewbox>
 
 			<!-- actions for all binders -->
-			<VariableSizedWrapGrid Grid.Row="0"
+			<ctl:UniversalWrapPanel Grid.Row="0"
                 Orientation="Horizontal"
                 Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"
                 HorizontalAlignment="Stretch">
@@ -240,11 +240,11 @@
 							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
-			</VariableSizedWrapGrid>
+			</ctl:UniversalWrapPanel>
 
 			<!-- fields to add new binder -->
-			<ctl:UniversalWrapPanel Orientation="Horizontal" Grid.Row="1">
-				<Grid Grid.Row="1"
+			<ctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal" >
+				<Grid
 					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>

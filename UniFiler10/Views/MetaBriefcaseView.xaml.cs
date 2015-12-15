@@ -47,22 +47,47 @@ namespace UniFiler10.Views
 			Task upd = VM?.SetCurrentCategoryAsync(e.ClickedItem as Category);
 		}
 
-		private async void OnUnassignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
+		private void OnSelectCategory_Click(object sender, RoutedEventArgs e)
+		{
+			Task upd = VM?.SetCurrentCategoryAsync((sender as FrameworkElement).DataContext as Category);
+		}
+
+		private void OnUnassignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			Task sel = SelectUnaFldDsc(e?.ClickedItem as FieldDescription);
+		}
+
+		private void OnSelectUnassignedFldDsc_Click(object sender, RoutedEventArgs e)
+		{
+			Task sel = SelectUnaFldDsc((sender as FrameworkElement).DataContext as FieldDescription);
+		}
+
+		private async Task SelectUnaFldDsc(FieldDescription fldDsc)
 		{
 			var vm = VM;
 			if (vm != null)
 			{
-				await vm.SetCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
+				await vm.SetCurrentFieldDescriptionAsync(fldDsc);
 				AssignedLV.DeselectRange(new ItemIndexRange(AssignedLV.SelectedIndex, 1));
 			}
 		}
 
-		private async void OnAssignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
+		private void OnAssignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			Task sel = SelectAssFldDsc(e?.ClickedItem as FieldDescription);
+		}
+
+		private void OnSelectAssignedFldDsc_Click(object sender, RoutedEventArgs e)
+		{
+			Task sel = SelectAssFldDsc((sender as FrameworkElement).DataContext as FieldDescription);
+		}
+
+		private async Task SelectAssFldDsc(FieldDescription fldDsc)
 		{
 			var vm = VM;
 			if (vm != null)
 			{
-				await vm.SetCurrentFieldDescriptionAsync(e.ClickedItem as FieldDescription);
+				await vm.SetCurrentFieldDescriptionAsync(fldDsc);
 				UnassignedLV.DeselectRange(new ItemIndexRange(UnassignedLV.SelectedIndex, 1));
 			}
 		}
