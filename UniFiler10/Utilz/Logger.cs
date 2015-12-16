@@ -235,14 +235,13 @@ namespace Utilz
 						await sw.WriteAsync(body);
 						await sw.FlushAsync();
 
-						// LOLLO TODO the emails are broken (again)
+						// LOLLO TODO the emails are broken
 						// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
 						// the following brings up a preview with only the beginning of the body, at least with Outlook.
 						// it truncates the body if it is too long, like with mailto:
 						// emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
 
-						// the following instead does not work at all, at least with Outlook: no attachments are attached
-						// the mail app does fine.
+						// the following instead does not work at all, at least with Outlook: no attachments are attached; the email app works fine
 						emailMsg.Body = "I have attached the logs";
 
 						ms.Seek(0);
@@ -278,7 +277,7 @@ namespace Utilz
 		//				// the following brings up a preview with only the beginning of the body, with Outlook (The mail app works fine)
 		//				//emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));
 
-		//				// the following does not work at all, at least with Outlook
+		//				// the following does not work at all, at least with Outlook: no attachments are attached; the email app works fine
 		//				var attStrRef = RandomAccessStreamReference.CreateFromFile(attachmentFile);
 
 		//				var attachment = new EmailAttachment(attachmentFile.Name, attStrRef, "text/plain");

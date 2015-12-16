@@ -107,7 +107,6 @@
 						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
-				<!--SelectionChanged="OnCategoryListView_SelectionChanged"-->
 				<ctl:TolerantListView
                     ItemsSource="{Binding Categories, Mode=OneWay}"
                     SelectedItem="{Binding CurrentCategory, Mode=OneWay}"
@@ -189,6 +188,8 @@
                 Here, you have two lists that should look like one and have only one selected line
                 between the two of them, so no selected item binding whatsoever:
                 we need to do it in the code behind. -->
+				<!-- LOLLO NOTE not only here, use ItemClick instead of SelectionChanged
+				to be sure you only catch the user click and not the initial list filling -->
 				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 				<ctl:TolerantListView
                     x:Name="AssignedLV"
@@ -280,7 +281,6 @@
 				</Grid>
 
 				<!-- unassigned field descriptions -->
-				<!--SelectionChanged="OnUnassignedFieldDescriptionsListView_SelectionChanged"-->
 				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 				<ctl:TolerantListView
                     x:Name="UnassignedLV"
