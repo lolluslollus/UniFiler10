@@ -44,8 +44,9 @@ namespace Utilz
 
         private void RemoveHandlers()
         {
-            //if (_orientationSensor != null) _orientationSensor.OrientationChanged -= OnSensor_OrientationChanged;
-            if (_appView != null) _appView.VisibleBoundsChanged -= OnVisibleBoundsChanged;
+			//if (_orientationSensor != null) _orientationSensor.OrientationChanged -= OnSensor_OrientationChanged;
+			if (_appView == null) _appView = ApplicationView.GetForCurrentView();
+			_appView.VisibleBoundsChanged -= OnVisibleBoundsChanged;
             _isHandlersActive = false;
         }
 
@@ -53,10 +54,9 @@ namespace Utilz
         {
             if (_targetElement != null)
             {
-                bool newValue_mt = newValue;
                 _targetElement.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
                 {
-                    SetActive(newValue_mt);
+                    SetActive(newValue);
                 }).AsTask().ConfigureAwait(false);
             }
             else

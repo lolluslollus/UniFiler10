@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Runtime;
 using Utilz;
-using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using Windows.UI.Xaml;
 
 namespace UniFiler10.Data.Model
 {

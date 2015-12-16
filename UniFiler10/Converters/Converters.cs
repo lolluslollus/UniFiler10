@@ -158,4 +158,34 @@ namespace UniFiler10.Converters
 			throw new Exception("this is a one-way bonding, it should never come here");
 		}
 	}
+
+	public class ReduceWidthForText : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return 0.0;
+
+			double par = 0.0;
+			if (parameter!=null)
+				double.TryParse(
+					parameter.ToString(),
+					NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowThousands | NumberStyles.AllowTrailingWhite, 
+					CultureInfo.InvariantCulture,
+					out par);
+
+			double val = 0.0;
+			double.TryParse(
+				value.ToString(),
+				NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowThousands | NumberStyles.AllowTrailingWhite,
+				CultureInfo.InvariantCulture,
+				out val);
+
+			return Math.Max(0.0, val - par);
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+
 }

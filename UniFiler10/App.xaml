@@ -28,6 +28,7 @@
             <conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
             <conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
+			<conv:ReduceWidthForText x:Key="ReduceWidthForText"/>
 			<vms:BooleanAndElevated x:Key="BooleanAndElevated"/>
 			<vms:BooleanAndElevatedToVisible x:Key="BooleanAndElevatedToVisible"/>
 		</ResourceDictionary>

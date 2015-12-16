@@ -1,4 +1,4 @@
-﻿<UserControl
+﻿<ctl:ObservableControl
     x:Class="UniFiler10.Views.MetaBriefcaseView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -21,6 +21,62 @@
 		HorizontalScrollMode="Enabled"
 		ZoomMode="Disabled">
 
+		<!-- LOLLO NOTE these triggers must be put in the right place.
+		For example, this does not work outside the ScrollViewer -->
+		<!-- make all broader if the screen width allows it -->
+		<VisualStateManager.VisualStateGroups>
+			<VisualStateGroup>
+				<VisualState x:Name="State200">
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1050"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="me.MetaItemTextWidth" Value="200.0"/>
+					</VisualState.Setters>
+				</VisualState>
+				<VisualState x:Name="State250">
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1200"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="me.MetaItemTextWidth" Value="250.0"/>
+					</VisualState.Setters>
+				</VisualState>
+				<VisualState x:Name="State300">
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1350"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="me.MetaItemTextWidth" Value="300.0"/>
+					</VisualState.Setters>
+				</VisualState>
+				<VisualState x:Name="State350">
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1500"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="me.MetaItemTextWidth" Value="350.0"/>
+					</VisualState.Setters>
+				</VisualState>
+				<VisualState x:Name="State400">
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1650"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="me.MetaItemTextWidth" Value="400.0"/>
+					</VisualState.Setters>
+				</VisualState>
+				<VisualState x:Name="State450">
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1800"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="me.MetaItemTextWidth" Value="450.0"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+		</VisualStateManager.VisualStateGroups>
+
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="1*"/>
@@ -39,7 +95,7 @@
 
 					<TextBlock x:Uid="Categories"
                         VerticalAlignment="Center"
-						Width="{StaticResource MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 						TextWrapping="Wrap"/>
 					<AppBarButton Grid.Column="2"
 						Icon="Add"
@@ -80,7 +136,7 @@
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{StaticResource MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Zoom"
@@ -118,7 +174,7 @@
 
 					<TextBlock x:Uid="FieldDescrsAssignedToCat"
 						VerticalAlignment="Center"
-						Width="{StaticResource MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 						TextWrapping="Wrap"/>
 					<Rectangle Grid.Column="2"
 						Width="{StaticResource MetaItemHeight}"
@@ -164,7 +220,7 @@
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{StaticResource MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Zoom"
@@ -208,7 +264,7 @@
 
 					<TextBlock x:Uid="FieldDescrsNotAssignedToCat"
                         VerticalAlignment="Center"
-						Width="{StaticResource MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 						TextWrapping="Wrap"/>
 					<AppBarButton Grid.Column="2"
 						Icon="Add"
@@ -256,7 +312,7 @@
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{StaticResource MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Zoom"
@@ -301,7 +357,7 @@
 
 					<TextBlock x:Uid="PossibleFieldValues"
                         VerticalAlignment="Center"
-						Width="{StaticResource MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 						TextWrapping="Wrap"/>
 					<AppBarButton Grid.Column="2"
 						Icon="Add"
@@ -322,10 +378,10 @@
 						VerticalContentAlignment="Center"
 						BorderThickness="0"
 						Style="{StaticResource CheckBoxLolloStyle}"
-						Width="{StaticResource MetaItemTextWidth}">
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth}">
 						<CheckBox.Content>
 							<TextBlock x:Uid="AllowAllFieldValues"
-							MaxWidth="{StaticResource MetaItemShortTextWidth}"
+							MaxWidth="{Binding ElementName=me, Path=MetaItemTextWidth, Converter={StaticResource ReduceWidthForText}, ConverterParameter=40}"
 							TextWrapping="Wrap"/>
 						</CheckBox.Content>
 					</CheckBox>
@@ -359,7 +415,7 @@
                                     MaxLength="{StaticResource MaxVaalueLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{StaticResource MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Delete"
@@ -377,4 +433,4 @@
 			</StackPanel>
 		</Grid>
 	</ScrollViewer>
-</UserControl>
+</ctl:ObservableControl>

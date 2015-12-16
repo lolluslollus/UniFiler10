@@ -51,9 +51,9 @@
     <x:Int32 x:Key="MaxTagLength">50</x:Int32>
 	<x:Int32 x:Key="MaxVaalueLength">100</x:Int32>
 	
-    <x:Double x:Key="MetaItemWidth">200</x:Double>
+    <!--<x:Double x:Key="MetaItemWidth">200</x:Double>-->
 	<x:Double x:Key="MetaItemTextWidth">150</x:Double>
-	<x:Double x:Key="MetaItemShortTextWidth">110</x:Double>
+	<!--<x:Double x:Key="MetaItemShortTextWidth">110</x:Double>-->
     <x:Double x:Key="MetaItemHeight">60</x:Double>
 	<!--<GridLength x:Key="MetaItemHeight_ForGrid">50</GridLength>-->
 
