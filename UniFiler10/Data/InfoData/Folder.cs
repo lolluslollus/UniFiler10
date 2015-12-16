@@ -225,6 +225,7 @@ namespace UniFiler10.Data.Model
 			_dynamicFields?.Dispose();
 			_dynamicFields = null;
 
+			// do not touch _dbManager, it was imported in the ctor and it it does not belong here
 			_dbManager = null;
 		}
 
@@ -242,29 +243,29 @@ namespace UniFiler10.Data.Model
 		/// <returns></returns>
 		private async Task RefreshDynamicCategoriesAsync()
 		{
-			if (MetaBriefcase.OpenInstance == null || MetaBriefcase.OpenInstance.Categories == null) return;
-
-			var availableCats = MetaBriefcase.OpenInstance.Categories;
+			var availableCats = MetaBriefcase.OpenInstance?.Categories;
+			if (availableCats == null) return;
 
 			var obsoleteDynCats = _dynamicCategories.Where(dynCat => !availableCats.Any(cat => cat.Id == dynCat.CategoryId)).ToList();
 			foreach (var obsoleteDynCat in obsoleteDynCats)
 			{
-				await RemoveDynamicCategory2Async(obsoleteDynCat.CategoryId).ConfigureAwait(false);
+				await RemoveDynamicCategoryAndItsDynFields2Async(obsoleteDynCat.CategoryId).ConfigureAwait(false);
 			}
 		}
 		/// <summary>
-		/// Removes those fields that have been removed from the category since the last save,
-		/// and adds those fields that have been added to the category since the last save.
+		/// Removes those fields that have been removed from the categories since the last save,
+		/// and adds those fields that have been added to the categories since the last save.
 		/// To be sure, we assume the metadata has been changed since the folder was last saved.
 		/// </summary>
 		/// <returns></returns>
 		private async Task RefreshDynamicFieldsAsync()
 		{
-			if (MetaBriefcase.OpenInstance == null || MetaBriefcase.OpenInstance.FieldDescriptions == null) return;
+			var dbM = _dbManager;
+			if (dbM == null) return;
 
 			try
 			{
-				var shouldBeFldDscs = new List<FieldDescription>(); // HashSet may be tricky
+				var shouldBeFldDscs = new List<FieldDescription>(); // HashSet may be tricky, a List is easier
 				foreach (var dynCat in _dynamicCategories)
 				{
 					if (dynCat.Category != null)
@@ -276,17 +277,16 @@ namespace UniFiler10.Data.Model
 					}
 					else
 					{
+						await Logger.AddAsync("DynamicCategory " + dynCat.Id + " has Category = null: this must never happen", Logger.ForegroundLogFilename).ConfigureAwait(false);
 						Debugger.Break(); // this must never happen
 					}
 				}
 				// remove obsolete fields
 				// LOLLO I create a List, instead of using the IEnumerable, otherwise the following Remove will break the ienumerable and dump!
 				var obsoleteDynFlds = _dynamicFields.Where(dynFld => !shouldBeFldDscs.Any(fldDsc => fldDsc.Id == dynFld.FieldDescriptionId)).ToList();
-
 				foreach (var obsoleteDynFld in obsoleteDynFlds)
 				{
-					var dbM = _dbManager;
-					if (dbM != null && await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
+					if (await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
 					{
 						await RunInUiThreadAsync(delegate
 						{
@@ -308,15 +308,13 @@ namespace UniFiler10.Data.Model
 				//	}
 				//}
 
-				// add new fields // LOLLO TODO this dumps after removing an obsolete field. the kludgy loop above, instead, works. find out why. 
+				// add new fields // LOLLO this dumps after removing an obsolete field. the kludgy loop above, instead, works. find out why. 
 				// maybe because it was a hashset, and i did not set it properly? it seems so.
 				var newFldDscs = shouldBeFldDscs.Where(fldDsc => !_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
 				foreach (var newFldDsc in newFldDscs)
 				{
 					var dynFld = new DynamicField(_dbManager, Id, newFldDsc.Id);
-					var dbM = _dbManager;
-					if (dbM != null
-						&& await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
+					if (await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
 					{
 						await RunInUiThreadAsync(delegate
 						{
@@ -328,7 +326,7 @@ namespace UniFiler10.Data.Model
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 				Debugger.Break();
 			}
 		}
@@ -438,17 +436,16 @@ namespace UniFiler10.Data.Model
 
 					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
 					{
-						List<DynamicField> newFields = new List<DynamicField>();
+						List<DynamicField> newDynFlds = new List<DynamicField>();
 						var dbM = _dbManager;
-						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newFields, true))
+						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newDynFlds, true))
 						{
 							_dynamicCategories.Add(newDynCat);
-							//DynamicFields.AddRange(newFields);
 							await newDynCat.OpenAsync();
-							foreach (var field in newFields)
+							foreach (var dynFld in newDynFlds)
 							{
-								_dynamicFields.Add(field);
-								await field.OpenAsync();
+								_dynamicFields.Add(dynFld);
+								await dynFld.OpenAsync();
 							}
 							return true;
 						}
@@ -458,18 +455,18 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
-		public Task<bool> RemoveDynamicCategoryAsync(string catId)
+		public Task<bool> RemoveDynamicCategoryAndItsFieldsAsync(string catId)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				return await RemoveDynamicCategory2Async(catId).ConfigureAwait(false);
+				return await RemoveDynamicCategoryAndItsDynFields2Async(catId).ConfigureAwait(false);
 			});
 		}
-		private async Task<bool> RemoveDynamicCategory2Async(string catId)
+		private async Task<bool> RemoveDynamicCategoryAndItsDynFields2Async(string catId)
 		{
 			if (!string.IsNullOrWhiteSpace(catId))
 			{
-				var dynCat = DynamicCategories.FirstOrDefault(a => a.CategoryId == catId);
+				var dynCat = _dynamicCategories.FirstOrDefault(a => a.CategoryId == catId);
 				if (dynCat != null)
 				{
 					var descriptionIdsOfFieldsToBeRemoved = new List<string>();
@@ -477,16 +474,15 @@ namespace UniFiler10.Data.Model
 					if (dbM != null && await dbM.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
 					{
 						_dynamicCategories.Remove(dynCat);
-
-						await dynCat.CloseAsync();
+						await dynCat.CloseAsync(); // no need to open dynCats
 
 						foreach (var fieldDescriptionId in descriptionIdsOfFieldsToBeRemoved)
 						{
-							var fieldToBeRemoved = _dynamicFields.FirstOrDefault(a => a.FieldDescriptionId == fieldDescriptionId);
+							var fieldToBeRemoved = _dynamicFields.FirstOrDefault(dynFld => dynFld.FieldDescriptionId == fieldDescriptionId);
 							if (fieldToBeRemoved != null)
 							{
 								_dynamicFields.Remove(fieldToBeRemoved);
-								await fieldToBeRemoved.CloseAsync().ConfigureAwait(false);
+								await fieldToBeRemoved.CloseAsync().ConfigureAwait(false); // no need to open dynFlds
 							}
 						}
 						return true;

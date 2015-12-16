@@ -322,7 +322,7 @@ namespace UniFiler10.ViewModels
 						}
 						else
 						{
-							Task upd = _vm?.Folder?.RemoveDynamicCategoryAsync(_catId);
+							Task upd = _vm?.Folder?.RemoveDynamicCategoryAndItsFieldsAsync(_catId);
 						}
 					}
 				}

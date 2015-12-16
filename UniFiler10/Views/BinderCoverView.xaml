@@ -95,16 +95,10 @@
 
 	<ScrollViewer>
 		<!--DataContext="{x:Bind VM, Mode=OneWay}"-->
-		<Grid Background="LavenderBlush" x:Name="LayoutRoot">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition/>
-			</Grid.RowDefinitions>
-
+		<RelativePanel Background="LavenderBlush" x:Name="LayoutRoot">
 			<!-- animation for refresh -->
-			<Viewbox Grid.Row="3" x:Name="RefreshVB"
+			<Viewbox x:Name="RefreshVB"
+				RelativePanel.Below="FldFilter"
                 Width="{StaticResource MiniatureHeight}"
                 Height="{StaticResource MiniatureHeight}"
                 HorizontalAlignment="Center"
@@ -126,6 +120,7 @@
 
 			<!-- animation for success -->
 			<Viewbox
+				RelativePanel.Below="FldFilter"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -146,6 +141,7 @@
 
 			<!-- animation for failure -->
 			<Viewbox
+				RelativePanel.Below="FldFilter"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -163,13 +159,10 @@
 					</SymbolIcon.RenderTransform>
 				</SymbolIcon>
 			</Viewbox>
-			
-			<!-- actions for all folders -->
-			<!--Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"-->
-			<VariableSizedWrapGrid Grid.Row="0"
-                Orientation="Horizontal"
-                HorizontalAlignment="Stretch">
 
+			<!-- actions for all folders -->
+			<ctl:UniversalWrapPanel Orientation="Horizontal"
+				x:Name="ActionsUWP">
 				<Button 
                     Tapped="OnAddFolder_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
@@ -311,7 +304,7 @@
 				<ToggleButton 
                     IsChecked="{Binding ElementName=me, Path=VM.IsByCatFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
-					
+
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
@@ -360,11 +353,12 @@
 							VerticalAlignment="Center"/>
 					</Grid>
 				</ToggleButton>
-			</VariableSizedWrapGrid>
+			</ctl:UniversalWrapPanel>
 
 			<!-- cat filter parameters -->
-			<!--VerticalAlignment="Center"-->
-			<ctl:LolloTextBox Grid.Row="1"
+			<ctl:LolloTextBox
+				x:Name="CatFilter"
+				RelativePanel.Below="ActionsUWP"
 				HorizontalAlignment="Left"
 				BorderThickness="0"
 				Width="{StaticResource LandscapeItemWidth}"
@@ -390,8 +384,9 @@
 			</ctl:LolloTextBox>
 
 			<!-- fld filter parameters -->
-			<VariableSizedWrapGrid Grid.Row="2" 
-				Orientation="Horizontal"
+			<VariableSizedWrapGrid Orientation="Horizontal"
+				x:Name="FldFilter"
+				RelativePanel.Below="CatFilter"
 				Visibility="{x:Bind VM.IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
 				<!--VerticalAlignment="Center"-->
 				<ctl:LolloTextBox
@@ -467,7 +462,8 @@
 			</VariableSizedWrapGrid>
 
 			<!-- folders grid -->
-			<ctl:TolerantListView Grid.Row="3"
+			<ctl:TolerantListView
+				RelativePanel.Below="FldFilter"
                 ItemsSource="{x:Bind VM.FolderPreviews, Mode=OneWay}"
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
@@ -516,6 +512,7 @@
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ctl:TolerantListView>
-		</Grid>
+			<!--</Grid>-->
+		</RelativePanel>
 	</ScrollViewer>
 </ctl:OpenableObservableControl>

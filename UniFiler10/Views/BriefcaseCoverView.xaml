@@ -93,19 +93,14 @@
 	</UserControl.Resources>
 
 	<ScrollViewer>
-		<Grid Background="Lavender" 
+		<RelativePanel Background="Lavender"
 			x:Name="LayoutRoot"
 			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
 			DataContext="{x:Bind VM, Mode=OneWay}">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition/>
-			</Grid.RowDefinitions>
 
 			<!-- animation for refresh -->
-			<Viewbox Grid.Row="3" x:Name="RefreshVB"
+			<Viewbox x:Name="RefreshVB"
+				RelativePanel.Below="NewBinderUWP"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -127,6 +122,7 @@
 
 			<!-- animation for success -->
 			<Viewbox
+				RelativePanel.Below="NewBinderUWP"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -147,6 +143,7 @@
 
 			<!-- animation for failure -->
 			<Viewbox
+				RelativePanel.Below="NewBinderUWP"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -166,11 +163,8 @@
 			</Viewbox>
 
 			<!-- actions for all binders -->
-			<!--Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"-->
-			<VariableSizedWrapGrid Grid.Row="0"
-                Orientation="Horizontal"
-				HorizontalAlignment="Stretch">
-
+			<ctl:UniversalWrapPanel Orientation="Horizontal"
+				x:Name="ActionsUWP">
 				<Button 
 					x:Name="AButton"
                     Tapped="OnAddBinderStep0_Tapped"
@@ -240,17 +234,19 @@
 							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
-			</VariableSizedWrapGrid>
+			</ctl:UniversalWrapPanel>
 
 			<!-- fields to add new binder -->
-			<ctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
+			<ctl:UniversalWrapPanel Orientation="Horizontal"
+				RelativePanel.Below="ActionsUWP"
+				x:Name="NewBinderUWP">
 				<Grid
 					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
 					</Grid.RowDefinitions>
-					
+
 					<ctl:LolloTextBox
 						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 						Style="{StaticResource LolloTextBoxStyle}"
@@ -316,25 +312,27 @@
 			</ctl:UniversalWrapPanel>
 
 			<!-- "all binders" header -->
+			<!--
 			<Grid Grid.Row="2">
 				<Border
 					Style="{StaticResource BorderLolloStyle}"
 					MinWidth="{StaticResource LandscapeItemWidth}"
-					MinHeight="{StaticResource LandscapeItemHeight}"/>
-
-				<TextBlock
-					MaxWidth="{StaticResource LandscapeItemWidth}"
-					MaxHeight="{StaticResource LandscapeItemHeight}"
-					HorizontalAlignment="Center"
-					VerticalAlignment="Center"
-					TextAlignment="Center"
-					Foreground="{ThemeResource SystemControlHighlightAltChromeWhiteBrush}"
-                    x:Uid="AllBinders" 
-                    TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
-			</Grid>
+					MinHeight="{StaticResource LandscapeItemHeight}">
+					<TextBlock
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+						MaxHeight="{StaticResource LandscapeItemHeight}"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						TextAlignment="Center"
+						Foreground="{ThemeResource SystemControlHighlightAltChromeWhiteBrush}"
+						x:Uid="AllBinders" 
+						TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+				</Border>
+			</Grid>-->
 
 			<!-- all binder miniatures -->
-			<ctl:TolerantListView Grid.Row="3"
+			<ctl:TolerantListView
+				RelativePanel.Below="NewBinderUWP"
                 ItemsSource="{x:Bind VM.Briefcase.DbNames, Mode=OneWay}"
                 IsItemClickEnabled="True"
                 IsMultiSelectCheckBoxEnabled="False"
@@ -355,25 +353,32 @@
 								<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
 							</Grid.ColumnDefinitions>
 
-							<ctl:TextBlockScaler Canvas.ZIndex="200"
+							<Border Canvas.ZIndex="200"
+        						VerticalAlignment="Bottom" HorizontalAlignment="Center"
+								Height="{StaticResource MiniatureQuarterHeight}"
+								Width="{StaticResource MiniatureWidth}"
+								Background="{StaticResource VerticalWBrush}">
+
+								<ctl:TextBlockScaler Canvas.ZIndex="200"
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
 								Height="{StaticResource MiniatureQuarterHeight}"
 								Width="{StaticResource MiniatureWidth}">
-								<ctl:TextBlockScaler.TextBlock>
-									<TextBlock
+									<ctl:TextBlockScaler.TextBlock>
+										<TextBlock
 										Text="{Binding}"
 										Foreground="{StaticResource FlashyForeground}"
 										TextAlignment="Center"
 										Padding="{StaticResource Thickness4444}"
 										TextWrapping="Wrap"/>
-									<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
-								</ctl:TextBlockScaler.TextBlock>
-							</ctl:TextBlockScaler>
+										<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
+									</ctl:TextBlockScaler.TextBlock>
+								</ctl:TextBlockScaler>
+							</Border>
 
-							<Border Height="{StaticResource MiniatureHeight}"
+							<!--<Border Height="{StaticResource MiniatureHeight}"
 								Width="{StaticResource MiniatureWidth}"
 								Margin="0" Padding="0"
-								Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
+								Background="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>-->
 
 							<AppBarButton Icon="Save"
 									Tapped="OnBackupButton_Tapped"
@@ -397,6 +402,6 @@
 				</ItemsControl.ItemTemplate>
 			</ctl:TolerantListView>
 
-		</Grid>
+		</RelativePanel>
 	</ScrollViewer>
 </ctl:OpenableObservableControl>

@@ -76,7 +76,7 @@
 		</Storyboard>
 	</ctl:OpenableObservablePage.Resources>
 
-	<Grid x:Name="LayoutRoot" 
+	<RelativePanel x:Name="LayoutRoot" 
 		  Background="AntiqueWhite"
 		  d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
 		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
@@ -85,14 +85,9 @@
 				<views:AboutPanel/>
 			</Flyout>
 		</FlyoutBase.AttachedFlyout>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition />
-		</Grid.RowDefinitions>
 
 		<!-- animation for success -->
-		<Viewbox
+		<Viewbox RelativePanel.Below="SafeNotice"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -112,7 +107,7 @@
 		</Viewbox>
 
 		<!-- animation for failure -->
-		<Viewbox
+		<Viewbox RelativePanel.Below="SafeNotice"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -131,7 +126,8 @@
 			</SymbolIcon>
 		</Viewbox>
 		
-		<ctl:UniversalWrapPanel Orientation="Horizontal">
+		<ctl:UniversalWrapPanel Orientation="Horizontal"
+			x:Name="ActionsUWP">
 			<Button 
 				Tapped="OnGoBack_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
@@ -313,7 +309,8 @@
 			</Button>
 		</ctl:UniversalWrapPanel>
 
-		<Border Grid.Row="1"
+		<Border RelativePanel.Below="ActionsUWP"
+			x:Name="ElevatedNotice"
 			Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 			BorderBrush="{StaticResource FlashyForeground}"
 			BorderThickness="{StaticResource Thickness2222}"
@@ -325,7 +322,8 @@
 				TextWrapping="Wrap"/>
 		</Border>
 
-		<Border Grid.Row="1"
+		<Border RelativePanel.Below="ElevatedNotice"
+			x:Name="SafeNotice"
 			Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
 			BorderThickness="{StaticResource Thickness2222}"
 			Padding="{StaticResource PanelPadding8282}">
@@ -335,10 +333,11 @@
 				TextWrapping="Wrap"/>
 		</Border>
 
-		<local:MetaBriefcaseView Grid.Row="2"
-			x:Name="MBView"            
+		<local:MetaBriefcaseView RelativePanel.Below="SafeNotice"
+			x:Name="MBView"
             VM="{x:Bind VM, Mode=OneWay}"
+			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 			IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
 		
-	</Grid>
+	</RelativePanel>
 </ctl:OpenableObservablePage>
