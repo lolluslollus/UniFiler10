@@ -133,6 +133,29 @@
 		
 		<ctl:UniversalWrapPanel Orientation="Horizontal">
 			<Button 
+				Tapped="OnGoBack_Tapped"
+				Style="{StaticResource ButtonLolloStyle}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+					</Grid.ColumnDefinitions>
+
+					<SymbolIcon Symbol="Back"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>
+					<TextBlock Grid.Column="2" x:Uid="Back"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+						TextWrapping="Wrap"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+
+			<!--<Button 
 				Tapped="OnGoToBriefcase_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
 				<Grid>
@@ -176,7 +199,7 @@
                         HorizontalAlignment="Left"
 						VerticalAlignment="Center"/>
 				</Grid>
-			</Button>
+			</Button>-->
 
 			<ToggleButton
                 IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
@@ -194,15 +217,11 @@
                             Symbol="Important"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
                             Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"/>
 					<SymbolIcon 
                             Symbol="Emoji2" 
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"
                             Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
 					<TextBlock Grid.Column="2" 
                             x:Uid="GotoElevated"
@@ -233,9 +252,9 @@
 
 					<SymbolIcon Symbol="Save"
 						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>
+						VerticalAlignment="Center"/>
+					<!--Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>-->
 					<TextBlock Grid.Column="2" x:Uid="Export"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"
@@ -258,9 +277,9 @@
 					<SymbolIcon Symbol="Import"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
-						Foreground="{StaticResource FlashyForeground}"
-						Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>
+						Foreground="{StaticResource FlashyForeground}"/>
+					<!--Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>-->
 					<TextBlock Grid.Column="2" x:Uid="Import"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"
@@ -282,9 +301,9 @@
 
 					<SymbolIcon Symbol="Help"
 						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>
+						VerticalAlignment="Center"/>
+					<!--Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>-->
 					<TextBlock Grid.Column="2" x:Uid="About"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"

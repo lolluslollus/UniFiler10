@@ -35,8 +35,8 @@ namespace UniFiler10.Controlz
 
             if (Orientation == Orientation.Horizontal)
             {
-                double largestHeight = 0.0;
-                double maxWidth = 0;
+                double largestHeightInRow = 0.0;
+                double maxWidth = 0.0;
 
                 for (int c = 0; c < Children.Count; c++)
                 {
@@ -47,18 +47,18 @@ namespace UniFiler10.Controlz
                     {
 						// start new row
                         point.X = 0;
-                        point.Y = point.Y + largestHeight;
-                        largestHeight = 0.0;
+                        point.Y = point.Y + largestHeightInRow;
+                        largestHeightInRow = 0.0;
                     }
                     point.X += child.DesiredSize.Width;
 
                     // Tallest item in the row
-                    largestHeight = Math.Max(largestHeight, child.DesiredSize.Height);
+                    largestHeightInRow = Math.Max(largestHeightInRow, child.DesiredSize.Height);
 
                     // Furthest right edge
                     maxWidth = Math.Max(maxWidth, point.X);
                 }
-                return new Size(maxWidth, point.Y + largestHeight);
+                return new Size(maxWidth, point.Y + largestHeightInRow);
             }
             else
             {
@@ -98,15 +98,15 @@ namespace UniFiler10.Controlz
 
             if (Orientation == Orientation.Horizontal)
             {
-                double largestHeight = 0.0;
+                double largestHeightInRow = 0.0;
 
                 foreach (UIElement child in Children)
                 {
                     child.Arrange(new Rect(point, new Point(point.X +
                       child.DesiredSize.Width, point.Y + child.DesiredSize.Height)));
 
-                    if (child.DesiredSize.Height > largestHeight)
-                        largestHeight = child.DesiredSize.Height;
+                    if (child.DesiredSize.Height > largestHeightInRow)
+                        largestHeightInRow = child.DesiredSize.Height;
 
                     point.X = point.X + child.DesiredSize.Width;
 
@@ -114,9 +114,10 @@ namespace UniFiler10.Controlz
                     {
                         if ((point.X + Children[i + 1].DesiredSize.Width) > finalSize.Width)
                         {
-                            point.X = 0;
-                            point.Y = point.Y + largestHeight;
-                            largestHeight = 0.0;
+							// start new row
+							point.X = 0;
+                            point.Y = point.Y + largestHeightInRow;
+                            largestHeightInRow = 0.0;
                         }
                     }
                     i++;

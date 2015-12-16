@@ -11,7 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:DesignHeight="500"
-    d:DesignWidth="300">
+    d:DesignWidth="900">
 
 	<UserControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
@@ -105,7 +105,7 @@
 			</Grid.RowDefinitions>
 
 			<!-- animation for refresh -->
-			<Viewbox x:Name="RefreshVB"
+			<Viewbox Grid.Row="3" x:Name="RefreshVB"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
                 HorizontalAlignment="Left"
@@ -166,10 +166,10 @@
 			</Viewbox>
 
 			<!-- actions for all binders -->
-			<ctl:UniversalWrapPanel Grid.Row="0"
+			<!--Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"-->
+			<VariableSizedWrapGrid Grid.Row="0"
                 Orientation="Horizontal"
-                Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"
-                HorizontalAlignment="Stretch">
+				HorizontalAlignment="Stretch">
 
 				<Button 
 					x:Name="AButton"
@@ -184,9 +184,9 @@
 
 						<SymbolIcon Symbol="Add"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2" x:Uid="AddBinderT"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
@@ -207,9 +207,9 @@
 
 						<SymbolIcon Symbol="Import"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2" x:Uid="RestoreBinder"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
@@ -230,9 +230,9 @@
 
 						<SymbolIcon Symbol="Setting"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2" x:Uid="Settings1"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"
@@ -240,10 +240,10 @@
 							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
-			</ctl:UniversalWrapPanel>
+			</VariableSizedWrapGrid>
 
 			<!-- fields to add new binder -->
-			<ctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal" >
+			<ctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
 				<Grid
 					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
 					<Grid.RowDefinitions>
@@ -303,9 +303,9 @@
 
 						<SymbolIcon Symbol="Go"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2" x:Uid="Go"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             TextWrapping="Wrap"

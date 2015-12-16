@@ -9,12 +9,12 @@
     xmlns:vm="using:UniFiler10.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
-       
-        <!--DisplayMode="CompactInline"
-        CompactPaneLength="{StaticResource CompactPaneLength}"-->
-	<Grid x:Name="LayoutRoot"
-		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
+    mc:Ignorable="d"
+	d:DesignHeight="800"
+    d:DesignWidth="800">
+
+	<!--<Grid x:Name="LayoutRoot"
+		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">-->
 		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 
 		<local:BriefcaseCoverView x:Name="BriefcaseCoverView"
@@ -22,5 +22,5 @@
 			GoToBinderContentRequested="OnBriefcaseCoverView_GoToBinderContentRequested"
 			GoToSettingsRequested="OnBriefcaseCoverView_GoToSettingsRequested"
 			IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=false}"/>
-	</Grid>
+	<!--</Grid>-->
 </ctl:OpenableObservablePage>

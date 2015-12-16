@@ -76,14 +76,20 @@ namespace UniFiler10.Views
 
 
 		#region user actions
-		private void OnGoToBinderCover_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			Frame.Navigate(typeof(BriefcaseContentPage));
-		}
+		//private void OnGoToBinderCover_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	Frame.Navigate(typeof(BriefcaseContentPage));
+		//}
 
-		private void OnGoToBriefcase_Tapped(object sender, TappedRoutedEventArgs e)
+		//private void OnGoToBriefcase_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	Frame.Navigate(typeof(BriefcasePage));
+		//}
+
+		private void OnGoBack_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Frame.Navigate(typeof(BriefcasePage));
+			if (Frame.CanGoBack) Frame.GoBack();
+			else Frame.Navigate(typeof(BriefcasePage));
 		}
 
 		private void OnToggleElevated_Tapped(object sender, TappedRoutedEventArgs e)

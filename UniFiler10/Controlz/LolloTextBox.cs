@@ -267,7 +267,6 @@ namespace UniFiler10.Controlz
 				.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?
 				.GetValue(e.ClickedItem)?.ToString();
 
-
 			_listView.ItemsSource = null; // reset before hiding, we don't want leftovers
 
 			try
@@ -277,8 +276,6 @@ namespace UniFiler10.Controlz
 			}
 			catch { }
 
-			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
-			// when this changes a value, which goes straight into the DB, we must check it.
 			SetValue(TextProperty, selItem);
 			Debug.WriteLine("new value set = " + selItem);
 
@@ -296,9 +293,8 @@ namespace UniFiler10.Controlz
 
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			// LOLLO this is harmless coz it changes DynamicField.FieldValue, which is not reflected in the DB. The DB change comes outside this class.
-			// when this changes a value, which goes straight into the DB, and it cannot be empty or null, we must check it.
-			ClearValue(TextProperty);
+			// ClearValue(TextProperty); // NO! this breaks two-way bindings.
+			SetValue(TextProperty, string.Empty);			
 		}
 		#endregion user actions
 

@@ -262,51 +262,74 @@ namespace UniFiler10.Data.Model
 		{
 			if (MetaBriefcase.OpenInstance == null || MetaBriefcase.OpenInstance.FieldDescriptions == null) return;
 
-			var shouldBeFldDscs = new HashSet<FieldDescription>();
-			foreach (var dynCat in _dynamicCategories)
+			try
 			{
-				if (dynCat.Category != null)
+				var shouldBeFldDscs = new List<FieldDescription>(); // HashSet may be tricky
+				foreach (var dynCat in _dynamicCategories)
 				{
-					foreach (var fldDsc in dynCat.Category.FieldDescriptions)
+					if (dynCat.Category != null)
 					{
-						shouldBeFldDscs.Add(fldDsc);
+						foreach (var fldDsc in dynCat.Category.FieldDescriptions)
+						{
+							if (!shouldBeFldDscs.Any(fd => fd.Id == fldDsc.Id)) shouldBeFldDscs.Add(fldDsc);
+						}
+					}
+					else
+					{
+						Debugger.Break(); // this must never happen
 					}
 				}
-				else
+				// remove obsolete fields
+				// LOLLO I create a List, instead of using the IEnumerable, otherwise the following Remove will break the ienumerable and dump!
+				var obsoleteDynFlds = _dynamicFields.Where(dynFld => !shouldBeFldDscs.Any(fldDsc => fldDsc.Id == dynFld.FieldDescriptionId)).ToList();
+
+				foreach (var obsoleteDynFld in obsoleteDynFlds)
 				{
-					Debugger.Break(); // this must never happen
+					var dbM = _dbManager;
+					if (dbM != null && await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
+					{
+						await RunInUiThreadAsync(delegate
+						{
+							_dynamicFields.Remove(obsoleteDynFld);
+						}).ConfigureAwait(false);
+					}
+				}
+
+				//// LOLLO this is a test coz the linq dumps.
+				//List<FieldDescription> newFldDscs = new List<FieldDescription>();
+				//if (shouldBeFldDscs != null)
+				//{
+				//	foreach (var fldDsc in shouldBeFldDscs)
+				//	{
+				//		if (!_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id))
+				//		{
+				//			newFldDscs.Add(fldDsc);
+				//		}
+				//	}
+				//}
+
+				// add new fields // LOLLO TODO this dumps after removing an obsolete field. the kludgy loop above, instead, works. find out why. 
+				// maybe because it was a hashset, and i did not set it properly? it seems so.
+				var newFldDscs = shouldBeFldDscs.Where(fldDsc => !_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
+				foreach (var newFldDsc in newFldDscs)
+				{
+					var dynFld = new DynamicField(_dbManager, Id, newFldDsc.Id);
+					var dbM = _dbManager;
+					if (dbM != null
+						&& await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
+					{
+						await RunInUiThreadAsync(delegate
+						{
+							_dynamicFields.Add(dynFld);
+						}).ConfigureAwait(false);
+						await dynFld.OpenAsync();
+					}
 				}
 			}
-			// remove obsolete fields
-			var obsoleteDynFlds = DynamicFields.Where(dynFld => !shouldBeFldDscs.Any(fldDsc => fldDsc.Id == dynFld.FieldDescriptionId));
-
-			foreach (var obsoleteDynFld in obsoleteDynFlds)
+			catch (Exception ex)
 			{
-				var dbM = _dbManager;
-				if (dbM != null && await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
-				{
-					await RunInUiThreadAsync(delegate
-					{
-						DynamicFields.Remove(obsoleteDynFld);
-					}).ConfigureAwait(false);
-				}
-			}
-
-			// add new fields
-			var newFldDscs = shouldBeFldDscs.Where(fldDsc => !DynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
-			foreach (var newFldDsc in newFldDscs)
-			{
-				var dynFld = new DynamicField(_dbManager, Id, newFldDsc.Id);
-				var dbM = _dbManager;
-				if (dbM != null
-					&& await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
-				{
-					await RunInUiThreadAsync(delegate
-					{
-						DynamicFields.Add(dynFld);
-					}).ConfigureAwait(false);
-					await dynFld.OpenAsync();
-				}
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+				Debugger.Break();
 			}
 		}
 		#endregion loading methods

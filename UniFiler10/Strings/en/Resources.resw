@@ -156,12 +156,6 @@
   <data name="BackupBinder.Label" xml:space="preserve">
     <value>Back up</value>
   </data>
-  <data name="Binder.Text" xml:space="preserve">
-    <value>Binder</value>
-  </data>
-  <data name="Briefcase.Text" xml:space="preserve">
-    <value>Briefcase</value>
-  </data>
   <data name="ByCatFolders.Text" xml:space="preserve">
     <value>Folders with category</value>
   </data>

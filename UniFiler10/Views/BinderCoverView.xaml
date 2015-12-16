@@ -165,9 +165,9 @@
 			</Viewbox>
 			
 			<!-- actions for all folders -->
+			<!--Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"-->
 			<VariableSizedWrapGrid Grid.Row="0"
                 Orientation="Horizontal"
-                Background="{Binding ElementName=AddButton, Path=Background, Mode=OneWay}"
                 HorizontalAlignment="Stretch">
 
 				<Button 
@@ -183,10 +183,11 @@
 						<SymbolIcon Symbol="Add"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="AddFolderT" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
+						<TextBlock Grid.Column="2" x:Uid="AddFolderT"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+							HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
@@ -204,9 +205,10 @@
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
 						<TextBlock Grid.Column="2" x:Uid="AddOpenFolderT"
-							MaxWidth="{StaticResource LandscapeItemWidth}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+							HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
@@ -224,9 +226,10 @@
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
 						<TextBlock Grid.Column="2" x:Uid="ImportFolders"
-							MaxWidth="{StaticResource LandscapeItemWidth}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+							HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
@@ -243,10 +246,11 @@
 						<SymbolIcon Symbol="Setting"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="Settings1" 
-							MaxWidth="{StaticResource LandscapeItemWidth}"
+						<TextBlock Grid.Column="2" x:Uid="Settings1"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"/>
+							HorizontalAlignment="Left"
+							VerticalAlignment="Center"/>
 					</Grid>
 				</Button>
 
@@ -265,9 +269,9 @@
 						<SymbolIcon 
                             Symbol="View"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2" 
                             x:Uid="RecentFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -291,9 +295,9 @@
 						<SymbolIcon 
                             Symbol="View"
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2" 
                             x:Uid="AllFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -318,9 +322,9 @@
 						<SymbolIcon 
 							Symbol="View" 
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByCatFolders" 
@@ -345,9 +349,9 @@
 						<SymbolIcon 
 							Symbol="View" 
 							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-							Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>
+							VerticalAlignment="Center"/>
+						<!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>-->
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByFldFolders" 
