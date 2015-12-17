@@ -384,4 +384,7 @@
   <data name="Import1" xml:space="preserve">
     <value>Import</value>
   </data>
+  <data name="SelectAValue.Text" xml:space="preserve">
+    <value>Select a value</value>
+  </data>
 </root>

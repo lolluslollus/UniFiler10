@@ -213,7 +213,7 @@
 							TextWrapping="Wrap"
 							HorizontalAlignment="Left"
 							Foreground="{StaticResource FlashyForeground}"
-							MaxWidth="{StaticResource LandscapeItemWidth}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 					</StackPanel>
 

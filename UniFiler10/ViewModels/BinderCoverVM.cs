@@ -147,12 +147,16 @@ namespace UniFiler10.ViewModels
 		public string CatNameForCatFilter
 		{
 			get { return _catNameForCatFilter; }
-			set
+			set { SetCatNameForCatFilter(value, true); } // we only use this setter for the binding
+		}
+		private void SetCatNameForCatFilter(string value, bool doUpdates)
+		{
+			string newValue = value ?? string.Empty;
+			if (_catNameForCatFilter != newValue)
 			{
-				string newValue = value ?? string.Empty;
-				if (_catNameForCatFilter != newValue)
+				_catNameForCatFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForCatFilter));
+				if (doUpdates)
 				{
-					_catNameForCatFilter = newValue; RaisePropertyChanged_UI();
 					UpdateIdsForCatFilterAsync().ContinueWith(delegate
 					{
 						if (_isByCatFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
@@ -263,7 +267,9 @@ namespace UniFiler10.ViewModels
 		{
 			var binder = _binder; if (binder == null) return;
 
-			CatNameForCatFilter = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Id == binder.CatIdForCatFilter)?.Name;
+			Category cat = null;
+			cat = _metaBriefcase?.Categories?.FirstOrDefault(ca => ca.Id == binder.CatIdForCatFilter);
+			SetCatNameForCatFilter(cat?.Name, false);
 		}
 
 		private async Task UpdateIdsForCatFilterAsync()

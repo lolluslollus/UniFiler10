@@ -388,40 +388,15 @@
 			</ctl:UniversalWrapPanel>
 
 			<!-- cat filter parameters -->
-			<ctl:LolloTextBox
-				x:Name="CatFilter"
-				RelativePanel.Below="ActionsUWP"
-				HorizontalAlignment="Left"
-				BorderThickness="0"
-				Width="{StaticResource LandscapeItemWidth}"
-				MinHeight="{StaticResource LandscapeItemHeight}"
-				Style="{StaticResource LolloTextBoxStyle}"
-				IsReadOnly="True"
-				IsEmptyValueAllowedEvenIfNotInList="False"
-				Visibility="{x:Bind VM.IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-				ItemsSource="{x:Bind VM.MetaBriefcase.Categories, Mode=OneWay}"
-				DisplayMemberPath="Name"
-				MaxLength="{StaticResource MaxTagLength}"
-				Text="{x:Bind VM.CatNameForCatFilter, Mode=TwoWay}">
-				<ctl:LolloTextBox.ListItemTemplate>
-					<DataTemplate>
-						<Grid Width="{StaticResource LandscapeItemWidth}">
-							<TextBlock Text="{Binding Name}"
-								MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-								Margin="{StaticResource PanelPadding8282}"
-								TextWrapping="Wrap"/>
-						</Grid>
-					</DataTemplate>
-				</ctl:LolloTextBox.ListItemTemplate>
-			</ctl:LolloTextBox>
-
-			<!-- fld filter parameters -->
-			<VariableSizedWrapGrid Orientation="Horizontal"
-				x:Name="FldFilter"
-				RelativePanel.Below="CatFilter"
-				Visibility="{x:Bind VM.IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
-				<!--VerticalAlignment="Center"-->
+			<Grid x:Name="CatFilter" RelativePanel.Below="ActionsUWP"
+				Visibility="{x:Bind VM.IsByCatFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				
 				<ctl:LolloTextBox
+					HorizontalAlignment="Left"
 					BorderThickness="0"
 					Width="{StaticResource LandscapeItemWidth}"
 					MinHeight="{StaticResource LandscapeItemHeight}"
@@ -431,7 +406,7 @@
 					ItemsSource="{x:Bind VM.MetaBriefcase.Categories, Mode=OneWay}"
 					DisplayMemberPath="Name"
 					MaxLength="{StaticResource MaxTagLength}"
-					Text="{x:Bind VM.CatNameForFldFilter, Mode=TwoWay}">
+					Text="{Binding ElementName=me, Path=VM.CatNameForCatFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
 					<ctl:LolloTextBox.ListItemTemplate>
 						<DataTemplate>
 							<Grid Width="{StaticResource LandscapeItemWidth}">
@@ -444,54 +419,173 @@
 					</ctl:LolloTextBox.ListItemTemplate>
 				</ctl:LolloTextBox>
 
-				<!--VerticalAlignment="Center"-->
-				<ctl:LolloTextBox
-					BorderThickness="0"
-					Width="{StaticResource LandscapeItemWidth}"
-					MinHeight="{StaticResource LandscapeItemHeight}"
-					Style="{StaticResource LolloTextBoxStyle}"
-					IsReadOnly="True"
-					IsEmptyValueAllowedEvenIfNotInList="False"
-					ItemsSource="{x:Bind VM.FldDscsInCat, Mode=OneWay}"
-					DisplayMemberPath="Caption"
-					MaxLength="{StaticResource MaxTagLength}"
-					Text="{x:Bind VM.FldDscCaptionForFldFilter, Mode=TwoWay}">
-					<ctl:LolloTextBox.ListItemTemplate>
-						<DataTemplate>
-							<Grid Width="{StaticResource LandscapeItemWidth}">
-								<TextBlock Text="{Binding Caption}"
-									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-									Margin="{StaticResource PanelPadding8282}"
-									TextWrapping="Wrap"/>
-							</Grid>
-						</DataTemplate>
-					</ctl:LolloTextBox.ListItemTemplate>
-				</ctl:LolloTextBox>
+				<TextBlock Grid.Row="1"
+					x:Uid="SelectAValue"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Left"
+					Foreground="{StaticResource FlashyForeground}"
+					MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+					Margin="{StaticResource PanelPadding8282}"
+					TextWrapping="Wrap"
+					Visibility="{Binding ElementName=me, Path=VM.CatNameForCatFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-				<!--VerticalAlignment="Center"-->
-				<ctl:LolloTextBox
-					BorderThickness="0"
-					Width="{StaticResource LandscapeItemWidth}"
-					MinHeight="{StaticResource LandscapeItemHeight}"
-					Style="{StaticResource LolloTextBoxStyle}"
-					IsReadOnly="True"
-					IsEmptyValueAllowedEvenIfNotInList="False"
-					ItemsSource="{x:Bind VM.FldValsInFldDscs, Mode=OneWay}"
-					DisplayMemberPath="Vaalue"
-					MaxLength="{StaticResource MaxVaalueLength}"
-					Text="{x:Bind VM.FldValVaalueForFldFilter, Mode=TwoWay}">
-					<ctl:LolloTextBox.ListItemTemplate>
-						<DataTemplate>
-							<Grid Width="{StaticResource LandscapeItemWidth}">
-								<TextBlock Text="{Binding Vaalue}"
-									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-									Margin="{StaticResource PanelPadding8282}"
-									TextWrapping="Wrap"/>
-							</Grid>
-						</DataTemplate>
-					</ctl:LolloTextBox.ListItemTemplate>
-				</ctl:LolloTextBox>
-			</VariableSizedWrapGrid>
+				<Border Grid.RowSpan="2"
+					VerticalAlignment="Stretch"
+					HorizontalAlignment="Stretch"
+					BorderBrush="{StaticResource FlashyForeground}"
+					BorderThickness="{StaticResource Thickness2222}"
+					Visibility="{Binding ElementName=me, Path=VM.CatNameForCatFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+			</Grid>
+			
+			<!-- fld filter parameters -->
+			<StackPanel Orientation="Horizontal"
+				x:Name="FldFilter"
+				RelativePanel.Below="CatFilter"
+				Visibility="{x:Bind VM.IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+
+					<ctl:LolloTextBox
+						BorderThickness="0"
+						Width="{StaticResource LandscapeItemWidth}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
+						Style="{StaticResource LolloTextBoxStyle}"
+						IsReadOnly="True"
+						IsEmptyValueAllowedEvenIfNotInList="False"
+						ItemsSource="{x:Bind VM.MetaBriefcase.Categories, Mode=OneWay}"
+						DisplayMemberPath="Name"
+						MaxLength="{StaticResource MaxTagLength}"
+						Text="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+						<ctl:LolloTextBox.ListItemTemplate>
+							<DataTemplate>
+								<Grid Width="{StaticResource LandscapeItemWidth}">
+									<TextBlock Text="{Binding Name}"
+										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+										Margin="{StaticResource PanelPadding8282}"
+										TextWrapping="Wrap"/>
+								</Grid>
+							</DataTemplate>
+						</ctl:LolloTextBox.ListItemTemplate>
+					</ctl:LolloTextBox>
+
+					<TextBlock Grid.Row="1"
+						x:Uid="SelectAValue"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Left"
+						Foreground="{StaticResource FlashyForeground}"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+						Margin="{StaticResource PanelPadding8282}"
+						TextWrapping="Wrap"
+						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+
+					<Border Grid.RowSpan="2"
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						BorderBrush="{StaticResource FlashyForeground}"
+						BorderThickness="{StaticResource Thickness2222}"
+						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+				</Grid>
+
+
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+
+					<ctl:LolloTextBox
+						BorderThickness="0"
+						Width="{StaticResource LandscapeItemWidth}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
+						Style="{StaticResource LolloTextBoxStyle}"
+						IsReadOnly="True"
+						IsEmptyValueAllowedEvenIfNotInList="False"
+						ItemsSource="{x:Bind VM.FldDscsInCat, Mode=OneWay}"
+						DisplayMemberPath="Caption"
+						MaxLength="{StaticResource MaxTagLength}"
+						Text="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+						<ctl:LolloTextBox.ListItemTemplate>
+							<DataTemplate>
+								<Grid Width="{StaticResource LandscapeItemWidth}">
+									<TextBlock Text="{Binding Caption}"
+										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+										Margin="{StaticResource PanelPadding8282}"
+										TextWrapping="Wrap"/>
+								</Grid>
+							</DataTemplate>
+						</ctl:LolloTextBox.ListItemTemplate>
+					</ctl:LolloTextBox>
+
+					<TextBlock Grid.Row="1"
+						x:Uid="SelectAValue"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Left"
+						Foreground="{StaticResource FlashyForeground}"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+						Margin="{StaticResource PanelPadding8282}"
+						TextWrapping="Wrap"
+						Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+
+					<Border Grid.RowSpan="2"
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						BorderBrush="{StaticResource FlashyForeground}"
+						BorderThickness="{StaticResource Thickness2222}"
+						Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+				</Grid>
+
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+
+					<ctl:LolloTextBox
+						BorderThickness="0"
+						Width="{StaticResource LandscapeItemWidth}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
+						Style="{StaticResource LolloTextBoxStyle}"
+						IsReadOnly="True"
+						IsEmptyValueAllowedEvenIfNotInList="False"
+						ItemsSource="{x:Bind VM.FldValsInFldDscs, Mode=OneWay}"
+						DisplayMemberPath="Vaalue"
+						MaxLength="{StaticResource MaxVaalueLength}"
+						Text="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+						<ctl:LolloTextBox.ListItemTemplate>
+							<DataTemplate>
+								<Grid Width="{StaticResource LandscapeItemWidth}">
+									<TextBlock Text="{Binding Vaalue}"
+										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+										Margin="{StaticResource PanelPadding8282}"
+										TextWrapping="Wrap"/>
+								</Grid>
+							</DataTemplate>
+						</ctl:LolloTextBox.ListItemTemplate>
+					</ctl:LolloTextBox>
+					
+					<TextBlock Grid.Row="1"
+						x:Uid="SelectAValue"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Left"
+						Foreground="{StaticResource FlashyForeground}"
+						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+						Margin="{StaticResource PanelPadding8282}"
+						TextWrapping="Wrap"
+						Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+
+					<Border Grid.RowSpan="2"
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						BorderBrush="{StaticResource FlashyForeground}"
+						BorderThickness="{StaticResource Thickness2222}"
+						Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+				</Grid>
+
+			</StackPanel>
 
 			<!-- folders grid -->
 			<ctl:TolerantListView

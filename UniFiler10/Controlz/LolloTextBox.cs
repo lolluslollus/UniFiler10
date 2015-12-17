@@ -276,7 +276,11 @@ namespace UniFiler10.Controlz
 			}
 			catch { }
 
+
 			SetValue(TextProperty, selItem);
+			var bi = GetBindingExpression(TextProperty); // take care of two-way bindings
+			bi?.UpdateSource();
+
 			Debug.WriteLine("new value set = " + selItem);
 
 			var tb = GetBindingExpression(TextProperty);
@@ -294,7 +298,9 @@ namespace UniFiler10.Controlz
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			// ClearValue(TextProperty); // NO! this breaks two-way bindings.
-			SetValue(TextProperty, string.Empty);			
+			SetValue(TextProperty, string.Empty);
+			var bi = GetBindingExpression(TextProperty); // take care of two-way bindings
+			bi?.UpdateSource();
 		}
 		#endregion user actions
 

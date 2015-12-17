@@ -127,7 +127,7 @@ namespace UniFiler10.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is string)) return Visibility.Visible;
+            if (value == null || !(value is string)) return Visibility.Collapsed;
             string txt = value.ToString();
             if (string.IsNullOrWhiteSpace(txt)) return Visibility.Collapsed;
             else return Visibility.Visible;
