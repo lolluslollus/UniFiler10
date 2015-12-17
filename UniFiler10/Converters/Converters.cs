@@ -14,111 +14,106 @@ using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Converters
 {
-    public class IsNotNullToTrue : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null) return false;
-            return true;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way binding, it should never come here");
-        }
-    }
-    public class IsNotNullToVisible : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null) return Visibility.Collapsed;
-            return Visibility.Visible;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way binding, it should never come here");
-        }
+	public class IsNotNullToTrue : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return false;
+			return true;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+	public class IsNotNullToVisible : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return Visibility.Collapsed;
+			return Visibility.Visible;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
 
-    }
-    public class IListNotEmptyToTrue : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null) return false;
-            if ((value as IList)?.Count > 0) return true;
-            return false;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way binding, it should never come here");
-        }
-    }
-    public class IListNotEmptyToVisible : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null) return Visibility.Visible;
-            if ((value as IList)?.Count > 0) return Visibility.Visible;
-            return Visibility.Collapsed;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way binding, it should never come here");
-        }
-    }
+	}
+	public class IListNotEmptyToTrue : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return false;
+			if ((value as IList)?.Count > 0) return true;
+			return false;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+	public class IListNotEmptyToVisible : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return Visibility.Visible;
+			if ((value as IList)?.Count > 0) return Visibility.Visible;
+			return Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
 
-    public class TrueToFalseConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null || !(value is bool)) return false;
-            return !((bool)value);
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null || !(value is bool)) return false;
-            return !((bool)value);
-        }
-    }
+	public class TrueToFalseConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return false;
+			return !((bool)value);
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return false;
+			return !((bool)value);
+		}
+	}
 
 	public class BooleanToVisibleConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null || !(value is bool)) return Visibility.Collapsed;
-            bool boo = (bool)value;
-            if (boo) return Visibility.Visible;
-            else return Visibility.Collapsed;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way bonding, it should never come here");
-        }
-    }
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return Visibility.Collapsed;
+			bool boo = (bool)value;
+			if (boo) return Visibility.Visible;
+			else return Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
 
-    public class BooleanToCollapsedConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null || !(value is bool)) return Visibility.Visible;
-            bool boo = (bool)value;
-            if (boo) return Visibility.Collapsed;
-            else return Visibility.Visible;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way bonding, it should never come here");
-        }
-    }
+	public class BooleanToCollapsedConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is bool)) return Visibility.Visible;
+			bool boo = (bool)value;
+			if (boo) return Visibility.Collapsed;
+			else return Visibility.Visible;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
 
 	public class FalseToFlashyConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			AppBarButton aa = new AppBarButton();
-			Windows.UI.Xaml.Media.Brush uu = null;
-			//object normalBrush = Application.Current.Resources["SystemControlForegroundBaseHighBrush"].GetType();
-			//object flashyBrush = Application.Current.Resources["FlashyForeground"].GetType();
-
 			if (value == null || !(value is bool)) return Application.Current.Resources["FlashyForeground"];
 			bool boo = (bool)value;
 			if (boo) return Application.Current.Resources["SystemControlForegroundBaseHighBrush"];
@@ -131,33 +126,33 @@ namespace UniFiler10.Converters
 	}
 
 	public class TextEmptyToVisibleConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null || !(value is string)) return Visibility.Visible;
-            string txt = value.ToString();
-            if (string.IsNullOrWhiteSpace(txt)) return Visibility.Visible;
-            else return Visibility.Collapsed;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way bonding, it should never come here");
-        }
-    }
-    public class TextEmptyToCollapsedConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null || !(value is string)) return Visibility.Collapsed;
-            string txt = value.ToString();
-            if (string.IsNullOrWhiteSpace(txt)) return Visibility.Collapsed;
-            else return Visibility.Visible;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way bonding, it should never come here");
-        }
-    }
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is string)) return Visibility.Visible;
+			string txt = value.ToString();
+			if (string.IsNullOrWhiteSpace(txt)) return Visibility.Visible;
+			else return Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
+	public class TextEmptyToCollapsedConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is string)) return Visibility.Collapsed;
+			string txt = value.ToString();
+			if (string.IsNullOrWhiteSpace(txt)) return Visibility.Collapsed;
+			else return Visibility.Visible;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
 	public class StringFormatterConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
@@ -187,10 +182,10 @@ namespace UniFiler10.Converters
 			if (value == null) return 0.0;
 
 			double par = 0.0;
-			if (parameter!=null)
+			if (parameter != null)
 				double.TryParse(
 					parameter.ToString(),
-					NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowThousands | NumberStyles.AllowTrailingWhite, 
+					NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowThousands | NumberStyles.AllowTrailingWhite,
 					CultureInfo.InvariantCulture,
 					out par);
 
