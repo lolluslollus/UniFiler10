@@ -167,224 +167,45 @@
 					Tapped="OnAddFolder_Tapped"
 					Symbol="Add"
 					Uid="AddFolderT"/>
-				<!--<Button 
-                    Tapped="OnAddFolder_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Add"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="AddFolderT"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>-->
 
 				<ctl:LolloButton
 					Tapped="OnAddAndOpenFolder_Tapped"
 					Symbol="NewFolder"
 					Uid="AddOpenFolderT"/>
-				<!--<Button 
-                    Tapped="OnAddAndOpenFolder_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="NewFolder"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="AddOpenFolderT"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>-->
 
 				<ctl:LolloButton
 					Tapped="OnImportFoldersFromBinder_Tapped"
 					Symbol="Import"
 					Uid="ImportFolders"/>
-				<!--<Button 
-                    Tapped="OnImportFoldersFromBinder_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Import"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="ImportFolders"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>-->
 
 				<ctl:LolloButton
 					Tapped="OnSettingsButton_Tapped"
 					Symbol="Setting"
 					Uid="Settings1"/>
-				<!--<Button 
-                    Tapped="OnSettingsButton_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Setting"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<TextBlock Grid.Column="2" x:Uid="Settings1"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							TextWrapping="Wrap" 
-							HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>-->
 
 				<!-- recent folders header -->
 				<ctl:LolloToggleButton
 					IsChecked="{Binding ElementName=me, Path=VM.IsRecentFoldersPaneOpen, Mode=TwoWay}"
 					Symbol="View"
 					Uid="FilterByRecentFolders"/>
-				<!--<ToggleButton 
-                    IsChecked="{Binding ElementName=me, Path=VM.IsRecentFoldersPaneOpen, Mode=TwoWay}"
-                    Style="{StaticResource ToggleButtonLolloStyle}">
-
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon 
-                            Symbol="View"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						--><!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>--><!--
-						<TextBlock Grid.Column="2" 
-                            x:Uid="RecentFolders"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</ToggleButton>-->
 
 				<!-- all folders header -->
 				<ctl:LolloToggleButton
 					IsChecked="{Binding ElementName=me, Path=VM.IsAllFoldersPaneOpen, Mode=TwoWay}"
 					Symbol="View"
 					Uid="FilterByAllFolders"/>
-				<!--<ToggleButton 
-					IsChecked="{Binding ElementName=me, Path=VM.IsAllFoldersPaneOpen, Mode=TwoWay}"
-					Style="{StaticResource ToggleButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon 
-                            Symbol="View"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						--><!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>--><!--
-						<TextBlock Grid.Column="2" 
-                            x:Uid="AllFolders"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</ToggleButton>-->
 
 				<!-- folders by category header -->
 				<ctl:LolloToggleButton
 					IsChecked="{Binding ElementName=me, Path=VM.IsByCatFoldersPaneOpen, Mode=TwoWay}"
 					Symbol="View"
 					Uid="FilterByCatFolders"/>
-				<!--<ToggleButton 
-                    IsChecked="{Binding ElementName=me, Path=VM.IsByCatFoldersPaneOpen, Mode=TwoWay}"
-                    Style="{StaticResource ToggleButtonLolloStyle}">
-
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon 
-							Symbol="View" 
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						--><!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>--><!--
-						<TextBlock Grid.Column="2"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            x:Uid="ByCatFolders" 
-                            TextWrapping="Wrap"
-							HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</ToggleButton>-->
 
 				<!-- folders by field header -->
 				<ctl:LolloToggleButton
 					IsChecked="{Binding ElementName=me, Path=VM.IsByFldFoldersPaneOpen, Mode=TwoWay}"
 					Symbol="View"
 					Uid="FilterByFldFolders"/>
-				<!--<ToggleButton 
-                    IsChecked="{Binding ElementName=me, Path=VM.IsByFldFoldersPaneOpen, Mode=TwoWay}"
-                    Style="{StaticResource ToggleButtonLolloStyle}">
-
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon 
-							Symbol="View" 
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						--><!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>--><!--
-						<TextBlock Grid.Column="2"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            x:Uid="ByFldFolders" 
-                            TextWrapping="Wrap"
-							HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</ToggleButton>-->
 			</ctl:UniversalWrapPanel>
 
 			<!-- cat filter parameters -->
@@ -490,37 +311,38 @@
 						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 				</Grid>
 
+				<StackPanel Orientation="Horizontal"
+					Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
 
-				<Grid>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-					</Grid.RowDefinitions>
-
-					<ctl:LolloTextBox
-						BorderThickness="0"
-						Width="{StaticResource LandscapeItemWidth}"
-						MinHeight="{StaticResource LandscapeItemHeight}"
-						Style="{StaticResource LolloTextBoxStyle}"
-						IsReadOnly="True"
-						IsEmptyValueAllowedEvenIfNotInList="False"
-						ItemsSource="{x:Bind VM.FldDscsInCat, Mode=OneWay}"
-						DisplayMemberPath="Caption"
-						MaxLength="{StaticResource MaxTagLength}"
-						Text="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-						<ctl:LolloTextBox.ListItemTemplate>
-							<DataTemplate>
-								<Grid Width="{StaticResource LandscapeItemWidth}">
-									<TextBlock Text="{Binding Caption}"
+						<ctl:LolloTextBox
+							BorderThickness="0"
+							Width="{StaticResource LandscapeItemWidth}"
+							MinHeight="{StaticResource LandscapeItemHeight}"
+							Style="{StaticResource LolloTextBoxStyle}"
+							IsReadOnly="True"
+							IsEmptyValueAllowedEvenIfNotInList="False"
+							ItemsSource="{x:Bind VM.FldDscsInCat, Mode=OneWay}"
+							DisplayMemberPath="Caption"
+							MaxLength="{StaticResource MaxTagLength}"
+							Text="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+							<ctl:LolloTextBox.ListItemTemplate>
+								<DataTemplate>
+									<Grid Width="{StaticResource LandscapeItemWidth}">
+										<TextBlock Text="{Binding Caption}"
 										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 										Margin="{StaticResource PanelPadding8282}"
 										TextWrapping="Wrap"/>
-								</Grid>
-							</DataTemplate>
-						</ctl:LolloTextBox.ListItemTemplate>
-					</ctl:LolloTextBox>
+									</Grid>
+								</DataTemplate>
+							</ctl:LolloTextBox.ListItemTemplate>
+						</ctl:LolloTextBox>
 
-					<TextBlock Grid.Row="1"
+						<TextBlock Grid.Row="1"
 						x:Uid="SelectAValue"
 						VerticalAlignment="Center"
 						HorizontalAlignment="Left"
@@ -530,44 +352,44 @@
 						TextWrapping="Wrap"
 						Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
-					<Border Grid.RowSpan="2"
+						<Border Grid.RowSpan="2"
 						VerticalAlignment="Stretch"
 						HorizontalAlignment="Stretch"
 						BorderBrush="{StaticResource FlashyForeground}"
 						BorderThickness="{StaticResource Thickness2222}"
 						Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
-				</Grid>
+					</Grid>
 
-				<Grid>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-					</Grid.RowDefinitions>
+					<Grid Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
 
-					<ctl:LolloTextBox
-						BorderThickness="0"
-						Width="{StaticResource LandscapeItemWidth}"
-						MinHeight="{StaticResource LandscapeItemHeight}"
-						Style="{StaticResource LolloTextBoxStyle}"
-						IsReadOnly="True"
-						IsEmptyValueAllowedEvenIfNotInList="False"
-						ItemsSource="{x:Bind VM.FldValsInFldDscs, Mode=OneWay}"
-						DisplayMemberPath="Vaalue"
-						MaxLength="{StaticResource MaxVaalueLength}"
-						Text="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-						<ctl:LolloTextBox.ListItemTemplate>
-							<DataTemplate>
-								<Grid Width="{StaticResource LandscapeItemWidth}">
-									<TextBlock Text="{Binding Vaalue}"
+						<ctl:LolloTextBox
+							BorderThickness="0"
+							Width="{StaticResource LandscapeItemWidth}"
+							MinHeight="{StaticResource LandscapeItemHeight}"
+							Style="{StaticResource LolloTextBoxStyle}"
+							IsReadOnly="True"
+							IsEmptyValueAllowedEvenIfNotInList="False"
+							ItemsSource="{x:Bind VM.FldValsInFldDscs, Mode=OneWay}"
+							DisplayMemberPath="Vaalue"
+							MaxLength="{StaticResource MaxVaalueLength}"
+							Text="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+							<ctl:LolloTextBox.ListItemTemplate>
+								<DataTemplate>
+									<Grid Width="{StaticResource LandscapeItemWidth}">
+										<TextBlock Text="{Binding Vaalue}"
 										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 										Margin="{StaticResource PanelPadding8282}"
 										TextWrapping="Wrap"/>
-								</Grid>
-							</DataTemplate>
-						</ctl:LolloTextBox.ListItemTemplate>
-					</ctl:LolloTextBox>
-					
-					<TextBlock Grid.Row="1"
+									</Grid>
+								</DataTemplate>
+							</ctl:LolloTextBox.ListItemTemplate>
+						</ctl:LolloTextBox>
+
+						<TextBlock Grid.Row="1"
 						x:Uid="SelectAValue"
 						VerticalAlignment="Center"
 						HorizontalAlignment="Left"
@@ -577,13 +399,14 @@
 						TextWrapping="Wrap"
 						Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
-					<Border Grid.RowSpan="2"
+						<Border Grid.RowSpan="2"
 						VerticalAlignment="Stretch"
 						HorizontalAlignment="Stretch"
 						BorderBrush="{StaticResource FlashyForeground}"
 						BorderThickness="{StaticResource Thickness2222}"
 						Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
-				</Grid>
+					</Grid>
+				</StackPanel>
 
 			</StackPanel>
 
