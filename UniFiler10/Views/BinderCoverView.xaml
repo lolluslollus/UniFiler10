@@ -215,7 +215,7 @@
 					<RowDefinition Height="Auto"/>
 					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
-				
+
 				<ctl:LolloTextBox
 					HorizontalAlignment="Left"
 					BorderThickness="0"
@@ -257,7 +257,7 @@
 					BorderThickness="{StaticResource Thickness2222}"
 					Visibility="{Binding ElementName=me, Path=VM.CatNameForCatFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 			</Grid>
-			
+
 			<!-- fld filter parameters -->
 			<StackPanel Orientation="Horizontal"
 				x:Name="FldFilter"
@@ -343,21 +343,21 @@
 						</ctl:LolloTextBox>
 
 						<TextBlock Grid.Row="1"
-						x:Uid="SelectAValue"
-						VerticalAlignment="Center"
-						HorizontalAlignment="Left"
-						Foreground="{StaticResource FlashyForeground}"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-						Margin="{StaticResource PanelPadding8282}"
-						TextWrapping="Wrap"
-						Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+							x:Uid="SelectAValue"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Left"
+							Foreground="{StaticResource FlashyForeground}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+							Margin="{StaticResource PanelPadding8282}"
+							TextWrapping="Wrap"
+							Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
 						<Border Grid.RowSpan="2"
-						VerticalAlignment="Stretch"
-						HorizontalAlignment="Stretch"
-						BorderBrush="{StaticResource FlashyForeground}"
-						BorderThickness="{StaticResource Thickness2222}"
-						Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+							VerticalAlignment="Stretch"
+							HorizontalAlignment="Stretch"
+							BorderBrush="{StaticResource FlashyForeground}"
+							BorderThickness="{StaticResource Thickness2222}"
+							Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 					</Grid>
 
 					<Grid Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}">
@@ -390,21 +390,21 @@
 						</ctl:LolloTextBox>
 
 						<TextBlock Grid.Row="1"
-						x:Uid="SelectAValue"
-						VerticalAlignment="Center"
-						HorizontalAlignment="Left"
-						Foreground="{StaticResource FlashyForeground}"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-						Margin="{StaticResource PanelPadding8282}"
-						TextWrapping="Wrap"
-						Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+							x:Uid="SelectAValue"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Left"
+							Foreground="{StaticResource FlashyForeground}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+							Margin="{StaticResource PanelPadding8282}"
+							TextWrapping="Wrap"
+							Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
 						<Border Grid.RowSpan="2"
-						VerticalAlignment="Stretch"
-						HorizontalAlignment="Stretch"
-						BorderBrush="{StaticResource FlashyForeground}"
-						BorderThickness="{StaticResource Thickness2222}"
-						Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
+							VerticalAlignment="Stretch"
+							HorizontalAlignment="Stretch"
+							BorderBrush="{StaticResource FlashyForeground}"
+							BorderThickness="{StaticResource Thickness2222}"
+							Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 					</Grid>
 				</StackPanel>
 
