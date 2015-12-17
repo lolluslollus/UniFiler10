@@ -359,7 +359,7 @@ namespace UniFiler10.Data.Metadata
 				string name = RuntimeData.GetText("NewFieldDescription");
 				var newFieldDesc = new FieldDescription() { Caption = name, IsCustom = true, IsJustAdded = true };
 
-				if (FieldDescription.Check(newFieldDesc) && !_fieldDescriptions.Any(fd => /*fd.Caption == newFieldDesc.Caption || */fd.Id == newFieldDesc.Id))
+				if (FieldDescription.Check(newFieldDesc) && !_fieldDescriptions.Any(fd => fd.Caption == newFieldDesc.Caption || fd.Id == newFieldDesc.Id))
 				{
 					_fieldDescriptions.Add(newFieldDesc);
 					return true;
