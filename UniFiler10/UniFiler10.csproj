@@ -106,6 +106,12 @@
     </Compile>
     <Compile Include="Controlz\BackableOpenableObservableControl.cs" />
     <Compile Include="Controlz\LayoutTransformer.cs" />
+    <Compile Include="Controlz\LolloToggleButton.xaml.cs">
+      <DependentUpon>LolloToggleButton.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controlz\LolloButton.xaml.cs">
+      <DependentUpon>LolloButton.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controlz\LolloSplitView.xaml.cs">
       <DependentUpon>LolloSplitView.xaml</DependentUpon>
     </Compile>
@@ -232,6 +238,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Page>
+    <Page Include="Controlz\LolloToggleButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controlz\LolloButton.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controlz\LolloSplitView.xaml">
       <SubType>Designer</SubType>

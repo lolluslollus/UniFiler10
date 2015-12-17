@@ -128,7 +128,11 @@
 		
 		<ctl:UniversalWrapPanel Orientation="Horizontal"
 			x:Name="ActionsUWP">
-			<Button 
+			<ctl:LolloButton
+				Tapped="OnGoBack_Tapped"
+				Symbol="Back"
+				Uid="Back2"/>
+			<!--<Button 
 				Tapped="OnGoBack_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
 				<Grid>
@@ -149,7 +153,7 @@
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"/>
 				</Grid>
-			</Button>
+			</Button>-->
 
 			<!--<Button 
 				Tapped="OnGoToBriefcase_Tapped"
@@ -197,7 +201,14 @@
 				</Grid>
 			</Button>-->
 
-			<ToggleButton
+			<ctl:LolloToggleButton
+				IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
+				Tapped="OnToggleElevated_Tapped"
+				CheckedSymbol="Emoji2"
+				UncheckedSymbol="Important"
+				CheckedUid="GotoSafe"
+				UncheckedUid="GotoElevated"/>
+			<!--<ToggleButton
                 IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
                 Style="{StaticResource ToggleButtonLolloStyle}"
 				Tapped="OnToggleElevated_Tapped">
@@ -234,9 +245,13 @@
 							VerticalAlignment="Center"
 							Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
 				</Grid>
-			</ToggleButton>
+			</ToggleButton>-->
 
-			<Button
+			<ctl:LolloButton
+				Tapped="OnExport_Tapped"
+				Symbol="Save"
+				Uid="Export"/>
+			<!--<Button
 				Tapped="OnExport_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
 				<Grid>
@@ -249,17 +264,23 @@
 					<SymbolIcon Symbol="Save"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"/>
-					<!--Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>-->
+					--><!--Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>--><!--
 					<TextBlock Grid.Column="2" x:Uid="Export"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"
                         HorizontalAlignment="Left"
 						VerticalAlignment="Center"/>
 				</Grid>
-			</Button>
+			</Button>-->
 
-			<Button
+			<ctl:LolloButton
+				Tapped="OnImport_Tapped"
+				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
+				Symbol="Import"
+				Foreground="{StaticResource FlashyForeground}"
+				Uid="Import1"/>
+			<!--<Button
 				Tapped="OnImport_Tapped"
 				Style="{StaticResource ButtonLolloStyle}"
 				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}">
@@ -274,8 +295,8 @@
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
 						Foreground="{StaticResource FlashyForeground}"/>
-					<!--Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>-->
+					--><!--Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>--><!--
 					<TextBlock Grid.Column="2" x:Uid="Import"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"
@@ -283,9 +304,13 @@
                         HorizontalAlignment="Left"
 						VerticalAlignment="Center"/>
 				</Grid>
-			</Button>
+			</Button>-->
 
-			<Button
+			<ctl:LolloButton
+				Tapped="OnAbout_Tapped"
+				Symbol="Help"
+				Uid="About"/>
+			<!--<Button
 				Tapped="OnAbout_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
 				<Grid>
@@ -298,15 +323,15 @@
 					<SymbolIcon Symbol="Help"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"/>
-					<!--Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>-->
+					--><!--Width="{StaticResource LandscapeItemHeight}"
+						Height="{StaticResource LandscapeItemHeight}"/>--><!--
 					<TextBlock Grid.Column="2" x:Uid="About"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                         TextWrapping="Wrap"
                         HorizontalAlignment="Left"
 						VerticalAlignment="Center"/>
 				</Grid>
-			</Button>
+			</Button>-->
 		</ctl:UniversalWrapPanel>
 
 		<Border RelativePanel.Below="ActionsUWP"

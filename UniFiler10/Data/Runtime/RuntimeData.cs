@@ -125,7 +125,8 @@ namespace UniFiler10.Data.Runtime
 		public static string GetText(string resourceName)
 		{
 			// localization localisation globalization globalisation
-			string name = _resourceLoader.GetString(resourceName);
+			string name = string.Empty;
+			if (!string.IsNullOrWhiteSpace(resourceName)) name = _resourceLoader.GetString(resourceName);
 			return name ?? string.Empty;
 		}
 		#endregion properties

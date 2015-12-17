@@ -655,7 +655,9 @@ namespace UniFiler10.ViewModels
 			{
 				if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
 				{
-					SetIsDirty(true, true, 0);
+					// if there is a filter in place, remove it to show the new folder 
+					if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
+					else SetIsDirty(true, true, 0);
 				}
 			}
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.

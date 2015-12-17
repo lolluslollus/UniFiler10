@@ -163,7 +163,11 @@
 			<!-- actions for all folders -->
 			<ctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="ActionsUWP">
-				<Button 
+				<ctl:LolloButton
+					Tapped="OnAddFolder_Tapped"
+					Symbol="Add"
+					Uid="AddFolderT"/>
+				<!--<Button 
                     Tapped="OnAddFolder_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
@@ -182,9 +186,13 @@
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</Button>
+				</Button>-->
 
-				<Button 
+				<ctl:LolloButton
+					Tapped="OnAddAndOpenFolder_Tapped"
+					Symbol="NewFolder"
+					Uid="AddOpenFolderT"/>
+				<!--<Button 
                     Tapped="OnAddAndOpenFolder_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
@@ -203,9 +211,13 @@
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</Button>
+				</Button>-->
 
-				<Button 
+				<ctl:LolloButton
+					Tapped="OnImportFoldersFromBinder_Tapped"
+					Symbol="Import"
+					Uid="ImportFolders"/>
+				<!--<Button 
                     Tapped="OnImportFoldersFromBinder_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
@@ -224,9 +236,13 @@
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</Button>
+				</Button>-->
 
-				<Button 
+				<ctl:LolloButton
+					Tapped="OnSettingsButton_Tapped"
+					Symbol="Setting"
+					Uid="Settings1"/>
+				<!--<Button 
                     Tapped="OnSettingsButton_Tapped"
                     Style="{StaticResource ButtonLolloStyle}">
 					<Grid>
@@ -245,10 +261,14 @@
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</Button>
+				</Button>-->
 
 				<!-- recent folders header -->
-				<ToggleButton 
+				<ctl:LolloToggleButton
+					IsChecked="{Binding ElementName=me, Path=VM.IsRecentFoldersPaneOpen, Mode=TwoWay}"
+					Symbol="View"
+					Uid="FilterByRecentFolders"/>
+				<!--<ToggleButton 
                     IsChecked="{Binding ElementName=me, Path=VM.IsRecentFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
@@ -263,8 +283,8 @@
                             Symbol="View"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
+						--><!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>--><!--
 						<TextBlock Grid.Column="2" 
                             x:Uid="RecentFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -272,10 +292,14 @@
                             HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</ToggleButton>
+				</ToggleButton>-->
 
 				<!-- all folders header -->
-				<ToggleButton 
+				<ctl:LolloToggleButton
+					IsChecked="{Binding ElementName=me, Path=VM.IsAllFoldersPaneOpen, Mode=TwoWay}"
+					Symbol="View"
+					Uid="FilterByAllFolders"/>
+				<!--<ToggleButton 
 					IsChecked="{Binding ElementName=me, Path=VM.IsAllFoldersPaneOpen, Mode=TwoWay}"
 					Style="{StaticResource ToggleButtonLolloStyle}">
 					<Grid>
@@ -289,8 +313,8 @@
                             Symbol="View"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
+						--><!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>--><!--
 						<TextBlock Grid.Column="2" 
                             x:Uid="AllFolders"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
@@ -298,10 +322,14 @@
                             HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</ToggleButton>
+				</ToggleButton>-->
 
 				<!-- folders by category header -->
-				<ToggleButton 
+				<ctl:LolloToggleButton
+					IsChecked="{Binding ElementName=me, Path=VM.IsByCatFoldersPaneOpen, Mode=TwoWay}"
+					Symbol="View"
+					Uid="FilterByCatFolders"/>
+				<!--<ToggleButton 
                     IsChecked="{Binding ElementName=me, Path=VM.IsByCatFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
@@ -316,8 +344,8 @@
 							Symbol="View" 
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
+						--><!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>--><!--
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByCatFolders" 
@@ -325,10 +353,14 @@
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</ToggleButton>
+				</ToggleButton>-->
 
 				<!-- folders by field header -->
-				<ToggleButton 
+				<ctl:LolloToggleButton
+					IsChecked="{Binding ElementName=me, Path=VM.IsByFldFoldersPaneOpen, Mode=TwoWay}"
+					Symbol="View"
+					Uid="FilterByFldFolders"/>
+				<!--<ToggleButton 
                     IsChecked="{Binding ElementName=me, Path=VM.IsByFldFoldersPaneOpen, Mode=TwoWay}"
                     Style="{StaticResource ToggleButtonLolloStyle}">
 
@@ -343,8 +375,8 @@
 							Symbol="View" 
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
+						--><!--Width="{StaticResource LandscapeItemHeight}"
+							Height="{StaticResource LandscapeItemHeight}"/>--><!--
 						<TextBlock Grid.Column="2"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                             x:Uid="ByFldFolders" 
@@ -352,7 +384,7 @@
 							HorizontalAlignment="Left"
 							VerticalAlignment="Center"/>
 					</Grid>
-				</ToggleButton>
+				</ToggleButton>-->
 			</ctl:UniversalWrapPanel>
 
 			<!-- cat filter parameters -->

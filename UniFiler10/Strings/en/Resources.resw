@@ -117,28 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AddBinder.Label" xml:space="preserve">
-    <value>Add</value>
-  </data>
   <data name="AddBinderT.Text" xml:space="preserve">
     <value>Add binder</value>
   </data>
   <data name="AddFolder.Label" xml:space="preserve">
     <value>Add folder</value>
   </data>
-  <data name="AddFolderT.Text" xml:space="preserve">
+  <data name="AddFolderT" xml:space="preserve">
     <value>Add folder</value>
   </data>
   <data name="AddOpenBinderT.Text" xml:space="preserve">
     <value>Add and open binder</value>
   </data>
-  <data name="AddOpenFolderT.Text" xml:space="preserve">
+  <data name="AddOpenFolderT" xml:space="preserve">
     <value>Add and open folder</value>
   </data>
   <data name="AllBinders.Text" xml:space="preserve">
     <value>All binders</value>
   </data>
-  <data name="AllFolders.Text" xml:space="preserve">
+  <data name="FilterByAllFolders" xml:space="preserve">
     <value>All folders</value>
   </data>
   <data name="AllowAllFieldValues.Text" xml:space="preserve">
@@ -156,10 +153,10 @@
   <data name="BackupBinder.Label" xml:space="preserve">
     <value>Back up</value>
   </data>
-  <data name="ByCatFolders.Text" xml:space="preserve">
+  <data name="FilterByCatFolders" xml:space="preserve">
     <value>Folders with category</value>
   </data>
-  <data name="ByFldFolders.Text" xml:space="preserve">
+  <data name="FilterByFldFolders" xml:space="preserve">
     <value>Folders with value</value>
   </data>
   <data name="CameraCaptureFailedW2Params" xml:space="preserve">
@@ -222,7 +219,7 @@
   <data name="Expand.Label" xml:space="preserve">
     <value>Expand</value>
   </data>
-  <data name="Export.Text" xml:space="preserve">
+  <data name="Export" xml:space="preserve">
     <value>Export</value>
   </data>
   <data name="FieldDescrsAssignedToCat.Text" xml:space="preserve">
@@ -231,13 +228,13 @@
   <data name="FieldDescrsNotAssignedToCat.Text" xml:space="preserve">
     <value>Available fields</value>
   </data>
-  <data name="Go.Text" xml:space="preserve">
+  <data name="Go" xml:space="preserve">
     <value>Go</value>
   </data>
-  <data name="GotoElevated.Text" xml:space="preserve">
+  <data name="GotoElevated" xml:space="preserve">
     <value>Go to elevated mode</value>
   </data>
-  <data name="GotoSafe.Text" xml:space="preserve">
+  <data name="GotoSafe" xml:space="preserve">
     <value>Go to safe mode</value>
   </data>
   <data name="Import.Text" xml:space="preserve">
@@ -246,7 +243,7 @@
   <data name="ImportBinderConfirmationRequest" xml:space="preserve">
     <value>There is already a binder with the same name. What do you want to do?</value>
   </data>
-  <data name="ImportFolders.Text" xml:space="preserve">
+  <data name="ImportFolders" xml:space="preserve">
     <value>Import new folders</value>
   </data>
   <data name="MergeIntoCurrentBinder" xml:space="preserve">
@@ -291,7 +288,7 @@
   <data name="PossibleFieldValues.Text" xml:space="preserve">
     <value>Possible values</value>
   </data>
-  <data name="RecentFolders.Text" xml:space="preserve">
+  <data name="FilterByRecentFolders" xml:space="preserve">
     <value>Recent folders</value>
   </data>
   <data name="RecordAudio.Label" xml:space="preserve">
@@ -300,7 +297,7 @@
   <data name="Remarks.Text" xml:space="preserve">
     <value>Remarks</value>
   </data>
-  <data name="RestoreBinder.Text" xml:space="preserve">
+  <data name="ImportBinder" xml:space="preserve">
     <value>Import binder</value>
   </data>
   <data name="SafeMode.Text" xml:space="preserve">
@@ -309,7 +306,7 @@
   <data name="Settings.Label" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="Settings1.Text" xml:space="preserve">
+  <data name="Settings1" xml:space="preserve">
     <value>Settings</value>
   </data>
   <data name="Shoot.Label" xml:space="preserve">
@@ -324,7 +321,7 @@
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="About.Text" xml:space="preserve">
+  <data name="About" xml:space="preserve">
     <value>About</value>
   </data>
   <data name="LicenserAlreadyBoughtLong" xml:space="preserve">
@@ -377,5 +374,14 @@
   </data>
   <data name="AudioRecordingInterrupted" xml:space="preserve">
     <value>Recording interrupted</value>
+  </data>
+  <data name="AddBinder" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Back2" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Import1" xml:space="preserve">
+    <value>Import</value>
   </data>
 </root>

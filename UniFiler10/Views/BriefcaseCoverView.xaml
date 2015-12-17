@@ -165,75 +165,20 @@
 			<!-- actions for all binders -->
 			<ctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="ActionsUWP">
-				<Button 
-					x:Name="AButton"
-                    Tapped="OnAddBinderStep0_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
+				<ctl:LolloButton x:Name="AButton"
+					Tapped="OnAddBinderStep0_Tapped"
+					Symbol="Add"
+					Uid="AddBinder"/>
 
-						<SymbolIcon Symbol="Add"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
-						<TextBlock Grid.Column="2" x:Uid="AddBinderT"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>
+				<ctl:LolloButton
+					Tapped="OnImportButton_Tapped"
+					Symbol="Import"
+					Uid="ImportBinder"/>
 
-				<Button 
-                    Tapped="OnImportButton_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Import"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
-						<TextBlock Grid.Column="2" x:Uid="RestoreBinder"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>
-
-				<Button 
-                    Tapped="OnSettingsButton_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Setting"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
-						<TextBlock Grid.Column="2" x:Uid="Settings1"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>
+				<ctl:LolloButton
+					Tapped="OnSettingsButton_Tapped"
+					Symbol="Setting"
+					Uid="Settings1"/>
 			</ctl:UniversalWrapPanel>
 
 			<!-- fields to add new binder -->
@@ -285,30 +230,12 @@
 					</Border>
 				</Grid>
 
-				<Button
-                    Tapped="OnAddBinderStep1_Tapped"
-                    Style="{StaticResource ButtonLolloStyle}"
+				<ctl:LolloButton
+					Tapped="OnAddBinderStep1_Tapped"
+					Symbol="Go"
+					Uid="Go"
 					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-							<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-							<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-						</Grid.ColumnDefinitions>
-
-						<SymbolIcon Symbol="Go"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"/>
-						<!--Width="{StaticResource LandscapeItemHeight}"
-							Height="{StaticResource LandscapeItemHeight}"/>-->
-						<TextBlock Grid.Column="2" x:Uid="Go"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"/>
-					</Grid>
-				</Button>
+					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 			</ctl:UniversalWrapPanel>
 
 			<!-- "all binders" header -->
@@ -384,18 +311,14 @@
 									Tapped="OnBackupButton_Tapped"
 									Canvas.ZIndex="150"
 									Style="{StaticResource AppBarButtonRecoloured}"
-									IsCompact="True"
 									Foreground="{StaticResource FlashyForeground}"
-									Opacity="1"
 									HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
 							<AppBarButton Icon="Delete"
 									Tapped="OnDeleteButton_Tapped"
 									Canvas.ZIndex="150"
 									Style="{StaticResource AppBarButtonRecoloured}"
-									IsCompact="True"
 									Foreground="{StaticResource FlashyForeground}"
-									Opacity="1"
 									HorizontalAlignment="Right" VerticalAlignment="Top"/>
 						</Grid>
 					</DataTemplate>
