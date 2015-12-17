@@ -18,11 +18,6 @@
 	<Grid x:Name="LayoutRoot" 
 		Background="#FFDEEADE">
 
-		<!--<Popup IsOpen="{x:Bind VM.IsCameraOverlayOpen, Mode=OneWay, FallbackValue=false}">
-			<local:CameraView x:Name="CameraView"/>
-			--><!--DataContext="{x:Bind Path=VM.Folder, Mode=OneWay}"/>--><!--
-		</Popup>-->
-
 		<Popup IsOpen="{x:Bind VM.IsAudioRecorderOverlayOpen, Mode=OneWay, FallbackValue=false}">
 			<local:AudioRecorderView x:Name="AudioRecorderView"/>
 			<!--DataContext="{x:Bind Path=VM.Folder, Mode=OneWay}"/>-->
@@ -32,29 +27,29 @@
 			VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
 			HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
 
-            <Grid >
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
-                    <RowDefinition />
-                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
-                    <RowDefinition />
-                </Grid.RowDefinitions>
+			<Grid >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+					<RowDefinition />
+					<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+					<RowDefinition />
+				</Grid.RowDefinitions>
 
-                <!-- basic data -->
+				<!-- basic data -->
 				<ctl:UniversalWrapPanel Orientation="Horizontal">
 					<ctl:LolloTextBox
 						MinWidth="{StaticResource LandscapeItemWidth}"
 						MinHeight="{StaticResource LandscapeItemHeight}"
 						MaxLength="{StaticResource MaxFolderNameLength}"
-						Text="{x:Bind VM.Folder.Name, Mode=TwoWay}"
+						Text="{Binding ElementName=me, Path=VM.Folder.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 						Style="{StaticResource LolloTextBoxStyle}">
 						<TextBox.Header>
-                            <TextBlock x:Uid="Name"/>
-                        </TextBox.Header>
-                    </ctl:LolloTextBox>
+							<TextBlock x:Uid="Name"/>
+						</TextBox.Header>
+					</ctl:LolloTextBox>
 
 					<!--x:Name="Test"-->
 					<ctl:LolloTextBox
@@ -62,42 +57,42 @@
 						MinHeight="{StaticResource LandscapeItemHeight}"
 						MaxLength="{StaticResource MaxFolderDescrLength}"
 						AcceptsReturn="True"
-						Text="{x:Bind VM.Folder.Descr0, Mode=TwoWay}"
+						Text="{Binding ElementName=me, Path=VM.Folder.Descr0, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 						Style="{StaticResource LolloTextBoxStyle}">
-                        <TextBox.Header>
-                            <TextBlock x:Uid="Remarks"/>
-                        </TextBox.Header>
-                    </ctl:LolloTextBox>
+						<TextBox.Header>
+							<TextBlock x:Uid="Remarks"/>
+						</TextBox.Header>
+					</ctl:LolloTextBox>
 				</ctl:UniversalWrapPanel>
 
-                <!-- dynamic categories -->
-                <Grid Grid.Row="2" >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+				<!-- dynamic categories -->
+				<Grid Grid.Row="2" >
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
 
-                    <AppBarToggleButton
+					<AppBarToggleButton
 						Width="{StaticResource LandscapeItemHeight}"
 						Height="{StaticResource LandscapeItemHeight}"						
                         VerticalAlignment="Top"
 						IsChecked="{Binding ElementName=me, Path=VM.Folder.IsEditingCategories, Mode=TwoWay}"
 						Icon="View"
 						x:Uid="EditCategories"/>
-                        
-                    <ItemsControl Grid.Column="2"
+
+					<ItemsControl Grid.Column="2"
                         VerticalAlignment="Top"
 						Visibility="{x:Bind VM.Folder.IsEditingCategories, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						ItemsSource="{x:Bind VM.FolderCategorySelector, Mode=OneWay}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
 								<ctl:UniversalWrapPanel Orientation="Horizontal"/>
 								<!--<ItemsWrapGrid Orientation="Horizontal"/>-->
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
 								<CheckBox
 									Width="{StaticResource LandscapeItemWidth}"
 									MinHeight="{StaticResource LandscapeItemHeight}"
@@ -105,21 +100,21 @@
                                     Style="{StaticResource CheckBoxLolloStyle}"
 									Content="{Binding Name, Mode=OneWay}"/>
 							</DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Grid>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Grid>
 
-                <!-- dynamic fields -->
-                <ItemsControl Grid.Row="4"
+				<!-- dynamic fields -->
+				<ItemsControl Grid.Row="4"
 					ItemsSource="{x:Bind VM.Folder.DynamicFields, Mode=OneWay}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <!--<ItemsWrapGrid Orientation="Horizontal"/>-->
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<!--<ItemsWrapGrid Orientation="Horizontal"/>-->
 							<ctl:UniversalWrapPanel Orientation="Horizontal"/>
 						</ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
 							<Grid>
 								<ctl:LolloTextBox
 									Width="{StaticResource LandscapeItemWidth}"
@@ -142,17 +137,17 @@
 											</Grid>
 										</DataTemplate>
 									</ctl:LolloTextBox.ListItemTemplate>
-                                </ctl:LolloTextBox>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+								</ctl:LolloTextBox>
+							</Grid>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
 
-                <!-- Wallets -->
+				<!-- Wallets -->
 				<local:WalletsView Grid.Row="6"					
 					VM="{x:Bind VM, Mode=OneWay}"/>
 				<!--DataContext="{x:Bind VM.Folder, Mode=OneWay}"/>-->
-            </Grid>
-        </ScrollViewer>
-    </Grid>
+			</Grid>
+		</ScrollViewer>
+	</Grid>
 </ctl:OpenableObservableControl>
