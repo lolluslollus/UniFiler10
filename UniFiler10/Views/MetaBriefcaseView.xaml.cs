@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
+using UniFiler10.Converters;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
 using UniFiler10.ViewModels;
@@ -15,6 +16,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -42,7 +44,7 @@ namespace UniFiler10.Views
 
 		public MetaBriefcaseView()
 		{
-			double metaItemTextWidth = 0.0;			
+			double metaItemTextWidth = 0.0;
 			double.TryParse(Application.Current.Resources["MetaItemTextWidth"].ToString(), NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowThousands | NumberStyles.AllowTrailingWhite, CultureInfo.InvariantCulture, out metaItemTextWidth);
 			MetaItemTextWidth = metaItemTextWidth;
 
@@ -109,7 +111,7 @@ namespace UniFiler10.Views
 		{
 			Task ass = VM?.AssignFieldDescriptionToCurrentCategoryAsync((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
-		private void OnUnassignFieldFromCurrentCategory_Click(object sender, RoutedEventArgs e)
+		private void OnAssignFieldFromCurrentCategory_Click(object sender, RoutedEventArgs e)
 		{
 			Task una = VM?.UnassignFieldDescriptionFromCurrentCategoryAsync((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
@@ -143,15 +145,64 @@ namespace UniFiler10.Views
 			Task del = VM?.RemoveCategoryAsync((sender as FrameworkElement)?.DataContext as Category);
 		}
 
-		private void OnUnassignFieldFromCat_Loaded(object sender, RoutedEventArgs e)
+		private void OnFieldUnassignCommand_Loaded(object sender, RoutedEventArgs e)
 		{
-			var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-			string currCatId = MetaBriefcase.OpenInstance?.CurrentCategory?.Id;
+			var mbc = MetaBriefcase.OpenInstance;
+			if (mbc != null)
+			{
+				var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+				if (fldDsc != null)
+				{
+					string currCatId = mbc.CurrentCategoryId;
+					if (!string.IsNullOrEmpty(currCatId))
+					{
+						if (fldDsc.JustAssignedToCats.Contains(currCatId)) Allow(sender);
+						else AllowIfElevated(sender);
+					}
+					else Allow(sender);
+				}
+				else Allow(sender);
+			}
+			else Forbid(sender);
+		}
 
-			if (fldDsc != null && !string.IsNullOrEmpty(currCatId) && (fldDsc.JustAssignedToCats?.Contains(currCatId) == true || SettingsVM.GetIsElevated()))
-				(sender as FrameworkElement).Visibility = Visibility.Visible;
-			else
-				(sender as FrameworkElement).Visibility = Visibility.Collapsed;
+		private void OnFieldDeleteCommand_Loaded(object sender, RoutedEventArgs e)
+		{
+			var mbc = MetaBriefcase.OpenInstance;
+			if (mbc != null)
+			{
+				var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+				if (fldDsc != null)
+				{
+					// LOLLO TODO the following line is buggy
+					var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
+
+					if (catsWhereThisFieldWasAssignedBefore != null && catsWhereThisFieldWasAssignedBefore.Count() > 0) AllowIfElevated(sender);
+					else Allow(sender);
+				}
+				else Allow(sender);
+			}
+			else Forbid(sender);
+		}
+
+		private static void Forbid(object sender)
+		{
+			(sender as FrameworkElement).Visibility = Visibility.Collapsed;
+			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, null));
+		}
+
+		private static void AllowIfElevated(object sender)
+		{
+			if (SettingsVM.GetIsElevated()) (sender as FrameworkElement).Visibility = Visibility.Visible;
+			else (sender as FrameworkElement).Visibility = Visibility.Collapsed;
+
+			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, null));
+		}
+
+		private static void Allow(object sender)
+		{
+			(sender as FrameworkElement).Visibility = Visibility.Visible;
+			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(true, null, null, null));
 		}
 	}
 }

@@ -146,6 +146,7 @@
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
+									Foreground="{Binding IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
 								<Rectangle Grid.Column="2"
@@ -202,7 +203,9 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
-							<ItemsStackPanel Orientation="Vertical"/>
+							<!-- no virtualistion here or we lose the OnLoaded! -->
+							<!--<ItemsStackPanel Orientation="Vertical"/>-->
+							<StackPanel Orientation="Vertical"/>
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
@@ -231,14 +234,14 @@
 								<AppBarButton Grid.Column="3"
 									Icon="Remove"
                                     IsCompact="True"
-                                    Loaded="OnUnassignFieldFromCat_Loaded"                                         
-                                    Click="OnUnassignFieldFromCurrentCategory_Click"
+                                    Click="OnAssignFieldFromCurrentCategory_Click"
+									Loaded="OnFieldUnassignCommand_Loaded"
                                     VerticalAlignment="Center"/>
 								<AppBarButton Grid.Column="4"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
-                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
+                                    Loaded="OnFieldDeleteCommand_Loaded"
                                     VerticalAlignment="Center"/>
 								<Rectangle Grid.Column="2"
 									Width="{StaticResource MetaItemHeight}"
@@ -293,7 +296,9 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
-							<ItemsStackPanel Orientation="Vertical"/>
+							<!-- no virtualistion here or we lose the OnLoaded! -->
+							<!--<ItemsStackPanel Orientation="Vertical"/>-->
+							<StackPanel Orientation="Vertical"/>
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
@@ -328,7 +333,7 @@
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
-                                    Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
+									Loaded="OnFieldDeleteCommand_Loaded"
                                     VerticalAlignment="Center"/>
 								<Rectangle Grid.Column="2"
 									Width="{StaticResource MetaItemHeight}"
@@ -372,6 +377,7 @@
 
 				<Grid>
 					<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
+						Foreground="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
 						IsEnabled="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource BooleanAndElevated}}"                   
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
@@ -381,8 +387,8 @@
 						Width="{Binding ElementName=me, Path=MetaItemTextWidth}">
 						<CheckBox.Content>
 							<TextBlock x:Uid="AllowAllFieldValues"
-							MaxWidth="{Binding ElementName=me, Path=MetaItemTextWidth, Converter={StaticResource ReduceWidthForText}, ConverterParameter=40}"
-							TextWrapping="Wrap"/>
+								MaxWidth="{Binding ElementName=me, Path=MetaItemTextWidth, Converter={StaticResource ReduceWidthForText}, ConverterParameter=40}"
+								TextWrapping="Wrap"/>
 						</CheckBox.Content>
 					</CheckBox>
 					<Rectangle
@@ -421,6 +427,7 @@
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeletePossibleValue_Click"
+									Foreground="{Binding IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
 								<Rectangle Grid.Column="2"

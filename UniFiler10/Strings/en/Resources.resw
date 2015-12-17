@@ -214,7 +214,7 @@
     <value>Categories</value>
   </data>
   <data name="ElevatedMode.Text" xml:space="preserve">
-    <value>You are in elevated mode. This allows changing many things, but be careful: you may affect your data if you delete the wrong things.</value>
+    <value>You are in elevated mode. This allows changing many things, but be careful: you may affect your data if you delete the wrong things. The dangerous actions are marked.</value>
   </data>
   <data name="Expand.Label" xml:space="preserve">
     <value>Expand</value>

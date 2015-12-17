@@ -29,6 +29,7 @@
             <conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
 			<conv:ReduceWidthForText x:Key="ReduceWidthForText"/>
+			<conv:FalseToFlashyConverter x:Key="FalseToFlashyConverter"/>
 			<vms:BooleanAndElevated x:Key="BooleanAndElevated"/>
 			<vms:BooleanAndElevatedToVisible x:Key="BooleanAndElevatedToVisible"/>
 		</ResourceDictionary>

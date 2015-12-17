@@ -10,6 +10,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 using System.Collections;
 using System.Globalization;
+using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Converters
 {
@@ -77,7 +78,6 @@ namespace UniFiler10.Converters
             if (value == null || !(value is bool)) return false;
             return !((bool)value);
         }
-
     }
 
 	public class BooleanToVisibleConverter : IValueConverter
@@ -109,7 +109,28 @@ namespace UniFiler10.Converters
             throw new Exception("this is a one-way bonding, it should never come here");
         }
     }
-    public class TextEmptyToVisibleConverter : IValueConverter
+
+	public class FalseToFlashyConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			AppBarButton aa = new AppBarButton();
+			Windows.UI.Xaml.Media.Brush uu = null;
+			//object normalBrush = Application.Current.Resources["SystemControlForegroundBaseHighBrush"].GetType();
+			//object flashyBrush = Application.Current.Resources["FlashyForeground"].GetType();
+
+			if (value == null || !(value is bool)) return Application.Current.Resources["FlashyForeground"];
+			bool boo = (bool)value;
+			if (boo) return Application.Current.Resources["SystemControlForegroundBaseHighBrush"];
+			else return Application.Current.Resources["FlashyForeground"];
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
+
+	public class TextEmptyToVisibleConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
