@@ -1,3 +1,4 @@
 MainPackage=D:\CD\dev\VS2015\UniFiler10\UniFiler10\bin\ARM\Release\UniFiler10_1.1.0.0_ARM.appx
+SymbolPackage=D:\CD\dev\VS2015\UniFiler10\UniFiler10\AppPackages\UniFiler10_1.1.0.0_Test\UniFiler10_1.1.0.0_ARM.appxsym
 ResourcePack=D:\CD\dev\VS2015\UniFiler10\UniFiler10\bin\ARM\Release\UniFiler10_1.1.0.0_language-de.appx
 ResourcePack=D:\CD\dev\VS2015\UniFiler10\UniFiler10\bin\ARM\Release\UniFiler10_1.1.0.0_language-it.appx
