@@ -36,7 +36,7 @@
 		<ctl:LolloSplitView.PaneContent>
 			<ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
                 HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
-				<Grid>
+				<Grid Background="{ThemeResource SystemChromeWhiteColor}">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="*"/>
@@ -66,6 +66,8 @@
 						</ItemsControl.ItemsPanel>
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
+								<!--<Border Style="{StaticResource SelectorBorder}">-->
+								<!--<Border Background="Wheat">-->
 								<ctl:TextBlockScaler
 									Height="{StaticResource CompactPaneLength}"
 									Width="{StaticResource CompactPaneLength}">
@@ -77,6 +79,7 @@
 											TextWrapping="Wrap"/>
 									</ctl:TextBlockScaler.TextBlock>
 								</ctl:TextBlockScaler>
+								<!--</Border>-->
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>
 					</ctl:TolerantListView>

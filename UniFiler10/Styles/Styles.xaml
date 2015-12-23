@@ -1025,6 +1025,11 @@
 		<Setter Property="VerticalAlignment" Value="Stretch"/>
 	</Style>
 
+	<Style x:Key="SelectorBorder" TargetType="Border">
+		<Setter Property="Background" Value="{ThemeResource SystemChromeWhiteColor}" />
+		<!--<Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>-->
+	</Style>
+
 	<GridLength x:Key="CheckBoxWidth_ForGrid">32</GridLength>
     <x:Double x:Key="CheckBoxWidth">32</x:Double>
 

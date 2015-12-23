@@ -100,6 +100,7 @@ namespace UniFiler10
 		{
 			// LOLLO NOTE this is the first OnResuming to fire
 			await OpenAsync().ConfigureAwait(false);
+			await Logger.AddAsync("App resumed", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -115,7 +116,7 @@ namespace UniFiler10
 			var deferral = e.SuspendingOperation.GetDeferral();
 			// Save application state and stop any background activity
 			await CloseAsync().ConfigureAwait(false);
-
+			await Logger.AddAsync("App suspended", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			deferral.Complete();
 		}
 		/// <summary>

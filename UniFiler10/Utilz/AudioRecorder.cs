@@ -167,7 +167,8 @@ namespace Utilz
 			MediaEncodingProfile fileProfile = CreateMediaEncodingProfile(file);
 
 			// Operate node at the graph format, but save file at the specified format
-			CreateAudioFileOutputNodeResult fileOutputNodeResult = await _audioGraph.CreateFileOutputNodeAsync(file, fileProfile);
+			CreateAudioFileOutputNodeResult fileOutputNodeResult = await _audioGraph.CreateFileOutputNodeAsync(file, fileProfile); // LOLLO TODO this fails on the phone with mp3, not with wav
+			// CreateAudioFileOutputNodeResult fileOutputNodeResult = await _audioGraph.CreateFileOutputNodeAsync(file); // this does not fail but it records some crap that cannot be played back, on the phone
 			if (fileOutputNodeResult.Status != AudioFileNodeCreationStatus.Success)
 			{
 				// FileOutputNode creation failed
@@ -190,7 +191,7 @@ namespace Utilz
 				case ".wma":
 					output = MediaEncodingProfile.CreateWma(AudioEncodingQuality.High); break;
 				case ".mp3":
-					output = MediaEncodingProfile.CreateMp3(AudioEncodingQuality.High); break;
+					output = MediaEncodingProfile.CreateMp3(AudioEncodingQuality.High); break; // LOLLO TODO error with phone Unknown failure as a consequence of this. Wav seems to work instead.
 				case ".wav":
 					output = MediaEncodingProfile.CreateWav(AudioEncodingQuality.High); break;
 				default:

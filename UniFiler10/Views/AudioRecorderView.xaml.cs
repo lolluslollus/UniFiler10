@@ -67,7 +67,11 @@ namespace UniFiler10.Views
 					await _audioRecorder.OpenAsync();
 					// adjust the microphone volume. You need MediaCapture, apparently, and she needs STAThread. Ridiculous.
 					_mediaCapture = new MediaCapture();
-					var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance?.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
+					// LOLLO TODO the following fails with the phone
+					// var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance?.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
+					// the following works with the phone
+					var settings = new MediaCaptureInitializationSettings { StreamingCaptureMode = StreamingCaptureMode.Audio };
+					_mediaCapture.Failed += OnMediaCapture_Failed;
 					await _mediaCapture.InitializeAsync(settings);
 					_mediaCapture.AudioDeviceController.Muted = false;
 					_mediaCapture.AudioDeviceController.VolumePercent = (float)VolumeSlider.Value;
@@ -104,6 +108,7 @@ namespace UniFiler10.Views
 				return isOk;
 			});
 		}
+
 		[STAThread]
 		public Task<bool> StopAsync()
 		{
@@ -117,11 +122,16 @@ namespace UniFiler10.Views
 		{
 			await StopRecordingAsync().ConfigureAwait(false);
 
-			try
+			var mc = _mediaCapture;
+			if (mc != null)
 			{
-				_mediaCapture?.Dispose();
+				mc.Failed -= OnMediaCapture_Failed;
+				try
+				{
+					mc.Dispose();
+				}
+				catch { }
 			}
-			catch { }
 			_mediaCapture = null;
 
 			var audioRecorder = _audioRecorder;
@@ -200,6 +210,12 @@ namespace UniFiler10.Views
 		}
 
 		private async void OnAudioRecorder_UnrecoverableError(object sender, EventArgs e)
+		{
+			await StopRecordingAsync();
+			NotifyOfFailure();
+		}
+
+		private async void OnMediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
 		{
 			await StopRecordingAsync();
 			NotifyOfFailure();

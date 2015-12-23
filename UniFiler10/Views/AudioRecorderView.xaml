@@ -38,7 +38,7 @@
 	</UserControl.Resources>
 
 	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
-	<Grid Background="Gold">
+	<Grid Background="Gold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 		<!--Audio preview LOLLO TODO check if we can use this to show the recording level -->
 		<!-- 
 			https://social.msdn.microsoft.com/forums/windowsapps/en-US/70af881f-3823-49b8-9c5a-0062e75f1376/winrt-mediaelement-recording-level 
@@ -48,7 +48,7 @@
 			Width="200" Height="200"
 			HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
 		
-		<Border Width="400" Height="400" >
+		<Border Width="200" Height="200" >
 			<Viewbox x:Name="viewbox" Width="200" Height="200" 
 				HorizontalAlignment="Center" VerticalAlignment="Center" 
                 RenderTransformOrigin="0.5,0.5">
