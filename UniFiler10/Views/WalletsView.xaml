@@ -19,36 +19,38 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-			<AppBarButton
-                Icon="Camera"
-                VerticalAlignment="Center"
-				HorizontalAlignment="Center"
-				Width="{StaticResource LandscapeItemHeight}"
-				Height="{StaticResource LandscapeItemHeight}"
-                IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
-                Click="OnShoot_Click"
-				x:Uid="Shoot"/>
-            <AppBarButton
-                Icon="Microphone"
-                VerticalAlignment="Center"
-				HorizontalAlignment="Center"
-				Width="{StaticResource LandscapeItemHeight}"
-				Height="{StaticResource LandscapeItemHeight}"
-                IsEnabled="{x:Bind Path=VM.RuntimeData.IsMicrophoneAvailable, Mode=OneWay, FallbackValue=false}"
-                Click="OnRecordSound_Click"
-				x:Uid="RecordAudio"/>
-            <AppBarButton
-                Icon="OpenFile"
-                VerticalAlignment="Center"
-				HorizontalAlignment="Center"
-				Width="{StaticResource LandscapeItemHeight}"
-				Height="{StaticResource LandscapeItemHeight}"
-                Click="OnOpenFile_Click"
-				x:Uid="OpenFile"/>
-        </StackPanel>
+		<ContentControl Grid.Row="0" IsEnabled="{x:Bind Path=VM.IsCanImportMedia, Mode=OneWay, FallbackValue=false}">
+			<StackPanel Orientation="Horizontal">
+				<AppBarButton
+					Icon="Camera"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Center"
+					Width="{StaticResource LandscapeItemHeight}"
+					Height="{StaticResource LandscapeItemHeight}"
+					IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
+					Click="OnShoot_Click"
+					x:Uid="Shoot"/>
+				<AppBarButton
+					Icon="Microphone"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Center"
+					Width="{StaticResource LandscapeItemHeight}"
+					Height="{StaticResource LandscapeItemHeight}"
+					IsEnabled="{x:Bind Path=VM.RuntimeData.IsMicrophoneAvailable, Mode=OneWay, FallbackValue=false}"
+					Click="OnRecordSound_Click"
+					x:Uid="RecordAudio"/>
+				<AppBarButton
+					Icon="OpenFile"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Center"
+					Width="{StaticResource LandscapeItemHeight}"
+					Height="{StaticResource LandscapeItemHeight}"
+					Click="OnOpenFile_Click"
+					x:Uid="OpenFile"/>
+			</StackPanel>
+		</ContentControl>
 
-        <!--<Border BorderBrush="DarkRed" BorderThickness="3" Grid.Row="1">-->
+		<!--<Border BorderBrush="DarkRed" BorderThickness="3" Grid.Row="1">-->
         <!-- LOLLO ItemsControl does not allow scrolling so we take a ListView instead -->
         <!--IsMultiSelectCheckBoxEnabled="False" 
             IsItemClickEnabled="False"-->

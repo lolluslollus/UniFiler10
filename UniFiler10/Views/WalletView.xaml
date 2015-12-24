@@ -20,20 +20,22 @@
             <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <AppBarButton
-                Icon="Camera"
-                IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
-                Click="OnShoot_Click"/>
-            <AppBarButton
-                Icon="OpenFile"
-                Click="OnOpenFile_Click"/>
-            <AppBarButton
-                Icon="Delete" 
-                Click="OnItemDelete_Click"/>
-        </StackPanel>
+		<ContentControl Grid.Row="0" IsEnabled="{x:Bind Path=VM.IsCanImportMedia, Mode=OneWay, FallbackValue=false}">
+			<StackPanel Orientation="Horizontal">
+				<AppBarButton
+					Icon="Camera"
+					IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
+					Click="OnShoot_Click"/>
+				<AppBarButton
+					Icon="OpenFile"
+					Click="OnOpenFile_Click"/>
+				<AppBarButton
+					Icon="Delete" 
+					Click="OnItemDelete_Click"/>
+			</StackPanel>
+		</ContentControl>
 
-        <!--IsMultiSelectCheckBoxEnabled="False" 
+		<!--IsMultiSelectCheckBoxEnabled="False" 
             IsItemClickEnabled="True"-->
         <!-- LOLLO no need for a ListView here, the scrolling is already in the parent ListView-->
         <ItemsControl Grid.Row="1"

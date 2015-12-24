@@ -19,6 +19,8 @@ namespace UniFiler10.ViewModels
 	public sealed class SettingsVM : OpenableObservableData, IDisposable
 	{
 		#region properties
+		private const string REG_FILEPATH = "SettingsFilePicker.filePath";
+
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
@@ -44,6 +46,9 @@ namespace UniFiler10.ViewModels
 		{
 			return _instance?._metaBriefcase?.IsElevated == true;
 		}
+
+		private bool _isCanImport = true;
+		public bool IsCanImport { get { return _isCanImport; } private set { _isCanImport = value; RaisePropertyChanged_UI(); } }
 
 		private static SettingsVM _instance = null;
 		private AnimationStarter _animationStarter = null;
@@ -74,11 +79,19 @@ namespace UniFiler10.ViewModels
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
+			lock (_importLock) { IsCanImport = !IsImportingSaysTheRegistry(); }
 			if (SavingMetadataEnded == null) SavingMetadataEnded += OnSavingMetadataEnded;
 			await ResumeAfterFilePickAsync().ConfigureAwait(false);
 		}
+
+		private async void OnSavingMetadataEnded(object sender, EventArgs e)
+		{
+			await ResumeAfterFilePickAsync().ConfigureAwait(false);
+		}
+
 		protected override async Task CloseMayOverrideAsync()
 		{
+			SavingMetadataEnded -= OnSavingMetadataEnded;
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
 		}
@@ -195,8 +208,8 @@ namespace UniFiler10.ViewModels
 			return isOk;
 		}
 
-		private async Task AfterFilePickedTask(Task<StorageFile> pickTask, bool pickFile)
-		{ // LOLLO TODO check this
+		private async Task AfterFilePickedTask(Task<StorageFile> pickTask, bool copyFile)
+		{
 			try
 			{
 				var file = await pickTask.ConfigureAwait(false);
@@ -204,12 +217,11 @@ namespace UniFiler10.ViewModels
 				{
 					// User cancelled picking
 					_animationStarter.StartAnimation(1);
-					return;
 				}
 				else
 				{
 					StorageFile newFile = null;
-					if (pickFile)
+					if (copyFile)
 					{
 						newFile = await file.CopyAsync(ApplicationData.Current.TemporaryFolder, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
 					}
@@ -217,8 +229,8 @@ namespace UniFiler10.ViewModels
 					{
 						newFile = file;
 					}
-					bool isSaved = false;
 
+					bool isSaved = false;
 					if (newFile != null)
 					{
 						var bf = Briefcase.GetCurrentInstance();
@@ -229,12 +241,13 @@ namespace UniFiler10.ViewModels
 
 						if (isSaved)
 						{
-							RegistryAccess.SetValue("SettingsFilePicker.filePath", string.Empty);
+							RegistryAccess.SetValue(REG_FILEPATH, string.Empty);
 							MetadataChanged?.Invoke(this, EventArgs.Empty);
 						}
-						else
+						else // could not complete the operation: write away the relevant values, Resume() will follow up.
+							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
 						{
-							RegistryAccess.SetValue("SettingsFilePicker.filePath", newFile.Path);
+							RegistryAccess.SetValue(REG_FILEPATH, newFile.Path);
 							SavingMetadataEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
@@ -248,31 +261,30 @@ namespace UniFiler10.ViewModels
 						_animationStarter.StartAnimation(1);
 					}
 				}
-				return;
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
-			lock (_importLock) { _isImporting = false; }
+			lock (_importLock) { IsCanImport = !IsImportingSaysTheRegistry(); }
 		}
+
 		private static event EventHandler SavingMetadataEnded;
 		public event EventHandler MetadataChanged;
 
-		private async void OnSavingMetadataEnded(object sender, EventArgs e)
+		private bool IsImportingSaysTheRegistry()
 		{
-			await ResumeAfterFilePickAsync().ConfigureAwait(false);
+			string a = RegistryAccess.GetValue(REG_FILEPATH);
+			return !(string.IsNullOrWhiteSpace(a));
 		}
-
 		private async Task ResumeAfterFilePickAsync()
 		{
-			string filePath = RegistryAccess.GetValue("SettingsFilePicker.filePath");
+			string filePath = RegistryAccess.GetValue(REG_FILEPATH);
 			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
 
 			if (wasPicking)
 			{
 				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
-
 				await AfterFilePickedTask(pickFileTask, false).ConfigureAwait(false);
 			}
 			else
@@ -282,13 +294,22 @@ namespace UniFiler10.ViewModels
 		}
 
 		private readonly object _importLock = new object();
-		private bool _isImporting = false;
+		//private bool _isImporting = false;
 
 		public void StartImport()
 		{
 			Task imp = RunFunctionWhileOpenAsyncA(delegate
 		   {
-			   lock (_importLock) { if (_isImporting) return; else _isImporting = true; }
+			   lock (_importLock)
+			   {
+				   if (!_isCanImport || IsImportingSaysTheRegistry())
+				   {
+					   IsCanImport = false;
+					   return;
+				   }
+				   else IsCanImport = false;
+			   }
+
 			   var bf = Briefcase.GetCurrentInstance();
 			   if (bf != null)
 			   {

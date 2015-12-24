@@ -276,6 +276,7 @@
 
 			<ctl:LolloButton
 				Tapped="OnImport_Tapped"
+				IsEnabled="{x:Bind Path=VM.IsCanImport, Mode=OneWay, FallbackValue=false}"
 				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 				Symbol="Import"
 				Foreground="{StaticResource FlashyForeground}"
