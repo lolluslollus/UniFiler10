@@ -68,13 +68,13 @@ namespace UniFiler10.ViewModels
 			RuntimeData = RuntimeData.Instance;
 			UpdateCurrentFolderCategories();
 
-			if (SavingEnded == null) SavingEnded += OnSavingEnded;
+			if (SavingMediaFileEnded == null) SavingMediaFileEnded += OnSavingMediaFileEnded;
 
 			await ResumeAfterShootingAsync().ConfigureAwait(false);
 			await ResumeAfterFilePickAsync().ConfigureAwait(false);
 		}
 
-		private async void OnSavingEnded(object sender, EventArgs e)
+		private async void OnSavingMediaFileEnded(object sender, EventArgs e)
 		{
 			//			await Logger.AddAsync("saving ended caught", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			await ResumeAfterShootingAsync().ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace UniFiler10.ViewModels
 
 			//await Logger.AddAsync("FolderVM closing", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 
-			SavingEnded -= OnSavingEnded;
+			SavingMediaFileEnded -= OnSavingMediaFileEnded;
 
 			var ar = _audioRecorder;
 			if (ar != null)
@@ -144,10 +144,10 @@ namespace UniFiler10.ViewModels
 
 
 		#region add media
-		public Task LoadMediaFileAsync() // file open picker causes a suspend on the phone, so the app quits before the file is saved.
+		public void StartLoadMediaFile() // file open picker causes a suspend on the phone, so the app quits before the file is saved.
 										 // LOLLO TODO Fix this across the app, wherever a picker is called
 		{
-			return RunFunctionWhileOpenAsyncA(delegate
+			Task load = RunFunctionWhileOpenAsyncA(delegate
 			{
 				var folder = _folder;
 				if (folder?.IsOpen == true)
@@ -177,9 +177,9 @@ namespace UniFiler10.ViewModels
 			//	}
 			//});
 		}
-		public Task LoadMediaFileAsync(Wallet parentWallet)
+		public void StartLoadMediaFile(Wallet parentWallet)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate
+			Task load = RunFunctionWhileOpenAsyncA(delegate
 			{
 				var folder = _folder;
 				if (folder?.IsOpen == true && parentWallet != null)
@@ -254,7 +254,7 @@ namespace UniFiler10.ViewModels
 							//if (folder != null) RegistryAccess.SetValue("FilePicker.folderId", folder.Id);
 							if (parentWallet != null) RegistryAccess.SetValue("FilePicker.parentWalletId", parentWallet.Id);
 							RegistryAccess.SetValue("FilePicker.filePath", newFile.Path);
-							SavingEnded?.Invoke(this, EventArgs.Empty);
+							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
 				}
@@ -265,7 +265,7 @@ namespace UniFiler10.ViewModels
 			}
 			lock (_captureLock) { _isCapturing = false; }
 		}
-		private static event EventHandler SavingEnded;
+		private static event EventHandler SavingMediaFileEnded;
 		private async Task ResumeAfterFilePickAsync()
 		{
 			string filePath = RegistryAccess.GetValue("FilePicker.filePath");
@@ -318,11 +318,11 @@ namespace UniFiler10.ViewModels
 		//}
 		private readonly object _captureLock = new object();
 		private bool _isCapturing = false;
-		public async Task ShootAsync(bool createWallet, Wallet parentWallet)
+		public void StartShoot(bool createWallet, Wallet parentWallet)
 		{
 			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
 			if (!createWallet && parentWallet == null) return;
-			await RunFunctionWhileOpenAsyncA(delegate
+			Task shoot = RunFunctionWhileOpenAsyncA(delegate
 			{
 				if (RuntimeData.Instance?.IsCameraAvailable != true) return;
 				if (!createWallet && parentWallet == null) return;
@@ -375,7 +375,7 @@ namespace UniFiler10.ViewModels
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 				}
-			}).ConfigureAwait(false);
+			});
 		}
 
 		private async Task AfterCaptureTask(Task<StorageFile> captureTask, StorageFolder saveDirectory, Folder folder, bool createWallet, Wallet parentWallet)
@@ -425,7 +425,7 @@ namespace UniFiler10.ViewModels
 							if (parentWallet != null) RegistryAccess.SetValue("ShootAsync.parentWallet", parentWallet.Id);
 							else RegistryAccess.SetValue("ShootAsync.parentWallet", string.Empty);
 							RegistryAccess.SetValue("ShootAsync.folderPath", newFile.Path);
-							SavingEnded?.Invoke(this, EventArgs.Empty);
+							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
 				}

@@ -24,12 +24,12 @@ namespace UniFiler10.Views
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			Task shoot = VM?.ShootAsync(true, null);
+			VM?.StartShoot(true, null);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
 		{
-			Task openFile = VM?.LoadMediaFileAsync();
+			VM?.StartLoadMediaFile();
 		}
 
 		private void OnRecordSound_Click(object sender, RoutedEventArgs e)

@@ -44,26 +44,35 @@ namespace Utilz
 		public static async Task<StorageFile> PickOpenFileAsync(string[] extensions)
 		{
 			// test for phone: bring it to the UI thread
+			StorageFile file = null;
 			await Logger.AddAsync("About to pick file", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-			Task<StorageFile> fileTask = null;
-			await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+			try
 			{
-				var openPicker = new FileOpenPicker();
-				openPicker.ViewMode = PickerViewMode.Thumbnail;
-				//openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-				openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-																					   //openPicker.CommitButtonText = "Pick a file"; // LOLLO TODO localise this
-				foreach (var ext in extensions)
+				Task<StorageFile> fileTask = null;
+				await Logger.AddAsync("open picker opened", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 				{
-					openPicker.FileTypeFilter.Add(ext);
-				}
-				fileTask = openPicker.PickSingleFileAsync().AsTask();
-			});
-			var file = await fileTask;
+					var openPicker = new FileOpenPicker();
+					
+					openPicker.ViewMode = PickerViewMode.Thumbnail;
+					//openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+					openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+					//openPicker.CommitButtonText = "Pick a file"; // LOLLO TODO localise this
+					foreach (var ext in extensions)
+					{
+						openPicker.FileTypeFilter.Add(ext);
+					}
+					fileTask = openPicker.PickSingleFileAsync().AsTask();
+				});
+				file = await fileTask;
 
-			if (file == null) await Logger.AddAsync("file picked, null", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-			else await Logger.AddAsync("file picked, not null", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-
+				if (file == null) await Logger.AddAsync("file picked, null", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+				else await Logger.AddAsync("file picked, not null", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
 			return file;
 		}
 

@@ -43,12 +43,12 @@ namespace UniFiler10.Views
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			Task shoot = VM?.ShootAsync(false, Wallet);
+			VM?.StartShoot(false, Wallet);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
 		{
-			Task openFile = VM?.LoadMediaFileAsync(Wallet);
+			VM?.StartLoadMediaFile(Wallet);
 		}
 
 		private async void OnDocumentView_DocumentClicked(object sender, DocumentView.DocumentClickedArgs e)

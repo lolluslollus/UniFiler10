@@ -1,5 +1,6 @@
 ﻿<UserControl
     x:Class="UniFiler10.Controlz.LolloButton"
+	x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Controlz"
@@ -11,6 +12,7 @@
 
 	<Button x:Name="MyButton"
         Tapped="OnMyButton_Tapped"
+		Foreground="{Binding ElementName=me, Path=Foreground, Mode=OneWay}"
         Style="{StaticResource ButtonLolloStyle}">
 		<Grid>
 			<Grid.ColumnDefinitions>

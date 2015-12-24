@@ -55,16 +55,20 @@ namespace UniFiler10.Views
 
 			_vm = new SettingsVM(briefcase.MetaBriefcase, _animationStarter);
 			await _vm.OpenAsync();
+			_vm.MetadataChanged += OnVm_MetadataChanged;
 			RaisePropertyChanged_UI(nameof(VM));
 
 			//LayoutRoot.DataContext = VM;
 			MBView.DataContext = VM.MetaBriefcase;
 		}
+
+
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var vm = _vm;
 			if (vm != null)
 			{
+				vm.MetadataChanged -= OnVm_MetadataChanged;
 				await vm.CloseAsync().ConfigureAwait(false);
 				vm.Dispose();
 			}
@@ -107,15 +111,25 @@ namespace UniFiler10.Views
 			}
 		}
 
-		private async void OnImport_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnImport_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			var vm = _vm;
-			if (vm != null)
+			_vm?.StartImport();
+			//var vm = _vm;
+			//if (vm != null)
+			//{
+			//	await vm.ImportAsync(); // .ConfigureAwait(false);
+			//	MBView.DataContext = null;
+			//	MBView.DataContext = VM.MetaBriefcase;
+			//}
+		}
+
+		private void OnVm_MetadataChanged(object sender, EventArgs e)
+		{
+			Task upd = RunInUiThreadAsync(delegate
 			{
-				await vm.ImportAsync(); // .ConfigureAwait(false);
 				MBView.DataContext = null;
 				MBView.DataContext = VM.MetaBriefcase;
-			}
+			});
 		}
 
 		private void OnAbout_Tapped(object sender, TappedRoutedEventArgs e)

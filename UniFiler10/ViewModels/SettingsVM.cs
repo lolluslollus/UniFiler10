@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Resources;
 using System.Text;
@@ -9,6 +10,7 @@ using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
 using Windows.ApplicationModel.Resources.Core;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 
@@ -70,6 +72,11 @@ namespace UniFiler10.ViewModels
 
 
 		#region open and close
+		protected override async Task OpenMayOverrideAsync()
+		{
+			if (SavingMetadataEnded == null) SavingMetadataEnded += OnSavingMetadataEnded;
+			await ResumeAfterFilePickAsync().ConfigureAwait(false);
+		}
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var mbc = _metaBriefcase;
@@ -187,23 +194,123 @@ namespace UniFiler10.ViewModels
 
 			return isOk;
 		}
-		public async Task<bool> ImportAsync()
-		{
-			bool isOk = false;
-			var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
-			if (file != null)
+
+		private async Task AfterFilePickedTask(Task<StorageFile> pickTask, bool pickFile)
+		{ // LOLLO TODO check this
+			try
 			{
-				var bf = Briefcase.GetCurrentInstance();
-				if (bf != null)
+				var file = await pickTask.ConfigureAwait(false);
+				if (file == null)
 				{
-					isOk = await bf.ImportSettingsAsync(file).ConfigureAwait(false);
+					// User cancelled picking
+					_animationStarter.StartAnimation(1);
+					return;
 				}
+				else
+				{
+					StorageFile newFile = null;
+					if (pickFile)
+					{
+						newFile = await file.CopyAsync(ApplicationData.Current.TemporaryFolder, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
+					}
+					else
+					{
+						newFile = file;
+					}
+					bool isSaved = false;
+
+					if (newFile != null)
+					{
+						var bf = Briefcase.GetCurrentInstance();
+						if (bf != null)
+						{
+							isSaved = await bf.ImportSettingsAsync(newFile).ConfigureAwait(false);
+						}
+
+						if (isSaved)
+						{
+							RegistryAccess.SetValue("SettingsFilePicker.filePath", string.Empty);
+							MetadataChanged?.Invoke(this, EventArgs.Empty);
+						}
+						else
+						{
+							RegistryAccess.SetValue("SettingsFilePicker.filePath", newFile.Path);
+							SavingMetadataEnded?.Invoke(this, EventArgs.Empty);
+						}
+					}
+
+					if (isSaved)
+					{
+						_animationStarter.StartAnimation(0);
+					}
+					else
+					{
+						_animationStarter.StartAnimation(1);
+					}
+				}
+				return;
 			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+		}
+		private static event EventHandler SavingMetadataEnded;
+		public event EventHandler MetadataChanged;
 
-			if (isOk) _animationStarter.StartAnimation(0);
-			else _animationStarter.StartAnimation(1);
+		private async void OnSavingMetadataEnded(object sender, EventArgs e)
+		{
+			await ResumeAfterFilePickAsync().ConfigureAwait(false);
+		}
 
-			return isOk;
+		private async Task ResumeAfterFilePickAsync()
+		{
+			string filePath = RegistryAccess.GetValue("SettingsFilePicker.filePath");
+			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
+
+			if (wasPicking)
+			{
+				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
+
+				await AfterFilePickedTask(pickFileTask, false).ConfigureAwait(false);
+			}
+			else
+			{
+				await Logger.AddAsync("SettingsVM opened, was NOT picking before", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			}
+		}
+
+		public void StartImport()
+		{
+			Task imp = RunFunctionWhileOpenAsyncA(delegate
+		   {
+			   var bf = Briefcase.GetCurrentInstance();
+			   if (bf != null)
+			   {
+				   var pickTask = Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
+				   var afterFilePickedTask = pickTask.ContinueWith(delegate
+				   { // LOLLO TODO the manifest contains .xml, but as soon as I launch this, the hiking mate is started, automatically. Why?
+					 // LOLLO TODO I cannot put text/xml and application/xml into the manifest, why?
+					   return AfterFilePickedTask(pickTask, true);
+				   });
+			   }
+		   });
+
+			//bool isOk = false;
+			//var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+			//if (file != null)
+			//{
+			//	var bf = Briefcase.GetCurrentInstance();
+			//	if (bf != null)
+			//	{
+			//		isOk = await bf.ImportSettingsAsync(file).ConfigureAwait(false);
+			//	}
+			//}
+
+			//if (isOk) _animationStarter.StartAnimation(0);
+			//else _animationStarter.StartAnimation(1);
+
+			//return isOk;
 		}
 		#endregion user actions
 	}

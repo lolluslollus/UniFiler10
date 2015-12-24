@@ -23,7 +23,7 @@
       <Extensions>
         <uap:Extension Category="windows.fileTypeAssociation">
           <uap:FileTypeAssociation Name="web">
-            <uap:EditFlags AlwaysUnsafe="true" />
+            <uap:EditFlags OpenIsSafe="true" />
             <uap:SupportedFileTypes>
               <uap:FileType>.htm</uap:FileType>
               <uap:FileType>.html</uap:FileType>
@@ -33,7 +33,6 @@
         </uap:Extension>
         <uap:Extension Category="windows.fileTypeAssociation">
           <uap:FileTypeAssociation Name="media">
-            <uap:EditFlags OpenIsSafe="true" />
             <uap:SupportedFileTypes>
               <uap:FileType>.mp3</uap:FileType>
               <uap:FileType>.wav</uap:FileType>
@@ -46,6 +45,14 @@
               <uap:FileType>.png</uap:FileType>
               <uap:FileType>.tif</uap:FileType>
               <uap:FileType>.tiff</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="xml">
+            <uap:EditFlags OpenIsSafe="true" />
+            <uap:SupportedFileTypes>
+              <uap:FileType>.xml</uap:FileType>
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
         </uap:Extension>

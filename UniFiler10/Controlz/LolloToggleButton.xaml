@@ -12,6 +12,7 @@
 
 	<ToggleButton x:Name="MyButton"
 		IsChecked="{Binding ElementName=me, Path=IsChecked, Mode=TwoWay}"
+		Foreground="{Binding ElementName=me, Path=Foreground, Mode=OneWay}"
         Style="{StaticResource ToggleButtonLolloStyle}">
 		<Grid>
 			<Grid.ColumnDefinitions>
