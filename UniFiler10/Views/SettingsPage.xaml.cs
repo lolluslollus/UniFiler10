@@ -102,13 +102,9 @@ namespace UniFiler10.Views
 			MBView.DataContext = VM.MetaBriefcase;
 		}
 
-		private async void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			var vm = _vm;
-			if (vm != null)
-			{
-				await vm.ExportAsync().ConfigureAwait(false);
-			}
+			_vm?.StartExport();
 		}
 
 		private void OnImport_Tapped(object sender, TappedRoutedEventArgs e)

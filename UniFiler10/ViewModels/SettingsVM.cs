@@ -19,7 +19,8 @@ namespace UniFiler10.ViewModels
 	public sealed class SettingsVM : OpenableObservableData, IDisposable
 	{
 		#region properties
-		private const string REG_FILEPATH = "SettingsFilePicker.filePath";
+		private const string REG_IMPORT_FILEPATH = "SettingsFilePicker.ImportFilePath";
+		private const string REG_EXPORT_FILEPATH = "SettingsFilePicker.ExportFilePath";
 
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
@@ -47,8 +48,8 @@ namespace UniFiler10.ViewModels
 			return _instance?._metaBriefcase?.IsElevated == true;
 		}
 
-		private bool _isCanImport = true;
-		public bool IsCanImport { get { return _isCanImport; } private set { _isCanImport = value; RaisePropertyChanged_UI(); } }
+		private bool _isCanImportExport = true;
+		public bool IsCanImportExport { get { return _isCanImportExport; } private set { _isCanImportExport = value; RaisePropertyChanged_UI(); } }
 
 		private static SettingsVM _instance = null;
 		private AnimationStarter _animationStarter = null;
@@ -79,19 +80,21 @@ namespace UniFiler10.ViewModels
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
-			lock (_importLock) { IsCanImport = !IsImportingSaysTheRegistry(); }
-			if (SavingMetadataEnded == null) SavingMetadataEnded += OnSavingMetadataEnded;
-			await ResumeAfterFilePickAsync().ConfigureAwait(false);
+			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
+			if (ImportExportMetadataEnded == null) ImportExportMetadataEnded += OnImportExportMetadataEnded;
+			await ResumeAfterFileOpenPickAsync().ConfigureAwait(false);
+			await ResumeAfterFileSavePickAsync().ConfigureAwait(false);
 		}
 
-		private async void OnSavingMetadataEnded(object sender, EventArgs e)
+		private async void OnImportExportMetadataEnded(object sender, EventArgs e)
 		{
-			await ResumeAfterFilePickAsync().ConfigureAwait(false);
+			await ResumeAfterFileOpenPickAsync().ConfigureAwait(false);
+			await ResumeAfterFileSavePickAsync().ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			SavingMetadataEnded -= OnSavingMetadataEnded;
+			ImportExportMetadataEnded -= OnImportExportMetadataEnded;
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
 		}
@@ -189,26 +192,155 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public async Task<bool> ExportAsync()
+		public void StartExport()
 		{
-			bool isOk = false;
-			var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
-			if (file != null)
+			Task exp = RunFunctionWhileOpenAsyncA(delegate
 			{
+				lock (_importExportLock)
+				{
+					if (!_isCanImportExport || IsImportingExportingSaysTheRegistry())
+					{
+						IsCanImportExport = false;
+						return;
+					}
+					else IsCanImportExport = false;
+				}
+
 				var bf = Briefcase.GetCurrentInstance();
 				if (bf != null)
 				{
-					isOk = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
+					var pickTask = Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
+					var afterFilePickedTask = pickTask.ContinueWith(delegate
+					{
+						return AfterFileSavePickedTask(pickTask, true);
+					});
 				}
-			}
+			});
 
-			if (isOk) _animationStarter.StartAnimation(0);
-			else _animationStarter.StartAnimation(1);
+			//bool isOk = false;
+			//var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+			//if (file != null)
+			//{
+			//	var bf = Briefcase.GetCurrentInstance();
+			//	if (bf != null)
+			//	{
+			//		isOk = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
+			//	}
+			//}
 
-			return isOk;
+			//if (isOk) _animationStarter.StartAnimation(0);
+			//else _animationStarter.StartAnimation(1);
+
+			//return isOk;
 		}
 
-		private async Task AfterFilePickedTask(Task<StorageFile> pickTask, bool copyFile)
+		private async Task AfterFileSavePickedTask(Task<StorageFile> pickTask, bool copyFile)
+		{
+			try
+			{
+				var file = await pickTask.ConfigureAwait(false);
+				if (file == null)
+				{
+					// User cancelled picking
+					_animationStarter.StartAnimation(1);
+				}
+				else
+				{
+					bool isSaved = false;
+					var bf = Briefcase.GetCurrentInstance();
+					if (bf != null)
+					{
+						isSaved = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
+					}
+
+					if (isSaved)
+					{
+						RegistryAccess.SetValue(REG_EXPORT_FILEPATH, string.Empty);
+					}
+					else // could not complete the operation: write away the relevant values, Resume() will follow up.
+						 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
+					{
+						RegistryAccess.SetValue(REG_EXPORT_FILEPATH, file.Path);
+						ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
+					}
+
+					if (isSaved)
+					{
+						_animationStarter.StartAnimation(0);
+					}
+					else
+					{
+						_animationStarter.StartAnimation(1);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
+		}
+
+		private async Task ResumeAfterFileSavePickAsync()
+		{
+			string filePath = RegistryAccess.GetValue(REG_EXPORT_FILEPATH);
+			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
+
+			if (wasPicking)
+			{
+				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
+				await AfterFileSavePickedTask(pickFileTask, false).ConfigureAwait(false);
+			}
+			else
+			{
+				await Logger.AddAsync("SettingsVM opened, was NOT picking before", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			}
+		}
+
+		public void StartImport()
+		{
+			Task imp = RunFunctionWhileOpenAsyncA(delegate
+			{
+				lock (_importExportLock)
+				{
+					if (!_isCanImportExport || IsImportingExportingSaysTheRegistry())
+					{
+						IsCanImportExport = false;
+						return;
+					}
+					else IsCanImportExport = false;
+				}
+
+				var bf = Briefcase.GetCurrentInstance();
+				if (bf != null)
+				{
+					var pickTask = Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
+					var afterFilePickedTask = pickTask.ContinueWith(delegate
+					{ // LOLLO TODO the manifest contains .xml, but as soon as I launch this, the hiking mate is started, automatically. Why?
+					  // LOLLO TODO I cannot put text/xml and application/xml into the manifest, why?
+						return AfterFileOpenPickedTask(pickTask, true);
+					});
+				}
+			});
+
+			//bool isOk = false;
+			//var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+			//if (file != null)
+			//{
+			//	var bf = Briefcase.GetCurrentInstance();
+			//	if (bf != null)
+			//	{
+			//		isOk = await bf.ImportSettingsAsync(file).ConfigureAwait(false);
+			//	}
+			//}
+
+			//if (isOk) _animationStarter.StartAnimation(0);
+			//else _animationStarter.StartAnimation(1);
+
+			//return isOk;
+		}
+
+		private async Task AfterFileOpenPickedTask(Task<StorageFile> pickTask, bool copyFile)
 		{
 			try
 			{
@@ -241,14 +373,14 @@ namespace UniFiler10.ViewModels
 
 						if (isSaved)
 						{
-							RegistryAccess.SetValue(REG_FILEPATH, string.Empty);
+							RegistryAccess.SetValue(REG_IMPORT_FILEPATH, string.Empty);
 							MetadataChanged?.Invoke(this, EventArgs.Empty);
 						}
 						else // could not complete the operation: write away the relevant values, Resume() will follow up.
 							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
 						{
-							RegistryAccess.SetValue(REG_FILEPATH, newFile.Path);
-							SavingMetadataEnded?.Invoke(this, EventArgs.Empty);
+							RegistryAccess.SetValue(REG_IMPORT_FILEPATH, newFile.Path);
+							ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
 
@@ -266,26 +398,18 @@ namespace UniFiler10.ViewModels
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
-			lock (_importLock) { IsCanImport = !IsImportingSaysTheRegistry(); }
+			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
 		}
 
-		private static event EventHandler SavingMetadataEnded;
-		public event EventHandler MetadataChanged;
-
-		private bool IsImportingSaysTheRegistry()
+		private async Task ResumeAfterFileOpenPickAsync()
 		{
-			string a = RegistryAccess.GetValue(REG_FILEPATH);
-			return !(string.IsNullOrWhiteSpace(a));
-		}
-		private async Task ResumeAfterFilePickAsync()
-		{
-			string filePath = RegistryAccess.GetValue(REG_FILEPATH);
+			string filePath = RegistryAccess.GetValue(REG_IMPORT_FILEPATH);
 			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
 
 			if (wasPicking)
 			{
 				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
-				await AfterFilePickedTask(pickFileTask, false).ConfigureAwait(false);
+				await AfterFileOpenPickedTask(pickFileTask, false).ConfigureAwait(false);
 			}
 			else
 			{
@@ -293,51 +417,18 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private readonly object _importLock = new object();
-		//private bool _isImporting = false;
+		private static event EventHandler ImportExportMetadataEnded;
+		public event EventHandler MetadataChanged;
 
-		public void StartImport()
+		private bool IsImportingExportingSaysTheRegistry()
 		{
-			Task imp = RunFunctionWhileOpenAsyncA(delegate
-		   {
-			   lock (_importLock)
-			   {
-				   if (!_isCanImport || IsImportingSaysTheRegistry())
-				   {
-					   IsCanImport = false;
-					   return;
-				   }
-				   else IsCanImport = false;
-			   }
-
-			   var bf = Briefcase.GetCurrentInstance();
-			   if (bf != null)
-			   {
-				   var pickTask = Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
-				   var afterFilePickedTask = pickTask.ContinueWith(delegate
-				   { // LOLLO TODO the manifest contains .xml, but as soon as I launch this, the hiking mate is started, automatically. Why?
-					 // LOLLO TODO I cannot put text/xml and application/xml into the manifest, why?
-					   return AfterFilePickedTask(pickTask, true);
-				   });
-			   }
-		   });
-
-			//bool isOk = false;
-			//var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
-			//if (file != null)
-			//{
-			//	var bf = Briefcase.GetCurrentInstance();
-			//	if (bf != null)
-			//	{
-			//		isOk = await bf.ImportSettingsAsync(file).ConfigureAwait(false);
-			//	}
-			//}
-
-			//if (isOk) _animationStarter.StartAnimation(0);
-			//else _animationStarter.StartAnimation(1);
-
-			//return isOk;
+			string a = RegistryAccess.GetValue(REG_IMPORT_FILEPATH);
+			string b = RegistryAccess.GetValue(REG_EXPORT_FILEPATH);
+			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(b));
 		}
+
+		private readonly object _importExportLock = new object();
+		//private bool _isImporting = false;
 		#endregion user actions
 	}
 
