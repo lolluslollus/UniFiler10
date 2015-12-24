@@ -34,19 +34,22 @@ namespace UniFiler10.Views
 		{
 			DataContextChanged += OnDataContextChanged;
 			InitializeComponent();
-			_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
+			_animationStarter = AnimationsControl.AnimationStarter;
+			//_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}
 
 
-		protected override Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync()
 		{
-			return UpdateVMAsync();
+			await UpdateVMAsync();
+			await AnimationsControl.OpenAsync().ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await DisposeVMAsync().ConfigureAwait(false);
-			_animationStarter.EndAllAnimations();
+			//_animationStarter.EndAllAnimations();
+			await AnimationsControl.CloseAsync().ConfigureAwait(false);
 		}
 
 		private async Task UpdateVMAsync()

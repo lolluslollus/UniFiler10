@@ -31,7 +31,7 @@ namespace Utilz
 			//{
 			//	// Application now has read/write access to all contents in the picked folder
 			//	// (including other sub-folder contents)
-			//	// LOLLO TODO check https://msdn.microsoft.com/en-us/library/windows/apps/mt186452.aspx
+			//	// LOLLO NOTE check https://msdn.microsoft.com/en-us/library/windows/apps/mt186452.aspx
 			//	Windows.Storage.AccessCache.StorageApplicationPermissions.
 			//	FutureAccessList.AddOrReplace("PickedFolderToken", folder);
 			//}
@@ -57,7 +57,7 @@ namespace Utilz
 					openPicker.ViewMode = PickerViewMode.Thumbnail;
 					//openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
 					openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-					//openPicker.CommitButtonText = "Pick a file"; // LOLLO TODO localise this
+					//openPicker.CommitButtonText = "Pick a file"; // LOLLO localise this if you use it
 					foreach (var ext in extensions)
 					{
 						openPicker.FileTypeFilter.Add(ext);

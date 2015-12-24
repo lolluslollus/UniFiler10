@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
+using Utilz;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
@@ -23,17 +25,23 @@ namespace UniFiler10.Views
         #region properties
         private BriefcaseVM _vm = null;
         public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged(); } }
-        #endregion properties
 
-        #region construct dispose open close
-        public BriefcasePage()
+		private AnimationStarter _animationStarter = null;
+		#endregion properties
+
+		#region construct dispose open close
+		public BriefcasePage()
         {
             InitializeComponent();
-        }
+			_animationStarter = AnimationsControl.AnimationStarter;
+			//_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
+		}
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			if (_vm == null) _vm = new BriefcaseVM();
+			await AnimationsControl.OpenAsync();
+
+			if (_vm == null) _vm = new BriefcaseVM(_animationStarter);
 			await _vm.OpenAsync().ConfigureAwait(true);
 			RaisePropertyChanged(nameof(VM));
 
@@ -56,6 +64,8 @@ namespace UniFiler10.Views
 			}
 
 			await BriefcaseCoverView.CloseAsync().ConfigureAwait(false);
+
+			await AnimationsControl.CloseAsync().ConfigureAwait(false);
 		}
 		#endregion construct dispose open close
 

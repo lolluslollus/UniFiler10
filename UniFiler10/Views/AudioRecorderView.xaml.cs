@@ -67,7 +67,7 @@ namespace UniFiler10.Views
 					await _audioRecorder.OpenAsync();
 					// adjust the microphone volume. You need MediaCapture, apparently, and she needs STAThread. Ridiculous.
 					_mediaCapture = new MediaCapture();
-					// LOLLO TODO the following fails with the phone
+					// LOLLO NOTE the following fails with the phone
 					// var settings = new MediaCaptureInitializationSettings { AudioDeviceId = RuntimeData.Instance?.AudioDevice?.Id, MediaCategory = MediaCategory.Other, StreamingCaptureMode = StreamingCaptureMode.Audio };
 					// the following works with the phone
 					var settings = new MediaCaptureInitializationSettings { StreamingCaptureMode = StreamingCaptureMode.Audio };

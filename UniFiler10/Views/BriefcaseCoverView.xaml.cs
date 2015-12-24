@@ -56,12 +56,18 @@ namespace UniFiler10.Views
 		public BriefcaseCoverView()
 		{
 			InitializeComponent();
-			_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard});
+			_animationStarter = AnimationsControl.AnimationStarter;
+			// _animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard});
+		}
+		protected override Task OpenMayOverrideAsync()
+		{
+			return AnimationsControl.OpenAsync();
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
-			_animationStarter.EndAllAnimations();
-			return Task.CompletedTask;
+			//_animationStarter.EndAllAnimations();
+			return AnimationsControl.CloseAsync();
+			//;			return Task.CompletedTask;
 		}
 		#endregion construct, dispose, open, close
 
@@ -94,14 +100,8 @@ namespace UniFiler10.Views
 			if (vm != null)
 			{
 				bool isOk = await vm.BackupDbAsync((sender as FrameworkElement)?.DataContext as string);
-				if (isOk)
-				{
-					_animationStarter.StartAnimation(1);
-				}
-				else
-				{
-					_animationStarter.StartAnimation(2);
-				}
+				if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+				else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 			}
 		}
 
@@ -111,14 +111,8 @@ namespace UniFiler10.Views
 			if (vm != null)
 			{
 				bool isOk = await vm.ImportDbAsync();
-				if (isOk)
-				{
-					_animationStarter.StartAnimation(1);
-				}
-				else
-				{
-					_animationStarter.StartAnimation(2);
-				}
+				if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+				else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 			}
 		}
 

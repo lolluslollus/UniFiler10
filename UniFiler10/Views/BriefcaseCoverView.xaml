@@ -13,7 +13,7 @@
     d:DesignHeight="500"
     d:DesignWidth="900">
 
-	<UserControl.Resources>
+	<!--<UserControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
 			<ObjectAnimationUsingKeyFrames 
                 Storyboard.TargetName="RefreshVB" 
@@ -90,7 +90,7 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
-	</UserControl.Resources>
+	</UserControl.Resources>-->
 
 	<ScrollViewer>
 		<RelativePanel Background="Lavender"
@@ -98,7 +98,8 @@
 			d:DataContext="{d:DesignInstance Type=vms:BriefcaseVM, IsDesignTimeCreatable=False}"
 			DataContext="{x:Bind VM, Mode=OneWay}">
 
-			<!-- animation for refresh -->
+			<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="NewBinderUWP"/>
+			<!-- animation for refresh --><!--
 			<Viewbox x:Name="RefreshVB"
 				RelativePanel.Below="NewBinderUWP"
                 Width="{StaticResource LandscapeItemWidth}"
@@ -120,7 +121,7 @@
 				</SymbolIcon>
 			</Viewbox>
 
-			<!-- animation for success -->
+			--><!-- animation for success --><!--
 			<Viewbox
 				RelativePanel.Below="NewBinderUWP"
                 Width="{StaticResource LandscapeItemWidth}"
@@ -141,7 +142,7 @@
 				</SymbolIcon>
 			</Viewbox>
 
-			<!-- animation for failure -->
+			--><!-- animation for failure --><!--
 			<Viewbox
 				RelativePanel.Below="NewBinderUWP"
                 Width="{StaticResource LandscapeItemWidth}"
@@ -160,7 +161,7 @@
 						<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
 					</SymbolIcon.RenderTransform>
 				</SymbolIcon>
-			</Viewbox>
+			</Viewbox>-->
 
 			<!-- actions for all binders -->
 			<ctl:UniversalWrapPanel Orientation="Horizontal"

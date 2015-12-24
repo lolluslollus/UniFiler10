@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
@@ -28,6 +29,14 @@ namespace UniFiler10.ViewModels
 		private string _newDbName = string.Empty;
 		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } }
 
+		private AnimationStarter _animationStarter = null;
+
+		public BriefcaseVM(AnimationStarter animationStarter)
+		{
+			if (animationStarter == null) throw new ArgumentNullException("BriefcaseVM ctor: animationStarter may not be null");
+			_animationStarter = animationStarter;
+		}
+
 		protected override async Task OpenMayOverrideAsync()
 		{
 			if (_briefcase == null) _briefcase = Briefcase.GetCreateInstance();
@@ -38,6 +47,7 @@ namespace UniFiler10.ViewModels
 		{
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			Briefcase = null;
+			//_animationStarter.EndAllAnimations();
 			return Task.CompletedTask;
 		}
 		public bool AddDbStep0()
@@ -217,7 +227,7 @@ namespace UniFiler10.ViewModels
 		//	dialog.Commands.Add(importCommand);
 		//	dialog.Commands.Add(cancelCommand);
 
-		//	// LOLLO TODO the phone does not like dialogs with more than two commands
+		//	// LOLLO the phone does not like dialogs with more than two commands
 
 		//	dialog.DefaultCommandIndex = 0; // Set the command that will be invoked by default
 		//	IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
@@ -237,6 +247,7 @@ namespace UniFiler10.ViewModels
 					if (await briefcase.IsDbNameAvailableAsync(fromDirectory.Name))
 					{
 						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
+
 						if (nextAction == ImportBinderOperations.Merge)
 						{
 							return await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);
@@ -257,11 +268,22 @@ namespace UniFiler10.ViewModels
 
 		public async Task<bool> BackupDbAsync(string dbName)
 		{
+			bool isOk = false;
 			var bc = _briefcase;
-			if (string.IsNullOrWhiteSpace(dbName) || bc == null || !bc.DbNames.Contains(dbName)) return false;
 
-			var toParentStorageFolder = await PickFolderAsync();
-			return await bc.ExportBinderAsync(dbName, toParentStorageFolder).ConfigureAwait(false);
+			if (!string.IsNullOrWhiteSpace(dbName) && bc != null && bc.DbNames.Contains(dbName))
+			{
+				var toParentDirectory = await PickFolderAsync();
+				if (toParentDirectory != null)
+				{
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					isOk = await bc.ExportBinderAsync(dbName, toParentDirectory).ConfigureAwait(false);
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+				}
+			}
+			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			return isOk;
 		}
 
 		private Task<StorageFolder> PickFolderAsync()

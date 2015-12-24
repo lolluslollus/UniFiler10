@@ -14,7 +14,24 @@
 
 	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
 
-	<ctl:OpenableObservablePage.Resources>
+	<!--<ctl:OpenableObservablePage.Resources>
+		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
+			<ObjectAnimationUsingKeyFrames 
+                Storyboard.TargetName="RefreshVB" 
+                Storyboard.TargetProperty="Visibility">
+				<DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
+			</ObjectAnimationUsingKeyFrames>
+
+			<DoubleAnimationUsingKeyFrames 
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.Rotation)" 
+                Storyboard.TargetName="RefreshIcon">
+				<LinearDoubleKeyFrame KeyTime="0" Value="0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+
 		<Storyboard x:Name="SuccessStoryboard">
 			<DoubleAnimationUsingKeyFrames 
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
@@ -74,7 +91,7 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
-	</ctl:OpenableObservablePage.Resources>
+	</ctl:OpenableObservablePage.Resources>-->
 
 	<RelativePanel x:Name="LayoutRoot" 
 		  Background="AntiqueWhite"
@@ -86,7 +103,30 @@
 			</Flyout>
 		</FlyoutBase.AttachedFlyout>
 
-		<!-- animation for success -->
+		<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="SafeNotice"/>
+		<!-- animation for refresh --><!--
+		<Viewbox x:Name="RefreshVB"
+				RelativePanel.Below="SafeNotice"
+                Width="{StaticResource MiniatureHeight}"
+                Height="{StaticResource MiniatureHeight}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+				Visibility="Collapsed"
+                Stretch="Uniform">
+			<SymbolIcon x:Name="RefreshIcon" 
+                        Symbol="Sync"
+                        RenderTransformOrigin=".5, .5"
+                        Foreground="{StaticResource DiagonalNESWBrush}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Margin="{StaticResource ButtonPadding}">
+				<SymbolIcon.RenderTransform>
+					<CompositeTransform Rotation="0"/>
+				</SymbolIcon.RenderTransform>
+			</SymbolIcon>
+		</Viewbox>
+
+		--><!-- animation for success --><!--
 		<Viewbox RelativePanel.Below="SafeNotice"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
@@ -106,7 +146,7 @@
 			</SymbolIcon>
 		</Viewbox>
 
-		<!-- animation for failure -->
+		--><!-- animation for failure --><!--
 		<Viewbox RelativePanel.Below="SafeNotice"
                 Width="{StaticResource LandscapeItemWidth}"
                 Height="{StaticResource LandscapeItemWidth}"
@@ -124,7 +164,7 @@
 					<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
 				</SymbolIcon.RenderTransform>
 			</SymbolIcon>
-		</Viewbox>
+		</Viewbox>-->
 		
 		<ctl:UniversalWrapPanel Orientation="Horizontal"
 			x:Name="ActionsUWP">

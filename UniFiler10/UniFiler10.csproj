@@ -142,7 +142,6 @@
     <Compile Include="Utilz\DocumentExtensions.cs" />
     <Compile Include="Data\Constants\Constants.cs" />
     <Compile Include="Utilz\FileDirectoryExts.cs" />
-    <Compile Include="Utilz\AnimationStarter.cs" />
     <Compile Include="Utilz\Licenser.cs" />
     <Compile Include="Utilz\ObservableData.cs" />
     <Compile Include="Data\InfoData\Briefcase.cs" />
@@ -180,6 +179,9 @@
     </Compile>
     <Compile Include="Views\ConfirmationBeforeImportingBinder.xaml.cs">
       <DependentUpon>ConfirmationBeforeImportingBinder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controlz\AnimationsControl.xaml.cs">
+      <DependentUpon>AnimationsControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WalletView.xaml.cs">
       <DependentUpon>WalletView.xaml</DependentUpon>
@@ -305,6 +307,10 @@
     <Page Include="Views\ConfirmationBeforeImportingBinder.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controlz\AnimationsControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\WalletView.xaml">
       <Generator>MSBuild:Compile</Generator>

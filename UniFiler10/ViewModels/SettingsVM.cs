@@ -5,6 +5,7 @@ using System.Linq;
 using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
@@ -97,6 +98,7 @@ namespace UniFiler10.ViewModels
 			ImportExportMetadataEnded -= OnImportExportMetadataEnded;
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
+			//_animationStarter.EndAllAnimations();
 		}
 		#endregion open and close
 
@@ -242,11 +244,13 @@ namespace UniFiler10.ViewModels
 				if (file == null)
 				{
 					// User cancelled picking
-					_animationStarter.StartAnimation(1);
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				}
 				else
 				{
 					bool isSaved = false;
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+
 					var bf = Briefcase.GetCurrentInstance();
 					if (bf != null)
 					{
@@ -264,14 +268,9 @@ namespace UniFiler10.ViewModels
 						ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 					}
 
-					if (isSaved)
-					{
-						_animationStarter.StartAnimation(0);
-					}
-					else
-					{
-						_animationStarter.StartAnimation(1);
-					}
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+					if (isSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)
@@ -348,11 +347,12 @@ namespace UniFiler10.ViewModels
 				if (file == null)
 				{
 					// User cancelled picking
-					_animationStarter.StartAnimation(1);
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				}
 				else
 				{
 					StorageFile newFile = null;
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					if (copyFile)
 					{
 						newFile = await file.CopyAsync(ApplicationData.Current.TemporaryFolder, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
@@ -384,14 +384,9 @@ namespace UniFiler10.ViewModels
 						}
 					}
 
-					if (isSaved)
-					{
-						_animationStarter.StartAnimation(0);
-					}
-					else
-					{
-						_animationStarter.StartAnimation(1);
-					}
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+					if (isSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)

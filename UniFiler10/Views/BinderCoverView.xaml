@@ -14,7 +14,7 @@
     d:DesignWidth="800"
     d:DataContext="{d:DesignData Type=vms:BinderCoverVM, IsDesignTimeCreatable=False}">
 
-	<ctl:OpenableObservableControl.Resources>
+	<!--<ctl:OpenableObservableControl.Resources>
 		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
 			<ObjectAnimationUsingKeyFrames 
                 Storyboard.TargetName="RefreshVB" 
@@ -91,12 +91,14 @@
 				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
-	</ctl:OpenableObservableControl.Resources>
+	</ctl:OpenableObservableControl.Resources>-->
 
 	<ScrollViewer>
 		<!--DataContext="{x:Bind VM, Mode=OneWay}"-->
 		<RelativePanel Background="LavenderBlush" x:Name="LayoutRoot">
-			<!-- animation for refresh -->
+
+			<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="FldFilter"/>
+			<!-- animation for refresh --><!--
 			<Viewbox x:Name="RefreshVB"
 				RelativePanel.Below="FldFilter"
                 Width="{StaticResource MiniatureHeight}"
@@ -118,7 +120,7 @@
 				</SymbolIcon>
 			</Viewbox>
 
-			<!-- animation for success -->
+			--><!-- animation for success --><!--
 			<Viewbox
 				RelativePanel.Below="FldFilter"
                 Width="{StaticResource LandscapeItemWidth}"
@@ -139,7 +141,7 @@
 				</SymbolIcon>
 			</Viewbox>
 
-			<!-- animation for failure -->
+			--><!-- animation for failure --><!--
 			<Viewbox
 				RelativePanel.Below="FldFilter"
                 Width="{StaticResource LandscapeItemWidth}"
@@ -158,7 +160,7 @@
 						<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
 					</SymbolIcon.RenderTransform>
 				</SymbolIcon>
-			</Viewbox>
+			</Viewbox>-->
 
 			<!-- actions for all folders -->
 			<ctl:UniversalWrapPanel Orientation="Horizontal"

@@ -2,8 +2,10 @@
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
+using Utilz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Animation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -11,23 +13,29 @@ namespace UniFiler10.Views
 {
 	public sealed partial class FolderView : OpenableObservableControl
 	{
+		#region properties
 		private FolderVM _vm = null;
 		public FolderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
+		private AnimationStarter _animationStarter = null;
+		#endregion properties
 
 		public FolderView()
 		{
 			DataContextChanged += OnDataContextChanged;
 			InitializeComponent();
+			_animationStarter = AnimationsControl.AnimationStarter;
 		}
 
-		protected override Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync()
 		{
-			return UpdateFolderVMAsync();
+			await UpdateFolderVMAsync().ConfigureAwait(false);
+			await AnimationsControl.OpenAsync().ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
+			await AnimationsControl.CloseAsync().ConfigureAwait(false);
 			await DisposeFolderVMAsync().ConfigureAwait(false);
 		}
 
@@ -45,7 +53,7 @@ namespace UniFiler10.Views
 			{
 				if (_vm == null)
 				{
-					_vm = new FolderVM(DataContext as Folder, AudioRecorderView/*, CameraView*/);
+					_vm = new FolderVM(DataContext as Folder, AudioRecorderView/*, CameraView*/, _animationStarter);
 					await _vm.OpenAsync();
 					RaisePropertyChanged_UI(nameof(VM));
 				}
@@ -53,7 +61,7 @@ namespace UniFiler10.Views
 				{
 					await DisposeFolderVMAsync();
 
-					_vm = new FolderVM(DataContext as Folder, AudioRecorderView/*, CameraView*/);
+					_vm = new FolderVM(DataContext as Folder, AudioRecorderView/*, CameraView*/, _animationStarter);
 					await _vm.OpenAsync();
 					RaisePropertyChanged_UI(nameof(VM));
 				}

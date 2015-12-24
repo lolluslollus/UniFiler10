@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
@@ -54,15 +55,19 @@ namespace UniFiler10.ViewModels
 
 		private bool _isCanImportMedia = true;
 		public bool IsCanImportMedia { get { return _isCanImportMedia; } private set { _isCanImportMedia = value; RaisePropertyChanged_UI(); } }
+
+		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
 		#region ctor and dispose
-		public FolderVM(Folder folder, IRecorder audioRecorder/*, IRecorder camera*/)
+		public FolderVM(Folder folder, IRecorder audioRecorder/*, IRecorder camera*/, AnimationStarter animationStarter)
 		{
 			_folder = folder;
 			_audioRecorder = audioRecorder;
 			//_camera = camera;
+			if (animationStarter == null) throw new ArgumentNullException("FolderVM ctor: animationStarter may not be null");
+			_animationStarter = animationStarter;
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -125,6 +130,7 @@ namespace UniFiler10.ViewModels
 		protected override Task CloseMayOverrideAsync()
 		{
 			SavingMediaFileEnded -= OnSavingMediaFileEnded;
+			//_animationStarter.EndAllAnimations();
 			return Task.CompletedTask;
 		}
 		#endregion open close
@@ -162,7 +168,8 @@ namespace UniFiler10.ViewModels
 
 		#region add media
 		public void StartLoadMediaFile() // file open picker causes a suspend on the phone, so the app quits before the file is saved.
-										 // LOLLO TODO Fix this across the app, wherever a picker is called
+										 // LOLLO TODO Fix this across the app, wherever a picker is called. 
+										 // Done with file open and file save, the directory picker does not seem to need it, check it.
 		{
 			Task load = RunFunctionWhileOpenAsyncA(delegate
 			{
@@ -260,6 +267,7 @@ namespace UniFiler10.ViewModels
 				else
 				{
 					StorageFile newFile = null;
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					if (saveDirectory == null)
 					{
 						newFile = file;
@@ -297,6 +305,9 @@ namespace UniFiler10.ViewModels
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+					if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)
@@ -420,6 +431,7 @@ namespace UniFiler10.ViewModels
 				else
 				{
 					StorageFile newFile = null;
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					if (saveDirectory == null)
 					{
 						newFile = file;
@@ -460,6 +472,9 @@ namespace UniFiler10.ViewModels
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+					if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)

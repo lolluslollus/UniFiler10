@@ -46,12 +46,15 @@ namespace UniFiler10.Views
 			// LOLLO NOTE with x:Bind set on a nullable bool property, such as ToggleButton.IsChecked, FallbackValue=True and FallbackValue=False cause errors.
 			// Instead, use Binding ElementName=me, Path=....
 			MBView.DataContext = null; // otherwise, it will try something and run into binding errors. I am going to set its binding later.
-			_animationStarter = new AnimationStarter(new Storyboard[] { SuccessStoryboard, FailureStoryboard });
+			_animationStarter = AnimationsControl.AnimationStarter;
+			// _animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
 			await briefcase.OpenAsync();
+
+			await AnimationsControl.OpenAsync();
 
 			_vm = new SettingsVM(briefcase.MetaBriefcase, _animationStarter);
 			await _vm.OpenAsync();
@@ -74,7 +77,8 @@ namespace UniFiler10.Views
 			}
 			_vm = null;
 
-			_animationStarter.EndAllAnimations();
+			await AnimationsControl.CloseAsync().ConfigureAwait(false);
+			//_animationStarter.EndAllAnimations();
 		}
 		#endregion construct dispose open close
 

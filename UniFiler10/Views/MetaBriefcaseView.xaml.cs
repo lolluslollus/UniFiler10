@@ -174,7 +174,7 @@ namespace UniFiler10.Views
 				var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
 				if (fldDsc != null)
 				{
-					// LOLLO TODO the following line is buggy
+					// LOLLO TODO the following line was buggy, check it
 					var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
 
 					if (catsWhereThisFieldWasAssignedBefore != null && catsWhereThisFieldWasAssignedBefore.Count() > 0) AllowIfElevated(sender);

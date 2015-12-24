@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
@@ -341,7 +342,7 @@ namespace UniFiler10.ViewModels
 			{
 				try
 				{
-					_animationStarter.StartAnimation(0);
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 
 					var cts = _cts;
 					if (cts != null)
@@ -360,7 +361,7 @@ namespace UniFiler10.ViewModels
 				}
 				finally
 				{
-					_animationStarter.EndAnimation(0);
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 		}
@@ -433,6 +434,7 @@ namespace UniFiler10.ViewModels
 		protected override Task CloseMayOverrideAsync()
 		{
 			UnregisterFoldersChanged();
+			//_animationStarter.EndAllAnimations();
 
 			try
 			{
@@ -703,16 +705,19 @@ namespace UniFiler10.ViewModels
 		{
 			bool isOk = false;
 			var binder = _binder;
+
 			if (binder != null)
 			{
 				var directory = await Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
 				if (directory != null)
 				{
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					isOk = await binder.ImportFoldersAsync(directory).ConfigureAwait(false);
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
-			if (isOk) _animationStarter.StartAnimation(1);
-			else _animationStarter.StartAnimation(2);
+			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 		#endregion actions
 	}
