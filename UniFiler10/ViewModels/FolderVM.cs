@@ -245,13 +245,13 @@ namespace UniFiler10.ViewModels
 
 						if (isAllSaved)
 						{
-							//RegistryAccess.SetValue("FilePicker.folderId", string.Empty);
+							RegistryAccess.SetValue("FilePicker.folderId", string.Empty);
 							RegistryAccess.SetValue("FilePicker.parentWalletId", string.Empty);
 							RegistryAccess.SetValue("FilePicker.filePath", string.Empty);
 						}
 						else
 						{
-							//if (folder != null) RegistryAccess.SetValue("FilePicker.folderId", folder.Id);
+							if (folder != null) RegistryAccess.SetValue("FilePicker.folderId", folder.Id);
 							if (parentWallet != null) RegistryAccess.SetValue("FilePicker.parentWalletId", parentWallet.Id);
 							RegistryAccess.SetValue("FilePicker.filePath", newFile.Path);
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
@@ -270,8 +270,9 @@ namespace UniFiler10.ViewModels
 		{
 			string filePath = RegistryAccess.GetValue("FilePicker.filePath");
 			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
+			string folderId = RegistryAccess.GetValue("FilePicker.folderId");
 
-			if (wasPicking)
+			if (wasPicking && Folder?.Id == folderId)
 			{
 				string parentWalletId = RegistryAccess.GetValue("FilePicker.parentWalletId");
 				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
@@ -284,14 +285,6 @@ namespace UniFiler10.ViewModels
 				await Logger.AddAsync("FolderVM opened, was NOT picking before", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
 		}
-
-		//private void ClearAfterFilePick()
-		//{
-		//	//RegistryAccess.SetValue("FilePicker.folderId", string.Empty);
-		//	RegistryAccess.SetValue("FilePicker.parentWalletId", string.Empty);
-		//	RegistryAccess.SetValue("FilePicker.filePath", string.Empty);
-		//}
-
 
 		//public async Task ShootAsync()
 		//{
@@ -414,6 +407,7 @@ namespace UniFiler10.ViewModels
 
 						if (isAllSaved)
 						{
+							RegistryAccess.SetValue("ShootAsync.folderId", string.Empty);
 							RegistryAccess.SetValue("ShootAsync.createWallet", string.Empty);
 							RegistryAccess.SetValue("ShootAsync.parentWallet", string.Empty);
 							RegistryAccess.SetValue("ShootAsync.folderPath", string.Empty);
@@ -421,6 +415,7 @@ namespace UniFiler10.ViewModels
 						}
 						else
 						{
+							RegistryAccess.SetValue("ShootAsync.folderId", folder.Id);
 							RegistryAccess.SetValue("ShootAsync.createWallet", createWallet.ToString());
 							if (parentWallet != null) RegistryAccess.SetValue("ShootAsync.parentWallet", parentWallet.Id);
 							else RegistryAccess.SetValue("ShootAsync.parentWallet", string.Empty);
@@ -441,8 +436,9 @@ namespace UniFiler10.ViewModels
 		{
 			bool createWallet = false;
 			bool wasShooting = bool.TryParse(RegistryAccess.GetValue("ShootAsync.createWallet"), out createWallet);
+			string folderId = RegistryAccess.GetValue("ShootAsync.folderId");
 
-			if (wasShooting)
+			if (wasShooting && Folder?.Id == folderId)
 			{
 				string parentWalletId = RegistryAccess.GetValue("ShootAsync.parentWallet");
 				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
