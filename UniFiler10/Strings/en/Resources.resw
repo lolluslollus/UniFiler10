@@ -387,4 +387,7 @@
   <data name="SelectAValue.Text" xml:space="preserve">
     <value>Select a value</value>
   </data>
+  <data name="AudioRecordingCannotStart" xml:space="preserve">
+    <value>Cannot record</value>
+  </data>
 </root>

@@ -13,7 +13,7 @@
 
 	<UserControl.Resources>
 		<!--<SolidColorBrush x:Key="TranslucentBlackBrush" Color="Black" Opacity="0.3"/>-->
-		
+
 		<Storyboard x:Name="RecordingStoryboard" RepeatBehavior="Forever">
 			<DoubleAnimation Duration="0:0:0.0" 
 				To="0"
@@ -28,7 +28,7 @@
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
 				Storyboard.TargetName="viewbox"/>
 		</Storyboard>
-		
+
 		<Storyboard x:Name="FailureStoryboard" RepeatBehavior="Forever">
 			<DoubleAnimation Duration="0:0:0.0" 
 				To="180" 
@@ -47,7 +47,15 @@
 		<!--<CaptureElement Name="PreviewControl" Stretch="Uniform" 
 			Width="200" Height="200"
 			HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
-		
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="Auto"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
 		<Border Width="200" Height="200" >
 			<Viewbox x:Name="viewbox" Width="200" Height="200" 
 				HorizontalAlignment="Center" VerticalAlignment="Center" 
@@ -59,7 +67,8 @@
 			</Viewbox>
 		</Border>
 		<!-- Capture + Record buttons -->
-		<StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+		<StackPanel Grid.Column="1" Grid.RowSpan="2"
+			VerticalAlignment="Center">
 			<Button Tapped="OnOwnBackButton_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
 				<Viewbox Height="60" Width="60">
@@ -78,7 +87,8 @@
 				TickFrequency="49" TickPlacement="Outside"/>
 		</StackPanel>
 
-		<Border VerticalAlignment="Bottom">
+		<Border Grid.Row="1" Grid.ColumnSpan="2" 
+			HorizontalAlignment="Center">
 			<TextBlock Text="{x:Bind LastMessage, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		</Border>
 	</Grid>

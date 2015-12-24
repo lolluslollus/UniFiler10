@@ -83,28 +83,44 @@ namespace UniFiler10.Views
 					isOk = await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
 					if (isOk)
 					{
-						_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
-						try
-						{
-							await _triggerSemaphore.WaitAsync().ConfigureAwait(false);
-						}
-						catch (Exception ex)
-						{
-							if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
-							{
-								Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-							}
-						}
+						//_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+						//try
+						//{
+						//	await _triggerSemaphore.WaitAsync().ConfigureAwait(false);
+						//}
+						//catch (Exception ex)
+						//{
+						//	if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
+						//	{
+						//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						//	}
+						//}
 					}
 					else
 					{
-						NotifyOfFailure();
+						NotifyOfFailure(RuntimeData.GetText("AudioRecordingCannotStart"));
 					}
 				}
 				catch (Exception ex)
 				{
 					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+					NotifyOfFailure(ex.Message);
 				}
+
+				// lock the thread asynchronously
+				_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+				try
+				{
+					await _triggerSemaphore.WaitAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
+				}
+
 				return isOk;
 			});
 		}
@@ -218,7 +234,7 @@ namespace UniFiler10.Views
 		private async void OnMediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
 		{
 			await StopRecordingAsync();
-			NotifyOfFailure();
+			NotifyOfFailure(errorEventArgs?.Message);
 		}
 
 		private async Task StopRecordingAsync()
@@ -248,14 +264,21 @@ namespace UniFiler10.Views
 			});
 		}
 
-		private void NotifyOfFailure()
+		private void NotifyOfFailure(string msg = "")
 		{
 			Task beginFailureAnim = RunInUiThreadAsync(delegate
 			{
 				FailureStoryboard.Begin();
-				if (LastMessage == RuntimeData.GetText("AudioRecordingStarted") || LastMessage == RuntimeData.GetText("AudioRecordingStopped"))
+				if (string.IsNullOrWhiteSpace(msg))
 				{
-					LastMessage = RuntimeData.GetText("AudioRecordingInterrupted");
+					if (LastMessage == RuntimeData.GetText("AudioRecordingStarted") || LastMessage == RuntimeData.GetText("AudioRecordingStopped"))
+					{
+						LastMessage = RuntimeData.GetText("AudioRecordingInterrupted");
+					}
+				}
+				else
+				{
+					LastMessage = msg;
 				}
 			});
 		}
