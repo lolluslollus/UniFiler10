@@ -47,7 +47,6 @@ namespace UniFiler10.Views
 			// Instead, use Binding ElementName=me, Path=....
 			MBView.DataContext = null; // otherwise, it will try something and run into binding errors. I am going to set its binding later.
 			_animationStarter = AnimationsControl.AnimationStarter;
-			// _animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
@@ -78,22 +77,11 @@ namespace UniFiler10.Views
 			_vm = null;
 
 			await AnimationsControl.CloseAsync().ConfigureAwait(false);
-			//_animationStarter.EndAllAnimations();
 		}
 		#endregion construct dispose open close
 
 
 		#region user actions
-		//private void OnGoToBinderCover_Tapped(object sender, TappedRoutedEventArgs e)
-		//{
-		//	Frame.Navigate(typeof(BriefcaseContentPage));
-		//}
-
-		//private void OnGoToBriefcase_Tapped(object sender, TappedRoutedEventArgs e)
-		//{
-		//	Frame.Navigate(typeof(BriefcasePage));
-		//}
-
 		private void OnGoBack_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			if (Frame.CanGoBack) Frame.GoBack();
@@ -114,13 +102,6 @@ namespace UniFiler10.Views
 		private void OnImport_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			_vm?.StartImport();
-			//var vm = _vm;
-			//if (vm != null)
-			//{
-			//	await vm.ImportAsync(); // .ConfigureAwait(false);
-			//	MBView.DataContext = null;
-			//	MBView.DataContext = VM.MetaBriefcase;
-			//}
 		}
 
 		private void OnVm_MetadataChanged(object sender, EventArgs e)

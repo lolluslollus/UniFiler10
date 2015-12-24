@@ -12,6 +12,7 @@ namespace Utilz
 {
 	public class UserConfirmationPopup
 	{
+		private const int DELAY = 50;
 		private static UserConfirmationPopup _instance = null;
 		private static readonly object _locker = new object();
 		public static UserConfirmationPopup GetInstance()
@@ -39,7 +40,7 @@ namespace Utilz
 
 			while (!_isHasUserAnswered)
 			{
-				await Task.Delay(100);
+				await Task.Delay(DELAY);
 			}
 
 			dialog.Closed -= OnYesNoDialog_Closed;
@@ -72,7 +73,7 @@ namespace Utilz
 
 			while (!_isHasUserAnswered)
 			{
-				await Task.Delay(100);
+				await Task.Delay(DELAY);
 			}
 
 			dialog.Closed -= OnThreeBtnDialog_Closed;

@@ -10,7 +10,6 @@ using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
-using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;

@@ -18,7 +18,7 @@ namespace UniFiler10.ViewModels
 	public class FolderVM : OpenableObservableData
 	{
 		#region properties
-		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO TODO this fails with the phone, wav is good
+		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO NOTE this fails with the phone, wav is good
 		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.wav";
 		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpg";
 
@@ -33,19 +33,12 @@ namespace UniFiler10.ViewModels
 
 
 		private IRecorder _audioRecorder = null;
-		//private IRecorder _camera = null;
 		private Folder _folder = null;
 		public Folder Folder { get { return _folder; } }
 
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
-		//private bool _isCameraOverlayOpen = false;
-		//public bool IsCameraOverlayOpen
-		//{
-		//	get { return _isCameraOverlayOpen; }
-		//	set { _isCameraOverlayOpen = value; RaisePropertyChanged_UI(); }
-		//}
 		private bool _isAudioRecorderOverlayOpen = false;
 		public bool IsAudioRecorderOverlayOpen
 		{
@@ -95,7 +88,6 @@ namespace UniFiler10.ViewModels
 
 		private async void OnSavingMediaFileEnded(object sender, EventArgs e)
 		{
-			//			await Logger.AddAsync("saving ended caught", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			await ResumeAfterShootingAsync().ConfigureAwait(false);
 			await ResumeAfterFilePickAsync().ConfigureAwait(false);
 		}
@@ -107,8 +99,6 @@ namespace UniFiler10.ViewModels
 		public override async Task<bool> CloseAsync()
 		{
 			if (!_isOpen) return false;
-
-			//await Logger.AddAsync("FolderVM closing", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);			
 
 			var ar = _audioRecorder;
 			if (ar != null)
@@ -176,8 +166,6 @@ namespace UniFiler10.ViewModels
 				var folder = _folder;
 				if (folder?.IsOpen == true)
 				{
-					//lock (_captureLock) { if (_isCapturing) return; else _isCapturing = true; }
-					//if (IsPickingSaysTheRegistry()) return;
 					lock (_captureLock)
 					{
 						if (!_isCanImportMedia || IsPickingSaysTheRegistry() || IsShootingSaysTheRegistry())
@@ -188,8 +176,6 @@ namespace UniFiler10.ViewModels
 						else IsCanImportMedia = false;
 					}
 
-					//var file = await DocumentExtensions.PickMediaFileAsync();
-					//await folder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
 					var directory = folder.DBManager?.Directory;
 					if (directory != null)
 					{
@@ -200,17 +186,7 @@ namespace UniFiler10.ViewModels
 						});
 					}
 				}
-				//				return Task.CompletedTask;
 			});
-			//await RunFunctionWhileOpenAsyncT(async delegate // LOLLO don't call the picker inside the semaphore, or it may crash if the app suspends (ie on the phone)
-			//{
-			//	var folder = _folder;
-			//	if (folder != null && folder.IsOpen)
-			//	{
-			//		var file = await DocumentExtensions.PickMediaFileAsync();
-			//		await folder.ImportMediaFileIntoNewWalletAsync(file, true).ConfigureAwait(false);
-			//	}
-			//});
 		}
 		public void StartLoadMediaFile(Wallet parentWallet)
 		{
@@ -219,8 +195,6 @@ namespace UniFiler10.ViewModels
 				var folder = _folder;
 				if (folder?.IsOpen == true && parentWallet != null)
 				{
-					//lock (_captureLock) { if (_isCapturing) return; else _isCapturing = true; }
-					//if (IsPickingSaysTheRegistry()) return;
 					lock (_captureLock)
 					{
 						if (!_isCanImportMedia || IsPickingSaysTheRegistry() || IsShootingSaysTheRegistry())
@@ -231,8 +205,6 @@ namespace UniFiler10.ViewModels
 						else IsCanImportMedia = false;
 					}
 
-					//var file = await DocumentExtensions.PickMediaFileAsync();
-					//await parentWallet.ImportMediaFileAsync(file, true).ConfigureAwait(false);
 					var directory = folder.DBManager?.Directory;
 					if (directory != null)
 					{
@@ -243,20 +215,11 @@ namespace UniFiler10.ViewModels
 						});
 					}
 				}
-				//return Task.CompletedTask;
 			});
-			//await RunFunctionWhileOpenAsyncT(async delegate // LOLLO don't call the picker inside the semaphore, or it may crash if the app suspends (ie on the phone)
-			//{
-			//	var folder = _folder;
-			//	if (folder != null && folder.IsOpen && parentWallet != null)
-			//	{
-			//		var file = await DocumentExtensions.PickMediaFileAsync();
-			//		await parentWallet.ImportMediaFileAsync(file, true).ConfigureAwait(false);
-			//	}
-			//});
 		}
 		private async Task AfterFilePickedTask(Task<StorageFile> pickTask, StorageFolder saveDirectory, Folder folder, Wallet parentWallet)
 		{
+			bool isAllSaved = false;
 			try
 			{
 				var file = await pickTask.ConfigureAwait(false);
@@ -277,7 +240,6 @@ namespace UniFiler10.ViewModels
 						newFile = await file.CopyAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
 					}
 
-					bool isAllSaved = false;
 					if (newFile != null)
 					{
 						if (parentWallet == null && folder != null)
@@ -305,17 +267,18 @@ namespace UniFiler10.ViewModels
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
-					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
-					if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
+
 			lock (_captureLock) { IsCanImportMedia = !IsPickingSaysTheRegistry() && !IsShootingSaysTheRegistry(); }
-			//lock (_captureLock) { _isCapturing = false; }
+
+			_animationStarter.EndAllAnimations();
+			if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 
 		private bool IsPickingSaysTheRegistry()
@@ -348,7 +311,7 @@ namespace UniFiler10.ViewModels
 		}
 
 		private readonly object _captureLock = new object();
-		//private bool _isCapturing = false;
+
 		public void StartShoot(bool createWallet, Wallet parentWallet)
 		{
 			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
@@ -362,8 +325,6 @@ namespace UniFiler10.ViewModels
 
 				try // CameraCaptureUI causes a suspend on the phone, so the app quits before the photo is saved
 				{
-					//lock (_captureLock) { if (_isCapturing) return; else _isCapturing = true; }
-					//if (IsShootingSaysTheRegistry()) return;
 					lock (_captureLock)
 					{
 						if (!_isCanImportMedia || IsPickingSaysTheRegistry() || IsShootingSaysTheRegistry())
@@ -384,33 +345,6 @@ namespace UniFiler10.ViewModels
 					{
 						return AfterCaptureTask(captureTask, directory, folder, createWallet, parentWallet);
 					});
-					//var afterCaptureTask = captureTask.ContinueWith(async delegate
-					//{
-					//	var photoFile = captureTask.Result;
-					//	if (photoFile == null || folder == null)
-					//	{
-					//		// User cancelled photo capture
-					//		return;
-					//	}
-					//	else
-					//	{
-					//		if (createWallet)
-					//		{
-					//			await folder.ImportMediaFileIntoNewWalletAsync(photoFile, true).ConfigureAwait(false);
-					//		}
-					//		else if (!createWallet && parentWallet != null)
-					//		{
-					//			await parentWallet.ImportMediaFileAsync(photoFile, true).ConfigureAwait(false);
-					//		}
-					//		RegistryAccess.SetValue(REG_SHOOT_CREATEWALLET, string.Empty);
-					//		RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, string.Empty);
-
-					//		await photoFile.DeleteAsync();
-
-					//		await Logger.AddAsync("Photo file deleted", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					//	}
-					//	lock (_captureLock) { _isCapturing = false; }
-					//});
 				}
 				catch (Exception ex)
 				{
@@ -421,6 +355,8 @@ namespace UniFiler10.ViewModels
 
 		private async Task AfterCaptureTask(Task<StorageFile> captureTask, StorageFolder saveDirectory, Folder folder, bool createWallet, Wallet parentWallet)
 		{
+			bool isAllSaved = false;
+
 			try
 			{
 				var file = await captureTask.ConfigureAwait(false);
@@ -441,7 +377,6 @@ namespace UniFiler10.ViewModels
 						newFile = await file.CopyAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName); // copy right after the picker or access will be forbidden later
 					}
 
-					bool isAllSaved = false;
 					if (newFile != null)
 					{
 						if (createWallet && folder != null)
@@ -472,17 +407,18 @@ namespace UniFiler10.ViewModels
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
-					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
-					if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
+
 			lock (_captureLock) { IsCanImportMedia = !IsPickingSaysTheRegistry() && !IsShootingSaysTheRegistry(); }
-			//lock (_captureLock) { _isCapturing = false; }
+
+			_animationStarter.EndAllAnimations();
+			if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 
 		private bool IsShootingSaysTheRegistry()

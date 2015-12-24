@@ -14,85 +14,6 @@
 
 	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
 
-	<!--<ctl:OpenableObservablePage.Resources>
-		<Storyboard x:Name="UpdatingStoryboard" RepeatBehavior="Forever" >
-			<ObjectAnimationUsingKeyFrames 
-                Storyboard.TargetName="RefreshVB" 
-                Storyboard.TargetProperty="Visibility">
-				<DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="Visible"/>
-			</ObjectAnimationUsingKeyFrames>
-
-			<DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.Rotation)" 
-                Storyboard.TargetName="RefreshIcon">
-				<LinearDoubleKeyFrame KeyTime="0" Value="0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="180"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="270"/>
-			</DoubleAnimationUsingKeyFrames>
-		</Storyboard>
-
-		<Storyboard x:Name="SuccessStoryboard">
-			<DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
-                Storyboard.TargetName="SuccessIcon">
-				<LinearDoubleKeyFrame KeyTime="0" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="0"/>
-			</DoubleAnimationUsingKeyFrames>
-
-			<DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)"
-                Storyboard.TargetName="SuccessIcon">
-				<LinearDoubleKeyFrame KeyTime="0" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="0"/>
-			</DoubleAnimationUsingKeyFrames>
-		</Storyboard>
-
-		<Storyboard x:Name="FailureStoryboard">
-			<DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
-                Storyboard.TargetName="FailureIcon">
-				<LinearDoubleKeyFrame KeyTime="0" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.8"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
-			</DoubleAnimationUsingKeyFrames>
-
-			<DoubleAnimationUsingKeyFrames 
-                Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)"
-                Storyboard.TargetName="FailureIcon">
-				<LinearDoubleKeyFrame KeyTime="0" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1.8"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1.6"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="1.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="1"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="0"/>
-			</DoubleAnimationUsingKeyFrames>
-		</Storyboard>
-	</ctl:OpenableObservablePage.Resources>-->
-
 	<RelativePanel x:Name="LayoutRoot" 
 		  Background="AntiqueWhite"
 		  d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
@@ -102,69 +23,6 @@
 				<views:AboutPanel/>
 			</Flyout>
 		</FlyoutBase.AttachedFlyout>
-
-		<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="SafeNotice"/>
-		<!-- animation for refresh --><!--
-		<Viewbox x:Name="RefreshVB"
-				RelativePanel.Below="SafeNotice"
-                Width="{StaticResource MiniatureHeight}"
-                Height="{StaticResource MiniatureHeight}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-				Visibility="Collapsed"
-                Stretch="Uniform">
-			<SymbolIcon x:Name="RefreshIcon" 
-                        Symbol="Sync"
-                        RenderTransformOrigin=".5, .5"
-                        Foreground="{StaticResource DiagonalNESWBrush}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Margin="{StaticResource ButtonPadding}">
-				<SymbolIcon.RenderTransform>
-					<CompositeTransform Rotation="0"/>
-				</SymbolIcon.RenderTransform>
-			</SymbolIcon>
-		</Viewbox>
-
-		--><!-- animation for success --><!--
-		<Viewbox RelativePanel.Below="SafeNotice"
-                Width="{StaticResource LandscapeItemWidth}"
-                Height="{StaticResource LandscapeItemWidth}"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Stretch="Uniform">
-			<SymbolIcon x:Name="SuccessIcon" 
-                            Symbol="Emoji2"
-                            RenderTransformOrigin=".5, .5"
-                            Foreground="{StaticResource DiagonalNESWBrush}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Margin="{StaticResource ButtonPadding}">
-				<SymbolIcon.RenderTransform>
-					<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
-				</SymbolIcon.RenderTransform>
-			</SymbolIcon>
-		</Viewbox>
-
-		--><!-- animation for failure --><!--
-		<Viewbox RelativePanel.Below="SafeNotice"
-                Width="{StaticResource LandscapeItemWidth}"
-                Height="{StaticResource LandscapeItemWidth}"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Stretch="Uniform">
-			<SymbolIcon x:Name="FailureIcon" 
-                            Symbol="Dislike"
-                            RenderTransformOrigin=".5, .5"
-                            Foreground="{StaticResource DiagonalNESWBrush}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Margin="{StaticResource ButtonPadding}">
-				<SymbolIcon.RenderTransform>
-					<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
-				</SymbolIcon.RenderTransform>
-			</SymbolIcon>
-		</Viewbox>-->
 		
 		<ctl:UniversalWrapPanel Orientation="Horizontal"
 			x:Name="ActionsUWP">
@@ -172,74 +30,6 @@
 				Tapped="OnGoBack_Tapped"
 				Symbol="Back"
 				Uid="Back2"/>
-			<!--<Button 
-				Tapped="OnGoBack_Tapped"
-				Style="{StaticResource ButtonLolloStyle}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon Symbol="Back"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>
-					<TextBlock Grid.Column="2" x:Uid="Back"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-						TextWrapping="Wrap"
-						HorizontalAlignment="Left"
-						VerticalAlignment="Center"/>
-				</Grid>
-			</Button>-->
-
-			<!--<Button 
-				Tapped="OnGoToBriefcase_Tapped"
-				Style="{StaticResource ButtonLolloStyle}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon Symbol="Page"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>
-					<TextBlock Grid.Column="2" x:Uid="Briefcase"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-						TextWrapping="Wrap"
-						HorizontalAlignment="Left"
-						VerticalAlignment="Center"/>
-				</Grid>
-			</Button>
-
-			<Button
-				Tapped="OnGoToBinderCover_Tapped"
-				Style="{StaticResource ButtonLolloStyle}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon Symbol="Page2"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>
-					<TextBlock Grid.Column="2" x:Uid="Binder"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                        TextWrapping="Wrap"
-                        HorizontalAlignment="Left"
-						VerticalAlignment="Center"/>
-				</Grid>
-			</Button>-->
 
 			<ctl:LolloToggleButton
 				IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
@@ -248,72 +38,12 @@
 				UncheckedSymbol="Important"
 				CheckedUid="GotoSafe"
 				UncheckedUid="GotoElevated"/>
-			<!--<ToggleButton
-                IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
-                Style="{StaticResource ToggleButtonLolloStyle}"
-				Tapped="OnToggleElevated_Tapped">
-
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon 
-                            Symbol="Important"
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-                            Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"/>
-					<SymbolIcon 
-                            Symbol="Emoji2" 
-							HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-                            Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
-					<TextBlock Grid.Column="2" 
-                            x:Uid="GotoElevated"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"
-							Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"/>
-					<TextBlock Grid.Column="2"
-                            x:Uid="GotoSafe"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                            TextWrapping="Wrap"
-                            HorizontalAlignment="Left"
-							VerticalAlignment="Center"
-							Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"/>
-				</Grid>
-			</ToggleButton>-->
 
 			<ctl:LolloButton
 				Tapped="OnExport_Tapped"
 				IsEnabled="{x:Bind Path=VM.IsCanImportExport, Mode=OneWay, FallbackValue=false}"
 				Symbol="Save"
 				Uid="Export"/>
-			<!--<Button
-				Tapped="OnExport_Tapped"
-				Style="{StaticResource ButtonLolloStyle}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon Symbol="Save"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"/>
-					--><!--Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>--><!--
-					<TextBlock Grid.Column="2" x:Uid="Export"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                        TextWrapping="Wrap"
-                        HorizontalAlignment="Left"
-						VerticalAlignment="Center"/>
-				</Grid>
-			</Button>-->
 
 			<ctl:LolloButton
 				Tapped="OnImport_Tapped"
@@ -322,58 +52,11 @@
 				Symbol="Import"
 				Foreground="{StaticResource FlashyForeground}"
 				Uid="Import1"/>
-			<!--<Button
-				Tapped="OnImport_Tapped"
-				Style="{StaticResource ButtonLolloStyle}"
-				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon Symbol="Import"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Foreground="{StaticResource FlashyForeground}"/>
-					--><!--Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>--><!--
-					<TextBlock Grid.Column="2" x:Uid="Import"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                        TextWrapping="Wrap"
-						Foreground="{StaticResource FlashyForeground}"
-                        HorizontalAlignment="Left"
-						VerticalAlignment="Center"/>
-				</Grid>
-			</Button>-->
 
 			<ctl:LolloButton
 				Tapped="OnAbout_Tapped"
 				Symbol="Help"
 				Uid="About"/>
-			<!--<Button
-				Tapped="OnAbout_Tapped"
-				Style="{StaticResource ButtonLolloStyle}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-						<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-					</Grid.ColumnDefinitions>
-
-					<SymbolIcon Symbol="Help"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"/>
-					--><!--Width="{StaticResource LandscapeItemHeight}"
-						Height="{StaticResource LandscapeItemHeight}"/>--><!--
-					<TextBlock Grid.Column="2" x:Uid="About"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                        TextWrapping="Wrap"
-                        HorizontalAlignment="Left"
-						VerticalAlignment="Center"/>
-				</Grid>
-			</Button>-->
 		</ctl:UniversalWrapPanel>
 
 		<Border RelativePanel.Below="ActionsUWP"
@@ -405,6 +88,10 @@
             VM="{x:Bind VM, Mode=OneWay}"
 			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 			IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
-		
+
+		<ctl:AnimationsControl x:Name="AnimationsControl" 
+			RelativePanel.Below="SafeNotice" 
+			Canvas.ZIndex="900"/>
+
 	</RelativePanel>
 </ctl:OpenableObservablePage>

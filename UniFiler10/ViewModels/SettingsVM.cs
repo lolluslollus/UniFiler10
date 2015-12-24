@@ -21,7 +21,6 @@ namespace UniFiler10.ViewModels
 	{
 		#region properties
 		private const string REG_IMPORT_FILEPATH = "SettingsFilePicker.ImportFilePath";
-		private const string REG_EXPORT_FILEPATH = "SettingsFilePicker.ExportFilePath";
 
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
@@ -81,16 +80,16 @@ namespace UniFiler10.ViewModels
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
+			await Logger.AddAsync("SettingsVM opening", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+
 			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
 			if (ImportExportMetadataEnded == null) ImportExportMetadataEnded += OnImportExportMetadataEnded;
 			await ResumeAfterFileOpenPickAsync().ConfigureAwait(false);
-			await ResumeAfterFileSavePickAsync().ConfigureAwait(false);
 		}
 
 		private async void OnImportExportMetadataEnded(object sender, EventArgs e)
 		{
 			await ResumeAfterFileOpenPickAsync().ConfigureAwait(false);
-			await ResumeAfterFileSavePickAsync().ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
@@ -98,7 +97,8 @@ namespace UniFiler10.ViewModels
 			ImportExportMetadataEnded -= OnImportExportMetadataEnded;
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
-			//_animationStarter.EndAllAnimations();
+
+			await Logger.AddAsync("SettingsVM closing", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 		}
 		#endregion open and close
 
@@ -196,7 +196,7 @@ namespace UniFiler10.ViewModels
 
 		public void StartExport()
 		{
-			Task exp = RunFunctionWhileOpenAsyncA(delegate
+			Task exp = RunFunctionWhileOpenAsyncT(async delegate
 			{
 				lock (_importExportLock)
 				{
@@ -211,89 +211,47 @@ namespace UniFiler10.ViewModels
 				var bf = Briefcase.GetCurrentInstance();
 				if (bf != null)
 				{
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					var file = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(MetaBriefcase.FILENAME, CreationCollisionOption.GenerateUniqueName); //.AsTask().ConfigureAwait(false);
+					await bf.ExportSettingsAsync(file); //.ConfigureAwait(false);
+
 					var pickTask = Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
 					var afterFilePickedTask = pickTask.ContinueWith(delegate
 					{
-						return AfterFileSavePickedTask(pickTask, true);
+						return AfterFileSavePickedTask(pickTask, file);
 					});
+					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
 				}
 			});
-
-			//bool isOk = false;
-			//var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
-			//if (file != null)
-			//{
-			//	var bf = Briefcase.GetCurrentInstance();
-			//	if (bf != null)
-			//	{
-			//		isOk = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
-			//	}
-			//}
-
-			//if (isOk) _animationStarter.StartAnimation(0);
-			//else _animationStarter.StartAnimation(1);
-
-			//return isOk;
 		}
 
-		private async Task AfterFileSavePickedTask(Task<StorageFile> pickTask, bool copyFile)
+		private async Task AfterFileSavePickedTask(Task<StorageFile> pickTask, StorageFile sourceFile)
 		{
+			bool isSaved = false;
 			try
 			{
 				var file = await pickTask.ConfigureAwait(false);
-				if (file == null)
+				if (file == null || sourceFile == null)
 				{
 					// User cancelled picking
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				}
 				else
 				{
-					bool isSaved = false;
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-
-					var bf = Briefcase.GetCurrentInstance();
-					if (bf != null)
-					{
-						isSaved = await bf.ExportSettingsAsync(file).ConfigureAwait(false);
-					}
-
-					if (isSaved)
-					{
-						RegistryAccess.SetValue(REG_EXPORT_FILEPATH, string.Empty);
-					}
-					else // could not complete the operation: write away the relevant values, Resume() will follow up.
-						 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
-					{
-						RegistryAccess.SetValue(REG_EXPORT_FILEPATH, file.Path);
-						ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
-					}
-
-					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
-					if (isSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					await sourceFile.CopyAndReplaceAsync(file).AsTask().ConfigureAwait(false);
+					isSaved = true;
 				}
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
+
 			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
-		}
 
-		private async Task ResumeAfterFileSavePickAsync()
-		{
-			string filePath = RegistryAccess.GetValue(REG_EXPORT_FILEPATH);
-			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
-
-			if (wasPicking)
-			{
-				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
-				await AfterFileSavePickedTask(pickFileTask, false).ConfigureAwait(false);
-			}
-			else
-			{
-				await Logger.AddAsync("SettingsVM opened, was NOT picking before", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-			}
+			_animationStarter.EndAllAnimations();
+			if (isSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 
 		public void StartImport()
@@ -321,33 +279,17 @@ namespace UniFiler10.ViewModels
 					});
 				}
 			});
-
-			//bool isOk = false;
-			//var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
-			//if (file != null)
-			//{
-			//	var bf = Briefcase.GetCurrentInstance();
-			//	if (bf != null)
-			//	{
-			//		isOk = await bf.ImportSettingsAsync(file).ConfigureAwait(false);
-			//	}
-			//}
-
-			//if (isOk) _animationStarter.StartAnimation(0);
-			//else _animationStarter.StartAnimation(1);
-
-			//return isOk;
 		}
 
 		private async Task AfterFileOpenPickedTask(Task<StorageFile> pickTask, bool copyFile)
 		{
+			bool isSaved = false;
 			try
 			{
 				var file = await pickTask.ConfigureAwait(false);
 				if (file == null)
 				{
 					// User cancelled picking
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				}
 				else
 				{
@@ -362,7 +304,6 @@ namespace UniFiler10.ViewModels
 						newFile = file;
 					}
 
-					bool isSaved = false;
 					if (newFile != null)
 					{
 						var bf = Briefcase.GetCurrentInstance();
@@ -383,17 +324,18 @@ namespace UniFiler10.ViewModels
 							ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
-
-					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
-					if (isSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-					else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				}
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
+
 			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
+
+			_animationStarter.EndAllAnimations();
+			if (isSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 
 		private async Task ResumeAfterFileOpenPickAsync()
@@ -418,12 +360,10 @@ namespace UniFiler10.ViewModels
 		private bool IsImportingExportingSaysTheRegistry()
 		{
 			string a = RegistryAccess.GetValue(REG_IMPORT_FILEPATH);
-			string b = RegistryAccess.GetValue(REG_EXPORT_FILEPATH);
-			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(b));
+			return !(string.IsNullOrWhiteSpace(a));
 		}
 
 		private readonly object _importExportLock = new object();
-		//private bool _isImporting = false;
 		#endregion user actions
 	}
 

@@ -236,6 +236,7 @@ namespace UniFiler10.Data.Metadata
 			//{
 			//    String aaa = i.ToString();
 			//}
+			await Logger.AddAsync("MetaBriefcase about to save", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 
 			try
 			{
