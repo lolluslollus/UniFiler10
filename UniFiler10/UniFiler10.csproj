@@ -152,6 +152,7 @@
     <Compile Include="Utilz\Pickers.cs" />
     <Compile Include="Utilz\ProportionsTrigger.cs" />
     <Compile Include="Utilz\RegistryAccess.cs" />
+    <Compile Include="Utilz\UserConfirmationPopup.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />
     <Compile Include="ViewModels\BinderContentVM.cs" />
     <Compile Include="ViewModels\BriefcaseContentVM.cs" />
@@ -173,6 +174,12 @@
     </Compile>
     <Compile Include="Views\CameraView.xaml.cs">
       <DependentUpon>CameraView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ConfirmationBeforeDeletingBinder.xaml.cs">
+      <DependentUpon>ConfirmationBeforeDeletingBinder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ConfirmationBeforeImportingBinder.xaml.cs">
+      <DependentUpon>ConfirmationBeforeImportingBinder.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WalletView.xaml.cs">
       <DependentUpon>WalletView.xaml</DependentUpon>
@@ -290,6 +297,14 @@
     <Page Include="Views\CameraView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ConfirmationBeforeDeletingBinder.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ConfirmationBeforeImportingBinder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\WalletView.xaml">
       <Generator>MSBuild:Compile</Generator>

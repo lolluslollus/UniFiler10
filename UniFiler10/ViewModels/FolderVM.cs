@@ -96,16 +96,14 @@ namespace UniFiler10.ViewModels
 		}
 
 		/// <summary>
-		/// I need this override to stop any running media recording
+		/// I need this override to stop any running media recording, since they lock the semaphore.
 		/// </summary>
 		/// <returns></returns>
 		public override async Task<bool> CloseAsync()
 		{
 			if (!_isOpen) return false;
 
-			//await Logger.AddAsync("FolderVM closing", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-
-			SavingMediaFileEnded -= OnSavingMediaFileEnded;
+			//await Logger.AddAsync("FolderVM closing", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);			
 
 			var ar = _audioRecorder;
 			if (ar != null)
@@ -123,6 +121,11 @@ namespace UniFiler10.ViewModels
 
 
 			return await base.CloseAsync().ConfigureAwait(false);
+		}
+		protected override Task CloseMayOverrideAsync()
+		{
+			SavingMediaFileEnded -= OnSavingMediaFileEnded;
+			return Task.CompletedTask;
 		}
 		#endregion open close
 

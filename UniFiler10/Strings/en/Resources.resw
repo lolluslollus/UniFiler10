@@ -189,7 +189,7 @@
   <data name="CameraTakingPhoto" xml:space="preserve">
     <value>Taking photo...</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
+  <data name="ImportBinderCancel.Text" xml:space="preserve">
     <value>Cancel</value>
   </data>
   <data name="Categories.Text" xml:space="preserve">
@@ -204,7 +204,7 @@
   <data name="DeleteBinder.Label" xml:space="preserve">
     <value>Delete</value>
   </data>
-  <data name="DeleteBinderConfirmationRequest" xml:space="preserve">
+  <data name="DeleteBinderConfirmationRequest.Text" xml:space="preserve">
     <value>This will delete all the binder data. Are you sure?</value>
   </data>
   <data name="DeleteFolder.Label" xml:space="preserve">
@@ -240,13 +240,13 @@
   <data name="Import.Text" xml:space="preserve">
     <value>Import</value>
   </data>
-  <data name="ImportBinderConfirmationRequest" xml:space="preserve">
+  <data name="ImportBinderConfirmationRequest.Text" xml:space="preserve">
     <value>There is already a binder with the same name. What do you want to do?</value>
   </data>
   <data name="ImportFolders" xml:space="preserve">
     <value>Import new folders</value>
   </data>
-  <data name="MergeIntoCurrentBinder" xml:space="preserve">
+  <data name="MergeIntoCurrentBinder.Text" xml:space="preserve">
     <value>Import missing folders</value>
   </data>
   <data name="Name.Text" xml:space="preserve">
@@ -282,7 +282,7 @@
   <data name="OpenFile.Label" xml:space="preserve">
     <value>Add file</value>
   </data>
-  <data name="OverwriteCurrentBinder" xml:space="preserve">
+  <data name="OverwriteCurrentBinder.Text" xml:space="preserve">
     <value>Overwrite current binder</value>
   </data>
   <data name="PossibleFieldValues.Text" xml:space="preserve">
@@ -389,5 +389,11 @@
   </data>
   <data name="AudioRecordingCannotStart" xml:space="preserve">
     <value>Cannot record</value>
+  </data>
+  <data name="No1.Text" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Yes1.Text" xml:space="preserve">
+    <value>Yes</value>
   </data>
 </root>

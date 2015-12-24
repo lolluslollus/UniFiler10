@@ -3,11 +3,14 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
+using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.ViewModels
 {
@@ -103,63 +106,126 @@ namespace UniFiler10.ViewModels
 			var briefcase = _briefcase;
 			if (briefcase == null) return false;
 
-			bool isDeleted = await GetUserConfirmationBeforeDeletingBinderAsync() && await briefcase.DeleteBinderAsync(dbName);
+			bool isDeleted = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeDeletingBinderAsync() && await briefcase.DeleteBinderAsync(dbName);
 
 			return isDeleted;
 		}
-		private async Task<bool> GetUserConfirmationBeforeDeletingBinderAsync()
-		{
-			//raise confirmation popup
-			// var rl = new ResourceLoader(); // localisation globalisation localization globalization
-			//string strQuestion = RuntimeData.ResourceLoader.GetString("DeleteBinderConfirmationRequest");
-			//string strYes = RuntimeData.ResourceLoader.GetString("Yes");
-			//string strNo = RuntimeData.ResourceLoader.GetString("No");
-			string strQuestion = RuntimeData.GetText("DeleteBinderConfirmationRequest");
-			string strYes = RuntimeData.GetText("Yes");
-			string strNo = RuntimeData.GetText("No");
 
-			var dialog = new MessageDialog(strQuestion);
-			UICommand yesCommand = new UICommand(strYes, (command) => { });
-			UICommand noCommand = new UICommand(strNo, (command) => { });
-			dialog.Commands.Add(yesCommand);
-			dialog.Commands.Add(noCommand);
-			dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
-			IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+		//private async Task<bool> GetUserConfirmationBeforeDeletingBinderAsync()
+		//{
+		//	Flyout dialog = new Flyout();
+		//	dialog.Closed += OnYesNoDialog_Closed;
+		//	var dialogContent = new ConfirmationBeforeDeletingBinder();
+		//	dialog.Content = dialogContent;
+		//	dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
 
-			return reply == yesCommand;
-		}
+		//	dialog.ShowAt(Window.Current.Content as FrameworkElement);
 
-		private enum ImportBinderOperations { Cancel, Import, Merge }
-		private async Task<ImportBinderOperations> GetUserConfirmationBeforeImportingBinderAsync()
-		{
-			//raise confirmation popup
-			//var rl = new ResourceLoader(); // localisation globalisation localization globalization
-			//string strQuestion = RuntimeData.ResourceLoader.GetString("ImportBinderConfirmationRequest");
-			//string strMerge = RuntimeData.ResourceLoader.GetString("MergeIntoCurrentBinder");
-			//string strImport = RuntimeData.ResourceLoader.GetString("OverwriteCurrentBinder");
-			//string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
-			string strQuestion = RuntimeData.GetText("ImportBinderConfirmationRequest");
-			string strMerge = RuntimeData.GetText("MergeIntoCurrentBinder");
-			string strImport = RuntimeData.GetText("OverwriteCurrentBinder");
-			string strCancel = RuntimeData.GetText("Cancel");
+		//	while (!_isHasUserAnswered)
+		//	{
+		//		await Task.Delay(100);
+		//	}
+
+		//	dialog.Closed -= OnYesNoDialog_Closed;
+		//	dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
+		//	dialog.Hide();
+		//	_isHasUserAnswered = false;
+		//	return dialogContent.YesNo;
+		//}
+
+		//private void OnYesNoDialog_Closed(object sender, object e)
+		//{
+		//	_isHasUserAnswered = true;
+		//}
+
+		//private void OnYesNoDialogContent_UserAnswered(object sender, bool e)
+		//{
+		//	_isHasUserAnswered = true;
+		//}
+
+		//private async Task<bool> GetUserConfirmationBeforeDeletingBinderAsync()
+		//{
+		//	string strQuestion = RuntimeData.GetText("DeleteBinderConfirmationRequest");
+		//	string strYes = RuntimeData.GetText("Yes");
+		//	string strNo = RuntimeData.GetText("No");
+
+		//	var dialog = new MessageDialog(strQuestion);
+		//	UICommand yesCommand = new UICommand(strYes, (command) => { });
+		//	UICommand noCommand = new UICommand(strNo, (command) => { });
+		//	dialog.Commands.Add(yesCommand);
+		//	dialog.Commands.Add(noCommand);
+		//	dialog.DefaultCommandIndex = 1; // Set the command that will be invoked by default
+		//	IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+
+		//	return reply == yesCommand;
+		//}
+
+		public enum ImportBinderOperations { Cancel, Import, Merge }
+		//private bool _isHasUserAnswered = false;
+		//private async Task<ImportBinderOperations> GetUserConfirmationBeforeImportingBinderAsync()
+		//{
+		//	Flyout dialog = new Flyout();
+		//	dialog.Closed += OnDialog_Closed;
+		//	var dialogContent = new ConfirmationBeforeImportingBinder();
+		//	dialog.Content = dialogContent;
+		//	dialogContent.UserAnswered += OnDialogContent_UserAnswered;
+
+		//	dialog.ShowAt(Window.Current.Content as FrameworkElement);
+
+		//	while (!_isHasUserAnswered)
+		//	{
+		//		await Task.Delay(100);
+		//	}
+
+		//	dialog.Closed -= OnDialog_Closed;
+		//	dialogContent.UserAnswered -= OnDialogContent_UserAnswered;
+		//	dialog.Hide();
+		//	_isHasUserAnswered = false;
+		//	return dialogContent.Operation;
+		//}
+
+		//private void OnDialog_Closed(object sender, object e)
+		//{
+		//	_isHasUserAnswered = true;
+		//}
+
+		//private void OnDialogContent_UserAnswered(object sender, ImportBinderOperations e)
+		//{
+		//	_isHasUserAnswered = true;
+		//}
+
+		//private async Task<ImportBinderOperations> GetUserConfirmationBeforeImportingBinderAsync()
+		//{
+		//	//raise confirmation popup
+		//	//var rl = new ResourceLoader(); // localisation globalisation localization globalization
+		//	//string strQuestion = RuntimeData.ResourceLoader.GetString("ImportBinderConfirmationRequest");
+		//	//string strMerge = RuntimeData.ResourceLoader.GetString("MergeIntoCurrentBinder");
+		//	//string strImport = RuntimeData.ResourceLoader.GetString("OverwriteCurrentBinder");
+		//	//string strCancel = RuntimeData.ResourceLoader.GetString("Cancel");
+		//	string strQuestion = RuntimeData.GetText("ImportBinderConfirmationRequest");
+		//	string strMerge = RuntimeData.GetText("MergeIntoCurrentBinder");
+		//	string strImport = RuntimeData.GetText("OverwriteCurrentBinder");
+		//	string strCancel = RuntimeData.GetText("Cancel");
 
 
-			var dialog = new MessageDialog(strQuestion);
-			UICommand mergeCommand = new UICommand(strMerge, (command) => { });
-			UICommand importCommand = new UICommand(strImport, (command) => { });
-			UICommand cancelCommand = new UICommand(strCancel, (command) => { });
+		//	var dialog = new MessageDialog(strQuestion);
+		//	UICommand mergeCommand = new UICommand(strMerge, (command) => { });
+		//	UICommand importCommand = new UICommand(strImport, (command) => { });
+		//	UICommand cancelCommand = new UICommand(strCancel, (command) => { });
 
-			dialog.Commands.Add(mergeCommand);
-			dialog.Commands.Add(importCommand);
-			dialog.Commands.Add(cancelCommand);
+		//	dialog.Commands.Add(mergeCommand);
+		//	dialog.Commands.Add(importCommand);
+		//	dialog.Commands.Add(cancelCommand);
 
-			dialog.DefaultCommandIndex = 0; // Set the command that will be invoked by default
-			IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+		//	// LOLLO TODO the phone does not like dialogs with more than two commands
 
-			if (reply == mergeCommand) return ImportBinderOperations.Merge;
-			else if (reply == importCommand) return ImportBinderOperations.Import;
-			else return ImportBinderOperations.Cancel;
-		}
+		//	dialog.DefaultCommandIndex = 0; // Set the command that will be invoked by default
+		//	IUICommand reply = await dialog.ShowAsync().AsTask(); // Show the message dialog
+
+		//	if (reply == mergeCommand) return ImportBinderOperations.Merge;
+		//	else if (reply == importCommand) return ImportBinderOperations.Import;
+		//	else return ImportBinderOperations.Cancel;
+		//}
 		public async Task<bool> ImportDbAsync()
 		{
 			var briefcase = _briefcase;
@@ -170,7 +236,7 @@ namespace UniFiler10.ViewModels
 				{
 					if (await briefcase.IsDbNameAvailableAsync(fromDirectory.Name))
 					{
-						var nextAction = await GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
+						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
 						if (nextAction == ImportBinderOperations.Merge)
 						{
 							return await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);

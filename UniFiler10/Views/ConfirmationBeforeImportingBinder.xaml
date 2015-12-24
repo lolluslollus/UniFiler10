@@ -1,0 +1,59 @@
+﻿<UserControl
+    x:Class="UniFiler10.Views.ConfirmationBeforeImportingBinder"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UniFiler10.Views"
+	xmlns:ctl="using:UniFiler10.Controlz"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+	<ctl:UniversalWrapPanel ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+				   ScrollViewer.HorizontalScrollMode="Disabled"
+				   ScrollViewer.VerticalScrollBarVisibility="Disabled"
+				   ScrollViewer.VerticalScrollMode="Disabled">
+		<!--<RelativePanel ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+				   ScrollViewer.HorizontalScrollMode="Disabled"
+				   ScrollViewer.VerticalScrollBarVisibility="Disabled"
+				   ScrollViewer.VerticalScrollMode="Disabled">-->
+		<TextBlock x:Name="One"
+			x:Uid="ImportBinderConfirmationRequest"
+			MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+            TextWrapping="Wrap"
+			Margin="{StaticResource PanelPadding8282}"/>
+		<Button x:Name="Two"
+			RelativePanel.RightOf="One"
+			Style="{StaticResource ButtonLolloStyle}"
+			Click="OnMerge_Click"
+			Width="{StaticResource LandscapeItemWidth}"
+			Margin="{StaticResource PanelPadding8282}">
+			<TextBlock x:Uid="MergeIntoCurrentBinder"
+				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+				TextWrapping="Wrap"/>
+		</Button>
+		<Button x:Name="Three"
+			RelativePanel.RightOf="Two"
+			Style="{StaticResource ButtonLolloStyle}"
+			Click="OnOverwrite_Click"
+			Width="{StaticResource LandscapeItemWidth}"
+			Margin="{StaticResource PanelPadding8282}">
+			<TextBlock x:Uid="OverwriteCurrentBinder"
+				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+				TextWrapping="Wrap"/>
+		</Button>
+		<Button x:Name="Four"
+			RelativePanel.RightOf="Three"
+			Style="{StaticResource ButtonLolloStyle}"
+			Click="OnCancel_Click"
+			TabIndex="1"
+			Width="{StaticResource LandscapeItemWidth}"
+			Margin="{StaticResource PanelPadding8282}">
+			<TextBlock x:Uid="ImportBinderCancel"
+				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+				TextWrapping="Wrap"/>
+		</Button>
+		<!--</RelativePanel>-->
+	</ctl:UniversalWrapPanel>
+</UserControl>
