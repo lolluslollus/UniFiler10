@@ -254,6 +254,7 @@ namespace UniFiler10.ViewModels
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
+			lock (_importLock) { _isImporting = false; }
 		}
 		private static event EventHandler SavingMetadataEnded;
 		public event EventHandler MetadataChanged;
@@ -280,10 +281,14 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
+		private readonly object _importLock = new object();
+		private bool _isImporting = false;
+
 		public void StartImport()
 		{
 			Task imp = RunFunctionWhileOpenAsyncA(delegate
 		   {
+			   lock (_importLock) { if (_isImporting) return; else _isImporting = true; }
 			   var bf = Briefcase.GetCurrentInstance();
 			   if (bf != null)
 			   {
