@@ -239,6 +239,7 @@ namespace UniFiler10.ViewModels
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					await sourceFile.CopyAndReplaceAsync(file).AsTask().ConfigureAwait(false);
+					await sourceFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 					isSaved = true;
 				}
 			}
