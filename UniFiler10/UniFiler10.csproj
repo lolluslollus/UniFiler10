@@ -165,9 +165,6 @@
     <Compile Include="Views\BinderContentPage.xaml.cs">
       <DependentUpon>BinderContentPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BriefcaseCoverView.xaml.cs">
-      <DependentUpon>BriefcaseCoverView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\BinderCoverView.xaml.cs">
       <DependentUpon>BinderCoverView.xaml</DependentUpon>
     </Compile>
@@ -285,10 +282,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\BinderContentPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\BriefcaseCoverView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

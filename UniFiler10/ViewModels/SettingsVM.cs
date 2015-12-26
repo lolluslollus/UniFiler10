@@ -230,16 +230,15 @@ namespace UniFiler10.ViewModels
 			bool isSaved = false;
 			try
 			{
-				var file = await pickTask.ConfigureAwait(false);
-				if (file == null || sourceFile == null)
+				var pickedFile = await pickTask.ConfigureAwait(false);
+				if (pickedFile == null || sourceFile == null)
 				{
 					// User cancelled picking
 				}
 				else
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-					await sourceFile.CopyAndReplaceAsync(file).AsTask().ConfigureAwait(false);
-					await sourceFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+					await sourceFile.CopyAndReplaceAsync(pickedFile).AsTask().ConfigureAwait(false);
 					isSaved = true;
 				}
 			}
@@ -247,6 +246,8 @@ namespace UniFiler10.ViewModels
 			{
 				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
+
+			if (sourceFile != null) await sourceFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 
 			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
 

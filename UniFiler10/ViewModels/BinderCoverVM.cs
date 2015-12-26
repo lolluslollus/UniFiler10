@@ -707,10 +707,11 @@ namespace UniFiler10.ViewModels
 
 			if (binder != null)
 			{
+				// LOLLO TODO make this work with phone with low memory
 				var directory = await Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
 				if (directory != null)
 				{
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);					
 					isOk = await binder.ImportFoldersAsync(directory).ConfigureAwait(false);
 					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
 				}

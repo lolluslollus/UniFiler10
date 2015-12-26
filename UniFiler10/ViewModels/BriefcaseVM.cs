@@ -37,11 +37,15 @@ namespace UniFiler10.ViewModels
 			if (_briefcase == null) _briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
+
+			//await Logger.AddAsync("Opening", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			//await ResumeAfterBackupBinderAsync().ConfigureAwait(false);
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			Briefcase = null;
+			//await Logger.AddAsync("Closing", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			return Task.CompletedTask;
 		}
 		public bool AddDbStep0()
@@ -70,12 +74,16 @@ namespace UniFiler10.ViewModels
 			return false;
 		}
 
-		public async Task<bool> SetCurrentBinderAsync(string dbName)
+		public async Task<bool> TryOpenCurrentBinderAsync(string dbName)
 		{
 			var bf = _briefcase;
 			if (bf != null)
 			{
-				return await bf.SetCurrentBinderNameAsync(dbName).ConfigureAwait(false);
+				if (await bf.SetCurrentBinderNameAsync(dbName).ConfigureAwait(false))
+				{
+					return true;
+					// await bf.OpenCurrentBinderAsync().ConfigureAwait(false);
+				}
 			}
 			return false;
 		}
@@ -122,7 +130,8 @@ namespace UniFiler10.ViewModels
 			var briefcase = _briefcase;
 			if (briefcase != null)
 			{
-				var fromDirectory = await PickFolderAsync();
+				// LOLLO TODO make this work with phone with low memory
+				var fromDirectory = await Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
 				if (fromDirectory != null)
 				{
 					if (await briefcase.IsDbNameAvailableAsync(fromDirectory.Name))
@@ -147,29 +156,49 @@ namespace UniFiler10.ViewModels
 			return false;
 		}
 
-		public async Task<bool> BackupDbAsync(string dbName)
+		public async Task StartBackupBinderAsync(string dbName)
 		{
 			bool isOk = false;
 			var bc = _briefcase;
 
 			if (!string.IsNullOrWhiteSpace(dbName) && bc != null && bc.DbNames.Contains(dbName))
 			{
-				var toParentDirectory = await PickFolderAsync();
-				if (toParentDirectory != null)
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+				var tempDir = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(BAK_TEMP_DIR, CreationCollisionOption.GenerateUniqueName).AsTask(); //.ConfigureAwait(false);
+				isOk = await bc.ExportBinderAsync(dbName, tempDir); //.ConfigureAwait(false);
+				if (isOk)
 				{
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-					isOk = await bc.ExportBinderAsync(dbName, toParentDirectory).ConfigureAwait(false);
-					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+					var toParentDirectoryTask = Pickers.PickFolderAsync(new string[0]); // string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+					var afterPickedTask = toParentDirectoryTask.ContinueWith(delegate
+					{
+						return AfterBackupBinderAsync(tempDir, toParentDirectoryTask);
+					});
+				}
+				else
+				{
+					if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+					_animationStarter.EndAllAnimations();
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				}
 			}
-			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-			return isOk;
 		}
 
-		private Task<StorageFolder> PickFolderAsync()
+		private const string BAK_TEMP_DIR = "BakBinderDir";
+		private async Task AfterBackupBinderAsync(StorageFolder tempDir, Task<StorageFolder> toParentDirectory)
 		{
-			return Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+			bool isOk = false;
+			if (tempDir != null && toParentDirectory != null)
+			{
+				await new FileDirectoryExts().CopyDirContentsReplacingAsync(tempDir, await toParentDirectory.ConfigureAwait(false)).ConfigureAwait(false);
+				isOk = true;
+				await Logger.AddAsync("IsOk = true", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			}
+
+			if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+
+			_animationStarter.EndAllAnimations();
+			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 	}
 }

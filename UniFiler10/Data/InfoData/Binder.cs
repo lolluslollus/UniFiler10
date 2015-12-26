@@ -462,7 +462,7 @@ namespace UniFiler10.Data.Model
 					tempDirectory = await ApplicationData.Current.TemporaryFolder
 						.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
+					await new FileDirectoryExts().CopyDirContentsReplacingAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
 
 					mergingBinder = MergingBinder.CreateInstance(_dbName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);

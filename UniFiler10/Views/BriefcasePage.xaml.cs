@@ -10,6 +10,7 @@ using Windows.ApplicationModel.Resources;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
@@ -22,8 +23,8 @@ namespace UniFiler10.Views
     /// </summary>
     public sealed partial class BriefcasePage : OpenableObservablePage
 	{
-        #region properties
-        private BriefcaseVM _vm = null;
+		#region properties
+		private BriefcaseVM _vm = null;
         public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged(); } }
 
 		private AnimationStarter _animationStarter = null;
@@ -45,7 +46,9 @@ namespace UniFiler10.Views
 			await _vm.OpenAsync().ConfigureAwait(true);
 			RaisePropertyChanged(nameof(VM));
 
-			await BriefcaseCoverView.CloseAsync().ConfigureAwait(false);
+			//await BriefcaseCoverView.OpenAsync().ConfigureAwait(false);
+
+			await AnimationsControl.OpenAsync().ConfigureAwait(true);
 
 			//RegisterIsShowingBinderHandler();
 			// LOLLO NOTE do not set the datacontext of the whole control or it will alter the dependency properties, if any. 
@@ -63,20 +66,56 @@ namespace UniFiler10.Views
 				VM = null;
 			}
 
-			await BriefcaseCoverView.CloseAsync().ConfigureAwait(false);
+			//await BriefcaseCoverView.CloseAsync().ConfigureAwait(false);
 
 			await AnimationsControl.CloseAsync().ConfigureAwait(false);
 		}
 		#endregion construct dispose open close
 
 
-		#region user actions
-		private void OnBriefcaseCoverView_GoToBinderContentRequested(object sender, EventArgs e)
+		#region event handlers
+		private async void OnBinderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			Frame.Navigate(typeof(BriefcaseContentPage));
+			var vm = VM;
+			if (vm != null)
+			{
+				if (await vm.TryOpenCurrentBinderAsync(e?.ClickedItem?.ToString()))
+				{
+					Frame.Navigate(typeof(BriefcaseContentPage));
+				}
+			}
 		}
 
-		private async void OnBriefcaseCoverView_GoToSettingsRequested(object sender, EventArgs e)
+		private void OnAddBinderStep0_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			VM?.AddDbStep0();
+		}
+		private void OnAddBinderStep1_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			Task add = VM?.AddDbStep1Async();
+		}
+
+		private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			Task bak = VM?.StartBackupBinderAsync((sender as FrameworkElement)?.DataContext as string);
+		}
+
+		private async void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			var vm = VM;
+			if (vm != null)
+			{
+				bool isOk = await vm.ImportDbAsync();
+				if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+				else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			}
+		}
+
+		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			Task delete = VM?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+		}
+		private async void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			var vm = _vm;
 			if (vm != null)
@@ -85,6 +124,6 @@ namespace UniFiler10.Views
 			}
 			Frame.Navigate(typeof(SettingsPage));
 		}
-		#endregion user actions
+		#endregion event handlers
 	}
 }

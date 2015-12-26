@@ -286,7 +286,7 @@ namespace UniFiler10.Data.Model
 					wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 				}
 
-				if (await ExportBinderFilesASync(dbName, intoStorageFolder))
+				if (await ExportBinderFilesAsync(dbName, intoStorageFolder))
 				{
 					isOk = true;
 				}
@@ -296,7 +296,7 @@ namespace UniFiler10.Data.Model
 				return isOk;
 			});
 		}
-		private async Task<bool> ExportBinderFilesASync(string dbName, StorageFolder toRootDirectory)
+		private async Task<bool> ExportBinderFilesAsync(string dbName, StorageFolder toRootDirectory)
 		{
 			try
 			{
@@ -308,7 +308,7 @@ namespace UniFiler10.Data.Model
 					var toDirectory = await toRootDirectory
 						.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, toDirectory).ConfigureAwait(false);
+					await new FileDirectoryExts().CopyDirContentsReplacingAsync(fromDirectory, toDirectory).ConfigureAwait(false);
 					return true;
 				}
 			}
@@ -374,7 +374,7 @@ namespace UniFiler10.Data.Model
 					var toDirectory = await BindersDirectory
 						.CreateFolderAsync(fromDirectory.Name, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					await new FileDirectoryExts().CopyDirContentsAsync(fromDirectory, toDirectory).ConfigureAwait(false);
+					await new FileDirectoryExts().CopyDirContentsReplacingAsync(fromDirectory, toDirectory).ConfigureAwait(false);
 					return true;
 				}
 				catch (Exception ex)

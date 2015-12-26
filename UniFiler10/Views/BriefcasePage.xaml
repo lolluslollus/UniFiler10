@@ -13,18 +13,155 @@
 	d:DesignHeight="800"
     d:DesignWidth="800">
 
-	<RelativePanel x:Name="LayoutRoot"
+	<Grid x:Name="LayoutRoot"
 		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
 		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 
-		<local:BriefcaseCoverView x:Name="BriefcaseCoverView"
-            VM="{x:Bind VM, Mode=OneWay}"
-			GoToBinderContentRequested="OnBriefcaseCoverView_GoToBinderContentRequested"
-			GoToSettingsRequested="OnBriefcaseCoverView_GoToSettingsRequested"
-			IsEnabled="{x:Bind VM.IsOpen, Mode=OneWay, FallbackValue=false}"/>
+		<ScrollViewer>
+			<RelativePanel Background="Lavender"
+				DataContext="{x:Bind VM, Mode=OneWay}">
 
-		<ctl:AnimationsControl x:Name="AnimationsControl" 
-			RelativePanel.Below="BriefcaseCoverView"
-			Canvas.ZIndex="900"/>
-	</RelativePanel>
+				<!-- actions for all binders -->
+				<ctl:UniversalWrapPanel Orientation="Horizontal"
+				x:Name="ActionsUWP">
+					<ctl:LolloButton x:Name="AButton"
+					Tapped="OnAddBinderStep0_Tapped"
+					Symbol="Add"
+					Uid="AddBinder"/>
+
+					<ctl:LolloButton
+					Tapped="OnImportButton_Tapped"
+					Symbol="Import"
+					Uid="ImportBinder"/>
+
+					<ctl:LolloButton
+					Tapped="OnSettingsButton_Tapped"
+					Symbol="Setting"
+					Uid="Settings1"/>
+				</ctl:UniversalWrapPanel>
+
+				<!-- fields to add new binder -->
+				<ctl:UniversalWrapPanel Orientation="Horizontal"
+				RelativePanel.Below="ActionsUWP"
+				x:Name="NewBinderUWP">
+					<Grid
+					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
+
+						<ctl:LolloTextBox
+						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+						Style="{StaticResource LolloTextBoxStyle}"
+						BorderThickness="0"
+						MaxLength="{StaticResource MaxDbNameLength}"
+						Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"
+						MinHeight="{StaticResource LandscapeItemHeight}"
+						VerticalAlignment="Center">
+							<ctl:LolloTextBox.Header>
+								<TextBlock x:Uid="NewBinderName"/>
+							</ctl:LolloTextBox.Header>
+						</ctl:LolloTextBox>
+
+						<StackPanel Grid.Row="1"
+						VerticalAlignment="Center"					
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+							<TextBlock
+							x:Uid="NameAlreadyInUse"
+							TextWrapping="Wrap"
+							HorizontalAlignment="Left"
+							Foreground="{StaticResource FlashyForeground}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+						</StackPanel>
+
+						<Border Grid.RowSpan="2"
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+							<Border
+							VerticalAlignment="Stretch"
+							HorizontalAlignment="Stretch"
+							BorderBrush="{StaticResource FlashyForeground}"
+							BorderThickness="{StaticResource Thickness2222}"
+							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+						</Border>
+					</Grid>
+
+					<ctl:LolloButton
+					Tapped="OnAddBinderStep1_Tapped"
+					Symbol="Go"
+					Uid="Go"
+					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+				</ctl:UniversalWrapPanel>
+
+				<!-- all binder miniatures -->
+				<ctl:TolerantListView
+				RelativePanel.Below="NewBinderUWP"
+                ItemsSource="{x:Bind VM.Briefcase.DbNames, Mode=OneWay}"
+                IsItemClickEnabled="True"
+                IsMultiSelectCheckBoxEnabled="False"
+                ItemClick="OnBinderPreviews_ItemClick"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsWrapGrid Orientation="Horizontal"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<Grid>
+								<Grid.RowDefinitions>
+									<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
+								</Grid.RowDefinitions>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
+								</Grid.ColumnDefinitions>
+
+								<Border Canvas.ZIndex="200"
+        						VerticalAlignment="Bottom" HorizontalAlignment="Center"
+								Height="{StaticResource MiniatureQuarterHeight}"
+								Width="{StaticResource MiniatureWidth}"
+								Background="{StaticResource VerticalWBrush}">
+
+									<ctl:TextBlockScaler Canvas.ZIndex="200"
+                                VerticalAlignment="Bottom" HorizontalAlignment="Center"
+								Height="{StaticResource MiniatureQuarterHeight}"
+								Width="{StaticResource MiniatureWidth}">
+										<ctl:TextBlockScaler.TextBlock>
+											<TextBlock
+										Text="{Binding}"
+										Foreground="{StaticResource FlashyForeground}"
+										TextAlignment="Center"
+										Padding="{StaticResource Thickness4444}"
+										TextWrapping="Wrap"/>
+											<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
+										</ctl:TextBlockScaler.TextBlock>
+									</ctl:TextBlockScaler>
+								</Border>
+
+								<AppBarButton Icon="Save"
+									Tapped="OnBackupButton_Tapped"
+									Canvas.ZIndex="150"
+									Style="{StaticResource AppBarButtonRecoloured}"
+									Foreground="{StaticResource FlashyForeground}"
+									HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+								<AppBarButton Icon="Delete"
+									Tapped="OnDeleteButton_Tapped"
+									Canvas.ZIndex="150"
+									Style="{StaticResource AppBarButtonRecoloured}"
+									Foreground="{StaticResource FlashyForeground}"
+									HorizontalAlignment="Right" VerticalAlignment="Top"/>
+							</Grid>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ctl:TolerantListView>
+
+				<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="NewBinderUWP" Canvas.ZIndex="900"/>
+			</RelativePanel>
+		</ScrollViewer>
+	</Grid>
 </ctl:OpenableObservablePage>

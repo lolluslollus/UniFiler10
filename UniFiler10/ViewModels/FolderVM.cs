@@ -157,9 +157,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region add media
-		public void StartLoadMediaFile() // file open picker causes a suspend on the phone, so the app quits before the file is saved.
-										 // LOLLO TODO Fix this across the app, wherever a picker is called. 
-										 // Done with file open and file save, the directory picker does not seem to need it, check it.
+		public void StartLoadMediaFile() // file open picker causes a suspend on the phone, so the app quits before the file is saved, hence the complexity.
 		{
 			Task load = RunFunctionWhileOpenAsyncA(delegate
 			{
@@ -437,16 +435,26 @@ namespace UniFiler10.ViewModels
 
 			if (wasShooting && Folder?.Id == folderId)
 			{
+				await Logger.AddAsync("FolderVM opened, was shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+
 				string parentWalletId = RegistryAccess.GetValue(REG_SHOOT_PARENTWALLET);
 				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
 				var photoFileTask = StorageFile.GetFileFromPathAsync(RegistryAccess.GetValue(REG_SHOOT_FILEPATH)).AsTask();
 
-				await AfterCaptureTask(photoFileTask, null, Folder, createWallet, parentWallet).ConfigureAwait(false);
+				await Logger.AddAsync("FolderVM opened, was NOT shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+				try
+				{
+					await AfterCaptureTask(photoFileTask, null, Folder, createWallet, parentWallet).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				}
 			}
-			//else
-			//{
-			//	await Logger.AddAsync("FolderVM opened, was NOT shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-			//}
+			else
+			{
+				await Logger.AddAsync("FolderVM opened, was NOT shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			}
 		}
 
 		public async Task RecordAudioAsync()
