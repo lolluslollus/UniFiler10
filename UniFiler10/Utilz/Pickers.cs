@@ -45,11 +45,9 @@ namespace Utilz
 		{
 			// test for phone: bring it to the UI thread
 			StorageFile file = null;
-			await Logger.AddAsync("About to pick file", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			try
 			{
 				Task<StorageFile> fileTask = null;
-				await Logger.AddAsync("open picker opened", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 				{
 					var openPicker = new FileOpenPicker();
@@ -65,9 +63,6 @@ namespace Utilz
 					fileTask = openPicker.PickSingleFileAsync().AsTask();
 				});
 				file = await fileTask;
-
-				if (file == null) await Logger.AddAsync("file picked, null", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-				else await Logger.AddAsync("file picked, not null", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{

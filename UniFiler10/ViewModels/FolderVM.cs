@@ -27,7 +27,6 @@ namespace UniFiler10.ViewModels
 		private const string REG_FP_FILEPATH = "FilePicker.FilePath";
 
 		private const string REG_SHOOT_FOLDERID = "ShootUi.FolderId";
-		private const string REG_SHOOT_CREATEWALLET = "ShootUi.CreateWallet";
 		private const string REG_SHOOT_PARENTWALLET = "ShootUi.ParentWallet";
 		private const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
 
@@ -120,7 +119,6 @@ namespace UniFiler10.ViewModels
 		protected override Task CloseMayOverrideAsync()
 		{
 			SavingMediaFileEnded -= OnSavingMediaFileEnded;
-			//_animationStarter.EndAllAnimations();
 			return Task.CompletedTask;
 		}
 		#endregion open close
@@ -302,22 +300,18 @@ namespace UniFiler10.ViewModels
 
 				await AfterFilePickedTask(pickFileTask, null, Folder, parentWallet).ConfigureAwait(false);
 			}
-			else
-			{
-				await Logger.AddAsync("FolderVM opened, was NOT picking before", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-			}
 		}
 
 		private readonly object _captureLock = new object();
 
-		public void StartShoot(bool createWallet, Wallet parentWallet)
+		public void StartShoot(Wallet parentWallet)
 		{
 			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
-			if (!createWallet && parentWallet == null) return;
+			//if (parentWallet == null) return;
 			Task shoot = RunFunctionWhileOpenAsyncA(delegate
 			{
 				if (RuntimeData.Instance?.IsCameraAvailable != true) return;
-				if (!createWallet && parentWallet == null) return;
+				//if (parentWallet == null) return;
 				var folder = _folder;
 				if (folder == null) return;
 
@@ -337,11 +331,11 @@ namespace UniFiler10.ViewModels
 					captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
 					captureUI.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
 
-					var directory = folder?.DBManager?.Directory;
+					var saveDirectory = folder?.DBManager?.Directory;
 					var captureTask = captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo).AsTask();
 					var afterCaptureTask = captureTask.ContinueWith(delegate
 					{
-						return AfterCaptureTask(captureTask, directory, folder, createWallet, parentWallet);
+						return AfterCaptureTask(captureTask, saveDirectory, folder, parentWallet);
 					});
 				}
 				catch (Exception ex)
@@ -351,57 +345,58 @@ namespace UniFiler10.ViewModels
 			});
 		}
 
-		private async Task AfterCaptureTask(Task<StorageFile> captureTask, StorageFolder saveDirectory, Folder folder, bool createWallet, Wallet parentWallet)
+		private async Task AfterCaptureTask(Task<StorageFile> captureTask, StorageFolder saveDirectory, Folder folder, Wallet parentWallet)
 		{
 			bool isAllSaved = false;
 
 			try
 			{
-				var file = await captureTask.ConfigureAwait(false);
-				if (file == null || folder == null)
+				var capturedFile = await captureTask.ConfigureAwait(false);
+				if (capturedFile == null || folder == null)
 				{
 					// User cancelled photo capture
 				}
 				else
 				{
-					StorageFile newFile = null;
+					StorageFile finalFile = null;
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					if (saveDirectory == null)
 					{
-						newFile = file;
+						finalFile = capturedFile;
 					}
 					else
 					{
-						newFile = await file.CopyAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName); // copy right after the picker or access will be forbidden later
+						finalFile = await capturedFile.CopyAsync(saveDirectory, capturedFile.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
+						// the following would be better but it does not return the file
+						//await file.MoveAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
 					}
 
-					if (newFile != null)
+					if (finalFile != null)
 					{
-						if (createWallet && folder != null)
+						if (folder != null && parentWallet == null)
 						{
-							isAllSaved = await folder.ImportMediaFileIntoNewWalletAsync(newFile, false).ConfigureAwait(false);
+							isAllSaved = await folder.ImportMediaFileIntoNewWalletAsync(finalFile, false).ConfigureAwait(false);
 						}
-						else if (!createWallet && parentWallet != null)
+						else if (parentWallet != null)
 						{
-							isAllSaved = await parentWallet.ImportMediaFileAsync(newFile, false).ConfigureAwait(false);
+							isAllSaved = await parentWallet.ImportMediaFileAsync(finalFile, false).ConfigureAwait(false);
 						}
 
 						if (isAllSaved)
 						{
 							RegistryAccess.SetValue(REG_SHOOT_FOLDERID, string.Empty);
-							RegistryAccess.SetValue(REG_SHOOT_CREATEWALLET, string.Empty);
 							RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, string.Empty);
 							RegistryAccess.SetValue(REG_SHOOT_FILEPATH, string.Empty);
-							if (file != null) await file.DeleteAsync().AsTask().ConfigureAwait(false);
+							if (capturedFile != null && finalFile != null && (capturedFile.Path != finalFile.Path || capturedFile.Name != finalFile.Name)) await capturedFile.DeleteAsync().AsTask().ConfigureAwait(false);
 						}
 						else // could not complete the operation: write away the relevant values, Resume() will follow up.
 							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
 						{
 							RegistryAccess.SetValue(REG_SHOOT_FOLDERID, folder.Id);
-							RegistryAccess.SetValue(REG_SHOOT_CREATEWALLET, createWallet.ToString());
+							//RegistryAccess.SetValue(REG_SHOOT_CREATEWALLET, createWallet.ToString());
 							if (parentWallet != null) RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, parentWallet.Id);
 							else RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, string.Empty);
-							RegistryAccess.SetValue(REG_SHOOT_FILEPATH, newFile.Path);
+							RegistryAccess.SetValue(REG_SHOOT_FILEPATH, finalFile.Path);
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
@@ -422,38 +417,29 @@ namespace UniFiler10.ViewModels
 		private bool IsShootingSaysTheRegistry()
 		{
 			string a = RegistryAccess.GetValue(REG_SHOOT_FOLDERID);
-			string b = RegistryAccess.GetValue(REG_SHOOT_CREATEWALLET);
 			string c = RegistryAccess.GetValue(REG_SHOOT_PARENTWALLET);
 			string d = RegistryAccess.GetValue(REG_SHOOT_FILEPATH);
-			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(b) && string.IsNullOrWhiteSpace(c) && string.IsNullOrWhiteSpace(d));
+			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(c) && string.IsNullOrWhiteSpace(d));
 		}
 		private async Task ResumeAfterShootingAsync()
 		{
-			bool createWallet = false;
-			bool wasShooting = bool.TryParse(RegistryAccess.GetValue(REG_SHOOT_CREATEWALLET), out createWallet);
+			bool wasShooting = !string.IsNullOrWhiteSpace(RegistryAccess.GetValue(REG_SHOOT_FILEPATH));
 			string folderId = RegistryAccess.GetValue(REG_SHOOT_FOLDERID);
 
 			if (wasShooting && Folder?.Id == folderId)
 			{
-				await Logger.AddAsync("FolderVM opened, was shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-
 				string parentWalletId = RegistryAccess.GetValue(REG_SHOOT_PARENTWALLET);
 				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
 				var photoFileTask = StorageFile.GetFileFromPathAsync(RegistryAccess.GetValue(REG_SHOOT_FILEPATH)).AsTask();
 
-				await Logger.AddAsync("FolderVM opened, was NOT shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 				try
 				{
-					await AfterCaptureTask(photoFileTask, null, Folder, createWallet, parentWallet).ConfigureAwait(false);
+					await AfterCaptureTask(photoFileTask, null, _folder, parentWallet).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
 					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 				}
-			}
-			else
-			{
-				await Logger.AddAsync("FolderVM opened, was NOT shooting before", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
 		}
 

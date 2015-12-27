@@ -170,7 +170,7 @@ namespace UniFiler10.Data.Model
 					if (copyFile)
 					{
 						newFile = await file.CopyAsync(_dbManager.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
-						newDoc.Uri0 = Path.GetFileName(newFile.Path);
+						newDoc.Uri0 = Path.GetFileName(newFile.Path);						
 					}
 					else
 					{

@@ -80,8 +80,6 @@ namespace UniFiler10.ViewModels
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
-			await Logger.AddAsync("SettingsVM opening", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-
 			lock (_importExportLock) { IsCanImportExport = !IsImportingExportingSaysTheRegistry(); }
 			if (ImportExportMetadataEnded == null) ImportExportMetadataEnded += OnImportExportMetadataEnded;
 			await ResumeAfterFileOpenPickAsync().ConfigureAwait(false);
@@ -97,8 +95,6 @@ namespace UniFiler10.ViewModels
 			ImportExportMetadataEnded -= OnImportExportMetadataEnded;
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
-
-			await Logger.AddAsync("SettingsVM closing", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 		}
 		#endregion open and close
 
@@ -349,10 +345,6 @@ namespace UniFiler10.ViewModels
 			{
 				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
 				await AfterFileOpenPickedTask(pickFileTask, false).ConfigureAwait(false);
-			}
-			else
-			{
-				await Logger.AddAsync("SettingsVM opened, was NOT picking before", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
 		}
 

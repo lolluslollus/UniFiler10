@@ -24,7 +24,7 @@ namespace UniFiler10.Views
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			VM?.StartShoot(true, null);
+			VM?.StartShoot(null);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)

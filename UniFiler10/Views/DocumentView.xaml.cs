@@ -262,7 +262,7 @@ namespace UniFiler10.Views
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
 		}
 		private async Task RenderFirstPDFPageAsync()

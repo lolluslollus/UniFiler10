@@ -43,7 +43,7 @@ namespace UniFiler10.Views
 
 		private void OnShoot_Click(object sender, RoutedEventArgs e)
 		{
-			VM?.StartShoot(false, Wallet);
+			VM?.StartShoot(Wallet);
 		}
 
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)

@@ -37,15 +37,11 @@ namespace UniFiler10.ViewModels
 			if (_briefcase == null) _briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
-
-			//await Logger.AddAsync("Opening", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-			//await ResumeAfterBackupBinderAsync().ConfigureAwait(false);
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			Briefcase = null;
-			//await Logger.AddAsync("Closing", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			return Task.CompletedTask;
 		}
 		public bool AddDbStep0()
@@ -191,7 +187,6 @@ namespace UniFiler10.ViewModels
 			{
 				await new FileDirectoryExts().CopyDirContentsReplacingAsync(tempDir, await toParentDirectory.ConfigureAwait(false)).ConfigureAwait(false);
 				isOk = true;
-				await Logger.AddAsync("IsOk = true", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
 
 			if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
