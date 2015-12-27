@@ -452,6 +452,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (fromDirectory == null) return false;
 				bool isOk = false;
+				bool isDeleteTempDir = false;
 				MergingBinder mergingBinder = null;
 				StorageFolder tempDirectory = null;
 
@@ -459,10 +460,18 @@ namespace UniFiler10.Data.Model
 				{
 					// I can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode. 
 					// So I copy the source files into the temp directory.
-					tempDirectory = await ApplicationData.Current.TemporaryFolder
-						.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
-						.AsTask().ConfigureAwait(false);
-					await new FileDirectoryExts().CopyDirContentsReplacingAsync(fromDirectory, tempDirectory).ConfigureAwait(false);
+					if (fromDirectory.Path.Contains(ApplicationData.Current.TemporaryFolder.Path))
+					{
+						tempDirectory = fromDirectory;
+					}
+					else
+					{
+						tempDirectory = await ApplicationData.Current.TemporaryFolder
+							.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
+							.AsTask().ConfigureAwait(false);
+						await fromDirectory.CopyDirContentsReplacingAsync(tempDirectory).ConfigureAwait(false);
+						isDeleteTempDir = true;
+					}
 
 					mergingBinder = MergingBinder.CreateInstance(_dbName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
@@ -495,9 +504,10 @@ namespace UniFiler10.Data.Model
 							await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
 
 							_folders.Add(fol);
-							isOk = true;
+							//isOk = true;
 						}
 					}
+					isOk = true;
 				}
 				catch (Exception ex)
 				{
@@ -511,7 +521,7 @@ namespace UniFiler10.Data.Model
 				}
 				mergingBinder = null;
 
-				Task clean = tempDirectory?.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask();
+				if (isDeleteTempDir && tempDirectory != null) await tempDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);				
 
 				return isOk;
 			});

@@ -37,6 +37,8 @@ namespace UniFiler10.ViewModels
 			if (_briefcase == null) _briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
+
+			//await ResumeAfterExportBinderAsync().ConfigureAwait(false);
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
@@ -121,8 +123,9 @@ namespace UniFiler10.ViewModels
 
 		public enum ImportBinderOperations { Cancel, Import, Merge }
 
-		public async Task<bool> ImportDbAsync()
+		public async Task StartImportDbAsync()
 		{
+			bool isOk = false;
 			var briefcase = _briefcase;
 			if (briefcase != null)
 			{
@@ -136,64 +139,131 @@ namespace UniFiler10.ViewModels
 
 						if (nextAction == ImportBinderOperations.Merge)
 						{
-							return await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);
+							isOk = await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);
 						}
 						else if (nextAction == ImportBinderOperations.Import)
 						{
-							return await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+							isOk = await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
 						}
 					}
 					else
 					{
-						return await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+						isOk = await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
 					}
 				}
 			}
-			return false;
+			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 
 		public async Task StartBackupBinderAsync(string dbName)
 		{
+			// LOLLO TODO avoid copying all the files twice, which is time consuming
 			bool isOk = false;
 			var bc = _briefcase;
+			StorageFolder tempDir = null;
 
-			if (!string.IsNullOrWhiteSpace(dbName) && bc != null && bc.DbNames.Contains(dbName))
+			isOk = !string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true;
+			if (isOk)
 			{
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				var tempDir = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(BAK_TEMP_DIR, CreationCollisionOption.GenerateUniqueName).AsTask(); //.ConfigureAwait(false);
-				isOk = await bc.ExportBinderAsync(dbName, tempDir); //.ConfigureAwait(false);
-				if (isOk)
+				tempDir = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(ConstantData.BAK_BINDER_TEMP_DIR, CreationCollisionOption.ReplaceExisting).AsTask(); //.ConfigureAwait(false);
+				isOk = await bc.ExportBinderAsync(dbName, tempDir) && tempDir != null; //.ConfigureAwait(false);
+			}
+			if (isOk)
+			{
+				// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
+				var pickDirectoryTask = Pickers.PickFolderAsync(new string[] { ConstantData.XML_EXTENSION });
+				var afterPickedDirectoryTask = pickDirectoryTask.ContinueWith(delegate
 				{
-					var toParentDirectoryTask = Pickers.PickFolderAsync(new string[0]); // string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
-					var afterPickedTask = toParentDirectoryTask.ContinueWith(delegate
-					{
-						return AfterBackupBinderAsync(tempDir, toParentDirectoryTask);
-					});
-				}
-				else
-				{
-					if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-					_animationStarter.EndAllAnimations();
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				}
+					return AfterBackupBinderAsync(pickDirectoryTask, tempDir, dbName);
+				});
+			}
+			else
+			{
+				if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 			}
 		}
 
-		private const string BAK_TEMP_DIR = "BakBinderDir";
-		private async Task AfterBackupBinderAsync(StorageFolder tempDir, Task<StorageFolder> toParentDirectory)
+		private async Task AfterBackupBinderAsync(Task<StorageFolder> toDirTask, StorageFolder sourceDir, string dbName)
 		{
 			bool isOk = false;
-			if (tempDir != null && toParentDirectory != null)
+			if (sourceDir != null && toDirTask != null && !string.IsNullOrWhiteSpace(dbName))
 			{
-				await new FileDirectoryExts().CopyDirContentsReplacingAsync(tempDir, await toParentDirectory.ConfigureAwait(false)).ConfigureAwait(false);
-				isOk = true;
-			}
+				var toParentDir = await toDirTask.ConfigureAwait(false);
+				if (toParentDir != null)
+				{
+					var toDir = await toParentDir.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
 
-			if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+					if (toDir != null)
+					{
+						await sourceDir.CopyDirContentsReplacingAsync(toDir).ConfigureAwait(false);
+						if (sourceDir.Path.Contains(ApplicationData.Current.TemporaryFolder.Path)) await sourceDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+						isOk = true;
+					}
+				}
+			}
 
 			_animationStarter.EndAllAnimations();
 			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
+
+		//private async Task AfterBackupBinderAsync(Task<StorageFolder> toDirTask, string dbName, Briefcase bc)
+		//{
+		//	bool isOk = false;
+		//	bool isOk2 = false;
+		//	var toDir = await toDirTask.ConfigureAwait(false);
+		//	_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+
+		//	if (bc != null && toDir != null && !string.IsNullOrWhiteSpace(dbName))
+		//	{
+		//		isOk = await bc.ExportBinderAsync(dbName, toDir).ConfigureAwait(false);
+		//		if (isOk)
+		//		{
+		//			if (toDir.Path.Contains(ApplicationData.Current.TemporaryFolder.Path)) await toDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+		//			RegistryAccess.SetValue(ConstantData.REG_BAK_BINDER_NAME, string.Empty);
+		//			RegistryAccess.SetValue(ConstantData.REG_BAK_DIR_PATH, string.Empty);
+		//		}
+		//		else
+		//		{
+		//			//var tempDir = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(ConstantData.BAK_TEMP_DIR, CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+		//			//isOk2 = await bc.ExportBinderAsync(dbName, tempDir).ConfigureAwait(false);
+		//			//if (isOk2)
+		//			//{
+		//			//	RegistryAccess.SetValue(ConstantData.REG_BAK_BINDER_NAME, dbName);
+		//			//	RegistryAccess.SetValue(ConstantData.REG_BAK_DIR_PATH, tempDir.Path);
+		//			//}
+		//			//else
+		//			//{
+		//				//if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+		//				RegistryAccess.SetValue(ConstantData.REG_BAK_BINDER_NAME, string.Empty);
+		//				RegistryAccess.SetValue(ConstantData.REG_BAK_DIR_PATH, string.Empty);
+		//			//}
+		//		}
+		//	}
+
+		//	_animationStarter.EndAllAnimations();
+		//	if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+		//	else
+		//	{
+		//		if (isOk2) _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+		//		else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+		//	}
+		//}
+
+		//private async Task ResumeAfterExportBinderAsync()
+		//{
+		//	string dbName = RegistryAccess.GetValue(ConstantData.REG_BAK_BINDER_NAME);
+		//	string dirPath = RegistryAccess.GetValue(ConstantData.REG_BAK_DIR_PATH);
+		//	var bc = _briefcase;
+		//	if (bc != null && !string.IsNullOrWhiteSpace(dbName) && !string.IsNullOrWhiteSpace(dirPath))
+		//	{
+		//		var dirTask = StorageFolder.GetFolderFromPathAsync(dirPath).AsTask();
+		//		await AfterBackupBinderAsync(dirTask, dbName, bc).ConfigureAwait(false);
+		//	}
+		//}
 	}
 }

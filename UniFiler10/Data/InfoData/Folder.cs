@@ -509,7 +509,7 @@ namespace UniFiler10.Data.Model
 					}
 					else
 					{
-						var test = await FileDirectoryExts.GetFileSizeAsync(file);
+						var test = await file.GetFileSizeAsync();
 						await RemoveWallet2Async(newWallet).ConfigureAwait(false);
 					}
 				}

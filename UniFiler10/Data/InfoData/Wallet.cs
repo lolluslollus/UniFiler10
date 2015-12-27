@@ -162,7 +162,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate
 			{
-				if (_dbManager != null && file != null && await FileDirectoryExts.GetFileSizeAsync(file) > 0)
+				if (_dbManager != null && file != null && await file.GetFileSizeAsync() > 0)
 				{
 					var newDoc = new Document(_dbManager, Id);
 

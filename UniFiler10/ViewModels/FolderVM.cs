@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
+using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
@@ -18,19 +19,6 @@ namespace UniFiler10.ViewModels
 	public class FolderVM : OpenableObservableData
 	{
 		#region properties
-		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO NOTE this fails with the phone, wav is good
-		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.wav";
-		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpg";
-
-		private const string REG_FP_FOLDERID = "FilePicker.FolderId";
-		private const string REG_FP_PARENTWALLETID = "FilePicker.ParentWalletId";
-		private const string REG_FP_FILEPATH = "FilePicker.FilePath";
-
-		private const string REG_SHOOT_FOLDERID = "ShootUi.FolderId";
-		private const string REG_SHOOT_PARENTWALLET = "ShootUi.ParentWallet";
-		private const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
-
-
 		private IRecorder _audioRecorder = null;
 		private Folder _folder = null;
 		public Folder Folder { get { return _folder; } }
@@ -249,17 +237,17 @@ namespace UniFiler10.ViewModels
 
 						if (isAllSaved)
 						{
-							RegistryAccess.SetValue(REG_FP_FOLDERID, string.Empty);
-							RegistryAccess.SetValue(REG_FP_PARENTWALLETID, string.Empty);
-							RegistryAccess.SetValue(REG_FP_FILEPATH, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_FP_FILEPATH, string.Empty);
 						}
 						else // could not complete the operation: write away the relevant values, Resume() will follow up.
 							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
 						{
-							RegistryAccess.SetValue(REG_FP_FOLDERID, folder.Id);
-							if (parentWallet != null) RegistryAccess.SetValue(REG_FP_PARENTWALLETID, parentWallet.Id);
-							else RegistryAccess.SetValue(REG_FP_PARENTWALLETID, string.Empty);
-							RegistryAccess.SetValue(REG_FP_FILEPATH, newFile.Path);
+							RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, folder.Id);
+							if (parentWallet != null) RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, parentWallet.Id);
+							else RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_FP_FILEPATH, newFile.Path);
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
@@ -274,27 +262,27 @@ namespace UniFiler10.ViewModels
 
 			_animationStarter.EndAllAnimations();
 			if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 		}
 
 		private bool IsPickingSaysTheRegistry()
 		{
-			string a = RegistryAccess.GetValue(REG_FP_FOLDERID);
-			string b = RegistryAccess.GetValue(REG_FP_PARENTWALLETID);
-			string c = RegistryAccess.GetValue(REG_FP_FILEPATH);
+			string a = RegistryAccess.GetValue(ConstantData.REG_FP_FOLDERID);
+			string b = RegistryAccess.GetValue(ConstantData.REG_FP_PARENTWALLETID);
+			string c = RegistryAccess.GetValue(ConstantData.REG_FP_FILEPATH);
 			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(b) && string.IsNullOrWhiteSpace(c));
 		}
 
 		private static event EventHandler SavingMediaFileEnded;
 		private async Task ResumeAfterFilePickAsync()
 		{
-			string filePath = RegistryAccess.GetValue(REG_FP_FILEPATH);
+			string filePath = RegistryAccess.GetValue(ConstantData.REG_FP_FILEPATH);
 			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
-			string folderId = RegistryAccess.GetValue(REG_FP_FOLDERID);
+			string folderId = RegistryAccess.GetValue(ConstantData.REG_FP_FOLDERID);
 
 			if (wasPicking && Folder?.Id == folderId)
 			{
-				string parentWalletId = RegistryAccess.GetValue(REG_FP_PARENTWALLETID);
+				string parentWalletId = RegistryAccess.GetValue(ConstantData.REG_FP_PARENTWALLETID);
 				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
 				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
 
@@ -367,8 +355,8 @@ namespace UniFiler10.ViewModels
 					else
 					{
 						finalFile = await capturedFile.CopyAsync(saveDirectory, capturedFile.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
-						// the following would be better but it does not return the file
-						//await file.MoveAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
+																																										   // the following would be better but it does not return the file
+																																										   //await file.MoveAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
 					}
 
 					if (finalFile != null)
@@ -384,19 +372,19 @@ namespace UniFiler10.ViewModels
 
 						if (isAllSaved)
 						{
-							RegistryAccess.SetValue(REG_SHOOT_FOLDERID, string.Empty);
-							RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, string.Empty);
-							RegistryAccess.SetValue(REG_SHOOT_FILEPATH, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FOLDERID, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_SHOOT_PARENTWALLET, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FILEPATH, string.Empty);
 							if (capturedFile != null && finalFile != null && (capturedFile.Path != finalFile.Path || capturedFile.Name != finalFile.Name)) await capturedFile.DeleteAsync().AsTask().ConfigureAwait(false);
 						}
 						else // could not complete the operation: write away the relevant values, Resume() will follow up.
 							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
 						{
-							RegistryAccess.SetValue(REG_SHOOT_FOLDERID, folder.Id);
+							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FOLDERID, folder.Id);
 							//RegistryAccess.SetValue(REG_SHOOT_CREATEWALLET, createWallet.ToString());
-							if (parentWallet != null) RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, parentWallet.Id);
-							else RegistryAccess.SetValue(REG_SHOOT_PARENTWALLET, string.Empty);
-							RegistryAccess.SetValue(REG_SHOOT_FILEPATH, finalFile.Path);
+							if (parentWallet != null) RegistryAccess.SetValue(ConstantData.REG_SHOOT_PARENTWALLET, parentWallet.Id);
+							else RegistryAccess.SetValue(ConstantData.REG_SHOOT_PARENTWALLET, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FILEPATH, finalFile.Path);
 							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
@@ -411,26 +399,26 @@ namespace UniFiler10.ViewModels
 
 			_animationStarter.EndAllAnimations();
 			if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 		}
 
 		private bool IsShootingSaysTheRegistry()
 		{
-			string a = RegistryAccess.GetValue(REG_SHOOT_FOLDERID);
-			string c = RegistryAccess.GetValue(REG_SHOOT_PARENTWALLET);
-			string d = RegistryAccess.GetValue(REG_SHOOT_FILEPATH);
+			string a = RegistryAccess.GetValue(ConstantData.REG_SHOOT_FOLDERID);
+			string c = RegistryAccess.GetValue(ConstantData.REG_SHOOT_PARENTWALLET);
+			string d = RegistryAccess.GetValue(ConstantData.REG_SHOOT_FILEPATH);
 			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(c) && string.IsNullOrWhiteSpace(d));
 		}
 		private async Task ResumeAfterShootingAsync()
 		{
-			bool wasShooting = !string.IsNullOrWhiteSpace(RegistryAccess.GetValue(REG_SHOOT_FILEPATH));
-			string folderId = RegistryAccess.GetValue(REG_SHOOT_FOLDERID);
+			bool wasShooting = !string.IsNullOrWhiteSpace(RegistryAccess.GetValue(ConstantData.REG_SHOOT_FILEPATH));
+			string folderId = RegistryAccess.GetValue(ConstantData.REG_SHOOT_FOLDERID);
 
 			if (wasShooting && Folder?.Id == folderId)
 			{
-				string parentWalletId = RegistryAccess.GetValue(REG_SHOOT_PARENTWALLET);
+				string parentWalletId = RegistryAccess.GetValue(ConstantData.REG_SHOOT_PARENTWALLET);
 				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
-				var photoFileTask = StorageFile.GetFileFromPathAsync(RegistryAccess.GetValue(REG_SHOOT_FILEPATH)).AsTask();
+				var photoFileTask = StorageFile.GetFileFromPathAsync(RegistryAccess.GetValue(ConstantData.REG_SHOOT_FILEPATH)).AsTask();
 
 				try
 				{
@@ -452,7 +440,7 @@ namespace UniFiler10.ViewModels
 					if (!_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 					{
 						var folder = _folder;
-						var file = await CreateAudioPhotoFileAsync(DEFAULT_AUDIO_FILE_NAME);
+						var file = await CreateAudioPhotoFileAsync(ConstantData.DEFAULT_AUDIO_FILE_NAME);
 						if (folder != null && file != null)
 						{
 							IsAudioRecorderOverlayOpen = true;

@@ -97,7 +97,7 @@ namespace UniFiler10.Views
 
 		private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task bak = VM?.StartBackupBinderAsync((sender as FrameworkElement)?.DataContext as string);
+			VM?.StartBackupBinderAsync((sender as FrameworkElement)?.DataContext as string);
 		}
 
 		private async void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -105,9 +105,7 @@ namespace UniFiler10.Views
 			var vm = VM;
 			if (vm != null)
 			{
-				bool isOk = await vm.ImportDbAsync();
-				if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-				else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+				await vm.StartImportDbAsync();
 			}
 		}
 

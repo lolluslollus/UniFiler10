@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
-using UniFiler10.Views;
 using Utilz;
 using Windows.Storage;
-using Windows.Storage.Pickers;
 
 namespace UniFiler10.ViewModels
 {

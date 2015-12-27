@@ -20,6 +20,30 @@ namespace UniFiler10.Data.Constants
 		public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public const int TRIAL_LENGTH_DAYS = 7;
+
+		public const string BAK_BINDER_TEMP_DIR = "BakBinderDir";
+		//public const string REG_BAK_BINDER_NAME = "ExportBinder.Name";
+		//public const string REG_BAK_DIR_PATH = "ExportBinder.Dir.Path";
+
+		public const string TEMP_DIR_4_IMPORT_FOLDERS = "ImportFoldersDir";
+		//public const string REG_IMPORT_FOLDERS_SOURCE_BINDER_NAME = "ImportFolders.SourceBinderBinder.Name";
+		public const string REG_IMPORT_FOLDERS_BINDER_NAME = "ImportFolders.Binder.Name";
+		public const string REG_IMPORT_FOLDERS_DIR_PATH = "ImportFolders.Dir.Path";
+
+		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO NOTE this fails with the phone, wav is good
+		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.wav";
+		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpg";
+
+		public const string REG_FP_FOLDERID = "FilePicker.FolderId";
+		public const string REG_FP_PARENTWALLETID = "FilePicker.ParentWalletId";
+		public const string REG_FP_FILEPATH = "FilePicker.FilePath";
+
+		public const string REG_SHOOT_FOLDERID = "ShootUi.FolderId";
+		public const string REG_SHOOT_PARENTWALLET = "ShootUi.ParentWallet";
+		public const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
+
+		public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
+
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()
             + "."

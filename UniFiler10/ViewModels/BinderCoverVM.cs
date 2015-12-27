@@ -12,6 +12,7 @@ using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
 using Windows.ApplicationModel.Core;
+using Windows.Storage;
 using Windows.UI.Core;
 
 namespace UniFiler10.ViewModels
@@ -423,15 +424,24 @@ namespace UniFiler10.ViewModels
 			UpdateIsPaneOpen();
 		}
 
-		protected override Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync()
 		{
 			_cts = new CancellationTokenSource();
 			RegisterFoldersChanged();
-			return UpdatePaneContent2Async();
+			await UpdatePaneContent2Async().ConfigureAwait(false);
+
+			if (ImportFoldersEnded == null) ImportFoldersEnded += OnImportFoldersEnded;
+			await ResumeImportFoldersFromBinderAsync().ConfigureAwait(false);
+		}
+
+		private void OnImportFoldersEnded(object sender, EventArgs e)
+		{
+			Task res = ResumeImportFoldersFromBinderAsync();
 		}
 
 		protected override Task CloseMayOverrideAsync()
 		{
+			ImportFoldersEnded -= OnImportFoldersEnded;
 			UnregisterFoldersChanged();
 			//_animationStarter.EndAllAnimations();
 
@@ -700,25 +710,79 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public async Task ImportFoldersFromBinderAsync()
-		{
-			bool isOk = false;
-			var binder = _binder;
 
+		public void StartImportFoldersFromBinderAsync()
+		{
+			var binder = _binder;
 			if (binder != null)
 			{
-				// LOLLO TODO make this work with phone with low memory
-				var directory = await Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
-				if (directory != null)
+				var pickDirectoryTask = Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+				var afterPickDirectoryTask = pickDirectoryTask.ContinueWith(delegate
 				{
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);					
-					isOk = await binder.ImportFoldersAsync(directory).ConfigureAwait(false);
-					_animationStarter.EndAnimation(AnimationStarter.Animations.Updating);
+					return AfterImportFoldersFromBinderAsync(pickDirectoryTask, binder);
+				});
+			}
+			else
+			{
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			}
+		}
+
+		private async Task AfterImportFoldersFromBinderAsync(Task<StorageFolder> fromDirTask, Binder binder)
+		{
+			bool isOk = false;
+			var fromDir = await fromDirTask.ConfigureAwait(false);
+
+			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+
+			if (fromDir != null && binder != null)
+			{
+				StorageFolder tempDir = null;
+				if (fromDir.Path.Contains(ApplicationData.Current.TemporaryFolder.Path))
+				{
+					tempDir = fromDir;
+				}
+				else
+				{
+					tempDir = await ApplicationData.Current.TemporaryFolder
+						.CreateFolderAsync(ConstantData.TEMP_DIR_4_IMPORT_FOLDERS, CreationCollisionOption.GenerateUniqueName)
+						.AsTask().ConfigureAwait(false);
+					await fromDir.CopyDirContentsReplacingAsync(tempDir).ConfigureAwait(false);
+				}
+
+				isOk = await binder.ImportFoldersAsync(tempDir).ConfigureAwait(false);
+				if (isOk)
+				{
+					await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, string.Empty);
+					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH, string.Empty);
+
+				}
+				else
+				{
+					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, binder.DBName);
+					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH, tempDir.Path);
+					ImportFoldersEnded?.Invoke(this, EventArgs.Empty);
 				}
 			}
+			_animationStarter.EndAllAnimations();
 			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 		}
+
+		private async Task ResumeImportFoldersFromBinderAsync()
+		{
+			string dbName = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME);
+			string dirPath = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH);
+			var binder = _binder;
+			if (binder != null && !string.IsNullOrWhiteSpace(dbName) && !string.IsNullOrWhiteSpace(dirPath) && binder.DBName == dbName)
+			{
+				var dirTask = StorageFolder.GetFolderFromPathAsync(dirPath).AsTask();
+				await AfterImportFoldersFromBinderAsync(dirTask, binder).ConfigureAwait(false);
+			}
+		}
+
+		private static event EventHandler ImportFoldersEnded;
 		#endregion actions
 	}
 }

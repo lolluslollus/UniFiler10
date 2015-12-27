@@ -20,8 +20,6 @@ namespace UniFiler10.ViewModels
 	public sealed class SettingsVM : OpenableObservableData, IDisposable
 	{
 		#region properties
-		private const string REG_IMPORT_FILEPATH = "SettingsFilePicker.ImportFilePath";
-
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
@@ -312,13 +310,13 @@ namespace UniFiler10.ViewModels
 
 						if (isSaved)
 						{
-							RegistryAccess.SetValue(REG_IMPORT_FILEPATH, string.Empty);
+							RegistryAccess.SetValue(ConstantData.REG_IMPORT_SETTINGS_FILEPATH, string.Empty);
 							MetadataChanged?.Invoke(this, EventArgs.Empty);
 						}
 						else // could not complete the operation: write away the relevant values, Resume() will follow up.
 							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
 						{
-							RegistryAccess.SetValue(REG_IMPORT_FILEPATH, newFile.Path);
+							RegistryAccess.SetValue(ConstantData.REG_IMPORT_SETTINGS_FILEPATH, newFile.Path);
 							ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 						}
 					}
@@ -338,7 +336,7 @@ namespace UniFiler10.ViewModels
 
 		private async Task ResumeAfterFileOpenPickAsync()
 		{
-			string filePath = RegistryAccess.GetValue(REG_IMPORT_FILEPATH);
+			string filePath = RegistryAccess.GetValue(ConstantData.REG_IMPORT_SETTINGS_FILEPATH);
 			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
 
 			if (wasPicking)
@@ -353,7 +351,7 @@ namespace UniFiler10.ViewModels
 
 		private bool IsImportingExportingSaysTheRegistry()
 		{
-			string a = RegistryAccess.GetValue(REG_IMPORT_FILEPATH);
+			string a = RegistryAccess.GetValue(ConstantData.REG_IMPORT_SETTINGS_FILEPATH);
 			return !(string.IsNullOrWhiteSpace(a));
 		}
 
