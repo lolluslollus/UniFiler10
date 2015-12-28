@@ -326,43 +326,44 @@ namespace UniFiler10.Views
 		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 		//	}
 		//}
-		private async Task RenderFirstPDFPageWithFileCacheAsync()
-		{
-			// LOLLO TODO MAYBE we could reuse this method across different documents, on condition we reference the file somehow, to check if it already exists
-			try
-			{
-				var pdfFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
 
-				var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
+		//private async Task RenderFirstPDFPageWithFileCacheAsync()
+		//{
+		//	// LOLLO TODO MAYBE we could reuse this method across different documents, on condition we reference the file somehow, to check if it already exists
+		//	try
+		//	{
+		//		var pdfFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
 
-				if (pdfDocument != null && pdfDocument.PageCount > 0)
-				{
-					using (var pdfPage = pdfDocument.GetPage(0))
-					{
-						var renderOptions = GetPdfRenderOptions(pdfPage);
-						if (renderOptions != null)
-						{
-							StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-							StorageFile jpgFile = await tempFolder.CreateFileAsync(Guid.NewGuid().ToString() + ".png", CreationCollisionOption.ReplaceExisting);
-							if (jpgFile != null)
-							{
-								IsMultiPage = pdfDocument.PageCount > 1;
-								using (IRandomAccessStream randomStream = await jpgFile.OpenAsync(FileAccessMode.ReadWrite))
-								{
-									await pdfPage.RenderToStreamAsync(randomStream, renderOptions).AsTask().ConfigureAwait(false);
-									await randomStream.FlushAsync();
-								}
-								await DisplayImageFileAsync(jpgFile);
-							}
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-			}
-		}
+		//		var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
+
+		//		if (pdfDocument != null && pdfDocument.PageCount > 0)
+		//		{
+		//			using (var pdfPage = pdfDocument.GetPage(0))
+		//			{
+		//				var renderOptions = GetPdfRenderOptions(pdfPage);
+		//				if (renderOptions != null)
+		//				{
+		//					StorageFolder tempFolder = ApplicationData.Current.LocalCacheFolder;
+		//					StorageFile jpgFile = await tempFolder.CreateFileAsync(Guid.NewGuid().ToString() + ".png", CreationCollisionOption.ReplaceExisting);
+		//					if (jpgFile != null)
+		//					{
+		//						IsMultiPage = pdfDocument.PageCount > 1;
+		//						using (IRandomAccessStream randomStream = await jpgFile.OpenAsync(FileAccessMode.ReadWrite))
+		//						{
+		//							await pdfPage.RenderToStreamAsync(randomStream, renderOptions).AsTask().ConfigureAwait(false);
+		//							await randomStream.FlushAsync();
+		//						}
+		//						await DisplayImageFileAsync(jpgFile);
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+		//	}
+		//}
 		private PdfPageRenderOptions GetPdfRenderOptions(PdfPage pdfPage)
 		{
 			PdfPageRenderOptions output = null;

@@ -713,10 +713,13 @@ namespace UniFiler10.ViewModels
 
 		public void StartImportFoldersFromBinderAsync()
 		{
+
+			// LOLLO TODO use http://stackoverflow.com/questions/23866325/how-to-avoid-storagefile-copyasync-throw-exception-when-copying-big-file
+			// to copy files, across the app.
 			var binder = _binder;
 			if (binder != null)
 			{
-				var pickDirectoryTask = Pickers.PickFolderAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+				var pickDirectoryTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
 				var afterPickDirectoryTask = pickDirectoryTask.ContinueWith(delegate
 				{
 					return AfterImportFoldersFromBinderAsync(pickDirectoryTask, binder);
@@ -738,13 +741,13 @@ namespace UniFiler10.ViewModels
 			if (fromDir != null && binder != null)
 			{
 				StorageFolder tempDir = null;
-				if (fromDir.Path.Contains(ApplicationData.Current.TemporaryFolder.Path))
+				if (fromDir.Path.Contains(ApplicationData.Current.LocalCacheFolder.Path))
 				{
 					tempDir = fromDir;
 				}
 				else
 				{
-					tempDir = await ApplicationData.Current.TemporaryFolder
+					tempDir = await ApplicationData.Current.LocalCacheFolder
 						.CreateFolderAsync(ConstantData.TEMP_DIR_4_IMPORT_FOLDERS, CreationCollisionOption.GenerateUniqueName)
 						.AsTask().ConfigureAwait(false);
 					await fromDir.CopyDirContentsReplacingAsync(tempDir).ConfigureAwait(false);
@@ -753,7 +756,7 @@ namespace UniFiler10.ViewModels
 				isOk = await binder.ImportFoldersAsync(tempDir).ConfigureAwait(false);
 				if (isOk)
 				{
-					await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+					if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, string.Empty);
 					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH, string.Empty);
 

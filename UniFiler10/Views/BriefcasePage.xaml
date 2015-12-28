@@ -147,7 +147,8 @@
 									Canvas.ZIndex="150"
 									Style="{StaticResource AppBarButtonRecoloured}"
 									Foreground="{StaticResource FlashyForeground}"
-									HorizontalAlignment="Left" VerticalAlignment="Top"/>
+									HorizontalAlignment="Left" VerticalAlignment="Top"
+									IsEnabled="{Binding ElementName=me, Path=IsExporting, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"/>
 
 								<AppBarButton Icon="Delete"
 									Tapped="OnDeleteButton_Tapped"

@@ -355,8 +355,8 @@ namespace UniFiler10.ViewModels
 					else
 					{
 						finalFile = await capturedFile.CopyAsync(saveDirectory, capturedFile.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
-																																										   // the following would be better but it does not return the file
-																																										   //await file.MoveAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
+						// the following would be better but it does not return the file
+						//await file.MoveAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
 					}
 
 					if (finalFile != null)

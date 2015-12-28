@@ -97,7 +97,7 @@ namespace UniFiler10.Views
 
 		private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			VM?.StartBackupBinderAsync((sender as FrameworkElement)?.DataContext as string);
+			VM?.StartExportBinder((sender as FrameworkElement)?.DataContext as string);
 		}
 
 		private async void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)

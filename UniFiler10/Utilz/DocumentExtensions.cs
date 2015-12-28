@@ -69,7 +69,7 @@ namespace Utilz
 		{
 			try
 			{
-				var file = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
+				var file = await ApplicationData.Current.LocalCacheFolder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
 				if (file != null)
 				{
 					using (var stream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))

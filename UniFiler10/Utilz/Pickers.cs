@@ -11,7 +11,7 @@ namespace Utilz
 {
 	public class Pickers
 	{
-		public static async Task<StorageFolder> PickFolderAsync(string[] extensions)
+		public static async Task<StorageFolder> PickDirectoryAsync(string[] extensions)
 		{
 			//bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
 			//if (unsnapped)
@@ -26,14 +26,15 @@ namespace Utilz
 				openPicker.FileTypeFilter.Add(ext);
 			}
 			var folder = await openPicker.PickSingleFolderAsync();
-			//if (folder != null)
-			//{
-			//	// Application now has read/write access to all contents in the picked folder
-			//	// (including other sub-folder contents)
-			//	// LOLLO NOTE check https://msdn.microsoft.com/en-us/library/windows/apps/mt186452.aspx
-			//	Windows.Storage.AccessCache.StorageApplicationPermissions.
-			//	FutureAccessList.AddOrReplace("PickedFolderToken", folder);
-			//}
+			if (folder != null)
+			{
+				// Application now has read/write access to all contents in the picked folder
+				// (including other sub-folder contents)
+				// LOLLO TODO check https://msdn.microsoft.com/en-us/library/windows/apps/mt186452.aspx
+				// and https://blogs.windows.com/buildingapps/2014/06/19/common-questions-and-answers-about-files-and-app-data-part-1-app-data/
+				// and use this, to make your life easier!
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", folder);
+			}
 			return folder;
 
 			//}

@@ -206,7 +206,7 @@ namespace UniFiler10.ViewModels
 				if (bf != null)
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-					var file = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(MetaBriefcase.FILENAME, CreationCollisionOption.GenerateUniqueName); //.AsTask().ConfigureAwait(false);
+					var file = await ApplicationData.Current.LocalCacheFolder.CreateFileAsync(MetaBriefcase.FILENAME, CreationCollisionOption.GenerateUniqueName); //.AsTask().ConfigureAwait(false);
 					await bf.ExportSettingsAsync(file); //.ConfigureAwait(false);
 
 					var pickTask = Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
@@ -280,6 +280,7 @@ namespace UniFiler10.ViewModels
 		private async Task AfterFileOpenPickedTask(Task<StorageFile> pickTask, bool copyFile)
 		{
 			bool isSaved = false;
+			bool deleteTempFile = false;
 			try
 			{
 				var file = await pickTask.ConfigureAwait(false);
@@ -293,7 +294,8 @@ namespace UniFiler10.ViewModels
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 					if (copyFile)
 					{
-						newFile = await file.CopyAsync(ApplicationData.Current.TemporaryFolder, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
+						newFile = await file.CopyAsync(ApplicationData.Current.LocalCacheFolder, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
+						deleteTempFile = true;
 					}
 					else
 					{
@@ -311,6 +313,7 @@ namespace UniFiler10.ViewModels
 						if (isSaved)
 						{
 							RegistryAccess.SetValue(ConstantData.REG_IMPORT_SETTINGS_FILEPATH, string.Empty);
+							if (deleteTempFile && newFile != null) await newFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 							MetadataChanged?.Invoke(this, EventArgs.Empty);
 						}
 						else // could not complete the operation: write away the relevant values, Resume() will follow up.
