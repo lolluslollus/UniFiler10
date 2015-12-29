@@ -457,7 +457,8 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate
 			{
-				return _metaBriefcase.SaveACopyAsync(toFile);
+				var mbc = MetaBriefcase.GetCreateInstance();
+				return mbc.SaveACopyAsync(toFile);
 			});
 		}
 		public Task<bool> ImportSettingsAsync(StorageFile fromFile)

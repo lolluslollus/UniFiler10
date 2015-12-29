@@ -63,6 +63,10 @@ namespace Utilz
 					fileTask = openPicker.PickSingleFileAsync().AsTask();
 				});
 				file = await fileTask;
+				if (file != null)
+				{
+					Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedOpenFileToken", file);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -84,7 +88,17 @@ namespace Utilz
 			}
 
 			var file = await picker.PickSaveFileAsync();
+			if (file != null)
+			{
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedSaveFileToken", file);
+			}
+
 			return file;
+		}
+
+		public static Task<StorageFile> GetLastPickedSaveFile()
+		{
+			return Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync("PickedSaveFileToken").AsTask();
 		}
 	}
 }

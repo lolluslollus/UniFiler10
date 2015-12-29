@@ -451,6 +451,7 @@ namespace UniFiler10.Data.Metadata
 		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
 			return RunFunctionWhileOpenAsyncTB(delegate { return SaveAsync(file); });
+			//return SaveAsync(file);
 		}
 
 		public Task<bool> SaveACopyAsync()

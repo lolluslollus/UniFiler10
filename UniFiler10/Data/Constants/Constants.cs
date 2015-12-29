@@ -44,6 +44,7 @@ namespace UniFiler10.Data.Constants
 		public const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
 
 		public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
+		public const string REG_EXPORT_SETTINGS_IS_EXPORTING = "ExportSettings.IsExporting";
 
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()

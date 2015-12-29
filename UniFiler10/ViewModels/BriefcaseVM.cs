@@ -170,8 +170,7 @@ namespace UniFiler10.ViewModels
 		{
 			var bc = _briefcase;
 
-			bool isOk = !string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && !_isExporting;
-			if (isOk)
+			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && !_isExporting)
 			{
 				IsExporting = true;
 				RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, true.ToString());
