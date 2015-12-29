@@ -41,23 +41,21 @@ namespace UniFiler10.ViewModels
 			await _briefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
 
-			await Logger.AddAsync("opening", Logger.FileErrorLogFilename, Logger.Severity.Info);
-			//if (BinderExported == null) BinderExported += OnBinderExported;
-			//await ResumeAfterExportBinderAsync().ConfigureAwait(false);
+			if (BinderExported == null) BinderExported += OnBinderExported;
+			ResumeAfterExportBinder();
 		}
 
-		//private void OnBinderExported(object sender, EventArgs e)
-		//{
-		//	//Task res = ResumeAfterExportBinderAsync();
-		//}
-
-		protected override async Task CloseMayOverrideAsync()
+		private void OnBinderExported(object sender, EventArgs e)
 		{
-			await Logger.AddAsync("closing", Logger.FileErrorLogFilename, Logger.Severity.Info);
-			//BinderExported -= OnBinderExported;
+			ResumeAfterExportBinder();
+		}
+
+		protected override Task CloseMayOverrideAsync()
+		{
+			BinderExported -= OnBinderExported;
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			Briefcase = null;
-			//return Task.CompletedTask;
+			return Task.CompletedTask;
 		}
 		public bool AddDbStep0()
 		{
@@ -93,7 +91,6 @@ namespace UniFiler10.ViewModels
 				if (await bf.SetCurrentBinderNameAsync(dbName).ConfigureAwait(false))
 				{
 					return true;
-					// await bf.OpenCurrentBinderAsync().ConfigureAwait(false);
 				}
 			}
 			return false;
@@ -169,38 +166,6 @@ namespace UniFiler10.ViewModels
 			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 		}
 
-		//public async Task StartExportBinderAsync(string dbName)
-		//{
-		//	// LOLLO TODO avoid copying all the files twice, which is time consuming
-		//	// LOLLO TODO exporting a binder is super slow on the phone, fix it
-		//	bool isOk = false;
-		//	var bc = _briefcase;
-		//	StorageFolder tempDir = null;
-
-		//	isOk = !string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true;
-		//	if (isOk)
-		//	{
-		//		_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-		//		tempDir = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(ConstantData.BAK_BINDER_TEMP_DIR, CreationCollisionOption.ReplaceExisting).AsTask(); //.ConfigureAwait(false);
-		//		isOk = await bc.ExportBinderAsync(dbName, tempDir) && tempDir != null; //.ConfigureAwait(false);
-		//	}
-		//	if (isOk)
-		//	{
-		//		// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
-		//		var pickDirectoryTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.XML_EXTENSION });
-		//		var afterPickedDirectoryTask = pickDirectoryTask.ContinueWith(delegate
-		//		{
-		//			return AfterBackupBinderAsync(pickDirectoryTask, tempDir, dbName);
-		//		});
-		//	}
-		//	else
-		//	{
-		//		if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-		//		_animationStarter.EndAllAnimations();
-		//		_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-		//	}
-		//}
-
 		public void StartExportBinder(string dbName)
 		{
 			var bc = _briefcase;
@@ -209,11 +174,12 @@ namespace UniFiler10.ViewModels
 			if (isOk)
 			{
 				IsExporting = true;
+				RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, true.ToString());
 				// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
 				var pickDirectoryTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.XML_EXTENSION });
 				var afterPickedDirectoryTask = pickDirectoryTask.ContinueWith(delegate
 				{
-					return AfterExportBinderAsync(pickDirectoryTask, dbName, bc);
+					return ContinueAfterExportBinderPickerAsync(pickDirectoryTask, dbName, bc);
 				});
 			}
 			else
@@ -223,42 +189,19 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-
-		//private async Task AfterBackupBinderAsync(Task<StorageFolder> toDirTask, StorageFolder sourceDir, string dbName)
-		//{
-		//	bool isOk = false;
-		//	if (sourceDir != null && toDirTask != null && !string.IsNullOrWhiteSpace(dbName))
-		//	{
-		//		var toParentDir = await toDirTask.ConfigureAwait(false);
-		//		if (toParentDir != null)
-		//		{
-		//			var toDir = await toParentDir.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-
-		//			if (toDir != null)
-		//			{
-		//				await sourceDir.CopyDirContentsReplacingAsync(toDir).ConfigureAwait(false);
-		//				if (sourceDir.Path.Contains(ApplicationData.Current.TemporaryFolder.Path)) await sourceDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-		//				isOk = true;
-		//			}
-		//		}
-		//	}
-
-		//	_animationStarter.EndAllAnimations();
-		//	if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-		//	else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-		//}
-
-		private async Task AfterExportBinderAsync(Task<StorageFolder> toDirTask, string dbName, Briefcase bc)
+		private async Task ContinueAfterExportBinderPickerAsync(Task<StorageFolder> toDirTask, string dbName, Briefcase bc)
 		{
 			bool isOk = false;
 			try
 			{
-				var toDir = await toDirTask.ConfigureAwait(false);
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-
 				if (bc != null)
 				{
-					isOk = await bc.ExportBinderAsync(dbName, toDir).ConfigureAwait(false);
+					var toDir = await toDirTask.ConfigureAwait(false);
+					if (toDir != null)
+					{
+						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+						isOk = await bc.ExportBinderAsync(dbName, toDir).ConfigureAwait(false);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -270,22 +213,25 @@ namespace UniFiler10.ViewModels
 			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 
+			RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, false.ToString());
 			IsExporting = false;
+			BinderExported?.Invoke(this, EventArgs.Empty);
 		}
 
-		//private async Task ResumeAfterExportBinderAsync()
-		//{
-		//	string dbName = RegistryAccess.GetValue(ConstantData.REG_BAK_BINDER_NAME);
-		//	string dirPath = RegistryAccess.GetValue(ConstantData.REG_BAK_DIR_PATH);
-		//	var bc = _briefcase;
-		//	if (bc != null && !string.IsNullOrWhiteSpace(dbName) && !string.IsNullOrWhiteSpace(dirPath))
-		//	{
-		//		var dirTask = StorageFolder.GetFolderFromPathAsync(dirPath).AsTask();
-		//		await Logger.AddAsync("Resume calling AfterBackupBinderAsync", Logger.FileErrorLogFilename, Logger.Severity.Info);
-		//		await AfterBackupBinderAsync(dirTask, dbName, bc).ConfigureAwait(false);
-		//	}
-		//}
+		private void ResumeAfterExportBinder()
+		{
+			string isBinderExporting = RegistryAccess.GetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING);
+			if (isBinderExporting == true.ToString())
+			{
+				IsExporting = true;
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+			}
+			else
+			{
+				IsExporting = false;
+			}
+		}
 
-		//private static event EventHandler BinderExported;
+		private static event EventHandler BinderExported;
 	}
 }

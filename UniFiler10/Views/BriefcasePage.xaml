@@ -132,12 +132,11 @@
 								Width="{StaticResource MiniatureWidth}">
 										<ctl:TextBlockScaler.TextBlock>
 											<TextBlock
-										Text="{Binding}"
-										Foreground="{StaticResource FlashyForeground}"
-										TextAlignment="Center"
-										Padding="{StaticResource Thickness4444}"
-										TextWrapping="Wrap"/>
-											<!--MaxWidth="{StaticResource MiniatureWidth}"/>-->
+												Text="{Binding}"
+												Foreground="{StaticResource FlashyForeground}"
+												TextAlignment="Center"
+												Padding="{StaticResource Thickness4444}"
+												TextWrapping="Wrap"/>
 										</ctl:TextBlockScaler.TextBlock>
 									</ctl:TextBlockScaler>
 								</Border>
@@ -148,7 +147,7 @@
 									Style="{StaticResource AppBarButtonRecoloured}"
 									Foreground="{StaticResource FlashyForeground}"
 									HorizontalAlignment="Left" VerticalAlignment="Top"
-									IsEnabled="{Binding ElementName=me, Path=IsExporting, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"/>
+									IsEnabled="{Binding ElementName=me, Path=VM.IsExporting, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"/>
 
 								<AppBarButton Icon="Delete"
 									Tapped="OnDeleteButton_Tapped"

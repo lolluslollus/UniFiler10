@@ -21,7 +21,8 @@ namespace UniFiler10.Data.Constants
 		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public const int TRIAL_LENGTH_DAYS = 7;
 
-		public const string BAK_BINDER_TEMP_DIR = "BakBinderDir";
+		public const string BAK_EXPORT_BINDER_TEMP_DIR = "ExportBinderDir";
+		public const string REG_EXPORT_BINDER_IS_EXPORTING = "ExportBinder.IsExporting";
 		//public const string REG_BAK_BINDER_NAME = "ExportBinder.Name";
 		//public const string REG_BAK_DIR_PATH = "ExportBinder.Dir.Path";
 
