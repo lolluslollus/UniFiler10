@@ -43,8 +43,9 @@ namespace UniFiler10.Data.Constants
 		public const string REG_SHOOT_PARENTWALLET = "ShootUi.ParentWallet";
 		public const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
 
-		public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
-		public const string REG_EXPORT_SETTINGS_IS_EXPORTING = "ExportSettings.IsExporting";
+		//public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
+		public const string REG_IMPEXP_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
+		public const string REG_IMPEXP_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
 
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()

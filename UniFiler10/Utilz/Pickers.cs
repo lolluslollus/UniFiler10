@@ -11,6 +11,10 @@ namespace Utilz
 {
 	public class Pickers
 	{
+		private const string PICKED_FOLDER_TOKEN = "PickedFolderToken";
+		private const string PICKED_SAVE_FILE_TOKEN = "PickedSaveFileToken";
+		private const string PICKED_OPEN_FILE_TOKEN = "PickedOpenFileToken";
+
 		public static async Task<StorageFolder> PickDirectoryAsync(string[] extensions)
 		{
 			//bool unsnapped = ((ApplicationView.Value != ApplicationViewState.Snapped) || ApplicationView.TryUnsnap());
@@ -65,7 +69,7 @@ namespace Utilz
 				file = await fileTask;
 				if (file != null)
 				{
-					Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedOpenFileToken", file);
+					Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_OPEN_FILE_TOKEN, file);
 				}
 			}
 			catch (Exception ex)
@@ -90,15 +94,46 @@ namespace Utilz
 			var file = await picker.PickSaveFileAsync();
 			if (file != null)
 			{
-				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedSaveFileToken", file);
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_SAVE_FILE_TOKEN, file);
 			}
 
 			return file;
 		}
 
-		public static Task<StorageFile> GetLastPickedSaveFile()
+		public static async Task<StorageFolder> GetLastPickedFolder()
 		{
-			return Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync("PickedSaveFileToken").AsTask();
+			try
+			{
+				return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(PICKED_FOLDER_TOKEN).AsTask().ConfigureAwait(false);
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		public static async Task<StorageFile> GetLastPickedOpenFile()
+		{
+			try
+			{
+				return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync(PICKED_OPEN_FILE_TOKEN).AsTask().ConfigureAwait(false);
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		public static async Task<StorageFile> GetLastPickedSaveFile()
+		{
+			try
+			{
+				return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync(PICKED_SAVE_FILE_TOKEN).AsTask().ConfigureAwait(false);
+			}
+			catch
+			{
+				return null;
+			}
 		}
 	}
 }
