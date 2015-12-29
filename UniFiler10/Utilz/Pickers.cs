@@ -100,40 +100,47 @@ namespace Utilz
 			return file;
 		}
 
-		public static async Task<StorageFolder> GetLastPickedFolder()
+		// LOLLO TODO these tokens are eternal and the list can contain 1000 entries max. Delete them after using!
+		public static async Task<StorageFolder> GetLastPickedFolderJustOnceAsync()
 		{
+			StorageFolder result = null;
 			try
 			{
-				return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(PICKED_FOLDER_TOKEN).AsTask().ConfigureAwait(false);
+				result = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(PICKED_FOLDER_TOKEN).AsTask().ConfigureAwait(false);
 			}
 			catch
 			{
-				return null;
+				result = null;
 			}
+			return result;
 		}
 
-		public static async Task<StorageFile> GetLastPickedOpenFile()
+		public static async Task<StorageFile> GetLastPickedOpenFileJustOnceAsync()
 		{
+			StorageFile result = null;
 			try
 			{
-				return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync(PICKED_OPEN_FILE_TOKEN).AsTask().ConfigureAwait(false);
+				result = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync(PICKED_OPEN_FILE_TOKEN).AsTask().ConfigureAwait(false);
 			}
 			catch
 			{
-				return null;
+				result = null;
 			}
+			return result;
 		}
 
-		public static async Task<StorageFile> GetLastPickedSaveFile()
+		public static async Task<StorageFile> GetLastPickedSaveFileJustOnceAsync()
 		{
+			StorageFile result = null;
 			try
 			{
-				return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync(PICKED_SAVE_FILE_TOKEN).AsTask().ConfigureAwait(false);
+				result = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFileAsync(PICKED_SAVE_FILE_TOKEN).AsTask().ConfigureAwait(false);
 			}
 			catch
 			{
-				return null;
+				result = null;
 			}
+			return result;
 		}
 	}
 }

@@ -241,6 +241,9 @@ namespace UniFiler10.ViewModels
 
 		private SwitchableObservableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableCollection<FieldValue>();
 		public SwitchableObservableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
+
+		private volatile bool _isImportingFolders = false;
+		public bool IsImportingFolders { get { return _isImportingFolders; } private set { _isImportingFolders = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 
@@ -710,78 +713,86 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-
-		public void StartImportFoldersFromBinderAsync()
+		public void StartImportFoldersFromBinder()
 		{
-
 			// LOLLO TODO use http://stackoverflow.com/questions/23866325/how-to-avoid-storagefile-copyasync-throw-exception-when-copying-big-file
-			// to copy files, across the app.
+			// to copy files, across the app. Alternatively, warn when a file is too large.
 			var binder = _binder;
-			if (binder != null)
+			if (binder != null && !_isImportingFolders)
 			{
-				var pickDirectoryTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
-				var afterPickDirectoryTask = pickDirectoryTask.ContinueWith(delegate
+				IsImportingFolders = true;
+				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, true.ToString());
+				var pickTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+				var afterPickTask = pickTask.ContinueWith(delegate
 				{
-					return AfterImportFoldersFromBinderAsync(pickDirectoryTask, binder);
+					return ContinueAfterPickAsync(pickTask, binder);
 				});
 			}
 			else
 			{
+				_animationStarter.EndAllAnimations();
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 			}
 		}
 
-		private async Task AfterImportFoldersFromBinderAsync(Task<StorageFolder> fromDirTask, Binder binder)
+		private async Task ContinueAfterPickAsync(Task<StorageFolder> fromDirTask, Binder binder)
 		{
-			bool isOk = false;
-			var fromDir = await fromDirTask.ConfigureAwait(false);
+			bool isImported = false;
+			bool isNeedsContinuing = false;
 
-			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-
-			if (fromDir != null && binder != null)
+			try
 			{
-				StorageFolder tempDir = null;
-				if (fromDir.Path.Contains(ApplicationData.Current.LocalCacheFolder.Path))
+				if (binder != null)
 				{
-					tempDir = fromDir;
-				}
-				else
-				{
-					tempDir = await ApplicationData.Current.LocalCacheFolder
-						.CreateFolderAsync(ConstantData.TEMP_DIR_4_IMPORT_FOLDERS, CreationCollisionOption.GenerateUniqueName)
-						.AsTask().ConfigureAwait(false);
-					await fromDir.CopyDirContentsReplacingAsync(tempDir).ConfigureAwait(false);
-				}
-
-				isOk = await binder.ImportFoldersAsync(tempDir).ConfigureAwait(false);
-				if (isOk)
-				{
-					if (tempDir != null) await tempDir.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, string.Empty);
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH, string.Empty);
-
-				}
-				else
-				{
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, binder.DBName);
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH, tempDir.Path);
-					ImportFoldersEnded?.Invoke(this, EventArgs.Empty);
+					var fromDir = await fromDirTask.ConfigureAwait(false);
+					if (fromDir != null)
+					{
+						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+						RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, binder.DBName);
+						isImported = await binder.ImportFoldersAsync(fromDir).ConfigureAwait(false);
+						if (!isImported && !binder.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock importing.
+					}
 				}
 			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+
 			_animationStarter.EndAllAnimations();
-			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+			if (isImported)
+			{
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			}
+			if (isNeedsContinuing)
+			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING, true.ToString());
+			}
+			else
+			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING, false.ToString());
+				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, false.ToString());
+				IsImportingFolders = false;
+			}
+
+			ImportFoldersEnded?.Invoke(this, EventArgs.Empty);
 		}
 
 		private async Task ResumeImportFoldersFromBinderAsync()
 		{
+			string isImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING);
 			string dbName = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME);
-			string dirPath = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_DIR_PATH);
-			var binder = _binder;
-			if (binder != null && !string.IsNullOrWhiteSpace(dbName) && !string.IsNullOrWhiteSpace(dirPath) && binder.DBName == dbName)
+			if (isImporting == true.ToString() && dbName == _binder?.DBName)
 			{
-				var dirTask = StorageFolder.GetFolderFromPathAsync(dirPath).AsTask();
-				await AfterImportFoldersFromBinderAsync(dirTask, binder).ConfigureAwait(false);
+				IsImportingFolders = true;
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+				string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING);
+				if (continueImporting == true.ToString()) await ContinueAfterPickAsync(Pickers.GetLastPickedFolderJustOnceAsync(), _binder).ConfigureAwait(false);
+			}
+			else
+			{
+				IsImportingFolders = false;
 			}
 		}
 

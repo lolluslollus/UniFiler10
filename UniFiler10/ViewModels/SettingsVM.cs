@@ -206,8 +206,6 @@ namespace UniFiler10.ViewModels
 			{
 				_animationStarter.EndAllAnimations();
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				IsCanImportExport = true;
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, false.ToString());
 			}
 		}
 
@@ -220,13 +218,11 @@ namespace UniFiler10.ViewModels
 				if (bc != null)
 				{
 					var file = await pickTask.ConfigureAwait(false);
-					isNeedsContinuing = false;
 					if (file != null)
 					{
-						isNeedsContinuing = true;
 						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 						isExported = await bc.ExportSettingsAsync(file).ConfigureAwait(false);
-						if (isExported || bc.IsOpen) isNeedsContinuing = false; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
+						if (!isExported && !bc.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
 					}
 				}
 			}
@@ -240,13 +236,19 @@ namespace UniFiler10.ViewModels
 			{
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 			}
-			if (!isNeedsContinuing)
+			if (isNeedsContinuing)
 			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING, true.ToString());
+			}
+			else
+			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING, false.ToString());
 				if (!isExported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, false.ToString());
 				IsCanImportExport = true;
-				ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 			}
+
+			ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 		}
 
 		private async Task ResumeAfterExportSettingsAsync()
@@ -256,7 +258,8 @@ namespace UniFiler10.ViewModels
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				await ContinueAfterFileSavePickerAsync(Pickers.GetLastPickedSaveFile(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
+				string continueExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING);
+				if (continueExporting == true.ToString()) await ContinueAfterFileSavePickerAsync(Pickers.GetLastPickedSaveFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
 			else
 			{
@@ -271,7 +274,8 @@ namespace UniFiler10.ViewModels
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				await ContinueAfterFileOpenPickerAsync(Pickers.GetLastPickedOpenFile(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
+				string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING);
+				if (continueImporting == true.ToString()) await ContinueAfterFileOpenPickerAsync(Pickers.GetLastPickedOpenFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
 			else
 			{
@@ -287,7 +291,7 @@ namespace UniFiler10.ViewModels
 				IsCanImportExport = false;
 				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, true.ToString());
 				var pickTask = Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
-				var afterFilePickedTask = pickTask.ContinueWith(delegate
+				var afterPickTask = pickTask.ContinueWith(delegate
 				{ // LOLLO TODO the manifest contains .xml, but as soon as I launch this, the hiking mate is started, automatically. Why? Because the hiking mate registered a file open picker, which is wrong.
 				  // LOLLO TODO I cannot put text/xml and application/xml into the manifest, why?
 					return ContinueAfterFileOpenPickerAsync(pickTask, bc);
@@ -297,8 +301,6 @@ namespace UniFiler10.ViewModels
 			{
 				_animationStarter.EndAllAnimations();
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				IsCanImportExport = true;
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, false.ToString());
 			}
 		}
 
@@ -313,10 +315,9 @@ namespace UniFiler10.ViewModels
 					var file = await pickTask.ConfigureAwait(false);
 					if (file != null)
 					{
-						isNeedsContinuing = true;
 						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 						isImported = await bc.ImportSettingsAsync(file).ConfigureAwait(false);
-						if (isImported || bc.IsOpen) isNeedsContinuing = false; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
+						if (!isImported && !bc.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
 					}
 				}
 			}
@@ -331,13 +332,19 @@ namespace UniFiler10.ViewModels
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 				MetadataChanged?.Invoke(this, EventArgs.Empty);
 			}
-			if (!isNeedsContinuing)
+			if (isNeedsContinuing)
 			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING, true.ToString());
+			}
+			else
+			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING, false.ToString());
 				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, false.ToString());
 				IsCanImportExport = true;
-				ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 			}
+
+			ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
 		}
 
 		private static event EventHandler ImportExportMetadataEnded;

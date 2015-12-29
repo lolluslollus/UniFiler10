@@ -273,31 +273,6 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		//private volatile bool _isExportingBinder = false;
-		//public bool IsExportingBinder { get { return _isExportingBinder; } }
-		//public async Task<bool> ExportBinderAsync(string dbName, StorageFolder intoStorageFolder)
-		//{
-		//	//_isExportingBinder = true;
-		//	//bool isOk0 = await RunFunctionWhileOpenAsyncTB(async delegate
-		//	//{
-		//		if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName) || intoStorageFolder == null) return false;
-		//		bool isOk = false;
-		//		// close the current binder if it is the one to be exported
-		//		//bool wasOpen = false;
-		//		//if (_currentBinderName == dbName)
-		//		//{
-		//		//	wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
-		//		//}
-
-		//		isOk = await ExportBinderFiles2Async(dbName, intoStorageFolder);
-		//		// update the current binder and reopen it if it was open before
-		//		//if (wasOpen) await UpdateCurrentBinder2Async(true).ConfigureAwait(false); // LOLLO TODO do we need this?
-
-		//		return isOk;
-		//	//}).ConfigureAwait(false);
-		//	//_isExportingBinder = false;
-		//	//return isOk0;
-		//}
 
 		public async Task<bool> ExportBinderAsync(string dbName, StorageFolder toRootDirectory)
 		{
@@ -328,28 +303,7 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		//private async Task<bool> ExportBinderFiles2Async(string dbName, StorageFolder toDirectory)
-		//{
-		//	try
-		//	{
-		//		var fromDirectory = await BindersDirectory
-		//			.GetFolderAsync(dbName)
-		//			.AsTask().ConfigureAwait(false);
-		//		if (fromDirectory != null && toDirectory != null)
-		//		{
-		//			//var toDirectory = await toRootDirectory
-		//			//	.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
-		//			//	.AsTask().ConfigureAwait(false);
-		//			await fromDirectory.CopyDirContentsReplacingAsync(toDirectory).ConfigureAwait(false);
-		//			return true;
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//	}
-		//	return false;
-		//}
+
 		public Task<bool> ImportBinderAsync(StorageFolder fromStorageFolder)
 		{
 			return RunFunctionWhileOpenAsyncTB(async delegate

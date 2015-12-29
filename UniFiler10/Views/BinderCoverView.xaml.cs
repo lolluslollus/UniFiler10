@@ -143,7 +143,7 @@ namespace UniFiler10.Views
 
 		private void OnImportFoldersFromBinder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			_vm?.StartImportFoldersFromBinderAsync();
+			_vm?.StartImportFoldersFromBinder();
 		}
 
 		private void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)

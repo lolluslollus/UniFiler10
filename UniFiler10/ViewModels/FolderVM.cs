@@ -33,7 +33,7 @@ namespace UniFiler10.ViewModels
 			set { _isAudioRecorderOverlayOpen = value; RaisePropertyChanged_UI(); }
 		}
 
-		private bool _isCanImportMedia = true;
+		private volatile bool _isCanImportMedia = true;
 		public bool IsCanImportMedia { get { return _isCanImportMedia; } private set { _isCanImportMedia = value; RaisePropertyChanged_UI(); } }
 
 		private AnimationStarter _animationStarter = null;
@@ -64,18 +64,15 @@ namespace UniFiler10.ViewModels
 		protected override async Task OpenMayOverrideAsync()
 		{
 			RuntimeData = RuntimeData.Instance;
-			lock (_captureLock) { IsCanImportMedia = !IsPickingSaysTheRegistry() && !IsShootingSaysTheRegistry(); }
 			UpdateCurrentFolderCategories();
 
 			if (SavingMediaFileEnded == null) SavingMediaFileEnded += OnSavingMediaFileEnded;
 
-			await ResumeAfterShootingAsync().ConfigureAwait(false);
 			await ResumeAfterFilePickAsync().ConfigureAwait(false);
 		}
 
 		private async void OnSavingMediaFileEnded(object sender, EventArgs e)
 		{
-			await ResumeAfterShootingAsync().ConfigureAwait(false);
 			await ResumeAfterFilePickAsync().ConfigureAwait(false);
 		}
 
@@ -145,289 +142,178 @@ namespace UniFiler10.ViewModels
 		#region add media
 		public void StartLoadMediaFile() // file open picker causes a suspend on the phone, so the app quits before the file is saved, hence the complexity.
 		{
-			Task load = RunFunctionWhileOpenAsyncA(delegate
+			var folder = _folder;
+			var directory = folder?.DBManager?.Directory;
+			if (folder != null && directory != null && _isCanImportMedia)
 			{
-				var folder = _folder;
-				if (folder?.IsOpen == true)
+				var pickTask = DocumentExtensions.PickMediaFileAsync();
+				var afterFilePickedTask = pickTask.ContinueWith(delegate
 				{
-					lock (_captureLock)
-					{
-						if (!_isCanImportMedia || IsPickingSaysTheRegistry() || IsShootingSaysTheRegistry())
-						{
-							IsCanImportMedia = false;
-							return;
-						}
-						else IsCanImportMedia = false;
-					}
-
-					var directory = folder.DBManager?.Directory;
-					if (directory != null)
-					{
-						var pickTask = DocumentExtensions.PickMediaFileAsync();
-						var afterFilePickedTask = pickTask.ContinueWith(delegate
-						{
-							return AfterFilePickedTask(pickTask, directory, folder, null);
-						});
-					}
-				}
-			});
-		}
-		public void StartLoadMediaFile(Wallet parentWallet)
-		{
-			Task load = RunFunctionWhileOpenAsyncA(delegate
+					return ContinueAfterFilePickAsync(pickTask, directory, folder, null, true);
+				});
+			}
+			else
 			{
-				var folder = _folder;
-				if (folder?.IsOpen == true && parentWallet != null)
-				{
-					lock (_captureLock)
-					{
-						if (!_isCanImportMedia || IsPickingSaysTheRegistry() || IsShootingSaysTheRegistry())
-						{
-							IsCanImportMedia = false;
-							return;
-						}
-						else IsCanImportMedia = false;
-					}
-
-					var directory = folder.DBManager?.Directory;
-					if (directory != null)
-					{
-						var pickTask = DocumentExtensions.PickMediaFileAsync();
-						var afterFilePickedTask = pickTask.ContinueWith(delegate
-						{
-							return AfterFilePickedTask(pickTask, directory, folder, parentWallet);
-						});
-					}
-				}
-			});
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			}
 		}
-		private async Task AfterFilePickedTask(Task<StorageFile> pickTask, StorageFolder saveDirectory, Folder folder, Wallet parentWallet)
+
+		public void StartLoadMediaFile(Wallet parentWallet) // file open picker causes a suspend on the phone, so the app quits before the file is saved, hence the complexity.
 		{
-			bool isAllSaved = false;
+			var folder = _folder;
+			var directory = folder?.DBManager?.Directory;
+			if (folder != null && directory != null && _isCanImportMedia)
+			{
+				var pickTask = DocumentExtensions.PickMediaFileAsync();
+				var afterFilePickedTask = pickTask.ContinueWith(delegate
+				{
+					return ContinueAfterFilePickAsync(pickTask, directory, folder, parentWallet, true);
+				});
+			}
+			else
+			{
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			}
+		}
+
+		private async Task ContinueAfterFilePickAsync(Task<StorageFile> pickTask, StorageFolder directory, Folder folder, Wallet parentWallet, bool copyFile)
+		{
+			await Logger.AddAsync("starting", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			bool isImported = false;
+			bool isNeedsContinuing = false;
 			try
 			{
-				var file = await pickTask.ConfigureAwait(false);
-				if (file == null || folder == null)
+				if (directory != null)
 				{
-					// User cancelled picking
-				}
-				else
-				{
-					StorageFile newFile = null;
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-					if (saveDirectory == null)
+					var file = await pickTask.ConfigureAwait(false);
+					if (file != null)
 					{
-						newFile = file;
-					}
-					else
-					{
-						newFile = await file.CopyAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
-					}
+						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 
-					if (newFile != null)
-					{
-						if (parentWallet == null && folder != null)
+						StorageFile newFile = null;
+						if (copyFile) newFile = await file.CopyAsync(directory).AsTask().ConfigureAwait(false);
+						else newFile = file;
+
+						if (parentWallet == null)
 						{
-							isAllSaved = await folder.ImportMediaFileIntoNewWalletAsync(newFile, false).ConfigureAwait(false);
+							isImported = await folder.ImportMediaFileIntoNewWalletAsync(newFile, false).ConfigureAwait(false);
+							if (!isImported && !folder.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
 						}
 						else if (parentWallet != null)
 						{
-							isAllSaved = await parentWallet.ImportMediaFileAsync(newFile, false).ConfigureAwait(false);
+							isImported = await parentWallet.ImportMediaFileAsync(newFile, false).ConfigureAwait(false);
+							if (!isImported && !parentWallet.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
 						}
+						if (newFile == null || isImported) RegistryAccess.SetValue(ConstantData.REG_FP_FILEPATH, string.Empty);
+						else RegistryAccess.SetValue(ConstantData.REG_FP_FILEPATH, newFile.Path);
 
-						if (isAllSaved)
-						{
-							RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, string.Empty);
-							RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, string.Empty);
-							RegistryAccess.SetValue(ConstantData.REG_FP_FILEPATH, string.Empty);
-						}
-						else // could not complete the operation: write away the relevant values, Resume() will follow up.
-							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
-						{
-							RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, folder.Id);
-							if (parentWallet != null) RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, parentWallet.Id);
-							else RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, string.Empty);
-							RegistryAccess.SetValue(ConstantData.REG_FP_FILEPATH, newFile.Path);
-							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
-						}
+						await Logger.AddAsync("isImported = " + isImported.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+						await Logger.AddAsync("isisNeedsContinuing = " + isNeedsContinuing.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 					}
+					await Logger.AddAsync("file == null " + (file == null).ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 				}
+				await Logger.AddAsync("directory == null " + (directory == null).ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
 
-			lock (_captureLock) { IsCanImportMedia = !IsPickingSaysTheRegistry() && !IsShootingSaysTheRegistry(); }
-
 			_animationStarter.EndAllAnimations();
-			if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+
+			if (isImported)
+			{
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			}
+			if (isNeedsContinuing)
+			{
+				RegistryAccess.SetValue(ConstantData.REG_FP_CONTINUE_IMPORTING, true.ToString());
+				if (folder != null) RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, folder.Id);
+				else RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, string.Empty);
+				if (parentWallet != null) RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, parentWallet.Id);
+				else RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, string.Empty);
+			}
+			else // could not complete the operation: write away the relevant values, Resume() will follow up.
+				 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
+			{
+				RegistryAccess.SetValue(ConstantData.REG_FP_CONTINUE_IMPORTING, false.ToString());
+				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+				RegistryAccess.SetValue(ConstantData.REG_FP_FOLDERID, string.Empty);
+				RegistryAccess.SetValue(ConstantData.REG_FP_PARENTWALLETID, string.Empty);
+				IsCanImportMedia = true;
+			}
+
+			SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
 		}
 
-		private bool IsPickingSaysTheRegistry()
+		private async Task ResumeAfterFilePickAsync()
 		{
-			string a = RegistryAccess.GetValue(ConstantData.REG_FP_FOLDERID);
-			string b = RegistryAccess.GetValue(ConstantData.REG_FP_PARENTWALLETID);
-			string c = RegistryAccess.GetValue(ConstantData.REG_FP_FILEPATH);
-			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(b) && string.IsNullOrWhiteSpace(c));
+			string folderId = RegistryAccess.GetValue(ConstantData.REG_FP_FOLDERID);
+			var folder = _folder;
+			var directory = folder?.DBManager?.Directory;
+			if (folder?.Id == folderId && directory != null)
+			{
+				IsCanImportMedia = false;
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+				string continueImporting = RegistryAccess.GetValue(ConstantData.REG_FP_CONTINUE_IMPORTING);
+				if (continueImporting == true.ToString())
+				{
+					try
+					{
+						string parentWalletId = RegistryAccess.GetValue(ConstantData.REG_FP_PARENTWALLETID);
+						var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
+						string filePath = RegistryAccess.GetValue(ConstantData.REG_FP_FILEPATH);
+						var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
+						await ContinueAfterFilePickAsync(pickFileTask, directory, folder, parentWallet, false).ConfigureAwait(false);
+						return;
+					}
+					catch (Exception ex)
+					{
+						await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+					}
+				}
+			}
+			IsCanImportMedia = true;
 		}
 
 		private static event EventHandler SavingMediaFileEnded;
-		private async Task ResumeAfterFilePickAsync()
-		{
-			string filePath = RegistryAccess.GetValue(ConstantData.REG_FP_FILEPATH);
-			bool wasPicking = !string.IsNullOrWhiteSpace(filePath);
-			string folderId = RegistryAccess.GetValue(ConstantData.REG_FP_FOLDERID);
-
-			if (wasPicking && Folder?.Id == folderId)
-			{
-				string parentWalletId = RegistryAccess.GetValue(ConstantData.REG_FP_PARENTWALLETID);
-				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
-				var pickFileTask = StorageFile.GetFileFromPathAsync(filePath).AsTask();
-
-				await AfterFilePickedTask(pickFileTask, null, Folder, parentWallet).ConfigureAwait(false);
-			}
-		}
-
-		private readonly object _captureLock = new object();
 
 		public void StartShoot(Wallet parentWallet)
 		{
 			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
+			if (RuntimeData.Instance?.IsCameraAvailable != true) return;
 			//if (parentWallet == null) return;
-			Task shoot = RunFunctionWhileOpenAsyncA(delegate
+			var folder = _folder;
+			var directory = folder?.DBManager?.Directory;
+			if (folder != null && directory != null && _isCanImportMedia)
 			{
-				if (RuntimeData.Instance?.IsCameraAvailable != true) return;
-				//if (parentWallet == null) return;
-				var folder = _folder;
-				if (folder == null) return;
-
 				try // CameraCaptureUI causes a suspend on the phone, so the app quits before the photo is saved
 				{
-					lock (_captureLock)
-					{
-						if (!_isCanImportMedia || IsPickingSaysTheRegistry() || IsShootingSaysTheRegistry())
-						{
-							IsCanImportMedia = false;
-							return;
-						}
-						else IsCanImportMedia = false;
-					}
+					IsCanImportMedia = false;
 
 					var captureUI = new CameraCaptureUI();
 					captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
 					captureUI.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
 
-					var saveDirectory = folder?.DBManager?.Directory;
 					var captureTask = captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo).AsTask();
 					var afterCaptureTask = captureTask.ContinueWith(delegate
 					{
-						return AfterCaptureTask(captureTask, saveDirectory, folder, parentWallet);
+						return ContinueAfterFilePickAsync(captureTask, directory, folder, parentWallet, true);
 					});
 				}
 				catch (Exception ex)
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-			});
-		}
-
-		private async Task AfterCaptureTask(Task<StorageFile> captureTask, StorageFolder saveDirectory, Folder folder, Wallet parentWallet)
-		{
-			bool isAllSaved = false;
-
-			try
-			{
-				var capturedFile = await captureTask.ConfigureAwait(false);
-				if (capturedFile == null || folder == null)
-				{
-					// User cancelled photo capture
-				}
-				else
-				{
-					StorageFile finalFile = null;
-					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-					if (saveDirectory == null)
-					{
-						finalFile = capturedFile;
-					}
-					else
-					{
-						finalFile = await capturedFile.CopyAsync(saveDirectory, capturedFile.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
-						// the following would be better but it does not return the file
-						//await file.MoveAsync(saveDirectory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false); // copy right after the picker or access will be forbidden later
-					}
-
-					if (finalFile != null)
-					{
-						if (folder != null && parentWallet == null)
-						{
-							isAllSaved = await folder.ImportMediaFileIntoNewWalletAsync(finalFile, false).ConfigureAwait(false);
-						}
-						else if (parentWallet != null)
-						{
-							isAllSaved = await parentWallet.ImportMediaFileAsync(finalFile, false).ConfigureAwait(false);
-						}
-
-						if (isAllSaved)
-						{
-							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FOLDERID, string.Empty);
-							RegistryAccess.SetValue(ConstantData.REG_SHOOT_PARENTWALLET, string.Empty);
-							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FILEPATH, string.Empty);
-							if (capturedFile != null && finalFile != null && (capturedFile.Path != finalFile.Path || capturedFile.Name != finalFile.Name)) await capturedFile.DeleteAsync().AsTask().ConfigureAwait(false);
-						}
-						else // could not complete the operation: write away the relevant values, Resume() will follow up.
-							 // this happens with low memory devices, that suspend the app when opening a picker or the camera ui.
-						{
-							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FOLDERID, folder.Id);
-							//RegistryAccess.SetValue(REG_SHOOT_CREATEWALLET, createWallet.ToString());
-							if (parentWallet != null) RegistryAccess.SetValue(ConstantData.REG_SHOOT_PARENTWALLET, parentWallet.Id);
-							else RegistryAccess.SetValue(ConstantData.REG_SHOOT_PARENTWALLET, string.Empty);
-							RegistryAccess.SetValue(ConstantData.REG_SHOOT_FILEPATH, finalFile.Path);
-							SavingMediaFileEnded?.Invoke(this, EventArgs.Empty);
-						}
-					}
+					_animationStarter.EndAllAnimations();
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				}
 			}
-			catch (Exception ex)
+			else
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-			}
-
-			lock (_captureLock) { IsCanImportMedia = !IsPickingSaysTheRegistry() && !IsShootingSaysTheRegistry(); }
-
-			_animationStarter.EndAllAnimations();
-			if (isAllSaved) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-		}
-
-		private bool IsShootingSaysTheRegistry()
-		{
-			string a = RegistryAccess.GetValue(ConstantData.REG_SHOOT_FOLDERID);
-			string c = RegistryAccess.GetValue(ConstantData.REG_SHOOT_PARENTWALLET);
-			string d = RegistryAccess.GetValue(ConstantData.REG_SHOOT_FILEPATH);
-			return !(string.IsNullOrWhiteSpace(a) && string.IsNullOrWhiteSpace(c) && string.IsNullOrWhiteSpace(d));
-		}
-		private async Task ResumeAfterShootingAsync()
-		{
-			bool wasShooting = !string.IsNullOrWhiteSpace(RegistryAccess.GetValue(ConstantData.REG_SHOOT_FILEPATH));
-			string folderId = RegistryAccess.GetValue(ConstantData.REG_SHOOT_FOLDERID);
-
-			if (wasShooting && Folder?.Id == folderId)
-			{
-				string parentWalletId = RegistryAccess.GetValue(ConstantData.REG_SHOOT_PARENTWALLET);
-				var parentWallet = Folder.Wallets.FirstOrDefault(wal => wal.Id == parentWalletId);
-				var photoFileTask = StorageFile.GetFileFromPathAsync(RegistryAccess.GetValue(ConstantData.REG_SHOOT_FILEPATH)).AsTask();
-
-				try
-				{
-					await AfterCaptureTask(photoFileTask, null, _folder, parentWallet).ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-				}
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 			}
 		}
 
