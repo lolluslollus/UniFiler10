@@ -195,7 +195,7 @@ namespace UniFiler10.ViewModels
 			if (bc != null && _isCanImportExport)
 			{
 				IsCanImportExport = false;
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, true.ToString());
+				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, true.ToString());
 				var pickTask = Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
 				var afterFilePickedTask = pickTask.ContinueWith(delegate
 				{
@@ -244,7 +244,7 @@ namespace UniFiler10.ViewModels
 			{
 				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING, false.ToString());
 				if (!isExported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, false.ToString());
+				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, false.ToString());
 				IsCanImportExport = true;
 			}
 
@@ -253,14 +253,19 @@ namespace UniFiler10.ViewModels
 
 		private async Task ResumeAfterExportSettingsAsync()
 		{
-			string isExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING);
-			if (isExporting == true.ToString())
+			//string isExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING);
+			//if (isExporting == true.ToString())
+			//{
+			//	IsCanImportExport = false;
+			//	_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+			string continueExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING);
+			if (continueExporting == true.ToString())
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				string continueExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING);
-				if (continueExporting == true.ToString()) await ContinueAfterFileSavePickerAsync(Pickers.GetLastPickedSaveFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
+				await ContinueAfterFileSavePickerAsync(Pickers.GetLastPickedSaveFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
+			//}
 			else
 			{
 				IsCanImportExport = true;
@@ -269,14 +274,19 @@ namespace UniFiler10.ViewModels
 
 		private async Task ResumeAfterImportSettingsAsync()
 		{
-			string isImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING);
-			if (isImporting == true.ToString())
+			//string isImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING);
+			//if (isImporting == true.ToString())
+			//{
+			//	IsCanImportExport = false;
+			//	_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING);
+			if (continueImporting == true.ToString())
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING);
-				if (continueImporting == true.ToString()) await ContinueAfterFileOpenPickerAsync(Pickers.GetLastPickedOpenFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
+				await ContinueAfterFileOpenPickerAsync(Pickers.GetLastPickedOpenFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
+			//}
 			else
 			{
 				IsCanImportExport = true;
@@ -289,7 +299,7 @@ namespace UniFiler10.ViewModels
 			if (bc != null && _isCanImportExport)
 			{
 				IsCanImportExport = false;
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, true.ToString());
+				// RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, true.ToString());
 				var pickTask = Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
 				var afterPickTask = pickTask.ContinueWith(delegate
 				{ // LOLLO TODO the manifest contains .xml, but as soon as I launch this, the hiking mate is started, automatically. Why? Because the hiking mate registered a file open picker, which is wrong.
@@ -335,12 +345,13 @@ namespace UniFiler10.ViewModels
 			if (isNeedsContinuing)
 			{
 				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING, true.ToString());
+				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, true.ToString());
 			}
 			else
 			{
 				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING, false.ToString());
 				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, false.ToString());
+				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, false.ToString());
 				IsCanImportExport = true;
 			}
 

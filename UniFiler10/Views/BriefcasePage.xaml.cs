@@ -100,13 +100,14 @@ namespace UniFiler10.Views
 			VM?.StartExportBinder((sender as FrameworkElement)?.DataContext as string);
 		}
 
-		private async void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			var vm = VM;
-			if (vm != null)
-			{
-				await vm.StartImportDbAsync();
-			}
+			VM?.StartImportBinder();
+			//var vm = VM;
+			//if (vm != null)
+			//{
+			//	await vm.StartImportDb();
+			//}
 		}
 
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)

@@ -147,14 +147,15 @@
 									Style="{StaticResource AppBarButtonRecoloured}"
 									Foreground="{StaticResource FlashyForeground}"
 									HorizontalAlignment="Left" VerticalAlignment="Top"
-									IsEnabled="{Binding ElementName=me, Path=VM.IsExporting, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"/>
+									IsEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"/>
 
 								<AppBarButton Icon="Delete"
 									Tapped="OnDeleteButton_Tapped"
 									Canvas.ZIndex="150"
 									Style="{StaticResource AppBarButtonRecoloured}"
 									Foreground="{StaticResource FlashyForeground}"
-									HorizontalAlignment="Right" VerticalAlignment="Top"/>
+									HorizontalAlignment="Right" VerticalAlignment="Top"
+									IsEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"/>
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>

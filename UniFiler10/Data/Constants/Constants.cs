@@ -22,13 +22,13 @@ namespace UniFiler10.Data.Constants
 		public const int TRIAL_LENGTH_DAYS = 7;
 
 		//public const string BAK_EXPORT_BINDER_TEMP_DIR = "ExportBinderDir";
-		public const string REG_EXPORT_BINDER_IS_EXPORTING = "ExportBinder.IsExporting";
+		public const string REG_EXPORT_BINDER_CONTINUE_EXPORTING = "ExportBinder.ContinueExport";
 
 		//public const string TEMP_DIR_4_IMPORT_FOLDERS = "ImportFoldersDir";
 		////public const string REG_IMPORT_FOLDERS_SOURCE_BINDER_NAME = "ImportFolders.SourceBinderBinder.Name";
 		public const string REG_IMPORT_FOLDERS_BINDER_NAME = "ImportFolders.Binder.Name";
 		//public const string REG_IMPORT_FOLDERS_DIR_PATH = "ImportFolders.Dir.Path";
-		public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
+		//public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
 		public const string REG_IMPORT_FOLDERS_CONTINUE_IMPORTING = "ImportFolders.ContinueImport";
 
 		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO NOTE this fails with the phone, wav is good
@@ -45,10 +45,13 @@ namespace UniFiler10.Data.Constants
 		//public const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
 
 		//public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
-		public const string REG_IMPEXP_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
-		public const string REG_IMPEXP_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
+		//public const string REG_IMPEXP_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
+		//public const string REG_IMPEXP_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
 		public const string REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING = "ImpExpSettings.ContinueExport";
 		public const string REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING = "ImpExpSettings.ContinueImport";
+
+		public const string REG_IMPORT_BINDER_CONTINUE = "ImportBinder.Continue";
+		public const string REG_MERGE_BINDER_CONTINUE = "MergeBinder.Continue";
 
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()

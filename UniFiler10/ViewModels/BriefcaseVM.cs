@@ -24,8 +24,8 @@ namespace UniFiler10.ViewModels
 		private string _newDbName = string.Empty;
 		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } }
 
-		private volatile bool _isExporting = false;
-		public bool IsExporting { get { return _isExporting; } private set { _isExporting = value; RaisePropertyChanged_UI(); } }
+		private volatile bool _isCanImportExport = false;
+		public bool IsCanImportExport { get { return _isCanImportExport; } private set { _isCanImportExport = value; RaisePropertyChanged_UI(); } }
 
 		private AnimationStarter _animationStarter = null;
 
@@ -43,6 +43,9 @@ namespace UniFiler10.ViewModels
 
 			if (BinderExported == null) BinderExported += OnBinderExported;
 			ResumeAfterExportBinder();
+			if (ImportMergeBinderEnded == null) ImportMergeBinderEnded += OnImportMergeBinderEnded;
+			await ResumeAfterImportBinderAsync().ConfigureAwait(false);
+			await ResumeAfterMergeBinderAsync().ConfigureAwait(false);
 		}
 
 		private void OnBinderExported(object sender, EventArgs e)
@@ -50,9 +53,16 @@ namespace UniFiler10.ViewModels
 			ResumeAfterExportBinder();
 		}
 
+		private async void OnImportMergeBinderEnded(object sender, EventArgs e)
+		{
+			await ResumeAfterImportBinderAsync().ConfigureAwait(false);
+			await ResumeAfterMergeBinderAsync().ConfigureAwait(false);
+		}
+
 		protected override Task CloseMayOverrideAsync()
 		{
 			BinderExported -= OnBinderExported;
+			ImportMergeBinderEnded -= OnImportMergeBinderEnded;
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			Briefcase = null;
 			return Task.CompletedTask;
@@ -133,47 +143,193 @@ namespace UniFiler10.ViewModels
 
 		public enum ImportBinderOperations { Cancel, Import, Merge }
 
-		public async Task StartImportDbAsync()
-		{
-			bool isOk = false;
-			var briefcase = _briefcase;
-			if (briefcase != null)
-			{
-				// LOLLO TODO make this work with phone with low memory
-				var fromDirectory = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
-				if (fromDirectory != null)
-				{
-					if (await briefcase.IsDbNameAvailableAsync(fromDirectory.Name))
-					{
-						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
+		//public async Task StartImportDbAsync()
+		//{
+		//	bool isOk = false;
+		//	var briefcase = _briefcase;
+		//	if (briefcase != null)
+		//	{
+		//		// LOLLO TODO make this work with phone with low memory
+		//		var fromDirectory = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+		//		if (fromDirectory != null)
+		//		{
+		//			if (await briefcase.IsDbNameAvailableAsync(fromDirectory.Name))
+		//			{
+		//				var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
 
-						if (nextAction == ImportBinderOperations.Merge)
-						{
-							isOk = await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);
-						}
-						else if (nextAction == ImportBinderOperations.Import)
-						{
-							isOk = await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
-						}
-					}
-					else
+		//				if (nextAction == ImportBinderOperations.Merge)
+		//				{
+		//					isOk = await briefcase.MergeBinderAsync(fromDirectory).ConfigureAwait(false);
+		//				}
+		//				else if (nextAction == ImportBinderOperations.Import)
+		//				{
+		//					isOk = await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+		//				}
+		//			}
+		//			else
+		//			{
+		//				isOk = await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+		//			}
+		//		}
+		//	}
+		//	if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+		//	else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+		//}
+
+		public void StartImportBinder()
+		{
+			var bc = _briefcase;
+			if (bc != null && _isCanImportExport)
+			{
+				// LOLLO TODO made this work with phone with low memory: check it
+				IsCanImportExport = false;
+				var pickTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+				var afterPickTask = pickTask.ContinueWith(async delegate
+				{
+					var directory = await pickTask; //.ConfigureAwait(false);
+					if (directory != null)
 					{
-						isOk = await briefcase.ImportBinderAsync(fromDirectory).ConfigureAwait(false);
+						if (await bc.IsDbNameAvailableAsync(directory.Name))
+						{
+							var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
+							if (nextAction == ImportBinderOperations.Merge)
+							{
+								Task merge = ContinueAfterPickMergeBinder(bc, directory);
+							}
+							else if (nextAction == ImportBinderOperations.Import)
+							{
+								Task import = ContinueAfterPickImportBinder(bc, directory);
+							}
+						}
+						else
+						{
+							Task import = ContinueAfterPickImportBinder(bc, directory);
+						}
 					}
+				});
+			}
+			else
+			{
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			}
+		}
+
+		private async Task ContinueAfterPickImportBinder(Briefcase bc, StorageFolder dir)
+		{
+			bool isImported = false;
+			bool isNeedsContinuing = false;
+			try
+			{
+				if (bc != null && dir != null)
+				{
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					isImported = await bc.ImportBinderAsync(dir).ConfigureAwait(false);
+					if (!isImported && !bc.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
 				}
 			}
-			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+
+			_animationStarter.EndAllAnimations();
+			if (isImported)
+			{
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			}
+			if (isNeedsContinuing)
+			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_CONTINUE, true.ToString());
+			}
+			else
+			{
+				RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_CONTINUE, false.ToString());
+				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+				IsCanImportExport = true;
+			}
+
+			ImportMergeBinderEnded?.Invoke(this, EventArgs.Empty);
 		}
+		private async Task ContinueAfterPickMergeBinder(Briefcase bc, StorageFolder dir)
+		{
+			bool isImported = false;
+			bool isNeedsContinuing = false;
+			try
+			{
+				if (bc != null && dir != null)
+				{
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					isImported = await bc.MergeBinderAsync(dir).ConfigureAwait(false);
+					if (!isImported && !bc.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+
+			_animationStarter.EndAllAnimations();
+			if (isImported)
+			{
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			}
+			if (isNeedsContinuing)
+			{
+				RegistryAccess.SetValue(ConstantData.REG_MERGE_BINDER_CONTINUE, true.ToString());
+			}
+			else
+			{
+				RegistryAccess.SetValue(ConstantData.REG_MERGE_BINDER_CONTINUE, false.ToString());
+				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+				IsCanImportExport = true;
+			}
+
+			ImportMergeBinderEnded?.Invoke(this, EventArgs.Empty);
+		}
+
+		private async Task ResumeAfterImportBinderAsync()
+		{
+			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_CONTINUE);
+			if (continueImporting == true.ToString())
+			{
+				IsCanImportExport = false;
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
+				await ContinueAfterPickImportBinder(_briefcase, dir).ConfigureAwait(false);
+			}
+			else
+			{
+				IsCanImportExport = true;
+			}
+		}
+
+		private async Task ResumeAfterMergeBinderAsync()
+		{
+			string continueMerging = RegistryAccess.GetValue(ConstantData.REG_MERGE_BINDER_CONTINUE);
+			if (continueMerging == true.ToString())
+			{
+				IsCanImportExport = false;
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
+				await ContinueAfterPickMergeBinder(_briefcase, dir).ConfigureAwait(false);
+			}
+			else
+			{
+				IsCanImportExport = true;
+			}
+		}
+
+		private static event EventHandler ImportMergeBinderEnded;
 
 		public void StartExportBinder(string dbName)
 		{
 			var bc = _briefcase;
 
-			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && !_isExporting)
+			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && _isCanImportExport)
 			{
-				IsExporting = true;
-				RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, true.ToString());
+				IsCanImportExport = false;
+				RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_CONTINUE_EXPORTING, true.ToString());
 				// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
 				var pickDirectoryTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.XML_EXTENSION });
 				var afterPickedDirectoryTask = pickDirectoryTask.ContinueWith(delegate
@@ -212,22 +368,22 @@ namespace UniFiler10.ViewModels
 			if (isOk) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 
-			RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, false.ToString());
-			IsExporting = false;
+			RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_CONTINUE_EXPORTING, false.ToString());
+			IsCanImportExport = true;
 			BinderExported?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void ResumeAfterExportBinder()
 		{
-			string isBinderExporting = RegistryAccess.GetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING);
+			string isBinderExporting = RegistryAccess.GetValue(ConstantData.REG_EXPORT_BINDER_CONTINUE_EXPORTING);
 			if (isBinderExporting == true.ToString())
 			{
-				IsExporting = true;
+				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 			}
 			else
 			{
-				IsExporting = false;
+				IsCanImportExport = true;
 			}
 		}
 

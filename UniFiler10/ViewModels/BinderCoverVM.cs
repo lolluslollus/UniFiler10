@@ -721,7 +721,7 @@ namespace UniFiler10.ViewModels
 			if (binder != null && !_isImportingFolders)
 			{
 				IsImportingFolders = true;
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, true.ToString());
+				//RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, true.ToString());
 				var pickTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
 				var afterPickTask = pickTask.ContinueWith(delegate
 				{
@@ -772,7 +772,7 @@ namespace UniFiler10.ViewModels
 			{
 				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING, false.ToString());
 				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, false.ToString());
+				//RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, false.ToString());
 				IsImportingFolders = false;
 			}
 
@@ -781,15 +781,25 @@ namespace UniFiler10.ViewModels
 
 		private async Task ResumeImportFoldersFromBinderAsync()
 		{
-			string isImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING);
-			string dbName = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME);
-			if (isImporting == true.ToString() && dbName == _binder?.DBName)
+			//string isImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING);
+			//string dbName = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME);
+			//if (isImporting == true.ToString() && dbName == _binder?.DBName)
+			//{
+			//IsImportingFolders = true;
+			//_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING);
+			if (continueImporting == true.ToString())
 			{
-				IsImportingFolders = true;
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING);
-				if (continueImporting == true.ToString()) await ContinueAfterPickAsync(Pickers.GetLastPickedFolderJustOnceAsync(), _binder).ConfigureAwait(false);
+				string dbName = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME);
+				if (dbName == _binder?.DBName)
+				{
+					IsImportingFolders = true;
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+
+					await ContinueAfterPickAsync(Pickers.GetLastPickedFolderJustOnceAsync(), _binder).ConfigureAwait(false);
+				}
 			}
+			//}
 			else
 			{
 				IsImportingFolders = false;
