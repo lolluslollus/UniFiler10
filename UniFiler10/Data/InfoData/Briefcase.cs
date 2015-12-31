@@ -388,9 +388,10 @@ namespace UniFiler10.Data.Model
 			return false;
 		}
 
-		public Task<bool> IsDbNameAvailableAsync(string dbName)
+
+		public Task<BoolWhenOpen> IsDbNameAvailableAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate { return _dbNames.Contains(dbName); });
+			return RunFunctionWhileOpenThreeStateAsyncB(delegate { return _dbNames.Contains(dbName); });
 		}
 		public Task<bool> IsNewDbNameWrongAsync(string newDbName)
 		{

@@ -43,9 +43,13 @@ namespace UniFiler10.ViewModels
 
 			if (BinderExported == null) BinderExported += OnBinderExported;
 			ResumeAfterExportBinder();
-			if (ImportMergeBinderEnded == null) ImportMergeBinderEnded += OnImportMergeBinderEnded;
-			await ResumeAfterImportBinderAsync().ConfigureAwait(false);
-			await ResumeAfterMergeBinderAsync().ConfigureAwait(false);
+
+			if (ImportMergeBinderStep1Ended == null) ImportMergeBinderStep1Ended += OnImportMergeBinderStep1Ended;
+			await ResumeAfterImportBinderStep1Async().ConfigureAwait(false);
+
+			if (ImportMergeBinderStep2Ended == null) ImportMergeBinderStep2Ended += OnImportMergeBinderStep2Ended;
+			await ResumeAfterImportBinderStep2Async().ConfigureAwait(false);
+			await ResumeAfterMergeBinderStep2Async().ConfigureAwait(false);
 		}
 
 		private void OnBinderExported(object sender, EventArgs e)
@@ -53,16 +57,22 @@ namespace UniFiler10.ViewModels
 			ResumeAfterExportBinder();
 		}
 
-		private async void OnImportMergeBinderEnded(object sender, EventArgs e)
+		private async void OnImportMergeBinderStep1Ended(object sender, EventArgs e)
 		{
-			await ResumeAfterImportBinderAsync().ConfigureAwait(false);
-			await ResumeAfterMergeBinderAsync().ConfigureAwait(false);
+			await ResumeAfterImportBinderStep1Async().ConfigureAwait(false);
+		}
+
+		private async void OnImportMergeBinderStep2Ended(object sender, EventArgs e)
+		{
+			await ResumeAfterImportBinderStep2Async().ConfigureAwait(false);
+			await ResumeAfterMergeBinderStep2Async().ConfigureAwait(false);
 		}
 
 		protected override Task CloseMayOverrideAsync()
 		{
 			BinderExported -= OnBinderExported;
-			ImportMergeBinderEnded -= OnImportMergeBinderEnded;
+			ImportMergeBinderStep1Ended -= OnImportMergeBinderStep1Ended;
+			ImportMergeBinderStep2Ended -= OnImportMergeBinderStep2Ended;
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
 			Briefcase = null;
 			return Task.CompletedTask;
@@ -136,7 +146,8 @@ namespace UniFiler10.ViewModels
 			var briefcase = _briefcase;
 			if (briefcase == null) return false;
 
-			bool isDeleted = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeDeletingBinderAsync() && await briefcase.DeleteBinderAsync(dbName);
+			var userWantsDelete = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeDeletingBinderAsync();
+			var isDeleted = userWantsDelete.Item1 && await briefcase.DeleteBinderAsync(dbName);
 
 			return isDeleted;
 		}
@@ -181,31 +192,39 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (bc != null && _isCanImportExport)
 			{
-				// LOLLO TODO made this work with phone with low memory: check it
+				// LOLLO TODO made this work with phone with low memory: when importing an existing binder, the dialog never shows up.
 				IsCanImportExport = false;
 				var pickTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
-				var afterPickTask = pickTask.ContinueWith(async delegate
+				var afterPickTask = pickTask.ContinueWith(delegate
 				{
-					var directory = await pickTask; //.ConfigureAwait(false);
-					if (directory != null)
-					{
-						if (await bc.IsDbNameAvailableAsync(directory.Name))
-						{
-							var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
-							if (nextAction == ImportBinderOperations.Merge)
-							{
-								Task merge = ContinueAfterPickMergeBinder(bc, directory);
-							}
-							else if (nextAction == ImportBinderOperations.Import)
-							{
-								Task import = ContinueAfterPickImportBinder(bc, directory);
-							}
-						}
-						else
-						{
-							Task import = ContinueAfterPickImportBinder(bc, directory);
-						}
-					}
+					Task cont = ContinueAfterImportSourceDirPickedStep1(bc, pickTask);
+					//var directory = await pickTask; //.ConfigureAwait(false);
+					//if (directory != null)
+					//{
+					//if (bc?.IsOpen == true)
+					//{
+					//	if (await bc.IsDbNameAvailableAsync(directory.Name))
+					//	{
+					//		await Logger.AddAsync("db name is available", Logger.FileErrorLogFilename, Logger.Severity.Info); //.ConfigureAwait(false);
+					//		var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync(); //.ConfigureAwait(false);
+					//		await Logger.AddAsync("user choice = " + nextAction.Item1.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					//		await Logger.AddAsync("user has interacted = " + nextAction.Item2.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					//		if (nextAction.Item1 == ImportBinderOperations.Merge)
+					//		{
+					//			Task merge = ContinueAfterPickMergeBinder(bc, directory);
+					//		}
+					//		else if (nextAction.Item1 == ImportBinderOperations.Import)
+					//		{
+					//			Task import = ContinueAfterPickImportBinder(bc, directory);
+					//		}
+					//	}
+					//	else
+					//	{
+					//		await Logger.AddAsync("db name is NOT available", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					//		Task import = ContinueAfterPickImportBinder(bc, directory);
+					//	}
+					//}
+					//}
 				});
 			}
 			else
@@ -215,7 +234,53 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private async Task ContinueAfterPickImportBinder(Briefcase bc, StorageFolder dir)
+		private async Task ContinueAfterImportSourceDirPickedStep1(Briefcase bc, Task<StorageFolder> pickDir)
+		{
+			bool isNeedsContinuing = false;
+			try
+			{
+				var dir = await pickDir; //.ConfigureAwait(false);
+				if (bc != null && dir != null)
+				{
+					var isDbNameAvailable = await bc.IsDbNameAvailableAsync(dir.Name);
+					if (isDbNameAvailable == BoolWhenOpen.Yes)
+					{
+						await Logger.AddAsync("db name is available", Logger.FileErrorLogFilename, Logger.Severity.Info); //.ConfigureAwait(false);
+						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync(); //.ConfigureAwait(false);
+						await Logger.AddAsync("user choice = " + nextAction.Item1.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+						await Logger.AddAsync("user has interacted = " + nextAction.Item2.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+						if (nextAction.Item1 == ImportBinderOperations.Merge)
+						{
+							await ContinueAfterPickMergeBinderStep2(bc, dir).ConfigureAwait(false);
+						}
+						else if (nextAction.Item1 == ImportBinderOperations.Import)
+						{
+							await ContinueAfterPickImportBinderStep2(bc, dir).ConfigureAwait(false);
+						}
+					}
+					else if (isDbNameAvailable == BoolWhenOpen.No)
+					{
+						await Logger.AddAsync("db name is NOT available", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+						await ContinueAfterPickImportBinderStep2(bc, dir).ConfigureAwait(false);
+					}
+					else if (isDbNameAvailable == BoolWhenOpen.ObjectClosed)
+					{
+						await Logger.AddAsync("briefcase is closed", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+						isNeedsContinuing = true;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+
+			RegistryAccess.SetValue(ConstantData.REG_IMPORT_MERGE_BINDER_STEP1_CONTINUE, isNeedsContinuing.ToString());
+
+			ImportMergeBinderStep1Ended?.Invoke(this, EventArgs.Empty);
+		}
+
+		private async Task ContinueAfterPickImportBinderStep2(Briefcase bc, StorageFolder dir)
 		{
 			bool isImported = false;
 			bool isNeedsContinuing = false;
@@ -238,20 +303,17 @@ namespace UniFiler10.ViewModels
 			{
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 			}
-			if (isNeedsContinuing)
+
+			RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP2_CONTINUE, isNeedsContinuing.ToString());
+			if (!isNeedsContinuing)
 			{
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_CONTINUE, true.ToString());
-			}
-			else
-			{
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_CONTINUE, false.ToString());
 				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				IsCanImportExport = true;
 			}
 
-			ImportMergeBinderEnded?.Invoke(this, EventArgs.Empty);
+			ImportMergeBinderStep2Ended?.Invoke(this, EventArgs.Empty);
 		}
-		private async Task ContinueAfterPickMergeBinder(Briefcase bc, StorageFolder dir)
+		private async Task ContinueAfterPickMergeBinderStep2(Briefcase bc, StorageFolder dir)
 		{
 			bool isImported = false;
 			bool isNeedsContinuing = false;
@@ -274,29 +336,40 @@ namespace UniFiler10.ViewModels
 			{
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 			}
-			if (isNeedsContinuing)
+
+			RegistryAccess.SetValue(ConstantData.REG_MERGE_BINDER_STEP2_CONTINUE, isNeedsContinuing.ToString());
+			if (!isNeedsContinuing)
 			{
-				RegistryAccess.SetValue(ConstantData.REG_MERGE_BINDER_CONTINUE, true.ToString());
-			}
-			else
-			{
-				RegistryAccess.SetValue(ConstantData.REG_MERGE_BINDER_CONTINUE, false.ToString());
 				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 				IsCanImportExport = true;
 			}
 
-			ImportMergeBinderEnded?.Invoke(this, EventArgs.Empty);
+			ImportMergeBinderStep2Ended?.Invoke(this, EventArgs.Empty);
 		}
 
-		private async Task ResumeAfterImportBinderAsync()
+		private async Task ResumeAfterImportBinderStep1Async()
 		{
-			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_CONTINUE);
+			await Logger.AddAsync("starting", Logger.FileErrorLogFilename, Logger.Severity.Info);
+			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_MERGE_BINDER_STEP1_CONTINUE);
+			if (continueImporting == true.ToString())
+			{
+				Task run = RunInUiThreadAsync(delegate 
+				{
+					Task cont = ContinueAfterImportSourceDirPickedStep1(_briefcase, Pickers.GetLastPickedFolderJustOnceAsync());
+				});
+//				await ContinueAfterImportSourceDirPickedStep1(_briefcase, Pickers.GetLastPickedFolderJustOnceAsync()).ConfigureAwait(false);
+			}
+		}
+
+		private async Task ResumeAfterImportBinderStep2Async()
+		{
+			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_STEP2_CONTINUE);
 			if (continueImporting == true.ToString())
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
-				await ContinueAfterPickImportBinder(_briefcase, dir).ConfigureAwait(false);
+				await ContinueAfterPickImportBinderStep2(_briefcase, dir).ConfigureAwait(false);
 			}
 			else
 			{
@@ -304,15 +377,15 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private async Task ResumeAfterMergeBinderAsync()
+		private async Task ResumeAfterMergeBinderStep2Async()
 		{
-			string continueMerging = RegistryAccess.GetValue(ConstantData.REG_MERGE_BINDER_CONTINUE);
+			string continueMerging = RegistryAccess.GetValue(ConstantData.REG_MERGE_BINDER_STEP2_CONTINUE);
 			if (continueMerging == true.ToString())
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
-				await ContinueAfterPickMergeBinder(_briefcase, dir).ConfigureAwait(false);
+				await ContinueAfterPickMergeBinderStep2(_briefcase, dir).ConfigureAwait(false);
 			}
 			else
 			{
@@ -320,7 +393,8 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private static event EventHandler ImportMergeBinderEnded;
+		private static event EventHandler ImportMergeBinderStep1Ended;
+		private static event EventHandler ImportMergeBinderStep2Ended;
 
 		public void StartExportBinder(string dbName)
 		{

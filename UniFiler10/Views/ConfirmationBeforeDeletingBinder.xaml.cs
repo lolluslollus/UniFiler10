@@ -30,6 +30,9 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty YesNoProperty =
 			DependencyProperty.Register("YesNo", typeof(bool), typeof(ConfirmationBeforeDeletingBinder), new PropertyMetadata(false));
 
+		private bool _isHasUserInteracted = false;
+		public bool IsHasUserInteracted { get { return _isHasUserInteracted; } private set { _isHasUserInteracted = value; } }
+
 
 		public ConfirmationBeforeDeletingBinder()
 		{
@@ -40,12 +43,14 @@ namespace UniFiler10.Views
 		private void OnYes_Click(object sender, RoutedEventArgs e)
 		{
 			YesNo = true;
+			IsHasUserInteracted = true;
 			UserAnswered?.Invoke(this, YesNo);
 		}
 
 		private void OnNo_Click(object sender, RoutedEventArgs e)
 		{
 			YesNo = false;
+			IsHasUserInteracted = true;
 			UserAnswered?.Invoke(this, YesNo);
 		}
 	}

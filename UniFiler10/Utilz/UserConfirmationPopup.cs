@@ -28,7 +28,7 @@ namespace Utilz
 		private bool _isHasUserAnswered = false;
 
 
-		public async Task<bool> GetUserConfirmationBeforeDeletingBinderAsync()
+		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeDeletingBinderAsync()
 		{
 			Flyout dialog = new Flyout();
 			dialog.Closed += OnYesNoDialog_Closed;
@@ -36,6 +36,7 @@ namespace Utilz
 			dialog.Content = dialogContent;
 			dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
 
+			_isHasUserAnswered = false;
 			dialog.ShowAt(Window.Current.Content as FrameworkElement);
 
 			while (!_isHasUserAnswered)
@@ -46,8 +47,8 @@ namespace Utilz
 			dialog.Closed -= OnYesNoDialog_Closed;
 			dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
 			dialog.Hide();
-			_isHasUserAnswered = false;
-			return dialogContent.YesNo;
+
+			return new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted); // dialogContent.YesNo;
 		}
 
 		private void OnYesNoDialog_Closed(object sender, object e)
@@ -61,7 +62,7 @@ namespace Utilz
 		}
 
 
-		public async Task<BriefcaseVM.ImportBinderOperations> GetUserConfirmationBeforeImportingBinderAsync()
+		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, bool>> GetUserConfirmationBeforeImportingBinderAsync()
 		{
 			Flyout dialog = new Flyout();
 			dialog.Closed += OnThreeBtnDialog_Closed;
@@ -69,6 +70,7 @@ namespace Utilz
 			dialog.Content = dialogContent;
 			dialogContent.UserAnswered += OnThreeBtnDialogContent_UserAnswered;
 
+			_isHasUserAnswered = false;
 			dialog.ShowAt(Window.Current.Content as FrameworkElement);
 
 			while (!_isHasUserAnswered)
@@ -79,8 +81,8 @@ namespace Utilz
 			dialog.Closed -= OnThreeBtnDialog_Closed;
 			dialogContent.UserAnswered -= OnThreeBtnDialogContent_UserAnswered;
 			dialog.Hide();
-			_isHasUserAnswered = false;
-			return dialogContent.Operation;
+
+			return new Tuple<BriefcaseVM.ImportBinderOperations, bool>(dialogContent.Operation, dialogContent.IsHasUserInteracted); // dialogContent.Operation;
 		}
 
 		private void OnThreeBtnDialog_Closed(object sender, object e)

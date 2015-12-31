@@ -55,7 +55,7 @@ namespace UniFiler10.Data.Model
                 catch (Exception exc)
                 {
                     if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
+                        await Logger.AddAsync(GetType().Name + exc.ToString(), Logger.ForegroundLogFilename);
                 }
                 finally
                 {
@@ -86,8 +86,8 @@ namespace UniFiler10.Data.Model
                 catch (Exception ex)
                 {
                     if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+				}
                 finally
                 {
                     SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
@@ -116,7 +116,7 @@ namespace UniFiler10.Data.Model
                 catch (Exception ex)
                 {
                     if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
                 }
                 finally
                 {
@@ -141,7 +141,7 @@ namespace UniFiler10.Data.Model
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -166,7 +166,7 @@ namespace UniFiler10.Data.Model
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -187,8 +187,8 @@ namespace UniFiler10.Data.Model
                 catch (Exception ex)
                 {
                     if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+				}
                 finally
                 {
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
@@ -196,6 +196,38 @@ namespace UniFiler10.Data.Model
             }
             return false;
         }
+
+		public enum BoolWhenOpen { Yes, No, ObjectClosed, Error };
+		protected async Task<BoolWhenOpen> RunFunctionWhileOpenThreeStateAsyncB(Func<bool> func)
+		{
+			BoolWhenOpen result = BoolWhenOpen.ObjectClosed;
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen)
+					{
+						if (func()) result = BoolWhenOpen.Yes;
+						else result = BoolWhenOpen.No;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+					{
+						result = BoolWhenOpen.Error;
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+					}
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return result;
+		}
+
 		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
         {
             if (_isOpen)
@@ -212,8 +244,8 @@ namespace UniFiler10.Data.Model
                 catch (Exception ex)
                 {
                     if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+				}
                 finally
                 {
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
@@ -233,8 +265,8 @@ namespace UniFiler10.Data.Model
                 catch (Exception ex)
                 {
                     if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                }
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+				}
                 finally
                 {
                     SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);

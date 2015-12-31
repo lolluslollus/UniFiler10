@@ -95,10 +95,10 @@ namespace UniFiler10.Controlz
 						return true;
 					}
 				}
-				catch (Exception exc)
+				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -134,7 +134,7 @@ namespace UniFiler10.Controlz
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -167,7 +167,7 @@ namespace UniFiler10.Controlz
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -193,7 +193,7 @@ namespace UniFiler10.Controlz
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -214,7 +214,7 @@ namespace UniFiler10.Controlz
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -239,7 +239,7 @@ namespace UniFiler10.Controlz
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{
@@ -260,7 +260,7 @@ namespace UniFiler10.Controlz
 				catch (Exception ex)
 				{
 					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				finally
 				{

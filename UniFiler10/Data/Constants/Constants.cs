@@ -50,8 +50,9 @@ namespace UniFiler10.Data.Constants
 		public const string REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING = "ImpExpSettings.ContinueExport";
 		public const string REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING = "ImpExpSettings.ContinueImport";
 
-		public const string REG_IMPORT_BINDER_CONTINUE = "ImportBinder.Continue";
-		public const string REG_MERGE_BINDER_CONTINUE = "MergeBinder.Continue";
+		public const string REG_IMPORT_MERGE_BINDER_STEP1_CONTINUE = "ImportMergeBinder.Step1.Continue";
+		public const string REG_IMPORT_BINDER_STEP2_CONTINUE = "ImportBinder.Step2.Continue";
+		public const string REG_MERGE_BINDER_STEP2_CONTINUE = "MergeBinder.Step2.Continue";
 
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()

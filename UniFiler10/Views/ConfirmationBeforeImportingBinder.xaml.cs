@@ -30,6 +30,9 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty OperationProperty =
 			DependencyProperty.Register("Operation", typeof(BriefcaseVM.ImportBinderOperations), typeof(ConfirmationBeforeImportingBinder), new PropertyMetadata(BriefcaseVM.ImportBinderOperations.Cancel));
 
+		private bool _isHasUserInteracted = false;
+		public bool IsHasUserInteracted { get { return _isHasUserInteracted; } private set { _isHasUserInteracted = value; } }
+
 
 		public ConfirmationBeforeImportingBinder()
 		{
@@ -39,17 +42,20 @@ namespace UniFiler10.Views
 		private void OnMerge_Click(object sender, RoutedEventArgs e)
 		{
 			Operation = BriefcaseVM.ImportBinderOperations.Merge;
+			IsHasUserInteracted = true;
 			UserAnswered?.Invoke(this, Operation);
 		}
 
 		private void OnOverwrite_Click(object sender, RoutedEventArgs e)
 		{
 			Operation = BriefcaseVM.ImportBinderOperations.Import;
+			IsHasUserInteracted = true;
 			UserAnswered?.Invoke(this, Operation);
 		}
 		private void OnCancel_Click(object sender, RoutedEventArgs e)
 		{
 			Operation = BriefcaseVM.ImportBinderOperations.Cancel;
+			IsHasUserInteracted = true;
 			UserAnswered?.Invoke(this, Operation);
 		}
 	}
