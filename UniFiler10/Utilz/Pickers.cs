@@ -23,8 +23,8 @@ namespace Utilz
 
 			var openPicker = new FolderPicker();
 			openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-			//openPicker.CommitButtonText=
-			//openPicker.ViewMode = PickerViewMode.List;
+			openPicker.ViewMode = PickerViewMode.List;
+
 			foreach (var ext in extensions)
 			{
 				openPicker.FileTypeFilter.Add(ext);
@@ -32,12 +32,7 @@ namespace Utilz
 			var folder = await openPicker.PickSingleFolderAsync();
 			if (folder != null)
 			{
-				// Application now has read/write access to all contents in the picked folder
-				// (including other sub-folder contents)
-				// LOLLO TODO check https://msdn.microsoft.com/en-us/library/windows/apps/mt186452.aspx
-				// and https://blogs.windows.com/buildingapps/2014/06/19/common-questions-and-answers-about-files-and-app-data-part-1-app-data/
-				// and use this, to make your life easier!
-				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", folder);
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_FOLDER_TOKEN, folder);
 			}
 			return folder;
 
@@ -56,8 +51,7 @@ namespace Utilz
 				{
 					var openPicker = new FileOpenPicker();
 					
-					openPicker.ViewMode = PickerViewMode.Thumbnail;
-					//openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+					openPicker.ViewMode = PickerViewMode.List;
 					openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 					//openPicker.CommitButtonText = "Pick a file"; // LOLLO localise this if you use it
 					foreach (var ext in extensions)
@@ -83,8 +77,7 @@ namespace Utilz
 		{
 			var picker = new FileSavePicker();
 			picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-			//openPicker.CommitButtonText=
-			//openPicker.ViewMode = PickerViewMode.List;
+
 			foreach (var ext in extensions)
 			{
 				var exts = new List<string>(); exts.Add(ext);
@@ -100,7 +93,6 @@ namespace Utilz
 			return file;
 		}
 
-		// LOLLO TODO these tokens are eternal and the list can contain 1000 entries max. Delete them after using!
 		public static async Task<StorageFolder> GetLastPickedFolderJustOnceAsync()
 		{
 			StorageFolder result = null;
