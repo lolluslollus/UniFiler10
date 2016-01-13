@@ -736,6 +736,9 @@ namespace UniFiler10.ViewModels
 		}
 
 		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
+		// and AnalyticsVersionInfo.DeviceFamily
+		// for picker details
+
 		private async Task ContinueAfterPickAsync(Task<StorageFolder> fromDirTask, Binder binder)
 		{
 			bool isImported = false;
