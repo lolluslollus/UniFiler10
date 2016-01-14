@@ -11,6 +11,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Phone.Devices.Notification;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -25,6 +26,10 @@ namespace UniFiler10
 	sealed partial class App : Application
 	{
 		public const string LAST_NAVIGATED_PAGE_REG_KEY = "LastNavigatedPage";
+		private static bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+
+		#region lifecycle
 		/// <summary>
 		/// Initializes the singleton application object.  This is the first line of authored code
 		/// executed, and as such is the logical equivalent of main() or WinMain().
@@ -34,27 +39,51 @@ namespace UniFiler10
 			Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync(
 				Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
 				Microsoft.ApplicationInsights.WindowsCollectors.Session);
-			InitializeComponent();
+
+			UnhandledException += OnUnhandledException;
 			Suspending += OnSuspending;
 			Resuming += OnResuming;
-			UnhandledException += OnUnhandledException;
+
+			InitializeComponent();
+
+			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		}
+		private async Task OpenAsync()
+		{
+			var briefcase = Briefcase.GetCreateInstance();
+			if (briefcase != null)
+			{
+				await briefcase.OpenAsync().ConfigureAwait(false);
+			}
 		}
 
+		private async Task CloseAsync()
+		{
+			var briefcase = Briefcase.GetCurrentInstance();
+			if (briefcase != null)
+			{
+				await briefcase.CloseAsync().ConfigureAwait(false);
+				briefcase.Dispose();
+				briefcase = null;
+			}
+		}
+		#endregion lifecycle
+
+
+		#region event handlers
 		/// <summary>
 		/// Invoked when the application is launched normally by the end user.  Other entry points
-		/// will be used such as when the application is launched to open a specific file.
+		/// will be used such as when the application is launched to open a specific file, to display
+		/// search results, and so forth.
+		/// This is also invoked when the app is resumed after being terminated.
 		/// </summary>
-		/// <param name="e">Details about the launch request and process.</param>
 		protected override void OnLaunched(LaunchActivatedEventArgs e)
 		{
+			Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
+				Logger.AppEventsLogFilename,
+				Logger.Severity.Info,
+				false);
 
-			//#if DEBUG
-			//            if (System.Diagnostics.Debugger.IsAttached)
-			//            {
-			//                DebugSettings.EnableFrameRateCounter = true;
-			//            }
-			//#endif
-			Logger.Add_TPL("App started", Logger.ForegroundLogFilename, Logger.Severity.Info);
 			Frame rootFrame = Window.Current.Content as Frame;
 
 			// Do not repeat app initialization when the Window already has content,
@@ -62,13 +91,13 @@ namespace UniFiler10
 			if (rootFrame == null)
 			{
 				// Create a Frame to act as the navigation context and navigate to the first page
-				rootFrame = new Frame();
+				rootFrame = new Frame() { UseLayoutRounding = true };
 
 				rootFrame.NavigationFailed += OnNavigationFailed;
 
 				// Set the default language
 				//rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
-				rootFrame.Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag; //this is important and decides for the whole app
+				rootFrame.Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag; //LOLLO NOTE this is important and decides for the whole app
 
 				if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
 				{
@@ -96,66 +125,100 @@ namespace UniFiler10
 			Window.Current.Activate();
 		}
 
+		/// Invoked when the app is resumed without being terminated.
+		/// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
+		/// You do not need to restore other app state when the app resumes.
+		/// LOLLO NOTE this is the first OnResuming to fire. The other OnResuming() fire later.
 		private async void OnResuming(object sender, object e)
 		{
-			// LOLLO NOTE this is the first OnResuming to fire
-			await OpenAsync().ConfigureAwait(false);
-			await Logger.AddAsync("App resumed", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			try
+			{
+				await _resumingActivatingSemaphore.WaitAsync();
+				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+				await OpenAsync().ConfigureAwait(false);
+				Logger.Add_TPL("OnResuming ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
 		}
 
 		/// <summary>
 		/// Invoked when application execution is being suspended.  Application state is saved
 		/// without knowing whether the application will be terminated or resumed with the contents
 		/// of memory still intact.
+		/// LOLLO NOTE this is the first OnSuspending to fire
 		/// </summary>
-		/// <param name="sender">The source of the suspend request.</param>
-		/// <param name="e">Details about the suspend request.</param>
 		private async void OnSuspending(object sender, SuspendingEventArgs e)
 		{
-			// LOLLO NOTE this is the first OnSuspending to fire
 			var deferral = e.SuspendingOperation.GetDeferral();
+			Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
+				Logger.AppEventsLogFilename,
+				Logger.Severity.Info,
+				false);
+
 			// Save application state and stop any background activity
 			await CloseAsync().ConfigureAwait(false);
-			await Logger.AddAsync("App suspended", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
 			deferral.Complete();
 		}
+
 		/// <summary>
 		/// Invoked when Navigation to a certain page fails
 		/// </summary>
-		/// <param name="sender">The Frame which failed navigation</param>
-		/// <param name="e">Details about the navigation failure</param>
-		void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+		private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
 		{
 			throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
 		}
+
 		private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			await Logger.AddAsync(e?.Exception?.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+			await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename);
 		}
 
+		public async Task RunUnderSemaphoreAsync(Func<Task> funcAsync)
+		{
+			try
+			{
+				await _resumingActivatingSemaphore.WaitAsync();
+				Logger.Add_TPL("RunUnderSemaphoreAsync() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+				await funcAsync().ConfigureAwait(false);
+				Logger.Add_TPL("RunUnderSemaphoreAsync() ended its task OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+			}
+			Logger.Add_TPL("RunUnderSemaphoreAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		}
+		#endregion event handlers
+
+
+		#region services
 		public async Task Quit()
 		{
 			await CloseAsync().ConfigureAwait(false);
 			Exit();
 		}
 
-		private async Task OpenAsync()
+		public static void ShortVibration()
 		{
-			var briefcase = Briefcase.GetCreateInstance();
-			if (briefcase != null)
+			if (_isVibrationDevicePresent)
 			{
-				await briefcase.OpenAsync().ConfigureAwait(false);
+				VibrationDevice myDevice = VibrationDevice.GetDefault();
+				myDevice.Vibrate(TimeSpan.FromSeconds(.12));
 			}
 		}
-		private async Task CloseAsync()
-		{
-			var briefcase = Briefcase.GetCurrentInstance();
-			if (briefcase != null)
-			{
-				await briefcase.CloseAsync().ConfigureAwait(false);
-				briefcase.Dispose();
-				briefcase = null;
-			}
-		}
+		#endregion services
 	}
 }

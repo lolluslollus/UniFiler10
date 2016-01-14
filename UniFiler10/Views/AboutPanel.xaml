@@ -126,6 +126,7 @@
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<StackPanel Grid.Row="0" Orientation="Horizontal">
@@ -136,16 +137,19 @@
 			<StackPanel Grid.Row="1" Orientation="Horizontal">
 				<Button Content="FileError" Click="OnLogButton_Click"/>
 				<Button Content="MyPersistentData" Click="OnLogButton_Click"/>
-				<Button Content="AppExc" Click="OnLogButton_Click"/>
 			</StackPanel>
 			<StackPanel Grid.Row="2" Orientation="Horizontal">
+				<Button Content="AppExc" Click="OnLogButton_Click"/>
+				<Button Content="AppEvents" Click="OnLogButton_Click"/>
+			</StackPanel>
+			<StackPanel Grid.Row="3" Orientation="Horizontal">
 				<Button Content="Clear" Click="OnLogButton_Click"/>
 			</StackPanel>
-			<Border Grid.Row="3"
+			<Border Grid.Row="4"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				BorderThickness="0"
 				Margin="{StaticResource PanelMargin2}">
-				<TextBlock Grid.Row="3" TextWrapping="Wrap"
+				<TextBlock TextWrapping="Wrap"
 					Text="{x:Bind LogText, Mode=OneWay}"
 					MinHeight="400" Unloaded="OnLogText_Unloaded" ScrollViewer.HorizontalScrollBarVisibility="Visible"/>
 			</Border>

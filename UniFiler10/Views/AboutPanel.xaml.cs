@@ -96,6 +96,10 @@ namespace UniFiler10.Views
 			{
 				LogText = await Logger.ReadAsync(Logger.AppExceptionLogFilename);
 			}
+			else if (cnt == "AppEvents")
+			{
+				LogText = await Logger.ReadAsync(Logger.AppEventsLogFilename);
+			}
 			else if (cnt == "Clear")
 			{
 				Logger.ClearAll();
