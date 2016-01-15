@@ -46,8 +46,47 @@ namespace UniFiler10.ViewModels
 			return _instance?._metaBriefcase?.IsElevated == true;
 		}
 
-		private volatile bool _isCanImportExport = true;
-		public bool IsCanImportExport { get { return _isCanImportExport; } private set { _isCanImportExport = value; RaisePropertyChanged_UI(); } }
+		private static readonly object _isImportingExportingLocker = new object();
+		public bool IsImportingSettings
+		{
+			get
+			{
+				lock (_isImportingExportingLocker)
+				{
+					string tf = RegistryAccess.GetValue(ConstantData.REG_SETTINGS_IS_IMPORTING);
+					return tf == true.ToString();
+				}
+			}
+			private set
+			{
+				lock (_isImportingExportingLocker)
+				{
+					RegistryAccess.SetValue(ConstantData.REG_SETTINGS_IS_IMPORTING, value.ToString());
+					RaisePropertyChanged_UI();
+					Logger.Add_TPL("IsImportingSettings = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				}
+			}
+		}
+		public bool IsExportingSettings
+		{
+			get
+			{
+				lock (_isImportingExportingLocker)
+				{
+					string tf = RegistryAccess.GetValue(ConstantData.REG_SETTINGS_IS_EXPORTING);
+					return tf == true.ToString();
+				}
+			}
+			private set
+			{
+				lock (_isImportingExportingLocker)
+				{
+					RegistryAccess.SetValue(ConstantData.REG_SETTINGS_IS_EXPORTING, value.ToString());
+					RaisePropertyChanged_UI();
+					Logger.Add_TPL("IsExportingSettings = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				}
+			}
+		}
 
 		private static SettingsVM _instance = null;
 		private AnimationStarter _animationStarter = null;
@@ -78,20 +117,20 @@ namespace UniFiler10.ViewModels
 		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
-			if (ImportExportMetadataEnded == null) ImportExportMetadataEnded += OnImportExportMetadataEnded;
-			await ResumeAfterImportSettingsAsync().ConfigureAwait(false);
-			await ResumeAfterExportSettingsAsync().ConfigureAwait(false);
-		}
-
-		private async void OnImportExportMetadataEnded(object sender, EventArgs e)
-		{
-			await ResumeAfterImportSettingsAsync().ConfigureAwait(false);
-			await ResumeAfterExportSettingsAsync().ConfigureAwait(false);
+			if (IsExportingSettings)
+			{
+				var file = await Pickers.GetLastPickedSaveFileJustOnceAsync().ConfigureAwait(false);
+				await ContinueAfterFileSavePickerAsync(file, Briefcase.GetCurrentInstance()).ConfigureAwait(false);
+			}
+			if (IsImportingSettings)
+			{
+				var file = await Pickers.GetLastPickedOpenFileJustOnceAsync().ConfigureAwait(false);
+				await ContinueAfterFileOpenPickerAsync(file, Briefcase.GetCurrentInstance()).ConfigureAwait(false);
+			}
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			ImportExportMetadataEnded -= OnImportExportMetadataEnded;
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
 		}
@@ -189,18 +228,24 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public void StartExport()
+		public async void StartExport()
 		{
 			var bc = Briefcase.GetCurrentInstance();
-			if (bc != null && _isCanImportExport)
+			if (bc != null && !IsExportingSettings)
 			{
-				IsCanImportExport = false;
-				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, true.ToString());
-				var pickTask = Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
-				var afterFilePickedTask = pickTask.ContinueWith(delegate
+				IsExportingSettings = true;
+
+				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
+
+				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
+				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingSettings will stay true.
+				// In OpenMayOverrideAsync, we check IsImportingSettings and, if true, we try again.
+				// ContinueAfter...() sets IsImportingSettings to false, so there won't be redundant attempts.
+				var isThrough = await RunFunctionIfOpenThreeStateAsyncT(delegate
 				{
-					return ContinueAfterFileSavePickerAsync(pickTask, bc);
-				});
+					Logger.Add_TPL("StartExportSettings(): _isOpen == true, about to call ContinueAfterFileSavePickerAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					return ContinueAfterFileSavePickerAsync(file, bc);
+				}).ConfigureAwait(false);
 			}
 			else
 			{
@@ -209,103 +254,47 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private async Task ContinueAfterFileSavePickerAsync(Task<StorageFile> pickTask, Briefcase bc)
+		private async Task ContinueAfterFileSavePickerAsync(StorageFile file, Briefcase bc)
 		{
 			bool isExported = false;
-			bool isNeedsContinuing = false;
+
 			try
 			{
-				if (bc != null)
+				if (bc != null && file != null)
 				{
-					var file = await pickTask.ConfigureAwait(false);
-					if (file != null)
-					{
-						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-						isExported = await bc.ExportSettingsAsync(file).ConfigureAwait(false);
-						if (!isExported && !bc.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
-					}
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					isExported = await bc.ExportSettingsAsync(file).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isExported)
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			}
-			if (isNeedsContinuing)
-			{
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING, true.ToString());
-			}
-			else
-			{
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING, false.ToString());
-				if (!isExported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING, false.ToString());
-				IsCanImportExport = true;
-			}
+			if (isExported) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 
-			ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
+			IsExportingSettings = false;
 		}
 
-		private async Task ResumeAfterExportSettingsAsync()
-		{
-			//string isExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_EXPORTING);
-			//if (isExporting == true.ToString())
-			//{
-			//	IsCanImportExport = false;
-			//	_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			string continueExporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING);
-			if (continueExporting == true.ToString())
-			{
-				IsCanImportExport = false;
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				await ContinueAfterFileSavePickerAsync(Pickers.GetLastPickedSaveFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
-			}
-			//}
-			else
-			{
-				IsCanImportExport = true;
-			}
-		}
-
-		private async Task ResumeAfterImportSettingsAsync()
-		{
-			//string isImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING);
-			//if (isImporting == true.ToString())
-			//{
-			//	IsCanImportExport = false;
-			//	_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING);
-			if (continueImporting == true.ToString())
-			{
-				IsCanImportExport = false;
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				await ContinueAfterFileOpenPickerAsync(Pickers.GetLastPickedOpenFileJustOnceAsync(), Briefcase.GetCurrentInstance()).ConfigureAwait(false);
-			}
-			//}
-			else
-			{
-				IsCanImportExport = true;
-			}
-		}
-
-		public void StartImport()
+		public async void StartImport()
 		{
 			var bc = Briefcase.GetCurrentInstance();
-			if (bc != null && _isCanImportExport)
+			if (bc != null && !IsImportingSettings)
 			{
-				IsCanImportExport = false;
-				// RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, true.ToString());
-				var pickTask = Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
-				var afterPickTask = pickTask.ContinueWith(delegate
-				{ // LOLLO TODO the manifest contains .xml, but as soon as I launch this, the hiking mate is started, automatically. Why? Because the hiking mate registered a file open picker, which is wrong.
-				  // LOLLO TODO I cannot put text/xml and application/xml into the manifest, why?
-					return ContinueAfterFileOpenPickerAsync(pickTask, bc);
-				});
+				IsImportingSettings = true;
+				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
+
+				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
+				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingSettings will stay true.
+				// In OpenMayOverrideAsync, we check IsImportingSettings and, if true, we try again.
+				// ContinueAfter...() sets IsImportingSettings to false, so there won't be redundant attempts.
+				var isThrough = await RunFunctionIfOpenThreeStateAsyncT(delegate
+				{
+					Logger.Add_TPL("StartImportSettings(): _isOpen == true, about to call ContinueAfterFileOpenPickerAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					return ContinueAfterFileOpenPickerAsync(file, bc);
+				}).ConfigureAwait(false);
 			}
 			else
 			{
@@ -314,26 +303,21 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private async Task ContinueAfterFileOpenPickerAsync(Task<StorageFile> pickTask, Briefcase bc)
+		private async Task ContinueAfterFileOpenPickerAsync(StorageFile file, Briefcase bc)
 		{
 			bool isImported = false;
-			bool isNeedsContinuing = false;
+
 			try
 			{
-				if (bc != null)
+				if (bc != null && file != null)
 				{
-					var file = await pickTask.ConfigureAwait(false);
-					if (file != null)
-					{
-						_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-						isImported = await bc.ImportSettingsAsync(file).ConfigureAwait(false);
-						if (!isImported && !bc.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock impexp.
-					}
+					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+					isImported = await bc.ImportSettingsAsync(file).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
 			}
 
 			_animationStarter.EndAllAnimations();
@@ -342,23 +326,14 @@ namespace UniFiler10.ViewModels
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
 				MetadataChanged?.Invoke(this, EventArgs.Empty);
 			}
-			if (isNeedsContinuing)
-			{
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING, true.ToString());
-				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, true.ToString());
-			}
 			else
 			{
-				RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING, false.ToString());
-				if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-				//RegistryAccess.SetValue(ConstantData.REG_IMPEXP_SETTINGS_IS_IMPORTING, false.ToString());
-				IsCanImportExport = true;
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 			}
 
-			ImportExportMetadataEnded?.Invoke(this, EventArgs.Empty);
+			IsImportingSettings = false;
 		}
 
-		private static event EventHandler ImportExportMetadataEnded;
 		public event EventHandler MetadataChanged;
 		#endregion user actions
 	}

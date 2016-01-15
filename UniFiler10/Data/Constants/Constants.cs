@@ -45,10 +45,10 @@ namespace UniFiler10.Data.Constants
 		//public const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
 
 		//public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
-		//public const string REG_IMPEXP_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
-		//public const string REG_IMPEXP_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
-		public const string REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING = "ImpExpSettings.ContinueExport";
-		public const string REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING = "ImpExpSettings.ContinueImport";
+		public const string REG_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
+		public const string REG_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
+		//public const string REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING = "ImpExpSettings.ContinueExport";
+		//public const string REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING = "ImpExpSettings.ContinueImport";
 
 		public const string REG_IMPORT_MERGE_BINDER_STEP1_CONTINUE = "ImportMergeBinder.Step1.Continue";
 		public const string REG_IMPORT_BINDER_STEP2_CONTINUE = "ImportBinder.Step2.Continue";

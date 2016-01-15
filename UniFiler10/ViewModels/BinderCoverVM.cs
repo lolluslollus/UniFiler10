@@ -457,7 +457,7 @@ namespace UniFiler10.ViewModels
 			if (IsImportingFolders)
 			{
 				Logger.Add_TPL("alphaWhenOpening", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				var dir = await Pickers.GetLastPickedFolderJustOnceAsync();
+				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
 				Logger.Add_TPL("dir == null = " + (dir == null).ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await ContinueAfterPickAsync(dir, _binder);
@@ -866,14 +866,8 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isImported)
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			}
-			else
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-			}
+			if (isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
+			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 
 			IsImportingFolders = false;
 			//ImportFoldersEnded?.Invoke(this, EventArgs.Empty);

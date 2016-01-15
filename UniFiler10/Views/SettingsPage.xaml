@@ -41,13 +41,13 @@
 
 			<ctl:LolloButton
 				Tapped="OnExport_Tapped"
-				IsEnabled="{x:Bind Path=VM.IsCanImportExport, Mode=OneWay, FallbackValue=false}"
+				IsEnabled="{x:Bind Path=VM.IsExportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
 				Symbol="Save"
 				Uid="Export"/>
 
 			<ctl:LolloButton
 				Tapped="OnImport_Tapped"
-				IsEnabled="{x:Bind Path=VM.IsCanImportExport, Mode=OneWay, FallbackValue=false}"
+				IsEnabled="{x:Bind Path=VM.IsImportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
 				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 				Symbol="Import"
 				Foreground="{StaticResource FlashyForeground}"
