@@ -200,7 +200,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task SetIdsForCatFilterAsync(string catId)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
 			{
 				CatIdForCatFilter = catId;
 			});
@@ -243,7 +243,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
 			{
 				CatIdForFldFilter = catId;
 				FldDscIdForFldFilter = fldDscId;
@@ -400,7 +400,7 @@ namespace UniFiler10.Data.Model
 
 		public Task SetCurrentFolderIdAsync(string folderId)
 		{
-			return RunFunctionWhileOpenAsyncT(delegate
+			return RunFunctionIfOpenAsyncT(delegate
 			{
 				CurrentFolderId = folderId;
 				return UpdateCurrentFolder2Async(false);
@@ -409,7 +409,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenCurrentFolderAsync()
 		{
-			return RunFunctionWhileOpenAsyncT(delegate
+			return RunFunctionIfOpenAsyncT(delegate
 			{
 				return UpdateCurrentFolder2Async(true);
 			});
@@ -417,7 +417,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenFolderAsync(string folderId)
 		{
-			return RunFunctionWhileOpenAsyncT(delegate
+			return RunFunctionIfOpenAsyncT(delegate
 			{
 				CurrentFolderId = folderId;
 				return UpdateCurrentFolder2Async(true);
@@ -428,7 +428,7 @@ namespace UniFiler10.Data.Model
 		{
 			var folder = new Folder(_dbManager);
 
-			bool isOk = await RunFunctionWhileOpenAsyncTB(async delegate
+			bool isOk = await RunFunctionIfOpenAsyncTB(async delegate
 			{
 				// folder.ParentId = Id; // folders may not have ParentId because they can be exported or imported
 				folder.Name = RuntimeData.GetText("NewFolder");
@@ -448,7 +448,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> ImportFoldersAsync(StorageFolder fromDirectory)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fromDirectory == null) return false;
 				bool isOk = false;
@@ -528,14 +528,14 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return RemoveFolder2Async(folderId);
 			});
 		}
 		public Task<bool> RemoveFolderAsync(Folder folder)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return RemoveFolder2Async(folder);
 			});
@@ -581,7 +581,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetAllFolderPreviewsAsync()
 		{
 			var output = new List<FolderPreview>();
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.All) return;
 
@@ -597,7 +597,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetRecentFolderPreviewsAsync()
 		{
 			var output = new List<FolderPreview>();
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Recent) return;
 
@@ -613,7 +613,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetByCatFolderPreviewsAsync()
 		{
 			var output = new List<FolderPreview>();
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Cat || _dbManager == null || _catIdForCatFilter == null || _catIdForCatFilter == DEFAULT_ID) return;
 
@@ -631,7 +631,7 @@ namespace UniFiler10.Data.Model
 		public async Task<List<FolderPreview>> GetByFldFolderPreviewsAsync()
 		{
 			var output = new List<FolderPreview>();
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null) return;
 

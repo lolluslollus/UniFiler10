@@ -94,7 +94,7 @@ namespace UniFiler10.Data.Model
 		#region while open methods
 		public Task<bool> RemoveContentAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				try
 				{

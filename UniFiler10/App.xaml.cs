@@ -27,7 +27,7 @@ namespace UniFiler10
 	{
 		public const string LAST_NAVIGATED_PAGE_REG_KEY = "LastNavigatedPage";
 		private static bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
-		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		#region lifecycle
 		/// <summary>
@@ -134,7 +134,7 @@ namespace UniFiler10
 			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
 			{
-				await _resumingActivatingSemaphore.WaitAsync();
+				//await _resumingActivatingSemaphore.WaitAsync();
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await OpenAsync().ConfigureAwait(false);
@@ -144,11 +144,11 @@ namespace UniFiler10
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
 			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			}
+			//finally
+			//{
+			//	SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+			//	Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			//}
 		}
 
 		/// <summary>
@@ -185,22 +185,22 @@ namespace UniFiler10
 			await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename);
 		}
 
-		public async Task RunUnderSemaphoreAsync(Func<Task> funcAsync)
-		{
-			try
-			{
-				await _resumingActivatingSemaphore.WaitAsync();
-				Logger.Add_TPL("RunUnderSemaphoreAsync() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//public async Task RunAfterResumingAsync(Func<Task> funcAsync)
+		//{
+		//	try
+		//	{
+		//		await _resumingActivatingSemaphore.WaitAsync();
+		//		Logger.Add_TPL("RunUnderSemaphoreAsync() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				await funcAsync().ConfigureAwait(false);
-				Logger.Add_TPL("RunUnderSemaphoreAsync() ended its task OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-			}
-			Logger.Add_TPL("RunUnderSemaphoreAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-		}
+		//		await funcAsync().ConfigureAwait(false);
+		//		Logger.Add_TPL("RunUnderSemaphoreAsync() ended its task OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//	}
+		//	finally
+		//	{
+		//		SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+		//	}
+		//	Logger.Add_TPL("RunUnderSemaphoreAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//}
 		#endregion event handlers
 
 

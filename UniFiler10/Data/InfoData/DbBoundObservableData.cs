@@ -59,7 +59,7 @@ namespace UniFiler10.Data.Model
 		//	{
 		//		fieldInfo.SetValue(this, newValue);
 
-		//		await RunFunctionWhileOpenAsyncA_MT(async delegate
+		//		await RunFunctionIfOpenAsyncA_MT(async delegate
 		//		{
 		//			if (UpdateDbMustOverride() == false)
 		//			{
@@ -79,7 +79,7 @@ namespace UniFiler10.Data.Model
 				fldValue = newValue;
 				RaisePropertyChanged_UI(propertyName);
 
-				Task db = RunFunctionWhileOpenAsyncA_MT(async delegate
+				Task db = RunFunctionIfOpenAsyncA_MT(async delegate
 				{
 					if (UpdateDbMustOverride() == false)
 					{

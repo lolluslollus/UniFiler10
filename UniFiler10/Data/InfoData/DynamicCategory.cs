@@ -54,7 +54,7 @@ namespace UniFiler10.Data.Model
 					UpdateCategory2();
 					RaisePropertyChanged_UI();
 
-					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
 						if (_dbManager?.UpdateDynamicCategories(this) == false)
 						{

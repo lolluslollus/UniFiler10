@@ -41,7 +41,7 @@ namespace UniFiler10.Views
 
 		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			Task upd = RunFunctionWhileOpenAsyncT(delegate
+			Task upd = RunFunctionIfOpenAsyncT(delegate
 			{
 				return UpdateFolderVMAsync();
 			});

@@ -20,7 +20,7 @@ namespace Utilz
 
 		private static readonly SemaphoreSlimSafeRelease _semaphore = new SemaphoreSlimSafeRelease(1, 1); // , "LOLLOLoggerSemaphore");
 		private const long MAX_SIZE_BYTES = 16000;
-		public const string DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss.fff";
+		public const string DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss.ffffff";
 
 		static Logger()
 		{

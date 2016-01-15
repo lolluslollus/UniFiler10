@@ -184,7 +184,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> SetCurrentBinderNameAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				CurrentBinderName = dbName;
 				return UpdateCurrentBinder2Async(false);
@@ -193,7 +193,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenCurrentBinderAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return UpdateCurrentBinder2Async(true);
 			});
@@ -201,7 +201,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenBinderAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				CurrentBinderName = dbName;
 				return UpdateCurrentBinder2Async(true);
@@ -210,7 +210,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddBinderAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return AddBinder2Async(dbName);
 			});
@@ -232,7 +232,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> DeleteBinderAsync(string dbName)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName)) return false;
 
@@ -306,7 +306,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> ImportBinderAsync(StorageFolder fromStorageFolder)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fromStorageFolder == null) return false;
 				bool isOk = false;
@@ -331,7 +331,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> MergeBinderAsync(StorageFolder fromDirectory)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fromDirectory == null || string.IsNullOrWhiteSpace(fromDirectory.Name) || !_dbNames.Contains(fromDirectory.Name)) return false;
 
@@ -373,7 +373,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> CloseCurrentBinderAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate { return CloseCurrentBinder2Async(); });
+			return RunFunctionIfOpenAsyncTB(delegate { return CloseCurrentBinder2Async(); });
 		}
 		private async Task<bool> CloseCurrentBinder2Async()
 		{
@@ -391,11 +391,11 @@ namespace UniFiler10.Data.Model
 
 		public Task<BoolWhenOpen> IsDbNameAvailableAsync(string dbName)
 		{
-			return RunFunctionWhileOpenThreeStateAsyncB(delegate { return _dbNames.Contains(dbName); });
+			return RunFunctionIfOpenThreeStateAsyncB(delegate { return _dbNames.Contains(dbName); });
 		}
 		public Task<bool> IsNewDbNameWrongAsync(string newDbName)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate { return IsNewDbNameWrong2(newDbName); });
+			return RunFunctionIfOpenAsyncB(delegate { return IsNewDbNameWrong2(newDbName); });
 		}
 		private bool IsNewDbNameWrong2(string newDbName)
 		{
@@ -410,7 +410,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> ExportSettingsAsync(StorageFile toFile)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				var mbc = MetaBriefcase.GetCreateInstance();
 				return mbc.SaveACopyAsync(toFile);
@@ -418,7 +418,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> ImportSettingsAsync(StorageFile fromFile)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fromFile == null) return false;
 

@@ -177,7 +177,7 @@ namespace UniFiler10.Controlz
 			return false;
 		}
 
-		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
+		protected async Task<bool> RunFunctionIfOpenAsyncA(Action func)
 		{
 			if (_isOpen)
 			{
@@ -202,7 +202,7 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
+		protected async Task<bool> RunFunctionIfOpenAsyncB(Func<bool> func)
 		{
 			if (_isOpen)
 			{
@@ -223,7 +223,7 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
+		protected async Task<bool> RunFunctionIfOpenAsyncT(Func<Task> funcAsync)
 		{
 			if (_isOpen)
 			{
@@ -248,7 +248,7 @@ namespace UniFiler10.Controlz
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
+		protected async Task<bool> RunFunctionIfOpenAsyncTB(Func<Task<bool>> funcAsync)
 		{
 			if (_isOpen)
 			{

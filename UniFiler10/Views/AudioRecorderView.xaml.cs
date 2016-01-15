@@ -56,7 +56,7 @@ namespace UniFiler10.Views
 		[STAThread]
 		public Task<bool> StartAsync(StorageFile file)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				bool isOk = false;
 				RecordingStoryboard.Begin();
@@ -129,7 +129,7 @@ namespace UniFiler10.Views
 		public Task<bool> StopAsync()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return Stop2Async();
 			});

@@ -112,21 +112,21 @@ namespace UniFiler10.ViewModels
 		#region user actions
 		public Task<bool> TrySetFieldValueAsync(DynamicField dynFld, string newValue)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return dynFld?.TrySetFieldValueAsync(newValue);
 			});
 		}
 		public Task<bool> RemoveWalletFromFolderAsync(Wallet wallet)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return _folder?.RemoveWalletAsync(wallet);
 			});
 		}
 		public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				bool isOk = false;
 				if (wallet != null)
@@ -347,7 +347,7 @@ namespace UniFiler10.ViewModels
 		{
 			if (!_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 			{
-				await RunFunctionWhileOpenAsyncT(async delegate
+				await RunFunctionIfOpenAsyncT(async delegate
 				{
 					if (!_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 					{

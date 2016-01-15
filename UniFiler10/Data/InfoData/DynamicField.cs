@@ -54,7 +54,7 @@ namespace UniFiler10.Data.Model
 					UpdateDynamicValues2();
 					RaisePropertyChanged_UI();
 
-					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
 						if (_dbManager?.UpdateDynamicFields(this) == false)
 						{
@@ -92,7 +92,7 @@ namespace UniFiler10.Data.Model
 					UpdateDynamicValues2();
 					RaisePropertyChanged_UI();
 
-					Task upd = RunFunctionWhileOpenAsyncA_MT(delegate
+					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
 						if (_dbManager?.UpdateDynamicFields(this) == false)
 						{
@@ -157,7 +157,7 @@ namespace UniFiler10.Data.Model
 		#region while open methods
 		public Task<bool> TrySetFieldValueAsync(string newValue)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (_fieldDescription == null) return false;
 

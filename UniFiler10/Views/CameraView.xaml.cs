@@ -84,7 +84,7 @@ namespace UniFiler10.Views
 		[STAThread]
 		public Task<bool> StartAsync(StorageFile file)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				_file = file;
 				await SetupUiAsync();
@@ -115,7 +115,7 @@ namespace UniFiler10.Views
 		public Task<bool> StopAsync()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			return RunFunctionWhileOpenAsyncTB(delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				return Stop2Async();
 			});
@@ -125,7 +125,7 @@ namespace UniFiler10.Views
 			// LOLLO it may get stuck taking the photo, locking the semaphore forever.
 			// better give it a timeout, or preventing it getting stuck. how? for example, do not set huge unsupported capture sizes.
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			await RunFunctionWhileOpenAsyncT(async delegate
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				await TakePhotoAsync();
 				await Stop2Async();
@@ -261,7 +261,7 @@ namespace UniFiler10.Views
 
 		//private async void OnVideoButton_Tapped(object sender, TappedRoutedEventArgs e)
 		//{
-		//await RunFunctionWhileOpenAsyncT(async delegate
+		//await RunFunctionIfOpenAsyncT(async delegate
 		//{
 		//    if (!_isRecordingVideo)
 		//    {

@@ -205,7 +205,7 @@ namespace Utilz
 		#region record
 		public Task<bool> RecordStartAsync()
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				_messageWriter.LastMessage = RuntimeData.GetText("AudioRecordingStarted");
 				try
@@ -221,7 +221,7 @@ namespace Utilz
 		}
 		public Task<bool> RecordStopAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				// Good idea to stop the graph to avoid data loss
 				try

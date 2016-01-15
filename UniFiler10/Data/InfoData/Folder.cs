@@ -336,7 +336,7 @@ namespace UniFiler10.Data.Model
 		#region while open methods
 		public Task<bool> SetDbManager(DBManager dbManager)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate
+			return RunFunctionIfOpenAsyncA(delegate
 			{
 				_dbManager = dbManager;
 				foreach (var wal in _wallets)
@@ -359,7 +359,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> AddWalletAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				var wallet = new Wallet(_dbManager, Id);
 				return await AddWallet2Async(wallet).ConfigureAwait(false);
@@ -391,7 +391,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveWalletsAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				while (_wallets?.Count > 0)
 				{
@@ -403,7 +403,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> RemoveWalletAsync(Wallet wallet)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				return await RemoveWallet2Async(wallet).ConfigureAwait(false);
 			});
@@ -428,7 +428,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddDynamicCategoryAsync(string catId)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
@@ -457,7 +457,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDynamicCategoryAndItsFieldsAsync(string catId)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				return await RemoveDynamicCategoryAndItsDynFields2Async(catId).ConfigureAwait(false);
 			});
@@ -494,7 +494,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (_dbManager != null && file != null)
 				{

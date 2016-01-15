@@ -113,7 +113,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> AddDocumentAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				var doc = new Document(_dbManager, Id);
 				return await AddDocument2Async(doc).ConfigureAwait(false);
@@ -140,7 +140,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDocumentsAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				while (_documents?.Count > 0)
 				{
@@ -152,7 +152,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDocumentAsync(Document doc)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				return await RemoveDocument2Async(doc).ConfigureAwait(false);
 			});
@@ -160,7 +160,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> ImportMediaFileAsync(StorageFile file, bool copyFile)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (_dbManager != null && file != null && await file.GetFileSizeAsync() > 0)
 				{

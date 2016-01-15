@@ -94,7 +94,7 @@ namespace UniFiler10.Views
 		#region event handlers
 		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			Task upd = RunFunctionWhileOpenAsyncT(delegate
+			Task upd = RunFunctionIfOpenAsyncT(delegate
 			{
 				return UpdateVMAsync();
 			});
@@ -107,7 +107,7 @@ namespace UniFiler10.Views
 
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			Task upd = RunFunctionWhileOpenAsyncT(async delegate
+			Task upd = RunFunctionIfOpenAsyncT(async delegate
 			{
 				var vm = _vm;
 				if (vm != null)
@@ -128,7 +128,7 @@ namespace UniFiler10.Views
 
 		private void OnAddAndOpenFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task upd = RunFunctionWhileOpenAsyncT(async delegate
+			Task upd = RunFunctionIfOpenAsyncT(async delegate
 			{
 				var vm = _vm;
 				if (vm != null)

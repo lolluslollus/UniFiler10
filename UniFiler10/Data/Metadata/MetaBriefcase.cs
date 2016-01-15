@@ -298,7 +298,7 @@ namespace UniFiler10.Data.Metadata
 		#region while open methods
 		public Task SetCurrentCategoryAsync(Category cat)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate
+			return RunFunctionIfOpenAsyncA(delegate
 			{
 				if (cat != null)
 				{
@@ -309,7 +309,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task SetCurrentFieldDescriptionAsync(FieldDescription fldDsc)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate
+			return RunFunctionIfOpenAsyncA(delegate
 			{
 				if (fldDsc != null)
 				{
@@ -320,12 +320,12 @@ namespace UniFiler10.Data.Metadata
 
 		public Task SetIsElevatedAsync(bool newValue)
 		{
-			return RunFunctionWhileOpenAsyncA(delegate { IsElevated = newValue; });
+			return RunFunctionIfOpenAsyncA(delegate { IsElevated = newValue; });
 		}
 
 		public Task<bool> AddCategoryAsync()
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				string name = RuntimeData.GetText("NewCategory");
 				var newCat = new Category() { Name = name, IsCustom = true, IsJustAdded = true };
@@ -340,7 +340,7 @@ namespace UniFiler10.Data.Metadata
 		}
 		public Task<bool> RemoveCategoryAsync(Category cat)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (cat != null && (cat.IsJustAdded || _isElevated))
 				{
@@ -355,7 +355,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AddFieldDescriptionAsync()
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				string name = RuntimeData.GetText("NewFieldDescription");
 				var newFieldDesc = new FieldDescription() { Caption = name, IsCustom = true, IsJustAdded = true };
@@ -371,7 +371,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (fldDesc != null && (fldDesc.IsJustAdded || _isElevated))
 				{
@@ -387,7 +387,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (_currentFieldDescription == null) return false;
 
@@ -408,7 +408,7 @@ namespace UniFiler10.Data.Metadata
 		/// <returns></returns>
 		public Task<bool> AddPossibleValueToFieldDescriptionAsync(FieldDescription fldDsc, FieldValue newFldVal, bool save)
 		{
-			return RunFunctionWhileOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fldDsc == null || newFldVal == null) return false;
 
@@ -420,7 +420,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (fldVal == null || _currentFieldDescription == null || (!fldVal.IsJustAdded && !_isElevated)) return false;
 
@@ -430,7 +430,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AssignFieldDescriptionToCurrentCategoryAsync(FieldDescription fldDsc)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (fldDsc == null || _currentCategory == null) return false;
 
@@ -440,7 +440,7 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> UnassignFieldDescriptionFromCurrentCategoryAsync(FieldDescription fldDsc)
 		{
-			return RunFunctionWhileOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (fldDsc == null || _currentCategory == null || (!fldDsc.JustAssignedToCats.Contains(_currentCategoryId) && !_isElevated)) return false;
 
@@ -450,13 +450,13 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate { return SaveAsync(file); });
+			return RunFunctionIfOpenAsyncTB(delegate { return SaveAsync(file); });
 			//return SaveAsync(file);
 		}
 
 		public Task<bool> SaveACopyAsync()
 		{
-			return RunFunctionWhileOpenAsyncTB(delegate { return SaveAsync(); });
+			return RunFunctionIfOpenAsyncTB(delegate { return SaveAsync(); });
 		}
 		#endregion while open methods
 	}

@@ -26,10 +26,10 @@ namespace UniFiler10.Data.Constants
 
 		//public const string TEMP_DIR_4_IMPORT_FOLDERS = "ImportFoldersDir";
 		////public const string REG_IMPORT_FOLDERS_SOURCE_BINDER_NAME = "ImportFolders.SourceBinderBinder.Name";
-		public const string REG_IMPORT_FOLDERS_BINDER_NAME = "ImportFolders.Binder.Name";
+		//public const string REG_IMPORT_FOLDERS_BINDER_NAME = "ImportFolders.Binder.Name";
 		//public const string REG_IMPORT_FOLDERS_DIR_PATH = "ImportFolders.Dir.Path";
-		//public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
-		public const string REG_IMPORT_FOLDERS_CONTINUE_IMPORTING = "ImportFolders.ContinueImport";
+		public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
+		//public const string REG_IMPORT_FOLDERS_CONTINUE_IMPORTING = "ImportFolders.ContinueImport";
 
 		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO NOTE this fails with the phone, wav is good
 		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.wav";

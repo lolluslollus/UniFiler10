@@ -169,7 +169,7 @@ namespace UniFiler10.ViewModels
 		//	var binder = _binder;
 		//	if (binder?.IsOpen == true && parentFolder != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
 		//	{
-		//		await RunFunctionWhileOpenAsyncT(async delegate
+		//		await RunFunctionIfOpenAsyncT(async delegate
 		//		{
 		//			if (binder?.IsOpen == true && parentFolder != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
 		//			{
@@ -192,7 +192,7 @@ namespace UniFiler10.ViewModels
 		//	var binder = _binder;
 		//	if (binder?.IsOpen == true && parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
 		//	{
-		//		await RunFunctionWhileOpenAsyncT(async delegate
+		//		await RunFunctionIfOpenAsyncT(async delegate
 		//		{
 		//			if (binder?.IsOpen == true && parentWallet != null && !_isCameraOverlayOpen && RuntimeData.Instance?.IsCameraAvailable == true)
 		//			{
@@ -216,7 +216,7 @@ namespace UniFiler10.ViewModels
 		//	var binder = _binder;
 		//	if (binder?.IsOpen == true && parentFolder != null && !_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 		//	{
-		//		await RunFunctionWhileOpenAsyncT(async delegate
+		//		await RunFunctionIfOpenAsyncT(async delegate
 		//		{
 		//			if (binder?.IsOpen == true && parentFolder != null && !_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 		//			{

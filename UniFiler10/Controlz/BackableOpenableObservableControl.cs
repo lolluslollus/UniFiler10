@@ -263,7 +263,7 @@ namespace UniFiler10.Controlz
 		//	// if (_backableChildren.Count <= 0)
 		//	if (!(await HasBackableChildrenAsync()))
 		//	{
-		//		return await RunFunctionWhileOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
+		//		return await RunFunctionIfOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
 		//	}
 		//	else
 		//	{
@@ -276,7 +276,7 @@ namespace UniFiler10.Controlz
 		//				if (await child_found.GoBack()) return true;
 		//			}
 		//		}
-		//		return await RunFunctionWhileOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
+		//		return await RunFunctionIfOpenAsyncA(GoBackMustOverride).ConfigureAwait(false);
 		//	}
 		//}
 		//protected abstract void GoBackMustOverride();

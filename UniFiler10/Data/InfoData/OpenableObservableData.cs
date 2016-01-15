@@ -10,122 +10,145 @@ using Utilz;
 
 namespace UniFiler10.Data.Model
 {
-    [DataContract]
-    public abstract class OpenableObservableData : ObservableData, IDisposable, IOpenable
-    {
+	[DataContract]
+	public abstract class OpenableObservableData : ObservableData, IDisposable, IOpenable
+	{
 		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
-        protected volatile bool _isOpen = false;
-        [IgnoreDataMember]
-        [Ignore]
-        public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
+		protected volatile bool _isOpen = false;
+		[IgnoreDataMember]
+		[Ignore]
+		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
-        protected volatile bool _isDisposed = false;
-        [IgnoreDataMember]
-        [Ignore]
-        public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
+		protected volatile bool _isDisposed = false;
+		[IgnoreDataMember]
+		[Ignore]
+		public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        protected virtual void Dispose(bool isDisposing)
-        {
-            _isDisposed = true;
-            CloseAsync().Wait();
-            ClearListeners();
-        }
+		//protected List<Func<Task>> _runAsSoonAsOpens = new List<Func<Task>>();
 
-        public virtual async Task<bool> OpenAsync()
-        {
-            if (!_isOpen)
-            {
-                if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-                    if (!_isOpen)
-                    {
-                        await OpenMayOverrideAsync().ConfigureAwait(false);
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+		protected virtual void Dispose(bool isDisposing)
+		{
+			_isDisposed = true;
+			CloseAsync().Wait();
+			ClearListeners();
 
-                        IsOpen = true;
-                        return true;
-                    }
-                }
-                catch (Exception exc)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
-                        await Logger.AddAsync(GetType().Name + exc.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+			//if (_runAsSoonAsOpens.Count > 0) Logger.Add_TPL("disposed, _runAsSoonAsOpens not cleared", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		}
+
+		public virtual async Task<bool> OpenAsync()
+		{
+			if (!_isOpen)
+			{
+				if (!SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore)) _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+				try
+				{
+					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					if (!_isOpen)
+					{
+						await OpenMayOverrideAsync().ConfigureAwait(false);
+
+						IsOpen = true;
+						return true;
+					}
 				}
-            }
-            return false;
-        }
+				catch (Exception exc)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						await Logger.AddAsync(GetType().Name + exc.ToString(), Logger.ForegroundLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+
+					//if (_runAsSoonAsOpens.Count > 0)
+					//{
+					//	Logger.Add_TPL("_runAsSoonAsOpens about to be started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//	Logger.Add_TPL("IsOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//}
+					//if (_isOpen)
+					//{
+					//	foreach (var funcAsync in _runAsSoonAsOpens)
+					//	{
+					//		Logger.Add_TPL("_runAsSoonAsOpens task about to start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//		await RunFunctionIfOpenAsyncT(funcAsync);
+					//		Logger.Add_TPL("_runAsSoonAsOpens task completed", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//	}
+					//	if (_runAsSoonAsOpens.Count > 0) Logger.Add_TPL("_runAsSoonAsOpens about to be cleared", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//	_runAsSoonAsOpens.Clear();						
+					//}
+				}
+			}
+			return false;
+		}
 #pragma warning disable 1998
-        protected virtual async Task OpenMayOverrideAsync() { } // LOLLO return null; dumps, so we live with the warning
+		protected virtual async Task OpenMayOverrideAsync() { } // LOLLO return null; dumps, so we live with the warning
 #pragma warning restore 1998
-        public virtual async Task<bool> CloseAsync()
-        {
-            if (_isOpen)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-                    if (_isOpen)
-                    {
-                        IsOpen = false;
+		public virtual async Task<bool> CloseAsync()
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					if (_isOpen)
+					{
+						IsOpen = false;
 
-                        await CloseMayOverrideAsync().ConfigureAwait(false);
+						//_runAsSoonAsOpens.Clear();
+						//Logger.Add_TPL("_runAsSoonAsOpens cleared", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+						await CloseMayOverrideAsync().ConfigureAwait(false);
 
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						return true;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
 						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
-                    _isOpenSemaphore = null;
-                }
-            }
-            return false;
-        }
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryDispose(_isOpenSemaphore);
+					_isOpenSemaphore = null;
+				}
+			}
+			return false;
+		}
 #pragma warning disable 1998
-        protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
+		protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
 #pragma warning restore 1998
 
-		protected async Task<bool> RunFunctionWhileOpenAsyncA(Action func)
-        {
-            if (_isOpen)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+		protected async Task<bool> RunFunctionIfOpenAsyncA(Action func)
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
 					if (_isOpen)
 					{
 						func();
 						return true;
 					}
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
 						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
 			return false;
-        }
-		protected async Task<bool> RunFunctionWhileOpenAsyncA_MT(Action func)
+		}
+		protected async Task<bool> RunFunctionIfOpenAsyncA_MT(Action func)
 		{
 			if (_isOpen)
 			{
@@ -150,7 +173,7 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncB_MT(Func<bool> func)
+		protected async Task<bool> RunFunctionIfOpenAsyncB_MT(Func<bool> func)
 		{
 			if (_isOpen)
 			{
@@ -175,30 +198,30 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionWhileOpenAsyncB(Func<bool> func)
-        {
+		protected async Task<bool> RunFunctionIfOpenAsyncB(Func<bool> func)
+		{
 			if (_isOpen)
 			{
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen) return func();
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen) return func();
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
 						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            return false;
-        }
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return false;
+		}
 
 		public enum BoolWhenOpen { Yes, No, ObjectClosed, Error };
-		protected async Task<BoolWhenOpen> RunFunctionWhileOpenThreeStateAsyncB(Func<bool> func)
+		protected async Task<BoolWhenOpen> RunFunctionIfOpenThreeStateAsyncB(Func<bool> func)
 		{
 			BoolWhenOpen result = BoolWhenOpen.ObjectClosed;
 			if (_isOpen)
@@ -228,53 +251,189 @@ namespace UniFiler10.Data.Model
 			return result;
 		}
 
-		protected async Task<bool> RunFunctionWhileOpenAsyncT(Func<Task> funcAsync)
-        {
-            if (_isOpen)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+		//protected async Task<bool> RunFunctionIfOpenAsyncT(Func<Task> funcAsync, bool scheduleIfClosed = false)
+		//{
+		//	if (_isOpen)
+		//	{
+		//		try
+		//		{
+		//			await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+		//			if (_isOpen)
+		//			{
+		//				await funcAsync().ConfigureAwait(false);
+		//				return true;
+		//			}
+		//			else if (scheduleIfClosed)
+		//			{
+		//				_runAsSoonAsOpens.Add(funcAsync);
+		//				Logger.Add_TPL("record added to _runAsSoonAsOpens within semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//			}
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		//				await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+		//		}
+		//		finally
+		//		{
+		//			SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+		//		}
+		//	}
+		//	else if (scheduleIfClosed)
+		//	{
+		//		_runAsSoonAsOpens.Add(funcAsync);
+		//		Logger.Add_TPL("record added to _runAsSoonAsOpens outside semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//		//try
+		//		//{
+		//		//	await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+		//		//	_runAsSoonAsOpens.Add(funcAsync);
+		//		//	Logger.Add_TPL("record added to _runAsSoonAsOpens", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//		//}
+		//		//catch (Exception ex)
+		//		//{
+		//		//	if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		//		//		await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+		//		//}
+		//		//finally
+		//		//{
+		//		//	SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+		//		//}
+		//	}
+
+		//	return false;
+		//}
+
+		protected async Task<bool> RunFunctionIfOpenAsyncT(Func<Task> funcAsync)
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
 					if (_isOpen)
 					{
 						await funcAsync().ConfigureAwait(false);
 						return true;
 					}
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
 						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+
 			return false;
-        }
-        protected async Task<bool> RunFunctionWhileOpenAsyncTB(Func<Task<bool>> funcAsync)
-        {
-            if (_isOpen)
-            {
-                try
-                {
-                    await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
-                    if (_isOpen) return await funcAsync().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		}
+
+		protected async Task<BoolWhenOpen> RunFunctionIfOpenThreeStateAsyncT(Func<Task> funcAsync)
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen)
+					{
+						await funcAsync().ConfigureAwait(false);
+						return BoolWhenOpen.Yes;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+					{
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+						return BoolWhenOpen.Error;
+					}
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+
+			return BoolWhenOpen.ObjectClosed;
+		}
+
+		//protected async Task<BoolWhenOpen> RunFunctionIfOpenThreeStateAsyncT(Func<Task> funcAsync, bool scheduleIfClosed = false)
+		//{
+		//	if (_isOpen)
+		//	{
+		//		try
+		//		{
+		//			await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+		//			if (_isOpen)
+		//			{
+		//				await funcAsync().ConfigureAwait(false);
+		//				return BoolWhenOpen.Yes;
+		//			}
+		//			else if (scheduleIfClosed)
+		//			{
+		//				_runAsSoonAsOpens.Add(funcAsync);
+		//				Logger.Add_TPL("record added to _runAsSoonAsOpens within semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//			}
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		//				await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+		//		}
+		//		finally
+		//		{
+		//			SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+		//		}
+		//	}
+		//	else if (scheduleIfClosed)
+		//	{
+		//		_runAsSoonAsOpens.Add(funcAsync);
+		//		Logger.Add_TPL("record added to _runAsSoonAsOpens outside semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//		//try
+		//		//{
+		//		//	await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+		//		//	_runAsSoonAsOpens.Add(funcAsync);
+		//		//	Logger.Add_TPL("record added to _runAsSoonAsOpens", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		//		//}
+		//		//catch (Exception ex)
+		//		//{
+		//		//	if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+		//		//		await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+		//		//}
+		//		//finally
+		//		//{
+		//		//	SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+		//		//}
+		//	}
+
+		//	return false;
+		//}
+
+		protected async Task<bool> RunFunctionIfOpenAsyncTB(Func<Task<bool>> funcAsync)
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen) return await funcAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
 						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
-                }
-            }
-            return false;
-        }
-    }
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return false;
+		}
+	}
 
 	public interface IOpenable
 	{
