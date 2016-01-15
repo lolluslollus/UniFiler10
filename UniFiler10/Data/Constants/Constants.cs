@@ -24,31 +24,19 @@ namespace UniFiler10.Data.Constants
 		//public const string BAK_EXPORT_BINDER_TEMP_DIR = "ExportBinderDir";
 		public const string REG_EXPORT_BINDER_CONTINUE_EXPORTING = "ExportBinder.ContinueExport";
 
-		//public const string TEMP_DIR_4_IMPORT_FOLDERS = "ImportFoldersDir";
-		////public const string REG_IMPORT_FOLDERS_SOURCE_BINDER_NAME = "ImportFolders.SourceBinderBinder.Name";
-		//public const string REG_IMPORT_FOLDERS_BINDER_NAME = "ImportFolders.Binder.Name";
-		//public const string REG_IMPORT_FOLDERS_DIR_PATH = "ImportFolders.Dir.Path";
 		public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
-		//public const string REG_IMPORT_FOLDERS_CONTINUE_IMPORTING = "ImportFolders.ContinueImport";
 
 		// public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3"; // LOLLO NOTE this fails with the phone, wav is good
 		public const string DEFAULT_AUDIO_FILE_NAME = "Audio.wav";
 		public const string DEFAULT_PHOTO_FILE_NAME = "Photo.jpg";
 
-		public const string REG_FP_CONTINUE_IMPORTING = "FilePicker.ContinueImporting";
-		public const string REG_FP_FOLDERID = "FilePicker.FolderId";
-		public const string REG_FP_PARENTWALLETID = "FilePicker.ParentWalletId";
-		public const string REG_FP_FILEPATH = "FilePicker.FilePath";
+		public const string REG_IMPORT_MEDIA_IS_IMPORTING = "ImportMedia.IsImporting";
+		public const string REG_IMPORT_MEDIA_FOLDERID = "ImportMedia.FolderId";
+		public const string REG_IMPORT_MEDIA_PARENTWALLETID = "ImportMedia.ParentWalletId";
+		public const string REG_IMPORT_MEDIA_IS_SHOOTING = "ImportMedia.IsShooting";
 
-		//public const string REG_SHOOT_FOLDERID = "ShootUi.FolderId";
-		//public const string REG_SHOOT_PARENTWALLET = "ShootUi.ParentWallet";
-		//public const string REG_SHOOT_FILEPATH = "ShootUi.FilePath";
-
-		//public const string REG_IMPORT_SETTINGS_FILEPATH = "SettingsFilePicker.ImportFilePath";
 		public const string REG_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
 		public const string REG_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
-		//public const string REG_IMPEXP_SETTINGS_CONTINUE_EXPORTING = "ImpExpSettings.ContinueExport";
-		//public const string REG_IMPEXP_SETTINGS_CONTINUE_IMPORTING = "ImpExpSettings.ContinueImport";
 
 		public const string REG_IMPORT_MERGE_BINDER_STEP1_CONTINUE = "ImportMergeBinder.Step1.Continue";
 		public const string REG_IMPORT_BINDER_STEP2_CONTINUE = "ImportBinder.Step2.Continue";

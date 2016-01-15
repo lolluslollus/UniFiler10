@@ -19,7 +19,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-		<ContentControl Grid.Row="0" IsEnabled="{x:Bind Path=VM.IsCanImportMedia, Mode=OneWay, FallbackValue=false}">
+		<ContentControl Grid.Row="0" IsEnabled="{x:Bind Path=VM.IsImportingMedia, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}">
 			<StackPanel Orientation="Horizontal">
 				<AppBarButton
 					Icon="Camera"

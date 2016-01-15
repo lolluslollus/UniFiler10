@@ -457,7 +457,7 @@ namespace UniFiler10.ViewModels
 			if (IsImportingFolders)
 			{
 				Logger.Add_TPL("alphaWhenOpening", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
+				var dir = await Pickers.GetLastPickedFolderAsync().ConfigureAwait(false);
 				Logger.Add_TPL("dir == null = " + (dir == null).ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await ContinueAfterPickAsync(dir, _binder);
@@ -777,6 +777,7 @@ namespace UniFiler10.ViewModels
 			{
 				IsImportingFolders = true;
 				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingFolders will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingFolders and, if true, we try again.

@@ -119,12 +119,12 @@ namespace UniFiler10.ViewModels
 		{
 			if (IsExportingSettings)
 			{
-				var file = await Pickers.GetLastPickedSaveFileJustOnceAsync().ConfigureAwait(false);
+				var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
 				await ContinueAfterFileSavePickerAsync(file, Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
 			if (IsImportingSettings)
 			{
-				var file = await Pickers.GetLastPickedOpenFileJustOnceAsync().ConfigureAwait(false);
+				var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
 				await ContinueAfterFileOpenPickerAsync(file, Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
 		}

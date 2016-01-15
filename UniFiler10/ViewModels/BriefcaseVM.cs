@@ -355,7 +355,7 @@ namespace UniFiler10.ViewModels
 			{
 				Task run = RunInUiThreadAsync(delegate
 				{
-					Task cont = ContinueAfterImportSourceDirPickedStep1Async(_briefcase, Pickers.GetLastPickedFolderJustOnceAsync());
+					Task cont = ContinueAfterImportSourceDirPickedStep1Async(_briefcase, Pickers.GetLastPickedFolderAsync());
 				});
 				//				await ContinueAfterImportSourceDirPickedStep1(_briefcase, Pickers.GetLastPickedFolderJustOnceAsync()).ConfigureAwait(false);
 			}
@@ -368,7 +368,7 @@ namespace UniFiler10.ViewModels
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
+				var dir = await Pickers.GetLastPickedFolderAsync().ConfigureAwait(false);
 				await ContinueAfterPickImportBinderStep2Async(_briefcase, dir).ConfigureAwait(false);
 			}
 			else
@@ -384,7 +384,7 @@ namespace UniFiler10.ViewModels
 			{
 				IsCanImportExport = false;
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-				var dir = await Pickers.GetLastPickedFolderJustOnceAsync().ConfigureAwait(false);
+				var dir = await Pickers.GetLastPickedFolderAsync().ConfigureAwait(false);
 				await ContinueAfterPickMergeBinderStep2Async(_briefcase, dir).ConfigureAwait(false);
 			}
 			else

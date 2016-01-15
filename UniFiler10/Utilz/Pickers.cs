@@ -93,7 +93,7 @@ namespace Utilz
 			return file;
 		}
 
-		public static async Task<StorageFolder> GetLastPickedFolderJustOnceAsync()
+		public static async Task<StorageFolder> GetLastPickedFolderAsync()
 		{
 			StorageFolder result = null;
 			try
@@ -107,7 +107,15 @@ namespace Utilz
 			return result;
 		}
 
-		public static async Task<StorageFile> GetLastPickedOpenFileJustOnceAsync()
+		public static void SetLastPickedOpenFile(StorageFile file)
+		{
+			if (file != null)
+			{
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_OPEN_FILE_TOKEN, file);
+			}
+		}
+
+		public static async Task<StorageFile> GetLastPickedOpenFileAsync()
 		{
 			StorageFile result = null;
 			try
@@ -121,7 +129,7 @@ namespace Utilz
 			return result;
 		}
 
-		public static async Task<StorageFile> GetLastPickedSaveFileJustOnceAsync()
+		public static async Task<StorageFile> GetLastPickedSaveFileAsync()
 		{
 			StorageFile result = null;
 			try
