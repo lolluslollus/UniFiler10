@@ -48,7 +48,6 @@ namespace UniFiler10.ViewModels
 				{
 					RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
-					Logger.Add_TPL("IsImportingMedia = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
 		}
@@ -183,7 +182,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region add media
-		public async void StartLoadMediaFile() // file open picker causes a suspend on the phone, so the app quits before the file is saved, hence the complexity.
+		public async void StartLoadMediaFile()
 		{
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
@@ -213,7 +212,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		public async void StartLoadMediaFile(Wallet parentWallet) // file open picker causes a suspend on the phone, so the app quits before the file is saved, hence the complexity.
+		public async void StartLoadMediaFile(Wallet parentWallet)
 		{
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;

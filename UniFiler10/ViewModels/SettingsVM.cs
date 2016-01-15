@@ -63,7 +63,6 @@ namespace UniFiler10.ViewModels
 				{
 					RegistryAccess.SetValue(ConstantData.REG_SETTINGS_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
-					Logger.Add_TPL("IsImportingSettings = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
 		}
@@ -84,7 +83,6 @@ namespace UniFiler10.ViewModels
 				{
 					RegistryAccess.SetValue(ConstantData.REG_SETTINGS_IS_EXPORTING, value.ToString());
 					RaisePropertyChanged_UI();
-					Logger.Add_TPL("IsExportingSettings = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
 		}

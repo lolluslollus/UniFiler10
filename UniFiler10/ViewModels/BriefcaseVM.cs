@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Model;
-using UniFiler10.Data.Runtime;
 using Utilz;
-using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 
 namespace UniFiler10.ViewModels
@@ -51,7 +49,6 @@ namespace UniFiler10.ViewModels
 				{
 					RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, value.ToString());
 					RaisePropertyChanged_UI();
-					Logger.Add_TPL("IsImportingBinder = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					IsCanImportExport = !value && !IsExportingBinder;
 				}
 			}
@@ -73,7 +70,6 @@ namespace UniFiler10.ViewModels
 				{
 					RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
-					Logger.Add_TPL("IsExportingBinder = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					IsCanImportExport = !value && !IsImportingBinder;
 				}
 			}
@@ -254,11 +250,11 @@ namespace UniFiler10.ViewModels
 						RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION, nextAction.Item1.ToString()); // small race here, hard to avoid
 
 						// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
-						// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingFolders will stay true.
+						// To avoid surprises, we try the following here under _isOpenSemaphore. 
+						// note that this method is always called under _isOpenSemaphore.
+						// If it does not run through, IsImportingFolders will stay true.
 						// In OpenMayOverrideAsync, we check IsImportingFolders and, if true, we try again.
 						// ContinueAfterPickAsync sets IsImportingFolders to false, so there won't be redundant attempts.
-						//await RunFunctionIfOpenThreeStateAsyncT(delegate // this will deadlock, this method is always called under _isOpenSemaphore.
-						//{
 						//if (_isOpen) // this will be false when called from OpenMayOverrideAsync()
 						//{
 						if (_isOpenOrOpening) // this will be false when running on a phone with low memory
@@ -274,7 +270,6 @@ namespace UniFiler10.ViewModels
 							Logger.Add_TPL("_isOpenOrOpening = false", Logger.AppEventsLogFilename, Logger.Severity.Info);
 						}
 						//}
-						//}).ConfigureAwait(false);
 					}
 					else if (isDbNameAvailable == BoolWhenOpen.No)
 					{

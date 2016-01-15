@@ -257,7 +257,6 @@ namespace UniFiler10.ViewModels
 				{
 					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
-					Logger.Add_TPL("IsImportingFolders = " + value.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
 		}
@@ -445,7 +444,7 @@ namespace UniFiler10.ViewModels
 
 			Logger.Add_TPL("BinderCoverVM ctor ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
-		//private static List<Func<Task>> _runAsSoonAsOpensStatic = new List<Func<Task>>();
+
 		protected override async Task OpenMayOverrideAsync()
 		{
 			_cts = new CancellationTokenSource();
@@ -462,20 +461,11 @@ namespace UniFiler10.ViewModels
 
 				await ContinueAfterPickAsync(dir, _binder);
 			}
-			//if (ImportFoldersEnded == null) ImportFoldersEnded += OnImportFoldersEnded;
-			//await ResumeImportFoldersFromBinderAsync().ConfigureAwait(false);
 		}
-
-		//private void OnImportFoldersEnded(object sender, EventArgs e)
-		//{
-		//	Task res = ResumeImportFoldersFromBinderAsync();
-		//}
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			//ImportFoldersEnded -= OnImportFoldersEnded;
 			UnregisterFoldersChanged();
-			//_animationStarter.EndAllAnimations();
 
 			try
 			{
@@ -488,9 +478,6 @@ namespace UniFiler10.ViewModels
 			}
 			catch { }
 			_cts = null;
-
-			//Logger.Add_TPL("BinderCoverVM is closing, _runAsSoonAsOpens.Count = " + _runAsSoonAsOpens.Count, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			//_runAsSoonAsOpensStatic.AddRange(_runAsSoonAsOpens);
 
 			return Task.CompletedTask;
 		}
@@ -745,28 +732,6 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		//public void StartImportFoldersFromBinder()
-		//{
-		//	// LOLLO TODO use http://stackoverflow.com/questions/23866325/how-to-avoid-storagefile-copyasync-throw-exception-when-copying-big-file
-		//	// to copy files, across the app. Alternatively, warn when a file is too large.
-		//	var binder = _binder;
-		//	if (binder != null && !_isImportingFolders)
-		//	{
-		//		IsImportingFolders = true;
-		//		//RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, true.ToString());
-		//		var pickTask = Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
-		//		var afterPickTask = pickTask.ContinueWith(delegate
-		//		{
-		//			return ContinueAfterPickAsync(pickTask, binder);
-		//		});
-		//	}
-		//	else
-		//	{
-		//		_animationStarter.EndAllAnimations();
-		//		_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-		//	}
-		//}
-
 		public async void StartImportFoldersFromBinder()
 		{
 			await Logger.AddAsync("StartImportFoldersFromBinder() starting", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -801,50 +766,6 @@ namespace UniFiler10.ViewModels
 		// and AnalyticsVersionInfo.DeviceFamily
 		// for picker details
 
-		//private async Task ContinueAfterPickAsync(Task<StorageFolder> fromDirTask, Binder binder)
-		//{
-		//	bool isImported = false;
-		//	bool isNeedsContinuing = false;
-
-		//	try
-		//	{
-		//		if (binder != null)
-		//		{
-		//			var fromDir = await fromDirTask.ConfigureAwait(false);
-		//			if (fromDir != null)
-		//			{
-		//				_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-		//				RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME, binder.DBName);
-		//				isImported = await binder.ImportFoldersAsync(fromDir).ConfigureAwait(false);
-		//				if (!isImported && !binder.IsOpen) isNeedsContinuing = true; // LOLLO if isOk is false because there was an error and not because the app was suspended, I must unlock importing.
-		//			}
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
-		//	}
-
-		//	_animationStarter.EndAllAnimations();
-		//	if (isImported)
-		//	{
-		//		_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-		//	}
-		//	if (isNeedsContinuing)
-		//	{
-		//		RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING, true.ToString());
-		//	}
-		//	else
-		//	{
-		//		RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING, false.ToString());
-		//		if (!isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-		//		//RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, false.ToString());
-		//		IsImportingFolders = false;
-		//	}
-
-		//	//ImportFoldersEnded?.Invoke(this, EventArgs.Empty);
-		//}
-
 		private async Task ContinueAfterPickAsync(StorageFolder fromDir, Binder binder)
 		{
 			Logger.Add_TPL("ContinueAfterPickAsync() starting", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -871,30 +792,7 @@ namespace UniFiler10.ViewModels
 			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
 
 			IsImportingFolders = false;
-			//ImportFoldersEnded?.Invoke(this, EventArgs.Empty);
 		}
-		//private async Task ResumeImportFoldersFromBinderAsync()
-		//{
-		//	string continueImporting = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_CONTINUE_IMPORTING);
-		//	if (continueImporting == true.ToString())
-		//	{
-		//		string dbName = RegistryAccess.GetValue(ConstantData.REG_IMPORT_FOLDERS_BINDER_NAME);
-		//		if (dbName == _binder?.DBName)
-		//		{
-		//			IsImportingFolders = true;
-		//			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-
-		//			await ContinueAfterPickAsync(Pickers.GetLastPickedFolderJustOnceAsync(), _binder).ConfigureAwait(false);
-		//		}
-		//	}
-		//	//}
-		//	else
-		//	{
-		//		IsImportingFolders = false;
-		//	}
-		//}
-
-		//private static event EventHandler ImportFoldersEnded;
 		#endregion actions
 	}
 }
