@@ -21,8 +21,11 @@ namespace UniFiler10.Data.Constants
 		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public const int TRIAL_LENGTH_DAYS = 7;
 
-		//public const string BAK_EXPORT_BINDER_TEMP_DIR = "ExportBinderDir";
-		public const string REG_EXPORT_BINDER_CONTINUE_EXPORTING = "ExportBinder.ContinueExport";
+		public const string REG_EXPORT_BINDER_IS_EXPORTING = "ExportBinder.IsExporting";
+		public const string REG_EXPORT_BINDER_DBNAME = "ExportBinder.DbName";
+		public const string REG_IMPORT_BINDER_IS_IMPORTING = "ImportBinder.IsImporting";
+		public const string REG_IMPORT_BINDER_STEP = "ImportBinder.Step";
+		public const string REG_IMPORT_BINDER_STEP2_ACTION = "ImportBinder.Step2.Action";
 
 		public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
 
@@ -37,10 +40,6 @@ namespace UniFiler10.Data.Constants
 
 		public const string REG_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
 		public const string REG_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
-
-		public const string REG_IMPORT_MERGE_BINDER_STEP1_CONTINUE = "ImportMergeBinder.Step1.Continue";
-		public const string REG_IMPORT_BINDER_STEP2_CONTINUE = "ImportBinder.Step2.Continue";
-		public const string REG_MERGE_BINDER_STEP2_CONTINUE = "MergeBinder.Step2.Continue";
 
 		public static string AppName { get { return ConstantData.APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()

@@ -20,10 +20,19 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
+		protected volatile bool _isOpenOrOpening = false;
+		[IgnoreDataMember]
+		[Ignore]
+		public bool IsOpenOrOpening { get { return _isOpenOrOpening; } protected set { if (_isOpenOrOpening != value) { _isOpenOrOpening = value; RaisePropertyChanged_UI(); } } }
+
 		protected volatile bool _isDisposed = false;
 		[IgnoreDataMember]
 		[Ignore]
 		public bool IsDisposed { get { return _isDisposed; } protected set { if (_isDisposed != value) { _isDisposed = value; } } }
+
+		//[IgnoreDataMember]
+		//[Ignore]
+		//protected bool IsRunningUnderSemaphore { get { return SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore) && _isOpenSemaphore.CurrentCount > 0; } }
 
 		//protected List<Func<Task>> _runAsSoonAsOpens = new List<Func<Task>>();
 
@@ -50,6 +59,8 @@ namespace UniFiler10.Data.Model
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
+						IsOpenOrOpening = true;
+
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 
 						IsOpen = true;
@@ -97,7 +108,7 @@ namespace UniFiler10.Data.Model
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen)
 					{
-						IsOpen = false;
+						IsOpen = IsOpenOrOpening = false;
 
 						//_runAsSoonAsOpens.Clear();
 						//Logger.Add_TPL("_runAsSoonAsOpens cleared", Logger.AppEventsLogFilename, Logger.Severity.Info, false);

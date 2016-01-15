@@ -10,7 +10,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace Utilz
 {
-	public class UserConfirmationPopup
+	public class UserConfirmationPopup : ObservableData
 	{
 		private const int DELAY = 50;
 		private static UserConfirmationPopup _instance = null;
@@ -30,25 +30,38 @@ namespace Utilz
 
 		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeDeletingBinderAsync()
 		{
-			Flyout dialog = new Flyout();
-			dialog.Closed += OnYesNoDialog_Closed;
-			var dialogContent = new ConfirmationBeforeDeletingBinder();
-			dialog.Content = dialogContent;
-			dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
+			var result = new Tuple<bool, bool>(false, false);
+			Flyout dialog = null;
+			ConfirmationBeforeDeletingBinder dialogContent = null;
 
-			_isHasUserAnswered = false;
-			dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			await RunInUiThreadAsync(delegate
+			{
+				dialog = new Flyout();
+				dialogContent = new ConfirmationBeforeDeletingBinder();
+
+				dialog.Closed += OnYesNoDialog_Closed;
+
+				dialog.Content = dialogContent;
+				dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
+
+				_isHasUserAnswered = false;
+				dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			}).ConfigureAwait(false);
 
 			while (!_isHasUserAnswered)
 			{
-				await Task.Delay(DELAY);
+				await Task.Delay(DELAY).ConfigureAwait(false);
 			}
 
-			dialog.Closed -= OnYesNoDialog_Closed;
-			dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
-			dialog.Hide();
+			await RunInUiThreadAsync(delegate
+			{
+				dialog.Closed -= OnYesNoDialog_Closed;
+				dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
+				dialog.Hide();
+				result = new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted);
+			}).ConfigureAwait(false);
 
-			return new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted); // dialogContent.YesNo;
+			return result;
 		}
 
 		private void OnYesNoDialog_Closed(object sender, object e)
@@ -64,25 +77,38 @@ namespace Utilz
 
 		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, bool>> GetUserConfirmationBeforeImportingBinderAsync()
 		{
-			Flyout dialog = new Flyout();
-			dialog.Closed += OnThreeBtnDialog_Closed;
-			var dialogContent = new ConfirmationBeforeImportingBinder();
-			dialog.Content = dialogContent;
-			dialogContent.UserAnswered += OnThreeBtnDialogContent_UserAnswered;
+			var result = new Tuple<BriefcaseVM.ImportBinderOperations, bool>(BriefcaseVM.ImportBinderOperations.Cancel, false);
+			Flyout dialog = null;
+			ConfirmationBeforeImportingBinder dialogContent = null;
 
-			_isHasUserAnswered = false;
-			dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			await RunInUiThreadAsync(delegate
+			{
+				dialog = new Flyout();
+				dialogContent = new ConfirmationBeforeImportingBinder();
+
+				dialog.Closed += OnThreeBtnDialog_Closed;
+
+				dialog.Content = dialogContent;
+				dialogContent.UserAnswered += OnThreeBtnDialogContent_UserAnswered;
+
+				_isHasUserAnswered = false;
+				dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			}).ConfigureAwait(false);
 
 			while (!_isHasUserAnswered)
 			{
-				await Task.Delay(DELAY);
+				await Task.Delay(DELAY).ConfigureAwait(false);
 			}
 
-			dialog.Closed -= OnThreeBtnDialog_Closed;
-			dialogContent.UserAnswered -= OnThreeBtnDialogContent_UserAnswered;
-			dialog.Hide();
+			await RunInUiThreadAsync(delegate
+			{
+				dialog.Closed -= OnThreeBtnDialog_Closed;
+				dialogContent.UserAnswered -= OnThreeBtnDialogContent_UserAnswered;
+				dialog.Hide();
+				result = new Tuple<BriefcaseVM.ImportBinderOperations, bool>(dialogContent.Operation, dialogContent.IsHasUserInteracted);
+			}).ConfigureAwait(false);
 
-			return new Tuple<BriefcaseVM.ImportBinderOperations, bool>(dialogContent.Operation, dialogContent.IsHasUserInteracted); // dialogContent.Operation;
+			return result;
 		}
 
 		private void OnThreeBtnDialog_Closed(object sender, object e)

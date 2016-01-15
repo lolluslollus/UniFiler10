@@ -67,6 +67,7 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
+
 		public bool IsExportingSettings
 		{
 			get
