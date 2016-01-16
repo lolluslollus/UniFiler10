@@ -368,8 +368,7 @@ namespace UniFiler10.Data.Model
 
 			await RunInUiThreadAsync(delegate
 			{
-				_folders.Clear();
-				_folders.AddRange(folders);
+				_folders.ReplaceRange(folders);
 			}).ConfigureAwait(false);
 		}
 

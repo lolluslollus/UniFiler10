@@ -5,7 +5,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.UI.Core;
 
 namespace Utilz
@@ -62,7 +61,40 @@ namespace Utilz
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Reset));
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Add, changedItems: newItems, startingIndex: newStartingIndex));
         }
-        protected override async void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+
+		public void ReplaceRange(IEnumerable<T> range)
+		{
+			// get out if no new items
+			if (range == null || range.Count() < 1)
+			{
+				Clear();
+			}
+			else
+			{
+				// prepare data for firing the events
+				int newStartingIndex = Count;
+				var newItems = new List<T>();
+				newItems.AddRange(range);
+
+				// add the items, making sure no events are fired
+				_isObserving = false;
+				ClearItems();
+				foreach (var item in range)
+				{
+					Add(item);
+				}
+				_isObserving = true;
+
+				// fire the events
+				OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+				OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+				// this is tricky: call Reset first to make sure the controls will respond properly and not only add one item
+				OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Reset));
+				OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Add, changedItems: newItems, startingIndex: newStartingIndex));
+			}
+		}
+
+		protected override async void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
             // if (_isObserving) base.OnCollectionChanged(e); // this was all, it's smarter now
 
@@ -90,10 +122,7 @@ namespace Utilz
         }
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
-            if (_isObserving)
-            {
-                base.OnPropertyChanged(e);
-            }
+            if (_isObserving) base.OnPropertyChanged(e);
         }
         protected override void InsertItem(int index, T item)
         {

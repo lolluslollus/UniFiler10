@@ -135,7 +135,7 @@ namespace UniFiler10.Data.Model
 			foreach (var wallet in wallets)
 			{
 				var docs = await _dbManager.GetDocumentsAsync(wallet.Id).ConfigureAwait(false);
-				wallet.Documents.AddRange(docs);
+				wallet.Documents.ReplaceRange(docs);
 			}
 
 			var dynamicFields = await _dbManager.GetDynamicFieldsAsync(Id).ConfigureAwait(false);
@@ -145,14 +145,11 @@ namespace UniFiler10.Data.Model
 			// populate my collections
 			await RunInUiThreadAsync(delegate
 			{
-				_wallets.Clear();
-				_wallets.AddRange(wallets);
+				_wallets.ReplaceRange(wallets);
 
-				_dynamicFields.Clear();
-				_dynamicFields.AddRange(dynamicFields);
+				_dynamicFields.ReplaceRange(dynamicFields);
 
-				_dynamicCategories.Clear();
-				_dynamicCategories.AddRange(dynamicCategories);
+				_dynamicCategories.ReplaceRange(dynamicCategories);
 			}).ConfigureAwait(false);
 
 			// refresh dynamic categories and fields if something changed in the metadata since the last save
