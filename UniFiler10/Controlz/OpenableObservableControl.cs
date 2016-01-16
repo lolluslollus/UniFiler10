@@ -88,10 +88,7 @@ namespace UniFiler10.Controlz
 					{
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 						IsOpen = true;
-						await RunInUiThreadAsync(delegate
-						{
-							IsEnabledAllowed = true;
-						}).ConfigureAwait(false);
+						IsEnabledAllowed = true;
 						return true;
 					}
 				}
