@@ -99,27 +99,27 @@ namespace UniFiler10.ViewModels
 			if (IsImportingBinder)
 			{
 				var dir = await Pickers.GetLastPickedFolderAsync().ConfigureAwait(false);
-				string step = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_STEP);
-				if (step == "1")
-				{
+				//string step = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_STEP);
+				//if (step == "1")
+				//{
 					await ContinueImportBinderStep1Async(_briefcase, dir).ConfigureAwait(false);
-				}
-				else if (step == "2")
-				{
-					string action = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION);
-					if (action == ImportBinderOperations.Import.ToString())
-					{
-						await ContinueImportBinderStep2_Import_Async(_briefcase, dir).ConfigureAwait(false);
-					}
-					else if (action == ImportBinderOperations.Merge.ToString())
-					{
-						await ContinueImportBinderStep2_Merge_Async(_briefcase, dir).ConfigureAwait(false);
-					}
-					else
-					{
-						ContinueImportBinderStep2_Cancel();
-					}
-				}
+				//}
+				//else if (step == "2")
+				//{
+				//	string action = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION);
+				//	if (action == ImportBinderOperations.Import.ToString())
+				//	{
+				//		await ContinueImportBinderStep2_Import_Async(_briefcase, dir).ConfigureAwait(false);
+				//	}
+				//	else if (action == ImportBinderOperations.Merge.ToString())
+				//	{
+				//		await ContinueImportBinderStep2_Merge_Async(_briefcase, dir).ConfigureAwait(false);
+				//	}
+				//	else
+				//	{
+				//		ContinueImportBinderStep2_Cancel();
+				//	}
+				//}
 			}
 		}
 
@@ -213,7 +213,7 @@ namespace UniFiler10.ViewModels
 			{
 				IsImportingBinder = true;
 
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
+				//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
 
 				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
@@ -242,12 +242,12 @@ namespace UniFiler10.ViewModels
 					var isDbNameAvailable = await bc.IsDbNameAvailableAsync(dir.Name).ConfigureAwait(false);
 					if (isDbNameAvailable == BoolWhenOpen.Yes)
 					{
-						Logger.Add_TPL("db name is available", Logger.AppEventsLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("ContinueImportBinderStep1Async(): db name is available", Logger.AppEventsLogFilename, Logger.Severity.Info);
 
-						RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "2");
+						//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "2");
 
 						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
-						RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION, nextAction.Item1.ToString()); // small race here, hard to avoid
+						//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION, nextAction.Item1.ToString()); // small race here, hard to avoid
 
 						// LOLLO TODO I think there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
 
@@ -259,30 +259,30 @@ namespace UniFiler10.ViewModels
 						// ContinueAfterPickAsync sets IsImportingFolders to false, so there won't be redundant attempts.
 						//if (_isOpen) // this will be false when called from OpenMayOverrideAsync()
 						//{
-						if (_isOpenOrOpening) // this will be false when running on a phone with low memory
-						{
-							Logger.Add_TPL("user choice = " + nextAction.Item1.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
-							Logger.Add_TPL("user has interacted = " + nextAction.Item2.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
+						//if (_isOpenOrOpening) // this will be false when running on a phone with low memory - No it won't!
+						//{
+							Logger.Add_TPL("ContinueImportBinderStep1Async(): user choice = " + nextAction.Item1.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
+							Logger.Add_TPL("ContinueImportBinderStep1Async(): user has interacted = " + nextAction.Item2.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
 							if (nextAction.Item1 == ImportBinderOperations.Merge) await ContinueImportBinderStep2_Merge_Async(bc, dir).ConfigureAwait(false);
 							else if (nextAction.Item1 == ImportBinderOperations.Import) await ContinueImportBinderStep2_Import_Async(bc, dir).ConfigureAwait(false);
 							else ContinueImportBinderStep2_Cancel();
-						}
-						else
-						{
-							// LOLLO TODO I think there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
-							// This line will never hit then, check it.
-							Logger.Add_TPL("_isOpenOrOpening = false", Logger.AppEventsLogFilename, Logger.Severity.Info);
-						}
+						//}
+						//else
+						//{
+						//	// LOLLO TODO I think there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
+						//	// This line will never hit then, check it.
+						//	Logger.Add_TPL("ContinueImportBinderStep1Async(): _isOpenOrOpening = false", Logger.AppEventsLogFilename, Logger.Severity.Info);
+						//}
 						//}
 					}
 					else if (isDbNameAvailable == BoolWhenOpen.No)
 					{
-						Logger.Add_TPL("db name is NOT available", Logger.AppEventsLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("ContinueImportBinderStep1Async(): db name is NOT available", Logger.AppEventsLogFilename, Logger.Severity.Info);
 						await ContinueImportBinderStep2_Import_Async(bc, dir).ConfigureAwait(false);
 					}
 					else if (isDbNameAvailable == BoolWhenOpen.ObjectClosed)
 					{
-						await Logger.AddAsync("briefcase is closed, which should never happen", Logger.AppEventsLogFilename).ConfigureAwait(false);
+						await Logger.AddAsync("ContinueImportBinderStep1Async(): briefcase is closed, which should never happen", Logger.AppEventsLogFilename).ConfigureAwait(false);
 					}
 				}
 			}

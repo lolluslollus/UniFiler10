@@ -24,8 +24,8 @@ namespace UniFiler10.Data.Constants
 		public const string REG_EXPORT_BINDER_IS_EXPORTING = "ExportBinder.IsExporting";
 		public const string REG_EXPORT_BINDER_DBNAME = "ExportBinder.DbName";
 		public const string REG_IMPORT_BINDER_IS_IMPORTING = "ImportBinder.IsImporting";
-		public const string REG_IMPORT_BINDER_STEP = "ImportBinder.Step";
-		public const string REG_IMPORT_BINDER_STEP2_ACTION = "ImportBinder.Step2.Action";
+		//public const string REG_IMPORT_BINDER_STEP = "ImportBinder.Step";
+		//public const string REG_IMPORT_BINDER_STEP2_ACTION = "ImportBinder.Step2.Action";
 
 		public const string REG_IMPORT_FOLDERS_IS_IMPORTING = "ImportFolders.IsImporting";
 

@@ -191,26 +191,36 @@ namespace UniFiler10.Views
 
 		private async Task RenderHtmlMiniatureAsync()
 		{
-			string ssss = await DocumentExtensions.GetTextFromFileAsync(Document?.GetFullUri0()).ConfigureAwait(false);
-			await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+			try
 			{
-				ShowWebViewer();
-				try
+				string uri = string.Empty;
+				await RunInUiThreadAsync(delegate { uri = Document?.GetFullUri0(); }).ConfigureAwait(false);
+
+				string ssss = await DocumentExtensions.GetTextFromFileAsync(uri).ConfigureAwait(false);
+				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 				{
-					WebViewer.NavigateToString(ssss);
-				}
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-			}).AsTask().ConfigureAwait(false);
+					ShowWebViewer();
+					try
+					{
+						WebViewer.NavigateToString(ssss);
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
+				}).AsTask().ConfigureAwait(false);
+			}
+			catch { }
 		}
 		private async Task RenderHtmlMiniature2Async()
 		{
 			// LOLLO the WebView sometimes renders, sometimes not. This is pedestrian but works better than the other method.
 			try
 			{
-				Uri uri = new Uri(Document?.GetFullUri0());
+				string uriStr = string.Empty;
+				await RunInUiThreadAsync(delegate { uriStr = Document?.GetFullUri0(); }).ConfigureAwait(false);
+
+				Uri uri = new Uri(uriStr);
 				if (uri != null)
 				{
 					await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
@@ -251,7 +261,10 @@ namespace UniFiler10.Views
 		{
 			try
 			{
-				var imgFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
+				string uri = string.Empty;
+				await RunInUiThreadAsync(delegate { uri = Document?.GetFullUri0(); }).ConfigureAwait(false);
+
+				var imgFile = await StorageFile.GetFileFromPathAsync(uri).AsTask().ConfigureAwait(false);
 				if (imgFile != null)
 				{
 					using (IRandomAccessStream stream = await imgFile.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false))
@@ -269,7 +282,10 @@ namespace UniFiler10.Views
 		{
 			try
 			{
-				var pdfFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
+				string uri = string.Empty;
+				await RunInUiThreadAsync(delegate { uri = Document?.GetFullUri0(); }).ConfigureAwait(false);
+
+				var pdfFile = await StorageFile.GetFileFromPathAsync(uri).AsTask().ConfigureAwait(false);
 				var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile).AsTask().ConfigureAwait(false);
 				if (pdfDocument?.PageCount > 0)
 				{
@@ -450,14 +466,20 @@ namespace UniFiler10.Views
 		#region event handlers
 		private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			e.Handled = true;
-			if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			Task del = RunInUiThreadAsync(delegate
+			{
+				e.Handled = true;
+				if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			});
 		}
 
 		private void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			e.Handled = true;
-			DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			Task del = RunInUiThreadAsync(delegate
+			{
+				e.Handled = true;
+				DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			});
 		}
 
 		private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)

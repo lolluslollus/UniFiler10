@@ -20,10 +20,10 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
-		protected volatile bool _isOpenOrOpening = false;
-		[IgnoreDataMember]
-		[Ignore]
-		public bool IsOpenOrOpening { get { return _isOpenOrOpening; } protected set { if (_isOpenOrOpening != value) { _isOpenOrOpening = value; RaisePropertyChanged_UI(); } } }
+		//protected volatile bool _isOpenOrOpening = false;
+		//[IgnoreDataMember]
+		//[Ignore]
+		//public bool IsOpenOrOpening { get { return _isOpenOrOpening; } protected set { if (_isOpenOrOpening != value) { _isOpenOrOpening = value; RaisePropertyChanged_UI(); } } }
 
 		protected volatile bool _isDisposed = false;
 		[IgnoreDataMember]
@@ -59,7 +59,7 @@ namespace UniFiler10.Data.Model
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						IsOpenOrOpening = true;
+						//IsOpenOrOpening = true;
 
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 
@@ -108,7 +108,7 @@ namespace UniFiler10.Data.Model
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen)
 					{
-						IsOpen = IsOpenOrOpening = false;
+						//IsOpen = IsOpenOrOpening = false;
 
 						//_runAsSoonAsOpens.Clear();
 						//Logger.Add_TPL("_runAsSoonAsOpens cleared", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
