@@ -48,17 +48,14 @@ namespace Utilz
 		//			return dataWriter.DetachBuffer();
 		//		}
 		//	}
+		
 
-
-
-
-
-
-
-		public static Task CopyDirContentsReplacingAsync(this StorageFolder from, StorageFolder toDirectory, int maxDepth = 0)
+		public static Task CopyDirContentsAsync(this StorageFolder from, StorageFolder toDirectory, int maxDepth = 0)
 		{
-			return new FileDirectoryExts().CopyDirContentsReplacing2Async(from, toDirectory, maxDepth);
+			// copy its contents
+			return new FileDirectoryExts().CopyDirContents2Async(from, toDirectory, maxDepth);
 		}
+
 		public static async Task<ulong> GetFileSizeAsync(this StorageFile file)
 		{
 			if (file == null) return 0;
@@ -68,15 +65,36 @@ namespace Utilz
 			else return 0;
 		}
 
+		public static async Task DeleteDirContentsAsync(this StorageFolder dir)
+		{
+			try
+			{
+				if (dir == null) return;
+
+				var contents = await dir.GetItemsAsync().AsTask().ConfigureAwait(false);
+				var delTasks = new List<Task>();
+				foreach (var item in contents)
+				{
+					delTasks.Add(item.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask());
+				}
+				await Task.WhenAll(delTasks).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+		}
+
 		private class FileDirectoryExts
 		{
 			internal FileDirectoryExts() { }
 			private int _currentDepth = 0;
 			// LOLLO TODO what if you copy a directory to an existing one? Shouldn't you delete the contents first? No! But then, shouldn't you issue a warning?
-			internal async Task CopyDirContentsReplacing2Async(StorageFolder from, StorageFolder to, int maxDepth = 0)
+			internal async Task CopyDirContents2Async(StorageFolder from, StorageFolder to, int maxDepth = 0)
 			{
 				try
 				{
+					if (from == null || to == null) return;
 					// read files
 					var filesDepth0 = await from.GetFilesAsync().AsTask().ConfigureAwait(false);
 					// copy files
@@ -120,7 +138,7 @@ namespace Utilz
 				foreach (var dirFrom in dirsDepth0)
 				{
 					var dirTo = await to.CreateFolderAsync(dirFrom.Name, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					await CopyDirContentsReplacing2Async(dirFrom, dirTo).ConfigureAwait(false);
+					await CopyDirContents2Async(dirFrom, dirTo).ConfigureAwait(false);
 				}
 			}
 		}

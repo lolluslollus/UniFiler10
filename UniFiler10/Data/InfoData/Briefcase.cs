@@ -292,7 +292,7 @@ namespace UniFiler10.Data.Model
 					if (toDirectory != null)
 					{
 						Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", toDirectory);
-						await fromDirectory.CopyDirContentsReplacingAsync(toDirectory).ConfigureAwait(false);
+						await fromDirectory.CopyDirContentsAsync(toDirectory).ConfigureAwait(false);
 						return true;
 					}
 				}
@@ -360,7 +360,7 @@ namespace UniFiler10.Data.Model
 					var toDirectory = await BindersDirectory
 						.CreateFolderAsync(fromDirectory.Name, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					await fromDirectory.CopyDirContentsReplacingAsync(toDirectory).ConfigureAwait(false);
+					await fromDirectory.CopyDirContentsAsync(toDirectory).ConfigureAwait(false);
 					return true;
 				}
 				catch (Exception ex)

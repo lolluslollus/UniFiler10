@@ -459,7 +459,7 @@ namespace UniFiler10.Data.Model
 				{
 					// I can only import from the app local folder, otherwise sqlite says "Cannot open", even in read-only mode. 
 					// So I copy the source files into the temp directory.
-					if (fromDirectory.Path.Contains(ApplicationData.Current.LocalCacheFolder.Path))
+					if (fromDirectory.Path.Contains(ApplicationData.Current.LocalCacheFolder.Path) || fromDirectory.Path.Contains(ApplicationData.Current.LocalFolder.Path))
 					{
 						tempDirectory = fromDirectory;
 					}
@@ -468,7 +468,7 @@ namespace UniFiler10.Data.Model
 						tempDirectory = await ApplicationData.Current.LocalCacheFolder
 							.CreateFolderAsync(Guid.NewGuid().ToString(), CreationCollisionOption.ReplaceExisting)
 							.AsTask().ConfigureAwait(false);
-						await fromDirectory.CopyDirContentsReplacingAsync(tempDirectory).ConfigureAwait(false);
+						await fromDirectory.CopyDirContentsAsync(tempDirectory).ConfigureAwait(false);
 						isDeleteTempDir = true;
 					}
 

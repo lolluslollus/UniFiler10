@@ -243,7 +243,7 @@ namespace Utilz
 						await sw.WriteAsync(body);
 						await sw.FlushAsync();
 
-						// LOLLO TODO the emails are broken
+						// LOLLO NOTE the emails are broken with Outlook, they work with the mail app tho
 						// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
 						// the following brings up a preview with only the beginning of the body, at least with Outlook.
 						// it truncates the body if it is too long, like with mailto:
@@ -280,7 +280,7 @@ namespace Utilz
 		//				string body = await ReadAllLogsIntoStringAsync();
 		//				var attachmentFile = await DocumentExtensions.WriteTextIntoFileAsync(body, "Logs.txt");
 
-		//				// LOLLO TODO this is broken too, even if it was copied from the MS tutorial
+		//				// LOLLO NOTE this is broken too, even if it was copied from the MS tutorial. Broken with Outlook, works with the email app.
 		//				// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt269391.aspx
 		//				// the following brings up a preview with only the beginning of the body, with Outlook (The mail app works fine)
 		//				//emailMsg.SetBodyStream(EmailMessageBodyKind.PlainText, RandomAccessStreamReference.CreateFromStream(ms0));

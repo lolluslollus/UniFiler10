@@ -249,7 +249,7 @@ namespace UniFiler10.ViewModels
 						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
 						//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION, nextAction.Item1.ToString()); // small race here, hard to avoid
 
-						// LOLLO TODO I think there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
+						// LOLLO there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
 
 						// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 						// To avoid surprises, we try the following here under _isOpenSemaphore. 
@@ -269,7 +269,7 @@ namespace UniFiler10.ViewModels
 						//}
 						//else
 						//{
-						//	// LOLLO TODO I think there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
+						//	// LOLLO there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
 						//	// This line will never hit then, check it.
 						//	Logger.Add_TPL("ContinueImportBinderStep1Async(): _isOpenOrOpening = false", Logger.AppEventsLogFilename, Logger.Severity.Info);
 						//}
