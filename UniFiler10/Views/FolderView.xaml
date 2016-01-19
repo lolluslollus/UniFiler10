@@ -132,7 +132,7 @@
 											<Grid Width="{StaticResource LandscapeItemWidth}">
 												<TextBlock Text="{Binding Vaalue}"
 													MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-													Margin="{StaticResource PanelPadding8282}"
+													Margin="{StaticResource Thickness8282}"
 													TextWrapping="Wrap"/>
 											</Grid>
 										</DataTemplate>

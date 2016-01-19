@@ -64,7 +64,7 @@
 			Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 			BorderBrush="{StaticResource FlashyForeground}"
 			BorderThickness="{StaticResource Thickness2222}"
-			Padding="{StaticResource PanelPadding8282}">
+			Padding="{StaticResource Thickness8282}">
 			<TextBlock x:Uid="ElevatedMode"
 				VerticalAlignment="Stretch"
 				HorizontalAlignment="Stretch"
@@ -76,7 +76,7 @@
 			x:Name="SafeNotice"
 			Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
 			BorderThickness="{StaticResource Thickness2222}"
-			Padding="{StaticResource PanelPadding8282}">
+			Padding="{StaticResource Thickness8282}">
 			<TextBlock x:Uid="SafeMode"
 				VerticalAlignment="Stretch"
 				HorizontalAlignment="Stretch"

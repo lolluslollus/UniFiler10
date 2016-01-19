@@ -91,7 +91,7 @@
 							<Grid Width="{StaticResource LandscapeItemWidth}">
 								<TextBlock Text="{Binding Name}"
 									MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-									Margin="{StaticResource PanelPadding8282}"
+									Margin="{StaticResource Thickness8282}"
 									TextWrapping="Wrap"/>
 							</Grid>
 						</DataTemplate>
@@ -104,7 +104,7 @@
 					HorizontalAlignment="Left"
 					Foreground="{StaticResource FlashyForeground}"
 					MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-					Margin="{StaticResource PanelPadding8282}"
+					Margin="{StaticResource Thickness8282}"
 					TextWrapping="Wrap"
 					Visibility="{Binding ElementName=me, Path=VM.CatNameForCatFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 
@@ -144,7 +144,7 @@
 								<Grid Width="{StaticResource LandscapeItemWidth}">
 									<TextBlock Text="{Binding Name}"
 										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-										Margin="{StaticResource PanelPadding8282}"
+										Margin="{StaticResource Thickness8282}"
 										TextWrapping="Wrap"/>
 								</Grid>
 							</DataTemplate>
@@ -157,7 +157,7 @@
 						HorizontalAlignment="Left"
 						Foreground="{StaticResource FlashyForeground}"
 						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-						Margin="{StaticResource PanelPadding8282}"
+						Margin="{StaticResource Thickness8282}"
 						TextWrapping="Wrap"
 						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
@@ -193,7 +193,7 @@
 									<Grid Width="{StaticResource LandscapeItemWidth}">
 										<TextBlock Text="{Binding Caption}"
 										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-										Margin="{StaticResource PanelPadding8282}"
+										Margin="{StaticResource Thickness8282}"
 										TextWrapping="Wrap"/>
 									</Grid>
 								</DataTemplate>
@@ -206,7 +206,7 @@
 							HorizontalAlignment="Left"
 							Foreground="{StaticResource FlashyForeground}"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							Margin="{StaticResource PanelPadding8282}"
+							Margin="{StaticResource Thickness8282}"
 							TextWrapping="Wrap"
 							Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
@@ -240,7 +240,7 @@
 									<Grid Width="{StaticResource LandscapeItemWidth}">
 										<TextBlock Text="{Binding Vaalue}"
 										MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-										Margin="{StaticResource PanelPadding8282}"
+										Margin="{StaticResource Thickness8282}"
 										TextWrapping="Wrap"/>
 									</Grid>
 								</DataTemplate>
@@ -253,7 +253,7 @@
 							HorizontalAlignment="Left"
 							Foreground="{StaticResource FlashyForeground}"
 							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							Margin="{StaticResource PanelPadding8282}"
+							Margin="{StaticResource Thickness8282}"
 							TextWrapping="Wrap"
 							Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 

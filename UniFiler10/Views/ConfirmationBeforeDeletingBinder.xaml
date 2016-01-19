@@ -18,12 +18,12 @@
 			x:Uid="DeleteBinderConfirmationRequest"
 			MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
             TextWrapping="Wrap"
-			Margin="{StaticResource PanelPadding8282}"/>
+			Margin="{StaticResource Thickness8282}"/>
 		<Button x:Name="Two"
 			Style="{StaticResource ButtonLolloStyle}"
 			Click="OnYes_Click"
 			Width="{StaticResource LandscapeItemWidth}"
-			Margin="{StaticResource PanelPadding8282}">
+			Margin="{StaticResource Thickness8282}">
 			<TextBlock x:Uid="Yes1"
 				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 				TextWrapping="Wrap"/>
@@ -32,7 +32,7 @@
 			Style="{StaticResource ButtonLolloStyle}"
 			Click="OnNo_Click"
 			Width="{StaticResource LandscapeItemWidth}"
-			Margin="{StaticResource PanelPadding8282}"
+			Margin="{StaticResource Thickness8282}"
 			TabIndex="1">
 			<TextBlock x:Uid="No1"
 				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"

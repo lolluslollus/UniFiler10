@@ -112,7 +112,7 @@
                         Foreground="{StaticResource DiagonalNESWBrush}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Margin="{StaticResource ButtonPadding}">
+                        Margin="{StaticResource Thickness6}">
 				<SymbolIcon.RenderTransform>
 					<CompositeTransform Rotation="0"/>
 				</SymbolIcon.RenderTransform>
@@ -132,7 +132,7 @@
                             Foreground="{StaticResource DiagonalNESWBrush}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Margin="{StaticResource ButtonPadding}">
+                            Margin="{StaticResource Thickness6}">
 				<SymbolIcon.RenderTransform>
 					<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
 				</SymbolIcon.RenderTransform>
@@ -152,7 +152,7 @@
                             Foreground="{StaticResource DiagonalNESWBrush}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Margin="{StaticResource ButtonPadding}">
+                            Margin="{StaticResource Thickness6}">
 				<SymbolIcon.RenderTransform>
 					<CompositeTransform Rotation="0" ScaleX="0" ScaleY="0"/>
 				</SymbolIcon.RenderTransform>

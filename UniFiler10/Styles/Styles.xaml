@@ -5,9 +5,8 @@
     xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:media="using:Windows.UI.Xaml.Media">
 
-    <Thickness x:Key="PanelMarginZero">0, 0, 0, 0</Thickness>
-    <Thickness x:Key="PanelPadding8282">8, 2, 8, 2</Thickness>
-	<Thickness x:Key="PanelMargin2">2</Thickness>
+    <Thickness x:Key="Thickness0">0, 0, 0, 0</Thickness>
+    <Thickness x:Key="Thickness8282">8, 2, 8, 2</Thickness>
 	<Thickness x:Key="Thickness1111">1</Thickness>
 	<Thickness x:Key="Thickness2222">2</Thickness>
 	<Thickness x:Key="Thickness4444">4</Thickness>
@@ -165,7 +164,7 @@
         <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
 		<Setter Property="FontSize" Value="{StaticResource SmallFontSize}"/>
 		<Setter Property="Margin" Value="{StaticResource Thickness1111}"/>
-		<Setter Property="FontStretch" Value="UltraCondensed"/>
+		<!--<Setter Property="FontStretch" Value="UltraCondensed"/>-->
 	</Style>
 
     <!--<Style x:Key="MainPageRootGridLandscapeStyle" TargetType="Grid">
@@ -217,7 +216,7 @@
         <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundAltMediumLowBrush}" />
         --><!--<Setter Property="BorderBrush" Value="{ThemeResource SystemControlForegroundBaseMediumLowBrush}" />
         <Setter Property="BorderThickness" Value="{ThemeResource ComboBoxBorderThemeThickness}" />--><!--
-        <Setter Property="BorderThickness" Value="{StaticResource ButtonBorderThickness}"/>
+        <Setter Property="BorderThickness" Value="{StaticResource Thickness0}"/>
         <Setter Property="TabNavigation" Value="Once" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
@@ -783,14 +782,13 @@
         </Setter>
     </Style>
 
-    <Thickness x:Key="ButtonPadding">12</Thickness>
-    <Thickness x:Key="ButtonBorderThickness">0</Thickness>
+    <Thickness x:Key="Thickness6">6</Thickness>
 
     <Style x:Key="ToggleButtonLolloStyle" TargetType="ToggleButton">
         <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
         <Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
-        <Setter Property="BorderThickness" Value="{StaticResource ButtonBorderThickness}"/>
-        <Setter Property="Padding" Value="{StaticResource ButtonPadding}"/>
+        <Setter Property="BorderThickness" Value="{StaticResource Thickness0}"/>
+        <Setter Property="Padding" Value="{StaticResource Thickness6}"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -941,8 +939,8 @@
 	<Style x:Key="ButtonLolloStyle" TargetType="Button">
 		<Setter Property="Background" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
 		<Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
-		<Setter Property="BorderThickness" Value="{StaticResource ButtonBorderThickness}"/>
-		<Setter Property="Padding" Value="{StaticResource ButtonPadding}"/>
+		<Setter Property="BorderThickness" Value="{StaticResource Thickness0}"/>
+		<Setter Property="Padding" Value="{StaticResource Thickness6}"/>
 		<Setter Property="HorizontalAlignment" Value="Stretch"/>
 		<Setter Property="VerticalAlignment" Value="Center"/>
 		<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -1012,7 +1010,7 @@
 
 	<Style x:Key="BorderLolloStyle" TargetType="Border">
 		<Setter Property="Background" Value="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
-		<Setter Property="Padding" Value="{StaticResource ButtonPadding}"/>
+		<Setter Property="Padding" Value="{StaticResource Thickness6}"/>
 		<Setter Property="HorizontalAlignment" Value="Stretch"/>
 		<Setter Property="VerticalAlignment" Value="Stretch"/>
 	</Style>

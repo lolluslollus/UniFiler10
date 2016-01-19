@@ -22,13 +22,13 @@
 			x:Uid="ImportBinderConfirmationRequest"
 			MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
             TextWrapping="Wrap"
-			Margin="{StaticResource PanelPadding8282}"/>
+			Margin="{StaticResource Thickness8282}"/>
 		<Button x:Name="Two"
 			RelativePanel.RightOf="One"
 			Style="{StaticResource ButtonLolloStyle}"
 			Click="OnMerge_Click"
 			Width="{StaticResource LandscapeItemWidth}"
-			Margin="{StaticResource PanelPadding8282}">
+			Margin="{StaticResource Thickness8282}">
 			<TextBlock x:Uid="MergeIntoCurrentBinder"
 				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 				TextWrapping="Wrap"/>
@@ -38,7 +38,7 @@
 			Style="{StaticResource ButtonLolloStyle}"
 			Click="OnOverwrite_Click"
 			Width="{StaticResource LandscapeItemWidth}"
-			Margin="{StaticResource PanelPadding8282}">
+			Margin="{StaticResource Thickness8282}">
 			<TextBlock x:Uid="OverwriteCurrentBinder"
 				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 				TextWrapping="Wrap"/>
@@ -49,7 +49,7 @@
 			Click="OnCancel_Click"
 			TabIndex="1"
 			Width="{StaticResource LandscapeItemWidth}"
-			Margin="{StaticResource PanelPadding8282}">
+			Margin="{StaticResource Thickness8282}">
 			<TextBlock x:Uid="ImportBinderCancel"
 				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
 				TextWrapping="Wrap"/>
