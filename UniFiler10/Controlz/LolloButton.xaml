@@ -14,20 +14,36 @@
         Tapped="OnMyButton_Tapped"
 		Foreground="{Binding ElementName=me, Path=Foreground, Mode=OneWay}"
         Style="{StaticResource ButtonLolloStyle}">
+		
+		<VisualStateManager.VisualStateGroups>
+			<VisualStateGroup>
+				<VisualState>
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="801"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="AdjustableWidthColumn.Width" Value="{StaticResource LandscapeItemWidth_ForGrid}"/>
+						<Setter Target="MyTextBlock.Visibility" Value="Visible"/>
+						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+						<!--<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>-->
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+		</VisualStateManager.VisualStateGroups>
+
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
 				<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-				<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+				<ColumnDefinition Width="0" x:Name="AdjustableWidthColumn"/>
 			</Grid.ColumnDefinitions>
 
-			<!--Symbol="Add"-->
 			<SymbolIcon x:Name="MySymbolIcon"
 				HorizontalAlignment="Center"
 				VerticalAlignment="Center"/>
-			<!--x:Uid="AddBinderT"-->
 			<TextBlock x:Name="MyTextBlock"
-				Grid.Column="2" 
+				Grid.Column="2"
+				Visibility="Collapsed"
 				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
                 TextWrapping="Wrap"
                 HorizontalAlignment="Left"
