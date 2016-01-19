@@ -32,7 +32,7 @@ namespace UniFiler10.Controlz
 			if (args.NewValue != args.OldValue)
 			{
 				var instance = obj as LolloButton;
-				instance.MyTextBlock.Text = RuntimeData.GetText(instance.Uid);
+				instance.MyTextBlockSmall.Text = instance.MyTextBlockLarge.Text = RuntimeData.GetText(instance.Uid);
 			}
 		}
 
@@ -48,7 +48,7 @@ namespace UniFiler10.Controlz
 			if (args.NewValue != args.OldValue)
 			{
 				var instance = obj as LolloButton;
-				instance.MySymbolIcon.Symbol = instance.Symbol;
+				instance.MySymbolIconSmall.Symbol = instance.MySymbolIconLarge.Symbol = instance.Symbol;
 			}
 		}
 

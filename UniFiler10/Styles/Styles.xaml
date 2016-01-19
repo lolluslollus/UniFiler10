@@ -8,6 +8,7 @@
     <Thickness x:Key="PanelMarginZero">0, 0, 0, 0</Thickness>
     <Thickness x:Key="PanelPadding8282">8, 2, 8, 2</Thickness>
 	<Thickness x:Key="PanelMargin2">2</Thickness>
+	<Thickness x:Key="Thickness1111">1</Thickness>
 	<Thickness x:Key="Thickness2222">2</Thickness>
 	<Thickness x:Key="Thickness4444">4</Thickness>
 
@@ -37,6 +38,7 @@
 	<x:Double x:Key="LandscapeItemWidthMinusPanelPadding">144</x:Double>
     <!--<x:Double x:Key="LandscapeItemHeight">80</x:Double>-->
 	<x:Double x:Key="LandscapeItemHeight">60</x:Double>
+	<x:Double x:Key="LandscapeItemHeightMinusPanelPadding">44</x:Double>
     <!--<GridLength x:Key="LandscapeItemWidth_ForGrid">200</GridLength>-->
 	<GridLength x:Key="LandscapeItemWidth_ForGrid">160</GridLength>
 	<!--<GridLength x:Key="LandscapeItemHeight_ForGrid">80</GridLength>-->
@@ -111,24 +113,17 @@
     </Style>
 
     <Style x:Key="SampleHeaderTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}"/>
         <Setter Property="FontSize" Value="28"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
     </Style>
 
     <Style x:Key="ListItemTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
+		<Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}"/>
         <Setter Property="FontSize" Value="22"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
-
-    <!--<Style x:Key="ScenarioHeaderTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
-        <Setter Property="FontSize" Value="28"/>
-        <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
-        <Setter Property="Margin" Value="0,20,0,0"/>
-    </Style>-->
 
     <Style x:Key="HugeTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe WP Black"/>
@@ -137,14 +132,10 @@
         <Setter Property="Margin" Value="0,0,0,0"/>
     </Style>
 
-    <!--<Style x:Key="ScenarioDescriptionTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP"/>
-        <Setter Property="FontSize" Value="20"/>
-    </Style>-->
-
     <FontFamily x:Key="BaseMessageStyleFontFamily">Segoe WP Semilight</FontFamily>
     <!--<x:Double x:Key="BaseMessageStyleFontSize">14.667</x:Double>-->
-    <x:Double x:Key="BaseMessageStyleFontSize">16</x:Double>
+    <x:Double x:Key="BaseMessageStyleFontSize">15</x:Double>
+	<x:Double x:Key="SmallFontSize">10</x:Double>
 
     <Style x:Key="BaseMessageStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
@@ -172,9 +163,10 @@
 
     <Style x:Key="SmallMessageStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
-        <Setter Property="FontSize" Value="10"/>
-        <Setter Property="Margin" Value="0,0,0,0"/>
-    </Style>
+		<Setter Property="FontSize" Value="{StaticResource SmallFontSize}"/>
+		<Setter Property="Margin" Value="{StaticResource Thickness1111}"/>
+		<Setter Property="FontStretch" Value="UltraCondensed"/>
+	</Style>
 
     <!--<Style x:Key="MainPageRootGridLandscapeStyle" TargetType="Grid">
         <Setter Property="Margin" Value="42,0,0,0"/>
@@ -628,7 +620,7 @@
                                 x:Name="TextLabel"
                                 Text="{TemplateBinding Label}"
                                 Foreground="{TemplateBinding Foreground}"
-                                FontSize="12"
+                                FontSize="{StaticResource SmallFontSize}"
                                 FontFamily="{TemplateBinding FontFamily}"
                                 TextAlignment="Center"
                                 Width="{StaticResource AppBarButtonFullOutWidth}"
@@ -778,7 +770,7 @@
                             <TextBlock x:Name="TextLabel" 
                                 Text="{TemplateBinding Label}" 
                                 Foreground="{TemplateBinding Foreground}" 
-                                FontSize="12"
+                                FontSize="{StaticResource SmallFontSize}"
                                 FontFamily="{TemplateBinding FontFamily}" 
                                 TextAlignment="Center" 
                                 Width="{StaticResource AppBarButtonFullOutWidth}" 
