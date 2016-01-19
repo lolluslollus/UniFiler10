@@ -14,24 +14,66 @@
 		IsChecked="{Binding ElementName=me, Path=IsChecked, Mode=TwoWay}"
 		Foreground="{Binding ElementName=me, Path=Foreground, Mode=OneWay}"
         Style="{StaticResource ToggleButtonLolloStyle}">
-		<Grid>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
-				<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-				<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
-			</Grid.ColumnDefinitions>
 
-			<!--Symbol="Add"-->
-			<SymbolIcon x:Name="MySymbolIcon"
-				HorizontalAlignment="Center"
-				VerticalAlignment="Center"/>
-			<!--x:Uid="AddBinderT"-->
-			<TextBlock x:Name="MyTextBlock"
-				Grid.Column="2" 
-				MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-                TextWrapping="Wrap"
-                HorizontalAlignment="Left"
-				VerticalAlignment="Center"/>
+		<VisualStateManager.VisualStateGroups>
+			<VisualStateGroup>
+				<VisualState>
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="801"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="Small.Visibility" Value="Collapsed"/>
+						<Setter Target="Large.Visibility" Value="Visible"/>
+						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+						<!--<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>-->
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+		</VisualStateManager.VisualStateGroups>
+
+		<Grid>
+			<StackPanel x:Name="Small" Orientation="Vertical"
+				Width="{StaticResource LandscapeItemHeight}"
+				Height="{StaticResource LandscapeItemHeight}">
+				<!-- default height of SymbolIcon is 20-->
+				<SymbolIcon x:Name="MySymbolIconSmall"
+					HorizontalAlignment="Center"/>
+				<!--<ctl:TextBlockScaler
+					Height="30"
+					Width="{StaticResource LandscapeItemHeight}">
+					<ctl:TextBlockScaler.TextBlock>
+						<TextBlock x:Name="MyTextBlockSmall"
+							MaxWidth="{StaticResource LandscapeItemHeightMinusPanelPadding}"
+							TextAlignment="Center"
+							Style="{StaticResource SmallMessageStyle}"
+							TextWrapping="Wrap"/>
+					</ctl:TextBlockScaler.TextBlock>
+				</ctl:TextBlockScaler>-->
+				<TextBlock x:Name="MyTextBlockSmall"
+					MaxWidth="{StaticResource LandscapeItemHeightMinusPanelPadding}"
+					TextAlignment="Center"
+					Style="{StaticResource SmallMessageStyle}"
+					TextWrapping="Wrap"/>
+			</StackPanel>
+
+			<Grid x:Name="Large" Visibility="Collapsed">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="{StaticResource LandscapeItemHeight_ForGrid}"/>
+					<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+					<ColumnDefinition Width="{StaticResource LandscapeItemWidth_ForGrid}"/>
+				</Grid.ColumnDefinitions>
+
+				<SymbolIcon x:Name="MySymbolIconLarge"
+					HorizontalAlignment="Center"
+					VerticalAlignment="Center"/>
+				<TextBlock x:Name="MyTextBlockLarge"
+					Grid.Column="2"
+					MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+					Style="{StaticResource BaseMessageStyle}"
+					TextWrapping="Wrap"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Center"/>
+			</Grid>
 		</Grid>
 	</ToggleButton>
 

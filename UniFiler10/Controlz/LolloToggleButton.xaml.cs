@@ -89,24 +89,24 @@ namespace UniFiler10.Controlz
 		{
 			if (CheckedSymbol == UncheckedSymbol)
 			{
-				MySymbolIcon.Symbol = Symbol;
+				MySymbolIconSmall.Symbol = MySymbolIconLarge.Symbol = Symbol;
 			}
 			else
 			{
-				if (IsChecked) MySymbolIcon.Symbol = CheckedSymbol;
-				else MySymbolIcon.Symbol = UncheckedSymbol;
+				if (IsChecked) MySymbolIconSmall.Symbol = MySymbolIconLarge.Symbol = CheckedSymbol;
+				else MySymbolIconSmall.Symbol = MySymbolIconLarge.Symbol = UncheckedSymbol;
 			}
 		}
 		private void UpdateText()
 		{
 			if (CheckedUid == UncheckedUid)
 			{
-				MyTextBlock.Text = RuntimeData.GetText(Uid);
+				MyTextBlockSmall.Text = MyTextBlockLarge.Text = RuntimeData.GetText(Uid);
 			}
 			else
 			{
-				if (IsChecked) MyTextBlock.Text = RuntimeData.GetText(CheckedUid);
-				else MyTextBlock.Text = RuntimeData.GetText(UncheckedUid);
+				if (IsChecked) MyTextBlockSmall.Text = MyTextBlockLarge.Text = RuntimeData.GetText(CheckedUid);
+				else MyTextBlockSmall.Text = MyTextBlockLarge.Text = RuntimeData.GetText(UncheckedUid);
 			}
 		}
 

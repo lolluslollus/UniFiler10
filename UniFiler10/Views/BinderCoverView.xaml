@@ -117,7 +117,7 @@
 			</Grid>
 
 			<!-- fld filter parameters -->
-			<StackPanel Orientation="Horizontal"
+			<ctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="FldFilter"
 				RelativePanel.Below="CatFilter"
 				Visibility="{x:Bind VM.IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
@@ -169,7 +169,7 @@
 						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 				</Grid>
 
-				<StackPanel Orientation="Horizontal"
+				<ctl:UniversalWrapPanel Orientation="Horizontal"
 					Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}">
 					<Grid>
 						<Grid.RowDefinitions>
@@ -264,9 +264,9 @@
 							BorderThickness="{StaticResource Thickness2222}"
 							Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 					</Grid>
-				</StackPanel>
+				</ctl:UniversalWrapPanel>
 
-			</StackPanel>
+			</ctl:UniversalWrapPanel>
 
 			<!-- folders grid -->
 			<ctl:TolerantListView
