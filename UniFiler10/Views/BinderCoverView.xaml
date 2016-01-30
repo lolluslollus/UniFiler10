@@ -1,9 +1,10 @@
-﻿<ctl:OpenableObservableControl
+﻿<uctl:OpenableObservableControl
 	x:Class="UniFiler10.Views.BinderCoverView"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
+	xmlns:uctl="using:Utilz.Controlz"
     xmlns:ctl="using:UniFiler10.Controlz"
     xmlns:utilz="using:Utilz"
 	xmlns:vms="using:UniFiler10.ViewModels"
@@ -19,7 +20,7 @@
 		<RelativePanel Background="LavenderBlush" x:Name="LayoutRoot">
 
 			<!-- actions for all folders -->
-			<ctl:UniversalWrapPanel Orientation="Horizontal"
+			<uctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="ActionsUWP">
 				<ctl:LolloButton
 					Tapped="OnAddFolder_Tapped"
@@ -64,7 +65,7 @@
 					IsChecked="{Binding ElementName=me, Path=VM.IsByFldFoldersPaneOpen, Mode=TwoWay}"
 					Symbol="View"
 					Uid="FilterByFldFolders"/>
-			</ctl:UniversalWrapPanel>
+			</uctl:UniversalWrapPanel>
 
 			<!-- cat filter parameters -->
 			<Grid x:Name="CatFilter" RelativePanel.Below="ActionsUWP"
@@ -117,7 +118,7 @@
 			</Grid>
 
 			<!-- fld filter parameters -->
-			<ctl:UniversalWrapPanel Orientation="Horizontal"
+			<uctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="FldFilter"
 				RelativePanel.Below="CatFilter"
 				Visibility="{x:Bind VM.IsByFldFoldersPaneOpen, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
@@ -169,7 +170,7 @@
 						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 				</Grid>
 
-				<ctl:UniversalWrapPanel Orientation="Horizontal"
+				<uctl:UniversalWrapPanel Orientation="Horizontal"
 					Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}">
 					<Grid>
 						<Grid.RowDefinitions>
@@ -264,12 +265,12 @@
 							BorderThickness="{StaticResource Thickness2222}"
 							Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 					</Grid>
-				</ctl:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 
-			</ctl:UniversalWrapPanel>
+			</uctl:UniversalWrapPanel>
 
 			<!-- folders grid -->
-			<ctl:TolerantListView
+			<uctl:TolerantListView
 				RelativePanel.Below="FldFilter"
                 ItemsSource="{x:Bind VM.FolderPreviews, Mode=OneWay}"
                 IsItemClickEnabled="True"
@@ -296,19 +297,19 @@
 								Height="{StaticResource MiniatureQuarterHeight}"
 								Width="{StaticResource MiniatureWidth}"
 								Background="{StaticResource VerticalWBrush}">
-								<ctl:TextBlockScaler Canvas.ZIndex="200"
+								<uctl:TextBlockScaler Canvas.ZIndex="200"
         							VerticalAlignment="Bottom" HorizontalAlignment="Center"
 									Height="{StaticResource MiniatureQuarterHeight}"
 									Width="{StaticResource MiniatureWidth}">
-									<ctl:TextBlockScaler.TextBlock>
+									<uctl:TextBlockScaler.TextBlock>
 										<TextBlock
         								Text="{Binding FolderName}"
         								Foreground="{StaticResource FlashyForeground}"
 										TextAlignment="Center"
 										Padding="{StaticResource Thickness4444}"
         								TextWrapping="Wrap"/>
-									</ctl:TextBlockScaler.TextBlock>
-								</ctl:TextBlockScaler>
+									</uctl:TextBlockScaler.TextBlock>
+								</uctl:TextBlockScaler>
 							</Border>
 
 							<local:DocumentView Canvas.ZIndex="100"
@@ -318,10 +319,10 @@
 						</Grid>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
-			</ctl:TolerantListView>
+			</uctl:TolerantListView>
 
 			<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="FldFilter" Canvas.ZIndex="900"/>
 
 		</RelativePanel>
 	</ScrollViewer>
-</ctl:OpenableObservableControl>
+</uctl:OpenableObservableControl>

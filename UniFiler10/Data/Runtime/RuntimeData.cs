@@ -4,6 +4,7 @@ using System.Resources;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Resources;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.Devices.Enumeration;
@@ -11,7 +12,7 @@ using Windows.Networking.Connectivity;
 
 namespace UniFiler10.Data.Runtime
 {
-	public sealed class RuntimeData : OpenableObservableData
+	public sealed class RuntimeData : OpenableObservableDisposableData
 	{
 		#region properties
 		private bool _isTrial = true;

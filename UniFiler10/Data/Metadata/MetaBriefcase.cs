@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -16,7 +17,7 @@ using Windows.Storage.Streams;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class MetaBriefcase : OpenableObservableData
+	public sealed class MetaBriefcase : OpenableObservableDisposableData
 	{
 		#region properties
 		private static volatile MetaBriefcase _instance = null;
@@ -96,13 +97,13 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private SwitchableObservableCollection<Category> _categories = new SwitchableObservableCollection<Category>();
+		private SwitchableObservableDisposableCollection<Category> _categories = new SwitchableObservableDisposableCollection<Category>();
 		[DataMember]
-		public SwitchableObservableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
+		private SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
 		[DataMember]
-		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
 		private bool _isElevated = false;
 		[DataMember]

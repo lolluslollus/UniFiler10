@@ -47,13 +47,13 @@ namespace Utilz
 			try
 			{
 				Task<StorageFile> fileTask = null;
-				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, delegate
 				{
 					var openPicker = new FileOpenPicker();
 					
 					openPicker.ViewMode = PickerViewMode.List;
 					openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-					//openPicker.CommitButtonText = "Pick a file"; // LOLLO localise this if you use it
+
 					foreach (var ext in extensions)
 					{
 						openPicker.FileTypeFilter.Add(ext);
@@ -73,10 +73,11 @@ namespace Utilz
 			return file;
 		}
 
-		public static async Task<StorageFile> PickSaveFileAsync(string[] extensions)
+		public static async Task<StorageFile> PickSaveFileAsync(string[] extensions, string suggestedFileName = "")
 		{
 			var picker = new FileSavePicker();
 			picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+			if (!string.IsNullOrWhiteSpace(suggestedFileName)) picker.SuggestedFileName = suggestedFileName;
 
 			foreach (var ext in extensions)
 			{

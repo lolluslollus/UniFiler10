@@ -10,6 +10,7 @@ using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -17,14 +18,14 @@ using Windows.UI.Xaml.Data;
 
 namespace UniFiler10.ViewModels
 {
-	public sealed class SettingsVM : OpenableObservableData, IDisposable
+	public sealed class SettingsVM : OpenableObservableDisposableData
 	{
 		#region properties
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<FieldDescription> _unassignedFields = new SwitchableObservableCollection<FieldDescription>();
-		public SwitchableObservableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
+		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = new SwitchableObservableDisposableCollection<FieldDescription>();
+		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
 		private void UpdateUnassignedFields()
 		{
 			var mb = _metaBriefcase;
@@ -61,7 +62,7 @@ namespace UniFiler10.ViewModels
 			{
 				lock (_isImportingExportingLocker)
 				{
-					RegistryAccess.SetValue(ConstantData.REG_SETTINGS_IS_IMPORTING, value.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_SETTINGS_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 				}
 			}
@@ -81,7 +82,7 @@ namespace UniFiler10.ViewModels
 			{
 				lock (_isImportingExportingLocker)
 				{
-					RegistryAccess.SetValue(ConstantData.REG_SETTINGS_IS_EXPORTING, value.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_SETTINGS_IS_EXPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 				}
 			}

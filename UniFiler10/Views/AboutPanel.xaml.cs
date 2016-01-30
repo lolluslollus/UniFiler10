@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Controlz;
 using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -61,7 +61,7 @@ namespace UniFiler10.Views
         {
             try
             {
-                await Logger.SendEmailWithLogsAsync(ConstantData.MYMAIL).ConfigureAwait(false);
+                await Logger.SendEmailWithLogsAsync(ConstantData.MYMAIL, ConstantData.APPNAME).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

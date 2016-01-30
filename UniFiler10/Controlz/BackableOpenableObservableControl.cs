@@ -11,7 +11,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 
-namespace UniFiler10.Controlz
+namespace Utilz.Controlz
 {
 	// LOLLO this is all too complicated! I only keep it for reference.
 	public abstract class BackableOpenableObservableControl : OpenableObservableControl

@@ -1,19 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using UniFiler10.Controlz;
-using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using UniFiler10.ViewModels;
 using Utilz;
-using Windows.ApplicationModel;
-using Windows.Foundation.Metadata;
-using Windows.Media;
+using Utilz.Controlz;
 using Windows.Media.Capture;
-using Windows.Phone.UI.Input;
 using Windows.Storage;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236

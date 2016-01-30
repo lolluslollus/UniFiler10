@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.UI.Core;
@@ -39,10 +40,10 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public DateTime Date0 { get { return _date0; } set { SetProperty(ref _date0, value); } }
 
-		private SwitchableObservableCollection<Document> _documents = new SwitchableObservableCollection<Document>();
+		private SwitchableObservableDisposableCollection<Document> _documents = new SwitchableObservableDisposableCollection<Document>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableCollection<Document> Documents { get { return _documents; } private set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<Document> Documents { get { return _documents; } private set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } }
 		#endregion properties
 
 		protected override async Task OpenMayOverrideAsync()

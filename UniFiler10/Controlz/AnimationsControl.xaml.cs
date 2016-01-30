@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Controlz;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236

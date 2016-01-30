@@ -11,11 +11,12 @@ using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
+using Utilz.Data;
 using Windows.Storage;
 
 namespace UniFiler10.ViewModels
 {
-	public sealed class BinderCoverVM : OpenableObservableData
+	public sealed class BinderCoverVM : OpenableObservableDisposableData
 	{
 		#region fields
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
@@ -32,8 +33,8 @@ namespace UniFiler10.ViewModels
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } private set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<Binder.FolderPreview> _folderPreviews = new SwitchableObservableCollection<Binder.FolderPreview>();
-		public SwitchableObservableCollection<Binder.FolderPreview> FolderPreviews { get { return _folderPreviews; } private set { _folderPreviews = value; RaisePropertyChanged_UI(); } }
+		private SwitchableObservableDisposableCollection<Binder.FolderPreview> _folderPreviews = new SwitchableObservableDisposableCollection<Binder.FolderPreview>();
+		public SwitchableObservableDisposableCollection<Binder.FolderPreview> FolderPreviews { get { return _folderPreviews; } private set { _folderPreviews = value; RaisePropertyChanged_UI(); } }
 
 
 		private bool _isAllFolderPaneOpen = false;
@@ -234,11 +235,11 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private SwitchableObservableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableCollection<FieldDescription>();
-		public SwitchableObservableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
+		private SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
+		public SwitchableObservableDisposableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableCollection<FieldValue>();
-		public SwitchableObservableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
+		private SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
+		public SwitchableObservableDisposableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
 
 		private static readonly object _isImportingLocker = new object();
 		public bool IsImportingFolders
@@ -255,7 +256,7 @@ namespace UniFiler10.ViewModels
 			{
 				lock (_isImportingLocker)
 				{
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, value.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_FOLDERS_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 				}
 			}

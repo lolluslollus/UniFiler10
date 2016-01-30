@@ -10,14 +10,12 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Windows;
-using Utilz;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
-namespace UniFiler10.Controlz
+namespace Utilz.Controlz
 {
     /// <summary>
     /// Represents a control that applies a layout transformation to its Content.

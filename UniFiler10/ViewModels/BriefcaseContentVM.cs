@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
-using Windows.ApplicationModel.Resources;
-using Windows.Storage;
+using Utilz;
+using Utilz.Data;
 
 namespace UniFiler10.ViewModels
 {
-	public class BriefcaseContentVM : OpenableObservableData
+	public class BriefcaseContentVM : OpenableObservableDisposableData
 	{
 		private Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }

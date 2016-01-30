@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 
 namespace UniFiler10.Data.Metadata
 {
@@ -30,13 +31,13 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
+		private SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<string> _fieldDescriptionIds = new SwitchableObservableCollection<string>();
+		private SwitchableObservableDisposableCollection<string> _fieldDescriptionIds = new SwitchableObservableDisposableCollection<string>();
 		[DataMember]
-		public SwitchableObservableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 		public static void Copy(Category source, ref Category target, IList<FieldDescription> allFldDscs)
@@ -59,7 +60,7 @@ namespace UniFiler10.Data.Metadata
 				target.Name = source.Name;
 			}
 		}
-		public static void Copy(SwitchableObservableCollection<Category> source, ref SwitchableObservableCollection<Category> target, IList<FieldDescription> allFldDscs)
+		public static void Copy(SwitchableObservableDisposableCollection<Category> source, ref SwitchableObservableDisposableCollection<Category> target, IList<FieldDescription> allFldDscs)
 		{
 			if (source != null && target != null)
 			{

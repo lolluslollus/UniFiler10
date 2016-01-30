@@ -391,7 +391,7 @@ namespace Utilz
 			private static void SaveLastNonNegativeUsageDays()
 			{
 				string lastNonNegativeUsageDaysString = _lastNonNegativeUsageDays.ToString(CultureInfo.InvariantCulture);
-				RegistryAccess.SetValue(nameof(LastNonNegativeUsageDays), lastNonNegativeUsageDaysString);
+				RegistryAccess.TrySetValue(nameof(LastNonNegativeUsageDays), lastNonNegativeUsageDaysString);
 			}
 			private static DateTimeOffset LoadLastInstallDate()
 			{
@@ -409,7 +409,7 @@ namespace Utilz
 			private static void SaveLastInstallDate()
 			{
 				string lastInstallDate = _lastInstallDate.ToFileTime().ToString(CultureInfo.InvariantCulture);
-				RegistryAccess.SetValue(nameof(LastInstallDate), lastInstallDate);
+				RegistryAccess.TrySetValue(nameof(LastInstallDate), lastInstallDate);
 			}
 			private static DateTimeOffset LoadLastExpiryDate()
 			{
@@ -427,7 +427,7 @@ namespace Utilz
 			private static void SaveLastExpiryDate()
 			{
 				string lastExpiryDate = _lastExpiryDate.ToFileTime().ToString(CultureInfo.InvariantCulture);
-				RegistryAccess.SetValue(nameof(LastExpiryDate), lastExpiryDate);
+				RegistryAccess.TrySetValue(nameof(LastExpiryDate), lastExpiryDate);
 			}
 			public static bool IsDatesEqual(DateTimeOffset one, DateTimeOffset two)
 			{

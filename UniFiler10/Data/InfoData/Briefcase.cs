@@ -10,6 +10,7 @@ using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -17,7 +18,7 @@ using Windows.Storage.Streams;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public sealed class Briefcase : OpenableObservableData
+	public sealed class Briefcase : OpenableObservableDisposableData
 	{
 		#region construct and dispose
 		private static readonly object _instanceLock = new object();
@@ -144,9 +145,9 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		public Binder CurrentBinder { get { return _currentBinder; } private set { if (_currentBinder != value) { _currentBinder = value; RaisePropertyChanged_UI(); } } }
 
-		private SwitchableObservableCollection<string> _dbNames = new SwitchableObservableCollection<string>();
+		private SwitchableObservableDisposableCollection<string> _dbNames = new SwitchableObservableDisposableCollection<string>();
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<string> DbNames { get { return _dbNames; } private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<string> DbNames { get { return _dbNames; } private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } } }
 
 		private string _newDbName = string.Empty;
 		[DataMember]

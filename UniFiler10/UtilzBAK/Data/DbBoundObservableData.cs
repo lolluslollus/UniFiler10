@@ -1,22 +1,14 @@
 ﻿using SQLite;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
-using UniFiler10.Data.DB;
-using Utilz;
-using Windows.ApplicationModel.Core;
-using Windows.UI.Core;
 
-namespace UniFiler10.Data.Model
+namespace Utilz.Data
 {
 	[DataContract]
-	public abstract class DbBoundObservableData : OpenableObservableData
+	public abstract class DbBoundObservableData : OpenableObservableDisposableData
 	{
 		public static readonly string DEFAULT_ID = string.Empty;
 

@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 
 namespace UniFiler10.Data.Metadata
 {
@@ -42,9 +43,9 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public string Caption { get { return _caption; } set { _caption = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableCollection<FieldValue> _possibleValues = new SwitchableObservableCollection<FieldValue>();
+		private SwitchableObservableDisposableCollection<FieldValue> _possibleValues = new SwitchableObservableDisposableCollection<FieldValue>();
 		[DataMember]
-		public SwitchableObservableCollection<FieldValue> PossibleValues { get { return _possibleValues; } private set { _possibleValues = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<FieldValue> PossibleValues { get { return _possibleValues; } private set { _possibleValues = value; RaisePropertyChanged_UI(); } }
 
 		public enum FieldTypez { str, dat, dec, boo, nil };
 		private FieldTypez _typez = FieldTypez.str;
@@ -98,7 +99,7 @@ namespace UniFiler10.Data.Metadata
 				target.Typez = source._typez;
 			}
 		}
-		public static void Copy(SwitchableObservableCollection<FieldDescription> source, ref SwitchableObservableCollection<FieldDescription> target)
+		public static void Copy(SwitchableObservableDisposableCollection<FieldDescription> source, ref SwitchableObservableDisposableCollection<FieldDescription> target)
 		{
 			if (source != null && target != null)
 			{

@@ -5,22 +5,29 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniFiler10", "UniFiler10\UniFiler10.csproj", "{C96A1609-65CE-4574-BE26-BCE348275118}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilz", "..\Utilz\Utilz\Utilz.csproj", "{06425613-E56B-4C98-A8D2-58900E36E417}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|ARM = Debug|ARM
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		DebugNoStore|Any CPU = DebugNoStore|Any CPU
 		DebugNoStore|ARM = DebugNoStore|ARM
 		DebugNoStore|x64 = DebugNoStore|x64
 		DebugNoStore|x86 = DebugNoStore|x86
+		Release|Any CPU = Release|Any CPU
 		Release|ARM = Release|ARM
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseNoStore|Any CPU = ReleaseNoStore|Any CPU
 		ReleaseNoStore|ARM = ReleaseNoStore|ARM
 		ReleaseNoStore|x64 = ReleaseNoStore|x64
 		ReleaseNoStore|x86 = ReleaseNoStore|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|ARM.ActiveCfg = Debug|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|ARM.Build.0 = Debug|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|ARM.Deploy.0 = Debug|ARM
@@ -30,6 +37,7 @@ Global
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|x86.ActiveCfg = Debug|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|x86.Build.0 = Debug|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Debug|x86.Deploy.0 = Debug|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|Any CPU.ActiveCfg = DebugNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|ARM.ActiveCfg = DebugNoStore|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|ARM.Build.0 = DebugNoStore|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|ARM.Deploy.0 = DebugNoStore|ARM
@@ -39,6 +47,7 @@ Global
 		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x86.ActiveCfg = DebugNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x86.Build.0 = DebugNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.DebugNoStore|x86.Deploy.0 = DebugNoStore|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|Any CPU.ActiveCfg = Release|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|ARM.ActiveCfg = Release|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|ARM.Build.0 = Release|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|ARM.Deploy.0 = Release|ARM
@@ -48,6 +57,7 @@ Global
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|x86.ActiveCfg = Release|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|x86.Build.0 = Release|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.Release|x86.Deploy.0 = Release|x86
+		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|Any CPU.ActiveCfg = ReleaseNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|ARM.ActiveCfg = ReleaseNoStore|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|ARM.Build.0 = ReleaseNoStore|ARM
 		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|ARM.Deploy.0 = ReleaseNoStore|ARM
@@ -57,6 +67,38 @@ Global
 		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x86.ActiveCfg = ReleaseNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x86.Build.0 = ReleaseNoStore|x86
 		{C96A1609-65CE-4574-BE26-BCE348275118}.ReleaseNoStore|x86.Deploy.0 = ReleaseNoStore|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|ARM.ActiveCfg = Debug|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|ARM.Build.0 = Debug|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|x64.ActiveCfg = Debug|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|x64.Build.0 = Debug|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|x86.ActiveCfg = Debug|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Debug|x86.Build.0 = Debug|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|Any CPU.ActiveCfg = Debug|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|Any CPU.Build.0 = Debug|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|ARM.ActiveCfg = Debug|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|ARM.Build.0 = Debug|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|x64.ActiveCfg = Debug|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|x64.Build.0 = Debug|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|x86.ActiveCfg = Debug|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.DebugNoStore|x86.Build.0 = Debug|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|ARM.ActiveCfg = Release|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|ARM.Build.0 = Release|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|x64.ActiveCfg = Release|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|x64.Build.0 = Release|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|x86.ActiveCfg = Release|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.Release|x86.Build.0 = Release|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|Any CPU.ActiveCfg = Release|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|Any CPU.Build.0 = Release|Any CPU
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|ARM.ActiveCfg = Release|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|ARM.Build.0 = Release|ARM
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|x64.ActiveCfg = Release|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|x64.Build.0 = Release|x64
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|x86.ActiveCfg = Release|x86
+		{06425613-E56B-4C98-A8D2-58900E36E417}.ReleaseNoStore|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

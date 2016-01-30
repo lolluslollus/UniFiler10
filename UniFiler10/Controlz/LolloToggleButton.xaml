@@ -38,17 +38,6 @@
 				<!-- default height of SymbolIcon is 20-->
 				<SymbolIcon x:Name="MySymbolIconSmall"
 					HorizontalAlignment="Center"/>
-				<!--<ctl:TextBlockScaler
-					Height="30"
-					Width="{StaticResource LandscapeItemHeight}">
-					<ctl:TextBlockScaler.TextBlock>
-						<TextBlock x:Name="MyTextBlockSmall"
-							MaxWidth="{StaticResource LandscapeItemHeightMinusPanelPadding}"
-							TextAlignment="Center"
-							Style="{StaticResource SmallMessageStyle}"
-							TextWrapping="Wrap"/>
-					</ctl:TextBlockScaler.TextBlock>
-				</ctl:TextBlockScaler>-->
 				<TextBlock x:Name="MyTextBlockSmall"
 					MaxWidth="{StaticResource LandscapeItemHeightMinusPanelPadding}"
 					TextAlignment="Center"

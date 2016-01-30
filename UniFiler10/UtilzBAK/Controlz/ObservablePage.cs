@@ -1,21 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
-using Utilz;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace UniFiler10.Controlz
+namespace Utilz.Controlz
 {
-	public abstract class ObservableControl : UserControl, INotifyPropertyChanged
+	public abstract class ObservablePage : Page, INotifyPropertyChanged
 	{
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -41,7 +33,7 @@ namespace UniFiler10.Controlz
 		#endregion INotifyPropertyChanged
 
 		#region construct dispose
-		public ObservableControl() { }
+		public ObservablePage() { }
 		#endregion construct dispose
 
 		#region UIThread

@@ -9,12 +9,13 @@ using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Data;
 using Windows.Media.Capture;
 using Windows.Storage;
 
 namespace UniFiler10.ViewModels
 {
-	public class FolderVM : OpenableObservableData
+	public class FolderVM : OpenableObservableDisposableData
 	{
 		#region properties
 		private IRecorder _audioRecorder = null;
@@ -46,7 +47,7 @@ namespace UniFiler10.ViewModels
 			{
 				lock (_isImportingLocker)
 				{
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_IS_IMPORTING, value.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 				}
 			}
@@ -113,7 +114,7 @@ namespace UniFiler10.ViewModels
 		/// I need this override to stop any running media recording, since they lock the semaphore.
 		/// </summary>
 		/// <returns></returns>
-		public override async Task<bool> CloseAsync()
+		public override async Task<bool> CloseAsync() // LOLLO TODO see if you can use the new safe cancellation token instead of overriding this
 		{
 			if (!_isOpen) return false;
 
@@ -190,9 +191,9 @@ namespace UniFiler10.ViewModels
 			{
 				IsImportingMedia = true;
 
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, string.Empty);
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, false.ToString());
+				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
+				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, string.Empty);
+				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, false.ToString());
 
 				var file = await DocumentExtensions.PickMediaFileAsync().ConfigureAwait(false);
 
@@ -220,9 +221,9 @@ namespace UniFiler10.ViewModels
 			{
 				IsImportingMedia = true;
 
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, parentWallet == null ? string.Empty : parentWallet.Id);
-				RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, false.ToString());
+				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
+				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, parentWallet == null ? string.Empty : parentWallet.Id);
+				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, false.ToString());
 
 				var file = await DocumentExtensions.PickMediaFileAsync().ConfigureAwait(false);
 
@@ -252,9 +253,9 @@ namespace UniFiler10.ViewModels
 				{
 					IsImportingMedia = true;
 
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, parentWallet == null ? string.Empty : parentWallet.Id);
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, true.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
+					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, parentWallet == null ? string.Empty : parentWallet.Id);
+					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, true.ToString());
 
 					var captureUI = new CameraCaptureUI();
 					captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
@@ -374,8 +375,8 @@ namespace UniFiler10.ViewModels
 
 
 		#region edit categories
-		public SwitchableObservableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableCollection<FolderCategorySelectorRow>();
-		public SwitchableObservableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
+		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
+		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
 		public class FolderCategorySelectorRow : ObservableData
 		{
 			private string _name = string.Empty;

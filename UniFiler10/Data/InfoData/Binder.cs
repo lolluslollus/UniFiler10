@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Data;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -124,9 +125,9 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
 
-		protected SwitchableObservableCollection<Folder> _folders = new SwitchableObservableCollection<Folder>();
+		protected SwitchableObservableDisposableCollection<Folder> _folders = new SwitchableObservableDisposableCollection<Folder>();
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<Folder> Folders { get { return _folders; } protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
+		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
 
 		private string _currentFolderId = DEFAULT_ID;
 		[DataMember]

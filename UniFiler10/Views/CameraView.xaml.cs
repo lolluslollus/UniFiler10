@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using UniFiler10.Controlz;
-using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using UniFiler10.ViewModels;
 using Utilz;
-using Windows.ApplicationModel;
+using Utilz.Controlz;
 using Windows.Devices.Sensors;
 using Windows.Foundation;
 using Windows.Foundation.Metadata;
@@ -17,7 +13,6 @@ using Windows.Graphics.Display;
 using Windows.Graphics.Imaging;
 using Windows.Media;
 using Windows.Media.Capture;
-using Windows.Media.Devices;
 using Windows.Media.MediaProperties;
 using Windows.Phone.UI.Input;
 using Windows.Storage;
@@ -27,7 +22,6 @@ using Windows.System.Display;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 

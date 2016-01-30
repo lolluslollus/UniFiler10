@@ -13,6 +13,7 @@ using Windows.Storage;
 using Windows.UI.Core;
 using System.Reflection;
 using System.Diagnostics;
+using Utilz.Data;
 
 namespace UniFiler10.Data.Model
 {
@@ -31,15 +32,15 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
-		private SwitchableObservableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableCollection<DynamicCategory>();
+		private SwitchableObservableDisposableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableDisposableCollection<DynamicCategory>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableCollection<DynamicCategory> DynamicCategories { get { return _dynamicCategories; } set { if (_dynamicCategories != value) { _dynamicCategories = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<DynamicCategory> DynamicCategories { get { return _dynamicCategories; } set { if (_dynamicCategories != value) { _dynamicCategories = value; RaisePropertyChanged_UI(); } } }
 
-		private SwitchableObservableCollection<DynamicField> _dynamicFields = new SwitchableObservableCollection<DynamicField>();
+		private SwitchableObservableDisposableCollection<DynamicField> _dynamicFields = new SwitchableObservableDisposableCollection<DynamicField>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } set { if (_dynamicFields != value) { _dynamicFields = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } set { if (_dynamicFields != value) { _dynamicFields = value; RaisePropertyChanged_UI(); } } }
 
 		private string _name = string.Empty;
 		[DataMember]
@@ -81,10 +82,10 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public DateTime Date3 { get { return _date3; } set { SetProperty(ref _date3, value); } }
 
-		private SwitchableObservableCollection<Wallet> _wallets = new SwitchableObservableCollection<Wallet>();
+		private SwitchableObservableDisposableCollection<Wallet> _wallets = new SwitchableObservableDisposableCollection<Wallet>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableCollection<Wallet> Wallets { get { return _wallets; } private set { if (_wallets != value) { _wallets = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<Wallet> Wallets { get { return _wallets; } private set { if (_wallets != value) { _wallets = value; RaisePropertyChanged_UI(); } } }
 
 		private bool _isEditingCategories = true;
 		[DataMember]

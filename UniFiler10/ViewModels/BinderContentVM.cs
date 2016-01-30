@@ -7,11 +7,12 @@ using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Data;
 using Windows.Storage;
 
 namespace UniFiler10.ViewModels
 {
-	public sealed class BinderContentVM : OpenableObservableData
+	public sealed class BinderContentVM : OpenableObservableDisposableData
 	{
 		#region properties
 		//public const string DEFAULT_AUDIO_FILE_NAME = "Audio.mp3";

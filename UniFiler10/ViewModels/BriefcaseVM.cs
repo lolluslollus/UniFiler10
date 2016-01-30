@@ -4,11 +4,12 @@ using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Model;
 using Utilz;
+using Utilz.Data;
 using Windows.Storage;
 
 namespace UniFiler10.ViewModels
 {
-	public class BriefcaseVM : OpenableObservableData
+	public class BriefcaseVM : OpenableObservableDisposableData
 	{
 		private Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
@@ -47,7 +48,7 @@ namespace UniFiler10.ViewModels
 			{
 				lock (_isImportingExportingLocker)
 				{
-					RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, value.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 					IsCanImportExport = !value && !IsExportingBinder;
 				}
@@ -68,7 +69,7 @@ namespace UniFiler10.ViewModels
 			{
 				lock (_isImportingExportingLocker)
 				{
-					RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_IS_IMPORTING, value.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_BINDER_IS_IMPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 					IsCanImportExport = !value && !IsImportingBinder;
 				}
@@ -365,7 +366,7 @@ namespace UniFiler10.ViewModels
 			{
 				IsExportingBinder = true;
 
-				RegistryAccess.SetValue(ConstantData.REG_EXPORT_BINDER_DBNAME, dbName);
+				RegistryAccess.TrySetValue(ConstantData.REG_EXPORT_BINDER_DBNAME, dbName);
 				// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
 				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 

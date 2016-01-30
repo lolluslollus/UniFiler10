@@ -1,25 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
-using Utilz;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace UniFiler10.Controlz
+namespace Utilz.Controlz
 {
-	public abstract class ObservablePage : Page, INotifyPropertyChanged
+	public abstract class ObservableControl : UserControl, INotifyPropertyChanged
 	{
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
-		protected void ClearListeners() // we could use this inside a Dispose
+		protected void ClearListeners() // we can use this inside a Dispose
 		{
 			PropertyChanged = null;
 		}
@@ -40,12 +32,14 @@ namespace UniFiler10.Controlz
 		}
 		#endregion INotifyPropertyChanged
 
+
 		#region construct dispose
-		public ObservablePage() { }
+		public ObservableControl() { }
 		#endregion construct dispose
 
+
 		#region UIThread
-		public async Task RunInUiThreadAsync(DispatchedHandler action)
+		protected async Task RunInUiThreadAsync(DispatchedHandler action)
 		{
 			if (Dispatcher.HasThreadAccess)
 			{
@@ -53,7 +47,19 @@ namespace UniFiler10.Controlz
 			}
 			else
 			{
-				await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+				await Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
+			}
+		}
+
+		protected async Task RunInUiThreadAsync(CoreDispatcher dispatcher, DispatchedHandler action)
+		{
+			if (dispatcher?.HasThreadAccess == true)
+			{
+				action();
+			}
+			else
+			{
+				await dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
 			}
 		}
 		#endregion UIThread

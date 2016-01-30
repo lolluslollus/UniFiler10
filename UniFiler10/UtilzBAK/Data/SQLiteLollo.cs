@@ -224,7 +224,7 @@ namespace SQLite
 			Handle = handle;
 			if (r != SQLite3.Result.OK)
 			{
-				throw SQLiteException.New(r, String.Format("Could not open database file: {0} ({1})", DatabasePath, r));
+				throw SQLiteException.New(r, string.Format("Could not open database file: {0} ({1})", DatabasePath, r));
 			}
 			_open = true;
 
@@ -476,7 +476,7 @@ namespace SQLite
 		public int CreateIndex(string indexName, string tableName, string[] columnNames, bool unique = false)
 		{
 			const string sqlFormat = "create {2} index if not exists \"{3}\" on \"{0}\"(\"{1}\")";
-			var sql = String.Format(sqlFormat, tableName, string.Join("\", \"", columnNames), unique ? "unique" : "", indexName);
+			var sql = string.Format(sqlFormat, tableName, string.Join("\", \"", columnNames), unique ? "unique" : "", indexName);
 			return Execute(sql);
 		}
 
@@ -1061,7 +1061,7 @@ namespace SQLite
 			//    and leaves the transaction stack empty.   
 			try
 			{
-				if (String.IsNullOrEmpty(savepoint))
+				if (string.IsNullOrEmpty(savepoint))
 				{
 					if (Interlocked.Exchange(ref _transactionDepth, 0) > 0)
 					{
@@ -1738,7 +1738,7 @@ namespace SQLite
 	/// <summary>
 	/// Represents a parsed connection string.
 	/// </summary>
-	class SQLiteConnectionString
+	public class SQLiteConnectionString // LOLLO made this public from private
 	{
 		public string ConnectionString { get; private set; }
 		public string DatabasePath { get; private set; }
@@ -2133,7 +2133,7 @@ namespace SQLite
 		public static string SqlType(TableMapping.Column p, bool storeDateTimeAsTicks)
 		{
 			var clrType = p.ColumnType;
-			if (clrType == typeof(Boolean) || clrType == typeof(Byte) || clrType == typeof(UInt16) || clrType == typeof(SByte) || clrType == typeof(Int16) || clrType == typeof(Int32) || clrType == typeof(UInt32) || clrType == typeof(Int64))
+			if (clrType == typeof(bool) || clrType == typeof(Byte) || clrType == typeof(UInt16) || clrType == typeof(SByte) || clrType == typeof(Int16) || clrType == typeof(Int32) || clrType == typeof(UInt32) || clrType == typeof(Int64))
 			{
 				return "integer";
 			}
@@ -2141,7 +2141,7 @@ namespace SQLite
 			{
 				return "float";
 			}
-			else if (clrType == typeof(String))
+			else if (clrType == typeof(string))
 			{
 				int? len = p.MaxStringLength;
 
@@ -2260,7 +2260,7 @@ namespace SQLite
 
 		public string CommandText { get; set; }
 
-		internal SQLiteCommand(SQLiteConnection conn)
+		public SQLiteCommand(SQLiteConnection conn) // LOLLO made this public from internal
 		{
 			_conn = conn;
 			_bindings = new List<Binding>();
@@ -2477,7 +2477,7 @@ namespace SQLite
 				{
 					SQLite3.BindInt(stmt, index, (int)value);
 				}
-				else if (value is String)
+				else if (value is string)
 				{
 					SQLite3.BindText(stmt, index, (string)value, -1, NegativePointer);
 				}
@@ -2485,7 +2485,7 @@ namespace SQLite
 				{
 					SQLite3.BindInt(stmt, index, Convert.ToInt32(value));
 				}
-				else if (value is Boolean)
+				else if (value is bool)
 				{
 					SQLite3.BindInt(stmt, index, (bool)value ? 1 : 0);
 				}
@@ -2556,7 +2556,7 @@ namespace SQLite
 			}
 			else
 			{
-				if (clrType == typeof(String))
+				if (clrType == typeof(string))
 				{
 					return SQLite3.ColumnString(stmt, index);
 				}
@@ -2564,7 +2564,7 @@ namespace SQLite
 				{
 					return (int)SQLite3.ColumnInt(stmt, index);
 				}
-				else if (clrType == typeof(Boolean))
+				else if (clrType == typeof(bool))
 				{
 					return SQLite3.ColumnInt(stmt, index) == 1;
 				}
@@ -3833,6 +3833,3 @@ namespace SQLite.Extensions
 	}
 }
 #endif
-
-
-

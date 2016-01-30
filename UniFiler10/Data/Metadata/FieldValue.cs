@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 
 namespace UniFiler10.Data.Metadata
 {
@@ -47,7 +48,7 @@ namespace UniFiler10.Data.Metadata
                 // target.IsJustAdded = source.IsJustAdded; // we don't want this!
             }
         }
-        public static void Copy(SwitchableObservableCollection<FieldValue> source, SwitchableObservableCollection<FieldValue> target)
+        public static void Copy(SwitchableObservableDisposableCollection<FieldValue> source, SwitchableObservableDisposableCollection<FieldValue> target)
         {
             if (source != null && target != null)
             {

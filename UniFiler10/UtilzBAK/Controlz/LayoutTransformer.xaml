@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ctl="using:UniFiler10.Controlz">
+    xmlns:ctl="using:Utilz.Controlz">
 
     <!-- LOLLO http://igrali.com/2012/09/17/layout-transform-in-windows-8-winrt-xaml/ -->
     

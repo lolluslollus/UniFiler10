@@ -1,29 +1,19 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using UniFiler10;
-using Utilz;
 using Utilz.Data;
-using Windows.ApplicationModel;
-using Windows.Foundation.Metadata;
-using Windows.Phone.UI.Input;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Navigation;
 
 namespace Utilz.Controlz
 {
 	/// <summary>
-	/// This is a smarter Page that can be opened and closed, asynchronously. 
+	/// This is a smarter UserControl that can be opened and closed, asynchronously. 
 	/// It will stay disabled as long as it is closed.
 	/// Do not bind to IsEnabled, but to IsEnabledOverride instead.
 	/// </summary>
-	public abstract class OpenableObservablePage : ObservablePage, IOpenable
+	public abstract class OpenableObservableControl : ObservableControl, IOpenable
 	{
 		#region properties
-		private bool _isOpenWhenSuspending = false;
-		private bool _isOnMe = false;
-
 		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
 		protected volatile bool _isOpen = false;
@@ -49,10 +39,10 @@ namespace Utilz.Controlz
 			set { SetValue(IsEnabledOverrideProperty, value); }
 		}
 		public static readonly DependencyProperty IsEnabledOverrideProperty =
-			DependencyProperty.Register("IsEnabledOverride", typeof(bool), typeof(OpenableObservablePage), new PropertyMetadata(true, OnIsEnabledOverrideChanged));
+			DependencyProperty.Register("IsEnabledOverride", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true, OnIsEnabledOverrideChanged));
 		private static void OnIsEnabledOverrideChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			Task upd = (obj as OpenableObservablePage)?.UpdateIsEnabledAsync();
+			Task upd = (obj as OpenableObservableControl)?.UpdateIsEnabledAsync();
 		}
 		private Task UpdateIsEnabledAsync()
 		{
@@ -85,46 +75,11 @@ namespace Utilz.Controlz
 
 
 		#region ctor
-		public OpenableObservablePage() : base()
+		public OpenableObservableControl() : base()
 		{
-			Application.Current.Resuming += OnResuming;
-			Application.Current.Suspending += OnSuspending;
 			Task upd = UpdateIsEnabledAsync();
 		}
 		#endregion ctor
-
-
-		#region event handlers
-		private async void OnSuspending(object sender, SuspendingEventArgs e)
-		{
-			var deferral = e.SuspendingOperation.GetDeferral();
-
-			_isOpenWhenSuspending = _isOnMe;
-			if (_isOnMe) RegistryAccess.TrySetValue(App.LAST_NAVIGATED_PAGE_REG_KEY, GetType().Name);
-			await CloseAsync().ConfigureAwait(false);
-
-			deferral.Complete();
-		}
-
-		private async void OnResuming(object sender, object e)
-		{
-			if (_isOpenWhenSuspending) await OpenAsync().ConfigureAwait(false);
-		}
-
-		protected override async void OnNavigatedTo(NavigationEventArgs e)
-		{
-			base.OnNavigatedTo(e);
-			_isOnMe = true;
-			await OpenAsync().ConfigureAwait(false);
-		}
-
-		protected override async void OnNavigatingFrom(NavigatingCancelEventArgs e)
-		{
-			base.OnNavigatingFrom(e);
-			_isOnMe = false;
-			await CloseAsync().ConfigureAwait(false);
-		}
-		#endregion event handlers
 
 
 		#region open close
@@ -145,9 +100,6 @@ namespace Utilz.Controlz
 
 						IsOpen = true;
 						IsEnabledAllowed = true;
-
-						await RegisterBackEventHandlersAsync().ConfigureAwait(false);
-
 						return true;
 					}
 				}
@@ -167,10 +119,10 @@ namespace Utilz.Controlz
 
 		protected virtual Task OpenMayOverrideAsync()
 		{
-			return Task.CompletedTask; // avoid warning
+			return Task.CompletedTask;
 		}
 
-		public async Task<bool> CloseAsync()
+		public virtual async Task<bool> CloseAsync()
 		{
 			if (_isOpen)
 			{
@@ -183,8 +135,6 @@ namespace Utilz.Controlz
 					{
 						_cts?.Dispose();
 						_cts = null;
-
-						await UnregisterBackEventHandlersAsync();
 
 						IsEnabledAllowed = false;
 						IsOpen = false;
@@ -266,6 +216,7 @@ namespace Utilz.Controlz
 			}
 			return false;
 		}
+
 		protected async Task<bool> RunFunctionIfOpenAsyncB(Func<bool> func)
 		{
 			if (_isOpen)
@@ -287,6 +238,7 @@ namespace Utilz.Controlz
 			}
 			return false;
 		}
+
 		protected async Task<bool> RunFunctionIfOpenAsyncT(Func<Task> funcAsync)
 		{
 			if (_isOpen)
@@ -333,58 +285,32 @@ namespace Utilz.Controlz
 			}
 			return false;
 		}
-		#endregion while open
 
-
-		#region back
-		private bool _isBackHandlersRegistered = false;
-		private Task RegisterBackEventHandlersAsync()
+		protected async Task<bool> RunFunctionIfOpenAsyncT_MT(Func<Task> funcAsync)
 		{
-			return RunInUiThreadAsync(delegate
+			if (_isOpen)
 			{
-				if (!_isBackHandlersRegistered)
+				try
 				{
-					_isBackHandlersRegistered = true;
-
-					if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen)
 					{
-						HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+						await Task.Run(delegate { return funcAsync(); }).ConfigureAwait(false);
+						return true;
 					}
-					SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
 				}
-			});
-		}
-		private Task UnregisterBackEventHandlersAsync()
-		{
-			return RunInUiThreadAsync(delegate
-			{
-
-				if (ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons"))
+				catch (Exception ex)
 				{
-					HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
 				}
-				SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
-
-				_isBackHandlersRegistered = false;
-			});
-		}
-
-		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
-		{
-			if (!e.Handled) e.Handled = GoBackMayOverride();
-		}
-		private void OnTabletSoftwareButton_BackPressed(object sender, BackRequestedEventArgs e)
-		{
-			if (!e.Handled) e.Handled = GoBackMayOverride();
-		}
-		/// <summary>
-		/// Deals with the back requested event and returns true if the event has been dealt with
-		/// </summary>
-		/// <returns></returns>
-		protected virtual bool GoBackMayOverride()
-		{
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
 			return false;
 		}
-		#endregion back
+		#endregion while open
 	}
 }

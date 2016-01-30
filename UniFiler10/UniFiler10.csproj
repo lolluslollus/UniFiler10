@@ -106,7 +106,6 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\BackableOpenableObservableControl.cs" />
-    <Compile Include="Controlz\LayoutTransformer.cs" />
     <Compile Include="Controlz\LolloToggleButton.xaml.cs">
       <DependentUpon>LolloToggleButton.xaml</DependentUpon>
     </Compile>
@@ -117,18 +116,11 @@
       <DependentUpon>LolloSplitView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\LolloTextBox.cs" />
-    <Compile Include="Controlz\ObservablePage.cs" />
-    <Compile Include="Controlz\ObservableControl.cs" />
     <Compile Include="Controlz\OpenableObservablePage.cs" />
-    <Compile Include="Controlz\OpenableObservableControl.cs" />
-    <Compile Include="Controlz\TextBlockScaler.cs" />
-    <Compile Include="Controlz\UniversalWrapPanel.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Data\InfoData\DynamicCategory.cs" />
     <Compile Include="Data\InfoData\DynamicField.cs" />
-    <Compile Include="Data\InfoData\DbBoundObservableData.cs" />
     <Compile Include="Data\InfoData\MergingBinder.cs" />
-    <Compile Include="Data\InfoData\OpenableObservableData.cs" />
     <Compile Include="Data\InfoData\Wallet.cs" />
     <Compile Include="Data\InfoData\Binder.cs" />
     <Compile Include="Data\Runtime\RuntimeData.cs" />
@@ -138,20 +130,14 @@
     <Compile Include="Data\Metadata\MetaBriefcase.cs" />
     <Compile Include="Data\Metadata\FieldDescription.cs" />
     <Compile Include="Data\Metadata\FieldValue.cs" />
-    <Compile Include="Utilz\AudioRecorder.cs" />
-    <Compile Include="Utilz\DocumentExtensions.cs" />
+    <Compile Include="Services\AudioRecorder.cs" />
+    <Compile Include="Services\DocumentExtensions.cs" />
     <Compile Include="Data\Constants\Constants.cs" />
-    <Compile Include="Utilz\FileDirectoryExts.cs" />
-    <Compile Include="Utilz\Licenser.cs" />
-    <Compile Include="Utilz\ObservableData.cs" />
+    <Compile Include="Services\Licenser.cs" />
     <Compile Include="Data\InfoData\Briefcase.cs" />
     <Compile Include="Data\DB\DBManager.cs" />
-    <Compile Include="Data\DB\SQLiteLollo.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
-    <Compile Include="Utilz\Pickers.cs" />
-    <Compile Include="Utilz\ProportionsTrigger.cs" />
-    <Compile Include="Utilz\RegistryAccess.cs" />
-    <Compile Include="Utilz\UserConfirmationPopup.cs" />
+    <Compile Include="Controlz\UserConfirmationPopup.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />
     <Compile Include="ViewModels\BinderContentVM.cs" />
     <Compile Include="ViewModels\BriefcaseContentVM.cs" />
@@ -205,10 +191,6 @@
       <DependentUpon>BriefcaseContentPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilz\Logger.cs" />
-    <Compile Include="Utilz\LolloMath.cs" />
-    <Compile Include="Utilz\SemaphoreSlimSafeRelease.cs" />
-    <Compile Include="Utilz\SwitchableObservableCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -241,11 +223,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Controlz\LayoutTransformer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Page>
     <Page Include="Controlz\LolloToggleButton.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -339,15 +316,15 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <SDKReference Include="Microsoft.VCLibs, Version=14.0">
-      <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
-    </SDKReference>
-    <SDKReference Include="SQLite.UAP.2015, Version=3.10.0">
-      <Name>SQLite for Universal App Platform</Name>
-    </SDKReference>
     <SDKReference Include="WindowsMobile, Version=10.0.10586.0">
       <Name>Windows Mobile Extensions for the UWP</Name>
     </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Utilz\Utilz\Utilz.csproj">
+      <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
+      <Name>Utilz</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

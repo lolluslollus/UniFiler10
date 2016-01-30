@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
-using Utilz;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.UI.Core;
 
-namespace Utilz
+namespace Utilz.Data
 {
 	[DataContract]
 	public abstract class ObservableData : INotifyPropertyChanged
@@ -23,6 +18,7 @@ namespace Utilz
 		{
 			PropertyChanged = null;
 		}
+
 		protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -31,15 +27,34 @@ namespace Utilz
 		/// Runs in the UI thread if available, otherwise queues the operation in it.
 		/// </summary>
 		/// <param name="propertyName"></param>
-		protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
+		protected async void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
-			Task raise = RunInUiThreadAsync(delegate { RaisePropertyChanged(propertyName); });
+			await RunInUiThreadAsync(delegate
+			{
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			}).ConfigureAwait(false);
+		}
+		protected async void RaisePropertyChangedUrgent_UI([CallerMemberName] string propertyName = "")
+		{
+			try
+			{
+				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+				{
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+				}).AsTask().ConfigureAwait(false);
+			}
+			catch (InvalidOperationException) // called from a background task: ignore
+			{ }
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
 		}
 		#endregion INotifyPropertyChanged
 
 
 		#region UIThread
-		public async Task RunInUiThreadAsync(DispatchedHandler action)
+		protected static async Task RunInUiThreadAsync(DispatchedHandler action)
 		{
 			try
 			{
@@ -49,9 +64,11 @@ namespace Utilz
 				}
 				else
 				{
-					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
 				}
 			}
+			catch (InvalidOperationException) // called from a background task: ignore
+			{ }
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);

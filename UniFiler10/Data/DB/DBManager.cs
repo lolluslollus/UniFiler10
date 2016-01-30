@@ -8,11 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using Utilz;
+using Utilz.Data;
 using Windows.Storage;
 
 namespace UniFiler10.Data.DB
 {
-	public sealed class DBManager : OpenableObservableData
+	public sealed class DBManager : OpenableObservableDisposableData
 	{
 		#region enums
 		private enum InsertResult { NothingDone, AlreadyThere, Added };
@@ -1180,7 +1181,7 @@ namespace UniFiler10.Data.DB
 		#endregion private methods
 
 
-		private class LolloSQLiteConnectionPoolMT : OpenableObservableData
+		private class LolloSQLiteConnectionPoolMT : OpenableObservableDisposableData
 		{
 			private class LolloConnection
 			{

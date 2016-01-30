@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using Utilz;
+using Utilz.Data;
 using Windows.Devices.Enumeration;
 using Windows.Media.Audio;
 using Windows.Media.Capture;
@@ -17,7 +18,7 @@ using Windows.Storage;
 
 namespace Utilz
 {
-	public class AudioRecorder : OpenableObservableData
+	public class AudioRecorder : OpenableObservableDisposableData
 	{
 		public event EventHandler UnrecoverableError;
 		#region properties
