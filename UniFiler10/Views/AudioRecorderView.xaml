@@ -70,15 +70,15 @@
 		<!-- Capture + Record buttons -->
 		<StackPanel Grid.Column="1" Grid.RowSpan="2"
 			VerticalAlignment="Center">
-			<Button Tapped="OnOwnBackButton_Tapped"
+			<Button Tapped="OnStopRecordingButton_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
-				<Viewbox Height="60" Width="60">
+				<!--<Viewbox Height="160" Width="80">-->
 					<StackPanel Orientation="Vertical">
 						<SymbolIcon Symbol="Stop"/>
 						<TextBlock x:Uid="StopRecording"
                             HorizontalAlignment="Center"/>
 					</StackPanel>
-				</Viewbox>
+				<!--</Viewbox>-->
 			</Button>
 
 			<Slider x:Name="VolumeSlider"
@@ -90,7 +90,8 @@
 
 		<Border Grid.Row="1" Grid.ColumnSpan="2" 
 			HorizontalAlignment="Center">
-			<TextBlock Text="{x:Bind LastMessage, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+			<TextBlock Text="{x:Bind LastMessage, Mode=OneWay}" 
+				HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		</Border>
 	</Grid>
 </uctl:OpenableObservableControl>

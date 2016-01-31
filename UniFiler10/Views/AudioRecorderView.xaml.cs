@@ -46,10 +46,11 @@ namespace UniFiler10.Views
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (file == null || cancToken == null) return false; // throw new ArgumentNullException("IRecorder.RecordAsync() must have file and cancToken != null");
+				if (file == null || cancToken == null) return false;
 				bool isOk = await StartRecordingAsync(file).ConfigureAwait(false);
 
-				// lock the thread asynchronously until explicitly closed from the caller. If I could not start recording, stay open to display error messages.
+				// Lock the thread asynchronously until explicitly closed from the caller. 
+				// If an error prevented starting recording, stay open to display error messages.
 				// The lock will last until the cancellation token is cancelled or the semaphore is released or disposed.
 				_recordLockingSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
 				try
@@ -125,7 +126,7 @@ namespace UniFiler10.Views
 
 
 		#region event handlers
-		private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private async void OnStopRecordingButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			await StopRecordingAsync().ConfigureAwait(false);
 			SemaphoreSlimSafeRelease.TryRelease(_recordLockingSemaphore);
@@ -133,13 +134,13 @@ namespace UniFiler10.Views
 
 		private async void OnAudioRecorder_UnrecoverableError(object sender, EventArgs e)
 		{
-			await StopRecordingAsync();
+			await StopRecordingAsync().ConfigureAwait(false);
 			NotifyOfFailure();
 		}
 
 		private async void OnMediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
 		{
-			await StopRecordingAsync();
+			await StopRecordingAsync().ConfigureAwait(false);
 			NotifyOfFailure(errorEventArgs?.Message);
 		}
 		#endregion event handlers
@@ -180,11 +181,13 @@ namespace UniFiler10.Views
 				isOk = await _audioRecorder.StartRecordingAsync().ConfigureAwait(false);
 				if (!isOk)
 				{
+					await Logger.AddAsync("AudioRecordingCannotStart", Logger.ForegroundLogFilename);
 					NotifyOfFailure(RuntimeData.GetText("AudioRecordingCannotStart"));
 				}
 			}
 			catch (Exception ex)
 			{
+				isOk = false;
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
 				NotifyOfFailure(ex.Message);
 			}

@@ -332,17 +332,18 @@ namespace UniFiler10.ViewModels
 							{
 								IsAudioRecorderOverlayOpen = true;
 								await _audioRecorderView.OpenAsync();
-								await _audioRecorderView.RecordAsync(file, CancellationTokenSafe); // this locks until explicitly unlocked
+								bool hasRecorded = await _audioRecorderView.RecordAsync(file, CancellationTokenSafe); // this locks until explicitly unlocked
 								await _audioRecorderView.CloseAsync();
 								IsAudioRecorderOverlayOpen = false;
 
-								if (Cts?.IsCancellationRequested == false)
+								if (hasRecorded)
 								{
 									bool mediaImportedOk = await folder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
 									Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
 								}
 								else
 								{
+									if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 									Debug.WriteLine("RecordAudioAsync(): recording interrupted");
 								}
 							}
@@ -439,12 +440,13 @@ namespace UniFiler10.ViewModels
 	public interface IRecorder : IOpenable
 	{
 		/// <summary>
-		/// This locks the caller asynchronously. StopAsync or CloseAsync unlock.
+		/// It starts recording and locks the caller asynchronously. Use the cancellation token to unlock it.
+		/// It returns a bool telling if the recording was successful.
 		/// </summary>
 		/// <param name="file"></param>
+		/// <param name="cancToken"></param>
 		/// <returns></returns>
 		Task<bool> RecordAsync(StorageFile file, CancellationToken cancToken);
-		//Task<bool> StopAsync();
 		bool IsRecording { get; }
 	}
 }
