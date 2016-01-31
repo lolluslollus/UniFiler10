@@ -20,7 +20,10 @@ namespace Utilz
 {
 	public class AudioRecorder : OpenableObservableDisposableData
 	{
+		#region events
 		public event EventHandler UnrecoverableError;
+		#endregion events
+
 		#region properties
 		private AudioGraph _audioGraph = null;
 		private AudioFileOutputNode _fileOutputNode;
@@ -31,7 +34,7 @@ namespace Utilz
 		private StorageFile _file;
 		#endregion properties
 
-		#region construct, dispose, open, close
+		#region lifecycle
 		public AudioRecorder(IMessageWriter messageWriter, StorageFile file)
 		{
 			_messageWriter = messageWriter;
@@ -83,9 +86,9 @@ namespace Utilz
 			//	_fileOutputNode?.Dispose();
 			//}
 			//catch { }
-			await Task.CompletedTask; // avoid the warning...
+			await Task.CompletedTask;
 		}
-		#endregion construct, dispose, open, close
+		#endregion lifecycle
 
 		#region init properties before recording
 		/// <summary>
@@ -204,7 +207,7 @@ namespace Utilz
 		#endregion init properties before recording
 
 		#region record
-		public Task<bool> RecordStartAsync()
+		public Task<bool> StartRecordingAsync()
 		{
 			return RunFunctionIfOpenAsyncB(delegate
 			{
@@ -220,7 +223,7 @@ namespace Utilz
 				}
 			});
 		}
-		public Task<bool> RecordStopAsync()
+		public Task<bool> StopRecordingAsync()
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{

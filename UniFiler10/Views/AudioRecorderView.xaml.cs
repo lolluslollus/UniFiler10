@@ -33,7 +33,7 @@ namespace UniFiler10.Views
 		// For listening to media property changes
 		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
 
-		private SemaphoreSlimSafeRelease _triggerSemaphore = null;
+		private SemaphoreSlimSafeRelease _recordLockingSemaphore = null;
 		#endregion properties
 
 
@@ -51,10 +51,10 @@ namespace UniFiler10.Views
 
 				// lock the thread asynchronously until explicitly closed from the caller. If I could not start recording, stay open to display error messages.
 				// The lock will last until the cancellation token is cancelled or the semaphore is released or disposed.
-				_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
+				_recordLockingSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
 				try
 				{
-					await _triggerSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
+					await _recordLockingSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
 					Debug.WriteLine("I am past _triggerSemaphore");
 				}
 				catch (OperationCanceledException)
@@ -65,7 +65,7 @@ namespace UniFiler10.Views
 				catch (Exception ex)
 				{
 					Debug.WriteLine("I am past _triggerSemaphore after exception: " + ex.ToString());
-					if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
+					if (SemaphoreSlimSafeRelease.IsAlive(_recordLockingSemaphore))
 					{
 						isOk = false;
 						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -89,8 +89,8 @@ namespace UniFiler10.Views
 		{
 			await StopRecordingAsync().ConfigureAwait(false);
 
-			SemaphoreSlimSafeRelease.TryDispose(_triggerSemaphore);
-			_triggerSemaphore = null;
+			SemaphoreSlimSafeRelease.TryDispose(_recordLockingSemaphore);
+			_recordLockingSemaphore = null;
 
 			var mc = _mediaCapture;
 			if (mc != null)
@@ -125,13 +125,10 @@ namespace UniFiler10.Views
 
 
 		#region event handlers
-		private void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
+		private async void OnOwnBackButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			Task stop = RunFunctionIfOpenAsyncT(delegate
-			{
-				return StopRecordingAsync();
-			});
+			await StopRecordingAsync().ConfigureAwait(false);
+			SemaphoreSlimSafeRelease.TryRelease(_recordLockingSemaphore);
 		}
 
 		private async void OnAudioRecorder_UnrecoverableError(object sender, EventArgs e)
@@ -180,7 +177,7 @@ namespace UniFiler10.Views
 				//await _mediaCapture.StartPreviewAsync();
 
 				_isRecording = true;
-				isOk = await _audioRecorder.RecordStartAsync().ConfigureAwait(false);
+				isOk = await _audioRecorder.StartRecordingAsync().ConfigureAwait(false);
 				if (!isOk)
 				{
 					NotifyOfFailure(RuntimeData.GetText("AudioRecordingCannotStart"));
@@ -205,7 +202,7 @@ namespace UniFiler10.Views
 			if (ar != null)
 			{
 				_isRecording = false;
-				isOk = await ar.RecordStopAsync();
+				isOk = await ar.StopRecordingAsync();
 			}
 
 			await RunInUiThreadAsync(delegate
