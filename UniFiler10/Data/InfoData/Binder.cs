@@ -303,7 +303,7 @@ namespace UniFiler10.Data.Model
 			}
 			catch (Exception ex)                 //must be tolerant or the app might crash when starting
 			{
-				Debugger.Break();
+				// Debugger.Break();
 				errorMessage = "could not restore the data, starting afresh";
 				await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
 			}
@@ -521,7 +521,7 @@ namespace UniFiler10.Data.Model
 				}
 				mergingBinder = null;
 
-				if (isDeleteTempDir && tempDirectory != null) await tempDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);				
+				if (isDeleteTempDir && tempDirectory != null) await tempDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 
 				return isOk;
 			});
@@ -587,10 +587,15 @@ namespace UniFiler10.Data.Model
 
 				var folders = await _dbManager.GetFoldersAsync().ConfigureAwait(false);
 				var wallets = await _dbManager.GetWalletsAsync().ConfigureAwait(false);
-				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
+				// LOLLO TODO the following causes an uncatchable exception (without explanations) when you:
+				// open a folder
+				// start recording audio
+				// press the app back button
+				// the output window says The program '[15272] UniFiler10.exe' has exited with code 1073741855 (0x4000001f).
+				var docs = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
 
-				output = GetFolderPreviews(folders, wallets, documents);
-			});
+				output = GetFolderPreviews(folders, wallets, docs);
+			}).ConfigureAwait(false);
 			return output;
 		}
 
@@ -606,7 +611,7 @@ namespace UniFiler10.Data.Model
 				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
 
 				output = GetFolderPreviews(folders, wallets, documents);
-			});
+			}).ConfigureAwait(false);
 			return output;
 		}
 
@@ -624,7 +629,7 @@ namespace UniFiler10.Data.Model
 				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
 
 				output = GetFolderPreviews(folders, wallets, documents);
-			});
+			}).ConfigureAwait(false);
 			return output;
 		}
 
@@ -642,32 +647,39 @@ namespace UniFiler10.Data.Model
 				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
 
 				output = GetFolderPreviews(folders, wallets, documents);
-			});
+			}).ConfigureAwait(false);
 			return output;
 		}
 		private List<FolderPreview> GetFolderPreviews(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
 		{
 			var folderPreviews = new List<FolderPreview>();
 
-			foreach (var fol in folders)
+			try
 			{
-				var folderPreview = new FolderPreview() { FolderName = fol.Name, FolderId = fol.Id };
-				bool exit = false;
-				foreach (var wal in wallets.Where(wlt => wlt.ParentId == fol.Id))
+				foreach (var fol in folders)
 				{
-					foreach (var doc in documents.Where(dcm => dcm.ParentId == wal.Id))
+					var folderPreview = new FolderPreview() { FolderName = fol.Name, FolderId = fol.Id };
+					bool exit = false;
+					foreach (var wal in wallets.Where(wlt => wlt.ParentId == fol.Id))
 					{
-						if (!string.IsNullOrWhiteSpace(doc.Uri0))
+						foreach (var doc in documents.Where(dcm => dcm.ParentId == wal.Id))
 						{
-							folderPreview.DocumentUri0 = doc.GetFullUri0();
-							folderPreview.Document = doc;
-							exit = true;
+							if (!string.IsNullOrWhiteSpace(doc.Uri0))
+							{
+								folderPreview.DocumentUri0 = doc.GetFullUri0();
+								folderPreview.Document = doc;
+								exit = true;
+							}
+							if (exit) break;
 						}
 						if (exit) break;
 					}
-					if (exit) break;
+					folderPreviews.Add(folderPreview);
 				}
-				folderPreviews.Add(folderPreview);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 
 			return folderPreviews;

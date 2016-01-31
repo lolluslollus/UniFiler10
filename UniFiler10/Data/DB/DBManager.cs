@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using Utilz;
@@ -30,7 +29,9 @@ namespace UniFiler10.Data.DB
 		internal StorageFolder Directory { get { return _directory; } }
 
 		private readonly bool _isStoreDateTimeAsTicks = true;
-		private readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create; //.FullMutex;
+		private static readonly SQLiteOpenFlags _openFlagsReadWrite = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
+		private static readonly SQLiteOpenFlags _openFlagsReadOnly = SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
+		private readonly SQLiteOpenFlags _myOpenFlags = _openFlagsReadWrite;
 
 		private SemaphoreSlimSafeRelease _foldersSemaphore = null;
 		private SemaphoreSlimSafeRelease _walletsSemaphore = null;
@@ -47,11 +48,11 @@ namespace UniFiler10.Data.DB
 			{
 				if (isReadOnly)
 				{
-					_openFlags = SQLiteOpenFlags.ReadOnly;
+					_myOpenFlags = _openFlagsReadOnly;
 				}
 				else
 				{
-					_openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create;
+					_myOpenFlags = _openFlagsReadWrite;
 				}
 
 				_directory = directory;
@@ -715,9 +716,9 @@ namespace UniFiler10.Data.DB
 					//}
 
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						int deleteResult = conn.Delete<T>(primaryKey);
 						if (deleteResult > 0)
@@ -777,9 +778,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 
 						string delQuery = string.Format("DELETE FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
@@ -829,9 +830,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						int deleteResult = conn.DeleteAll<T>();
 						result = true;
@@ -877,9 +878,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						var query = conn.Table<T>();
 						result = query.ToList<T>();
@@ -933,9 +934,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						string queryString = string.Format("SELECT * FROM {0} WHERE " + parentIdFieldName + " = '{1}'", tableName, parentId);
 						var query = conn.Query<T>(queryString);
@@ -981,9 +982,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						var query = conn.Get<T>(primaryKey);
 						result = query;
@@ -1028,9 +1029,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						int insertResult = conn.Insert(item);
 						if (insertResult > 0) result = InsertResult.Added;
@@ -1083,9 +1084,9 @@ namespace UniFiler10.Data.DB
 					if (items.Count() > 0)
 					{
 						var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-						var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 						try
 						{
+							var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 							int aResult = conn.CreateTable(typeof(T));
 							var itemsInTable = conn.Table<T>();
 							var newItems = items.Where(item => !itemsInTable.Any(itemInTable => itemInTable.Id == item.Id));
@@ -1148,9 +1149,9 @@ namespace UniFiler10.Data.DB
 				if (_isOpen)
 				{
 					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
-					var conn = _connectionPool.GetConnection(connectionString, _openFlags);
 					try
 					{
+						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 						int aResult = conn.CreateTable(typeof(T));
 						{
 							int updateResult = conn.Update(item);
@@ -1181,32 +1182,32 @@ namespace UniFiler10.Data.DB
 		#endregion private methods
 
 
-		private class LolloSQLiteConnectionPoolMT : OpenableObservableDisposableData
+		private sealed class LolloSQLiteConnectionPoolMT : OpenableObservableDisposableData
 		{
-			private class LolloConnection
+			private sealed class ConnectionEntry : IDisposable
 			{
 				public SQLiteConnectionString ConnectionString { get; private set; }
 				public SQLiteConnection Connection { get; private set; }
 
-				public LolloConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+				public ConnectionEntry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 				{
 					ConnectionString = connectionString;
 					Connection = new SQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
 				}
 
-				public void Reset()
+				public void Dispose()
 				{
 					Connection?.Dispose();
 					Connection = null;
 				}
 			}
 
-			private readonly Dictionary<string, LolloConnection> _connectionsDict = new Dictionary<string, LolloConnection>();
+			private readonly Dictionary<string, ConnectionEntry> _connectionsDict = new Dictionary<string, ConnectionEntry>();
 			private SemaphoreSlimSafeRelease _connectionsDictSemaphore = null;
 
 			internal SQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 			{
-				LolloConnection conn = null;
+				ConnectionEntry conn = null;
 				try
 				{
 					_connectionsDictSemaphore.Wait();
@@ -1214,7 +1215,7 @@ namespace UniFiler10.Data.DB
 
 					if (!_connectionsDict.TryGetValue(key, out conn))
 					{
-						conn = new LolloConnection(connectionString, openFlags);
+						conn = new ConnectionEntry(connectionString, openFlags);
 						_connectionsDict[key] = conn;
 					}
 				}
@@ -1239,16 +1240,17 @@ namespace UniFiler10.Data.DB
 			/// </summary>
 			internal void ResetConnection(string connectionString)
 			{
+				return; // LOLLO TODO check this: we only close the connections at the end
 				if (connectionString == null) return;
 
-				LolloConnection conn = null;
+				ConnectionEntry conn = null;
 				try
 				{
 					_connectionsDictSemaphore.Wait();
 
 					if (_connectionsDict.TryGetValue(connectionString, out conn))
 					{
-						conn.Reset();
+						conn.Dispose();
 						_connectionsDict.Remove(connectionString);
 					}
 				}
@@ -1262,7 +1264,7 @@ namespace UniFiler10.Data.DB
 						Task.Delay(conn.Connection.BusyTimeout.Milliseconds * 3).Wait();
 						if (_connectionsDict.TryGetValue(connectionString, out conn))
 						{
-							conn.Reset();
+							conn.Dispose();
 							_connectionsDict.Remove(connectionString);
 						}
 					}
@@ -1281,6 +1283,48 @@ namespace UniFiler10.Data.DB
 				}
 			}
 
+			/// <summary>
+			/// Closes a given connection managed by this pool. 
+			/// </summary>
+			private void ResetAllConnections()
+			{
+				try
+				{
+					_connectionsDictSemaphore.Wait();
+					foreach (var conn in _connectionsDict.Values)
+					{
+						conn.Dispose();
+					}
+					_connectionsDict.Clear();
+				}
+				catch (Exception ex0)
+				{
+					Debugger.Break();
+					//// LOLLO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
+					//// I now use close_v2 instead of close, and it looks better.
+					//try
+					//{
+					//	Task.Delay(conn.Connection.BusyTimeout.Milliseconds * 3).Wait();
+					//	if (_connectionsDict.TryGetValue(connectionString, out conn))
+					//	{
+					//		conn.Dispose();
+					//		_connectionsDict.Remove(connectionString);
+					//	}
+					//}
+					//catch (Exception ex1)
+					//{
+						if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+						{
+							Logger.Add_TPL(ex0.ToString(), Logger.ForegroundLogFilename);
+							//Logger.Add_TPL(ex1.ToString(), Logger.ForegroundLogFilename);
+						}
+					//}
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_connectionsDictSemaphore);
+				}
+			}
 			protected override Task OpenMayOverrideAsync()
 			{
 				if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -1290,12 +1334,7 @@ namespace UniFiler10.Data.DB
 			{
 				try
 				{
-					_connectionsDictSemaphore.Wait();
-					foreach (var conn in _connectionsDict.Values)
-					{
-						conn.Reset();
-					}
-					_connectionsDict.Clear();
+					ResetAllConnections();
 				}
 				catch (Exception ex)
 				{

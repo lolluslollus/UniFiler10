@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
@@ -18,7 +20,7 @@ namespace UniFiler10.ViewModels
 	public class FolderVM : OpenableObservableDisposableData
 	{
 		#region properties
-		private IRecorder _audioRecorder = null;
+		private IRecorder _audioRecorderView = null;
 		private Folder _folder = null;
 		public Folder Folder { get { return _folder; } }
 
@@ -61,7 +63,7 @@ namespace UniFiler10.ViewModels
 		public FolderVM(Folder folder, IRecorder audioRecorder/*, IRecorder camera*/, AnimationStarter animationStarter)
 		{
 			_folder = folder;
-			_audioRecorder = audioRecorder;
+			_audioRecorderView = audioRecorder;
 			//_camera = camera;
 			if (animationStarter == null) throw new ArgumentNullException("FolderVM ctor: animationStarter may not be null");
 			_animationStarter = animationStarter;
@@ -110,30 +112,13 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		/// <summary>
-		/// I need this override to stop any running media recording, since they lock the semaphore.
-		/// </summary>
-		/// <returns></returns>
-		public override async Task<bool> CloseAsync() // LOLLO TODO see if you can use the new safe cancellation token instead of overriding this
+		protected override async Task CloseMayOverrideAsync()
 		{
-			if (!_isOpen) return false;
+			Debug.WriteLine("CloseMayOverrideAsync() is about to close the audio recorder");
+			var ar = _audioRecorderView;
+			if (ar != null) await ar.CloseAsync();
 
-			var ar = _audioRecorder;
-			if (ar != null)
-			{
-				await ar.CloseAsync().ConfigureAwait(false);
-			}
 			IsAudioRecorderOverlayOpen = false;
-
-			//var cam = _camera;
-			//if (cam != null)
-			//{
-			//	await cam.CloseAsync().ConfigureAwait(false);
-			//}
-			//IsCameraOverlayOpen = false;
-
-
-			return await base.CloseAsync().ConfigureAwait(false);
 		}
 		#endregion open close
 
@@ -343,12 +328,28 @@ namespace UniFiler10.ViewModels
 						var file = await CreateAudioPhotoFileAsync(ConstantData.DEFAULT_AUDIO_FILE_NAME);
 						if (folder != null && file != null)
 						{
-							IsAudioRecorderOverlayOpen = true;
-							await _audioRecorder.OpenAsync();
-							await _audioRecorder.StartAsync(file); // this locks until explicitly unlocked
-							await _audioRecorder.CloseAsync();
-							await folder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
-							IsAudioRecorderOverlayOpen = false;
+							try
+							{
+								IsAudioRecorderOverlayOpen = true;
+								await _audioRecorderView.OpenAsync();
+								await _audioRecorderView.RecordAsync(file, CancellationTokenSafe); // this locks until explicitly unlocked
+								await _audioRecorderView.CloseAsync();
+								IsAudioRecorderOverlayOpen = false;
+
+								if (Cts?.IsCancellationRequested == false)
+								{
+									bool mediaImportedOk = await folder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
+									Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
+								}
+								else
+								{
+									Debug.WriteLine("RecordAudioAsync(): recording interrupted");
+								}
+							}
+							catch (Exception ex)
+							{
+								Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+							}
 						}
 					}
 				}).ConfigureAwait(false);
@@ -442,7 +443,8 @@ namespace UniFiler10.ViewModels
 		/// </summary>
 		/// <param name="file"></param>
 		/// <returns></returns>
-		Task<bool> StartAsync(StorageFile file);
-		Task<bool> StopAsync();
+		Task<bool> RecordAsync(StorageFile file, CancellationToken cancToken);
+		//Task<bool> StopAsync();
+		bool IsRecording { get; }
 	}
 }

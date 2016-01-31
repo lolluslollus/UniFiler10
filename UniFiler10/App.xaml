@@ -15,7 +15,7 @@
                     Required by Visual Studio project and item templates
                  -->
                 <ResourceDictionary Source="Styles/Styles.xaml"/>
-                <ResourceDictionary Source="Controlz/LayoutTransformer.xaml"/>
+                <!--<ResourceDictionary Source="Controlz/LayoutTransformer.xaml"/>-->
 				<ResourceDictionary Source="Controlz/LolloTextBox.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>

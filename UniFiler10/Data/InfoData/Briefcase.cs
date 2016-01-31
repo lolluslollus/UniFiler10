@@ -528,11 +528,14 @@ namespace UniFiler10.Data.Model
 		private async Task LoadDbNames()
 		{
 			var directories = await BindersDirectory.GetFoldersAsync().AsTask().ConfigureAwait(false);
-			_dbNames.Clear();
-			foreach (var dir in directories)
+			await RunInUiThreadAsync(delegate
 			{
-				_dbNames.Add(dir.Name);
-			}
+				_dbNames.Clear();
+				foreach (var dir in directories)
+				{
+					_dbNames.Add(dir.Name);
+				}
+			}).ConfigureAwait(false);
 		}
 		private bool CopyFrom(Briefcase source)
 		{

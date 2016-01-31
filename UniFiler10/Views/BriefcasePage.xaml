@@ -46,35 +46,36 @@
 				RelativePanel.Below="ActionsUWP"
 				x:Name="NewBinderUWP">
 					<Grid
-					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
+						Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
 						</Grid.RowDefinitions>
 
+						<!--Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"-->
 						<ctl:LolloTextBox
-						Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-						Style="{StaticResource LolloTextBoxStyle}"
-						BorderThickness="0"
-						MaxLength="{StaticResource MaxDbNameLength}"
-						Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"
-						MinHeight="{StaticResource LandscapeItemHeight}"
-						VerticalAlignment="Center">
+							Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+							Style="{StaticResource LolloTextBoxStyle}"
+							BorderThickness="0"
+							MaxLength="{StaticResource MaxDbNameLength}"
+							Width="{StaticResource LandscapeItemWidth}"
+							MinHeight="{StaticResource LandscapeItemHeight}"
+							VerticalAlignment="Center">
 							<ctl:LolloTextBox.Header>
 								<TextBlock x:Uid="NewBinderName"/>
 							</ctl:LolloTextBox.Header>
 						</ctl:LolloTextBox>
 
 						<StackPanel Grid.Row="1"
-						VerticalAlignment="Center"					
-						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+							VerticalAlignment="Center"					
+							Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
 							<TextBlock
-							x:Uid="NameAlreadyInUse"
-							TextWrapping="Wrap"
-							HorizontalAlignment="Left"
-							Foreground="{StaticResource FlashyForeground}"
-							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+								x:Uid="NameAlreadyInUse"
+								TextWrapping="Wrap"
+								HorizontalAlignment="Left"
+								Foreground="{StaticResource FlashyForeground}"
+								MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+								Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 						</StackPanel>
 
 						<Border Grid.RowSpan="2"

@@ -22,7 +22,6 @@ namespace UniFiler10.ViewModels
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
 		private const int REFRESH_INTERVAL_SHORT_MSEC = 25;
 		private AnimationStarter _animationStarter = null;
-		private CancellationTokenSource _cts = null;
 		#endregion fields
 
 
@@ -364,10 +363,9 @@ namespace UniFiler10.ViewModels
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 
-					var cts = _cts;
-					if (cts != null)
+					if (Cts != null) // otherwise the token will be not cancelled, coz it is optimistic.
 					{
-						await Task.Delay(waitMsec, cts.Token).ConfigureAwait(false);
+						await Task.Delay(waitMsec, CancellationTokenSafe).ConfigureAwait(false);
 						Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
 						await RunFunctionIfOpenAsyncT(UpdatePaneContent2Async);
@@ -448,7 +446,6 @@ namespace UniFiler10.ViewModels
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			_cts = new CancellationTokenSource();
 			RegisterFoldersChanged();
 			await UpdatePaneContent2Async().ConfigureAwait(false);
 
@@ -467,19 +464,6 @@ namespace UniFiler10.ViewModels
 		protected override Task CloseMayOverrideAsync()
 		{
 			UnregisterFoldersChanged();
-
-			try
-			{
-				_cts?.Cancel();
-			}
-			catch { }
-			try
-			{
-				_cts?.Dispose();
-			}
-			catch { }
-			_cts = null;
-
 			return Task.CompletedTask;
 		}
 

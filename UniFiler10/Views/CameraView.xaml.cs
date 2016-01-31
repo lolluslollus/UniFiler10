@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Data.Runtime;
 using UniFiler10.ViewModels;
@@ -75,8 +76,11 @@ namespace UniFiler10.Views
 
 
 		#region IRecorder
+		private volatile bool _isRecording = false; // LOLLO TODO populate this property if you want to use this control
+		public bool IsRecording { get { return _isRecording; } private set { _isRecording = value; RaisePropertyChanged_UI(); } }
+
 		[STAThread]
-		public Task<bool> StartAsync(StorageFile file)
+		public Task<bool> RecordAsync(StorageFile file, CancellationToken cancToken)
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
@@ -155,12 +159,12 @@ namespace UniFiler10.Views
 		/// I need this override to stop any running media recording
 		/// </summary>
 		/// <returns></returns>
-		public override async Task<bool> CloseAsync()
-		{
-			if (!_isOpen) return false;
-			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			return await base.CloseAsync().ConfigureAwait(false);
-		}
+		//public override async Task<bool> CloseAsync() // LOLLO fix this like in AudioRecorderView if you want to use this class
+		//{
+		//	if (!_isOpen) return false;
+		//	SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
+		//	return await base.CloseAsync().ConfigureAwait(false);
+		//}
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await Stop2Async().ConfigureAwait(false);
