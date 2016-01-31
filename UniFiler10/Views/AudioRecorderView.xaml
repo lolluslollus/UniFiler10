@@ -57,8 +57,8 @@
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
-		<Border Width="200" Height="200" >
-			<Viewbox x:Name="viewbox" Width="200" Height="200" 
+		<Border Width="160" Height="160">
+			<Viewbox x:Name="viewbox" Width="160" Height="160" 
 				HorizontalAlignment="Center" VerticalAlignment="Center" 
                 RenderTransformOrigin="0.5,0.5">
 				<Viewbox.RenderTransform>
