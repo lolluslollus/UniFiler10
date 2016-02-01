@@ -4,14 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
 using Utilz;
 using Utilz.Data;
-using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
