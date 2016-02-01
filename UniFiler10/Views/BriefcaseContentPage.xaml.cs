@@ -22,6 +22,7 @@ namespace UniFiler10.Views
 		#region construct, open, close
 		public BriefcaseContentPage()
 		{
+			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
 			InitializeComponent();
 		}
 

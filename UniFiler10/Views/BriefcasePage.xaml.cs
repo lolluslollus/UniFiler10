@@ -23,10 +23,12 @@ namespace UniFiler10.Views
 		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
+
 		#region construct dispose open close
 		public BriefcasePage()
         {
-            InitializeComponent();
+			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
+			InitializeComponent();
 			_animationStarter = AnimationsControl.AnimationStarter;
 			//_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}

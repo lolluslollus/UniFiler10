@@ -43,6 +43,7 @@ namespace UniFiler10.Views
 		#region construct dispose open close
 		public SettingsPage()
 		{
+			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
 			InitializeComponent();
 			// LOLLO NOTE with x:Bind set on a nullable bool property, such as ToggleButton.IsChecked, FallbackValue=True and FallbackValue=False cause errors.
 			// Instead, use Binding ElementName=me, Path=....

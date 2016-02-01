@@ -24,6 +24,7 @@ namespace UniFiler10.Views
 		#region construct, open, close
 		public BinderContentPage()
 		{
+			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
 			InitializeComponent();
 		}
 		protected override async Task OpenMayOverrideAsync()

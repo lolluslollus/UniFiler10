@@ -116,7 +116,6 @@
       <DependentUpon>LolloSplitView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\LolloTextBox.cs" />
-    <Compile Include="Controlz\OpenableObservablePage.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Data\InfoData\DynamicCategory.cs" />
     <Compile Include="Data\InfoData\DynamicField.cs" />
