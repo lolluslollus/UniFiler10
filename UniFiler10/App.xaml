@@ -6,32 +6,31 @@
     xmlns:conv="using:UniFiler10.Converters"
 	xmlns:vms="using:UniFiler10.ViewModels"
     RequestedTheme="Light">
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-
-                <!-- 
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<!-- 
                     Styles that define common aspects of the platform look and feel
                     Required by Visual Studio project and item templates
                  -->
-                <ResourceDictionary Source="Styles/Styles.xaml"/>
-                <!--<ResourceDictionary Source="Controlz/LayoutTransformer.xaml"/>-->
+				<ResourceDictionary Source="Styles/Styles.xaml"/>
+				<!--<ResourceDictionary Source="Controlz/LayoutTransformer.xaml"/>-->
 				<ResourceDictionary Source="Controlz/LolloTextBox.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-            <conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>
-            <conv:BooleanToVisibleConverter x:Key="BooleanToVisibleConverter"/>
-            <conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
+			</ResourceDictionary.MergedDictionaries>
+			<conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>
+			<conv:BooleanToVisibleConverter x:Key="BooleanToVisibleConverter"/>
+			<conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
 			<conv:IsNotNullToTrue x:Key="IsNotNullToTrue"/>
-            <conv:IsNotNullToVisible x:Key="IsNotNullToVisible"/>
-            <conv:IListNotEmptyToTrue x:Key="IListNotEmptyToTrue"/>
-            <conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>
-            <conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
-            <conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
+			<conv:IsNotNullToVisible x:Key="IsNotNullToVisible"/>
+			<conv:IListNotEmptyToTrue x:Key="IListNotEmptyToTrue"/>
+			<conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>
+			<conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
+			<conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
 			<conv:ReduceWidthForText x:Key="ReduceWidthForText"/>
 			<conv:FalseToFlashyConverter x:Key="FalseToFlashyConverter"/>
 			<vms:BooleanAndElevated x:Key="BooleanAndElevated"/>
 			<vms:BooleanAndElevatedToVisible x:Key="BooleanAndElevatedToVisible"/>
 		</ResourceDictionary>
-    </Application.Resources>
+	</Application.Resources>
 </Application>
