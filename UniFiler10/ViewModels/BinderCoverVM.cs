@@ -363,13 +363,10 @@ namespace UniFiler10.ViewModels
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 
-					if (Cts != null) // otherwise the token will be not cancelled, coz it is optimistic.
-					{
-						await Task.Delay(waitMsec, CancellationTokenSafe).ConfigureAwait(false);
-						Debug.WriteLine("Finished waiting " + waitMsec + " msec");
+					await Task.Delay(waitMsec, SafeCancellationTokenSource.GetCancellationTokenSafe(Cts)).ConfigureAwait(false);
+					Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
-						await RunFunctionIfOpenAsyncT(UpdatePaneContent2Async);
-					}
+					await RunFunctionIfOpenAsyncT(UpdatePaneContent2Async);
 				}
 				catch (OperationCanceledException) { } // fired by the cancellation token
 				catch (ObjectDisposedException) { } // fired by the cancellation token
