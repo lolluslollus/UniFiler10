@@ -15,10 +15,10 @@ namespace UniFiler10.Data.Runtime
 	public sealed class RuntimeData : OpenableObservableDisposableData
 	{
 		#region properties
-		private bool _isTrial = true;
+		private volatile bool _isTrial = true;
 		public bool IsTrial { get { return _isTrial; } set { _isTrial = value; RaisePropertyChanged_UI(); } }
 
-		private int _trialResidualDays = -1;
+		private volatile int _trialResidualDays = -1;
 		public int TrialResidualDays { get { return _trialResidualDays; } set { _trialResidualDays = value; RaisePropertyChanged_UI(); } }
 
 		private volatile bool _isConnectionAvailable = false;
@@ -69,7 +69,7 @@ namespace UniFiler10.Data.Runtime
 			}
 		}
 
-		private bool _isCameraAvailable = false;
+		private volatile bool _isCameraAvailable = false;
 		public bool IsCameraAvailable
 		{
 			get { return _isCameraAvailable; }
@@ -89,10 +89,10 @@ namespace UniFiler10.Data.Runtime
 			IsCameraAvailable = _videoDevice?.IsEnabled == true;
 		}
 
-		private DeviceInformation _videoDevice = null;
+		private volatile DeviceInformation _videoDevice = null;
 		public DeviceInformation VideoDevice { get { return _videoDevice; } }
 
-		private bool _isMicrophoneAvailable = false;
+		private volatile bool _isMicrophoneAvailable = false;
 		public bool IsMicrophoneAvailable
 		{
 			get { return _isMicrophoneAvailable; }
@@ -112,10 +112,10 @@ namespace UniFiler10.Data.Runtime
 			IsMicrophoneAvailable = _audioDevice?.IsEnabled == true;
 		}
 
-		private DeviceInformation _audioDevice = null;
+		private volatile DeviceInformation _audioDevice = null;
 		public DeviceInformation AudioDevice { get { return _audioDevice; } }
 
-		private static ResourceLoader _resourceLoader = new ResourceLoader();
+		private static readonly ResourceLoader _resourceLoader = new ResourceLoader();
 		/// <summary>
 		/// Gets a text from the resources, but not in the complex form such as "Resources/NewFieldValue/Text"
 		/// For that, you need Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
@@ -133,7 +133,7 @@ namespace UniFiler10.Data.Runtime
 		#endregion properties
 
 		#region construct dispose open close
-		private static RuntimeData _instance = null;
+		private static volatile RuntimeData _instance = null;
 		public static RuntimeData Instance { get { return _instance; } }
 
 		private static readonly object _instanceLock = new object();
@@ -177,7 +177,7 @@ namespace UniFiler10.Data.Runtime
 		#endregion construct dispose open close
 
 		#region event handlers
-		private bool _isHandlersActive = false;
+		private volatile bool _isHandlersActive = false;
 		private static DeviceWatcher _videoDeviceWatcher = null;
 		private static DeviceWatcher _audioDeviceWatcher = null;
 

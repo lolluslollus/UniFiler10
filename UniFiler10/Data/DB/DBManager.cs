@@ -1186,8 +1186,10 @@ namespace UniFiler10.Data.DB
 		{
 			private sealed class ConnectionEntry : IDisposable
 			{
-				public SQLiteConnectionString ConnectionString { get; private set; }
-				public SQLiteConnection Connection { get; private set; }
+				private volatile SQLiteConnectionString _connectionString = null;
+				public SQLiteConnectionString ConnectionString { get { return _connectionString; } private set { _connectionString = value; } }
+				private volatile SQLiteConnection _connection = null;
+				public SQLiteConnection Connection { get { return _connection; } private set { _connection = value; } }
 
 				public ConnectionEntry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 				{

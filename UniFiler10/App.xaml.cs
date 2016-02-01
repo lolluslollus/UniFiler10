@@ -19,7 +19,7 @@ namespace UniFiler10
 	sealed partial class App : Application
 	{
 		public const string LAST_NAVIGATED_PAGE_REG_KEY = "LastNavigatedPage";
-		private static bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
 		//private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		#region lifecycle

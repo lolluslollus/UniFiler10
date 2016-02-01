@@ -98,7 +98,7 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		public static StorageFolder BindersDirectory { get { return _bindersDirectory; } }
 
-		private static Briefcase _instance = null;
+		private static volatile Briefcase _instance = null;
 
 		private MetaBriefcase _metaBriefcase = null;
 		[IgnoreDataMember]
@@ -112,7 +112,10 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { if (_isAllowMeteredConnection != value) { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } } }
 
-		private string _currentBinderName = string.Empty;
+		private volatile string _currentBinderName = string.Empty;
+		/// <summary>
+		/// This property is only for the serialiser! If you set it, call UpdateCurrentBinderAsync() after.
+		/// </summary>
 		[DataMember]
 		public string CurrentBinderName
 		{
@@ -139,7 +142,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		private Binder _currentBinder = null;
+		private volatile Binder _currentBinder = null;
 		[IgnoreDataMember]
 		public Binder CurrentBinder { get { return _currentBinder; } private set { if (_currentBinder != value) { _currentBinder = value; RaisePropertyChanged_UI(); } } }
 

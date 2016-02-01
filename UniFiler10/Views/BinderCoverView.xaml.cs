@@ -22,7 +22,7 @@ namespace UniFiler10.Views
 
 
 		#region properties
-		private BinderCoverVM _vm = null;
+		private volatile BinderCoverVM _vm = null;
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 
 		private AnimationStarter _animationStarter = null;

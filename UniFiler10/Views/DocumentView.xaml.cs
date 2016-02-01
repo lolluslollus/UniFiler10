@@ -92,7 +92,7 @@ namespace UniFiler10.Views
 
 		private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
 
-		private bool _isMultiPage = false;
+		private volatile bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
 
 		private uint _height = 0;

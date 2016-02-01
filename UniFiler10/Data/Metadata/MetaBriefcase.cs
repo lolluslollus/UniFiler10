@@ -105,7 +105,7 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isElevated = false;
+		private volatile bool _isElevated = false;
 		[DataMember]
 		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
 		#endregion properties

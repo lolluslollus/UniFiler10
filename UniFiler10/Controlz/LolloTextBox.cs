@@ -21,7 +21,7 @@ namespace UniFiler10.Controlz
 	public class LolloTextBox : TextBox
 	{
 		#region fields
-		private ApplicationView _appView = null;
+		private volatile ApplicationView _appView = null;
 		Button _dropDownButton = null;
 		Button _deleteButton = null;
 		Border _popupBorder = null;

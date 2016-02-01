@@ -35,12 +35,12 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
-		private FieldValue _fieldValue = null;
+		private volatile FieldValue _fieldValue = null;
 		[IgnoreDataMember]
 		[Ignore]
 		public FieldValue FieldValue { get { return _fieldValue; } private set { if (_fieldValue != value) { _fieldValue = value; RaisePropertyChanged_UI(); } } }
 
-		private string _fieldValueId = DEFAULT_ID;
+		private volatile string _fieldValueId = DEFAULT_ID;
 		[DataMember]
 		public string FieldValueId
 		{
@@ -73,12 +73,12 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		private FieldDescription _fieldDescription = null;
+		private volatile FieldDescription _fieldDescription = null;
 		[IgnoreDataMember]
 		[Ignore]
 		public FieldDescription FieldDescription { get { return _fieldDescription; } private set { if (_fieldDescription != value) { _fieldDescription = value; RaisePropertyChanged_UI(); } } }
 
-		private string _fieldDescriptionId = DEFAULT_ID;
+		private volatile string _fieldDescriptionId = DEFAULT_ID;
 		[DataMember]
 		public string FieldDescriptionId
 		{

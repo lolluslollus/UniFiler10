@@ -65,7 +65,7 @@ namespace UniFiler10.Data.Model
 
 
 		#region properties
-		private static MergingBinder _instance = null;
+		private static volatile MergingBinder _instance = null;
 		#endregion properties
 	}
 }

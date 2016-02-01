@@ -30,7 +30,7 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty OperationProperty =
 			DependencyProperty.Register("Operation", typeof(BriefcaseVM.ImportBinderOperations), typeof(ConfirmationBeforeImportingBinder), new PropertyMetadata(BriefcaseVM.ImportBinderOperations.Cancel));
 
-		private bool _isHasUserInteracted = false;
+		private volatile bool _isHasUserInteracted = false;
 		public bool IsHasUserInteracted { get { return _isHasUserInteracted; } private set { _isHasUserInteracted = value; } }
 
 

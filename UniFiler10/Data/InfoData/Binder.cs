@@ -108,7 +108,7 @@ namespace UniFiler10.Data.Model
 
 
 		#region main properties
-		private static Binder _instance = null;
+		private static volatile Binder _instance = null;
 		//[IgnoreDataMember]
 		//public static Binder OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
 
@@ -121,7 +121,7 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		internal DBManager DbManager { get { return _dbManager; } }
 
-		private string _dbName = string.Empty;
+		private volatile string _dbName = string.Empty;
 		[DataMember]
 		public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
 
@@ -129,7 +129,7 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
 
-		private string _currentFolderId = DEFAULT_ID;
+		private volatile string _currentFolderId = DEFAULT_ID;
 		[DataMember]
 		public string CurrentFolderId
 		{
@@ -156,7 +156,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		private Folder _currentFolder = null;
+		private volatile Folder _currentFolder = null;
 		[IgnoreDataMember]
 		public Folder CurrentFolder
 		{
@@ -188,7 +188,7 @@ namespace UniFiler10.Data.Model
 			public Document Document { get { return _document; } set { _document = value; RaisePropertyChanged_UI(); } }
 		}
 
-		private string _catIdForCatFilter = DEFAULT_ID;
+		private volatile string _catIdForCatFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForCatFilter // the setter is only for serialising and copying
 		{
@@ -207,7 +207,7 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
-		private string _catIdForFldFilter = DEFAULT_ID;
+		private volatile string _catIdForFldFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForFldFilter // the setter is only for serialising and copying
 		{
@@ -219,7 +219,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		private string _fldDscIdForFldFilter = DEFAULT_ID;
+		private volatile string _fldDscIdForFldFilter = DEFAULT_ID;
 		[DataMember]
 		public string FldDscIdForFldFilter // the setter is only for serialising and copying
 		{
@@ -231,7 +231,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 
-		private string _fldValIdForFldFilter = DEFAULT_ID;
+		private volatile string _fldValIdForFldFilter = DEFAULT_ID;
 		[DataMember]
 		public string FldValIdForFldFilter // the setter is only for serialising and copying
 		{
@@ -252,7 +252,7 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
-		private Filters _whichFilter = Filters.All;
+		private volatile Filters _whichFilter = Filters.All;
 		[DataMember]
 		public Filters WhichFilter { get { return _whichFilter; } private set { _whichFilter = value; RaisePropertyChanged_UI(); } }
 		public void SetFilter(Filters newValue)

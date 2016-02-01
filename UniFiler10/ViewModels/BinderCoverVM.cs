@@ -36,7 +36,7 @@ namespace UniFiler10.ViewModels
 		public SwitchableObservableDisposableCollection<Binder.FolderPreview> FolderPreviews { get { return _folderPreviews; } private set { _folderPreviews = value; RaisePropertyChanged_UI(); } }
 
 
-		private bool _isAllFolderPaneOpen = false;
+		private volatile bool _isAllFolderPaneOpen = false;
 		public bool IsAllFoldersPaneOpen
 		{
 			get { return _isAllFolderPaneOpen; }
@@ -50,7 +50,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private bool _isRecentFolderPaneOpen = false;
+		private volatile bool _isRecentFolderPaneOpen = false;
 		public bool IsRecentFoldersPaneOpen
 		{
 			get { return _isRecentFolderPaneOpen; }
@@ -64,7 +64,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private bool _isByCatFolderPaneOpen = false;
+		private volatile bool _isByCatFolderPaneOpen = false;
 		public bool IsByCatFoldersPaneOpen
 		{
 			get { return _isByCatFolderPaneOpen; }
@@ -78,7 +78,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private bool _isByFldFolderPaneOpen = false;
+		private volatile bool _isByFldFolderPaneOpen = false;
 		public bool IsByFldFoldersPaneOpen
 		{
 			get { return _isByFldFolderPaneOpen; }
@@ -99,7 +99,7 @@ namespace UniFiler10.ViewModels
 			if (currentPropertyName != nameof(IsByFldFoldersPaneOpen)) IsByFldFoldersPaneOpen = false;
 		}
 
-		private bool _isAllFoldersDirty = true;
+		private volatile bool _isAllFoldersDirty = true;
 		private bool IsAllFoldersDirty
 		{
 			get { return _isAllFoldersDirty; }
@@ -111,7 +111,7 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
-		private bool _isRecentFoldersDirty = true;
+		private volatile bool _isRecentFoldersDirty = true;
 		private bool IsRecentFoldersDirty
 		{
 			get { return _isRecentFoldersDirty; }
@@ -142,7 +142,7 @@ namespace UniFiler10.ViewModels
 			//if (newValue) { Task upd = UpdatePaneContentAsync(REFRESH_INTERVAL_SHORT_MSEC); }
 		}
 
-		private string _catNameForCatFilter = null;
+		private volatile string _catNameForCatFilter = null;
 		public string CatNameForCatFilter
 		{
 			get { return _catNameForCatFilter; }
@@ -164,7 +164,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private string _catNameForFldFilter = null;
+		private volatile string _catNameForFldFilter = null;
 		public string CatNameForFldFilter
 		{
 			get { return _catNameForFldFilter; }
@@ -187,7 +187,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private string _fldDscCaptionForFldFilter = null;
+		private volatile string _fldDscCaptionForFldFilter = null;
 		public string FldDscCaptionForFldFilter
 		{
 			get { return _fldDscCaptionForFldFilter; }
@@ -210,7 +210,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private string _fldValVaalueForFldFilter = null;
+		private volatile string _fldValVaalueForFldFilter = null;
 		public string FldValVaalueForFldFilter
 		{
 			get { return _fldValVaalueForFldFilter; }
@@ -234,10 +234,10 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
+		private volatile SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
 		public SwitchableObservableDisposableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
+		private volatile SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
 		public SwitchableObservableDisposableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
 
 		private static readonly object _isImportingLocker = new object();

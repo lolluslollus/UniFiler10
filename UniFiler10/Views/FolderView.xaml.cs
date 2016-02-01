@@ -14,7 +14,7 @@ namespace UniFiler10.Views
 	public sealed partial class FolderView : OpenableObservableControl
 	{
 		#region properties
-		private FolderVM _vm = null;
+		private volatile FolderVM _vm = null;
 		public FolderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
 		private AnimationStarter _animationStarter = null;

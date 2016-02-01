@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
@@ -27,7 +26,7 @@ namespace UniFiler10.ViewModels
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isAudioRecorderOverlayOpen = false;
+		private volatile bool _isAudioRecorderOverlayOpen = false;
 		public bool IsAudioRecorderOverlayOpen
 		{
 			get { return _isAudioRecorderOverlayOpen; }
@@ -377,7 +376,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region edit categories
-		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
+		public volatile SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
 		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
 		public class FolderCategorySelectorRow : ObservableData
 		{

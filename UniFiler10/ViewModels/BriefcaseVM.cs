@@ -14,16 +14,16 @@ namespace UniFiler10.ViewModels
 		private Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isNewDbNameVisible = false;
+		private volatile bool _isNewDbNameVisible = false;
 		public bool IsNewDbNameVisible { get { return _isNewDbNameVisible; } set { _isNewDbNameVisible = value; RaisePropertyChanged_UI(); if (_isNewDbNameVisible) { Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } } }
 
-		private bool _isNewDbNameErrorMessageVisible = false;
+		private volatile bool _isNewDbNameErrorMessageVisible = false;
 		public bool IsNewDbNameErrorMessageVisible { get { return _isNewDbNameErrorMessageVisible; } set { _isNewDbNameErrorMessageVisible = value; RaisePropertyChanged_UI(); } }
 
 		private string _newDbName = string.Empty;
 		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } }
 
-		private bool _isCanImportExport = false;
+		private volatile bool _isCanImportExport = false;
 		public bool IsCanImportExport { get { return _isCanImportExport; } private set { _isCanImportExport = value; RaisePropertyChanged_UI(); } }
 		private void UpdateIsCanImportExport()
 		{

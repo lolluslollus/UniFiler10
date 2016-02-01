@@ -37,7 +37,7 @@ namespace Utilz.Controlz
             }
         }
 
-        private int _selectedIndexDesired = -1;
+        private volatile int _selectedIndexDesired = -1;
         /// <summary>
         /// Fires when the collection is replaced or receives a new item or loses an item
         /// </summary>

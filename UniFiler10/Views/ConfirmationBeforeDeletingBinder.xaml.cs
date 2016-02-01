@@ -30,7 +30,7 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty YesNoProperty =
 			DependencyProperty.Register("YesNo", typeof(bool), typeof(ConfirmationBeforeDeletingBinder), new PropertyMetadata(false));
 
-		private bool _isHasUserInteracted = false;
+		private volatile bool _isHasUserInteracted = false;
 		public bool IsHasUserInteracted { get { return _isHasUserInteracted; } private set { _isHasUserInteracted = value; } }
 
 

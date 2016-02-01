@@ -35,12 +35,12 @@ namespace UniFiler10.Data.Model
 		[Ignore]
 		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
 
-		private Category _category = null;
+		private volatile Category _category = null;
 		[IgnoreDataMember]
 		[Ignore]
 		public Category Category { get { return _category; } private set { if (_category != value) { _category = value; RaisePropertyChanged_UI(); } } }
 
-		private string _categoryId = DEFAULT_ID;
+		private volatile string _categoryId = DEFAULT_ID;
 		[DataMember]
 		public string CategoryId
 		{
