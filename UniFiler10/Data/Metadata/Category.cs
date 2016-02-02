@@ -31,11 +31,11 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
-		private volatile SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
+		private SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
 		[IgnoreDataMember]
 		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-		private volatile SwitchableObservableDisposableCollection<string> _fieldDescriptionIds = new SwitchableObservableDisposableCollection<string>();
+		private SwitchableObservableDisposableCollection<string> _fieldDescriptionIds = new SwitchableObservableDisposableCollection<string>();
 		[DataMember]
 		public SwitchableObservableDisposableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
@@ -99,7 +99,7 @@ namespace UniFiler10.Data.Metadata
 		#endregion ctor and dispose
 
 
-		public bool AddFieldDescription(FieldDescription newFldDsc)
+		internal bool AddFieldDescription(FieldDescription newFldDsc)
 		{
 			if (newFldDsc != null && !FieldDescriptions.Any(fds => fds.Caption == newFldDsc.Caption || fds.Id == newFldDsc.Id))
 			{
@@ -111,7 +111,7 @@ namespace UniFiler10.Data.Metadata
 			return false;
 		}
 
-		public bool RemoveFieldDescription(FieldDescription fdToBeRemoved)
+		internal bool RemoveFieldDescription(FieldDescription fdToBeRemoved)
 		{
 			if (fdToBeRemoved != null)
 			{

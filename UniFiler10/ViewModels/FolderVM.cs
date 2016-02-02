@@ -26,7 +26,7 @@ namespace UniFiler10.ViewModels
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
-		private volatile bool _isAudioRecorderOverlayOpen = false;
+		private bool _isAudioRecorderOverlayOpen = false;
 		public bool IsAudioRecorderOverlayOpen
 		{
 			get { return _isAudioRecorderOverlayOpen; }
@@ -376,7 +376,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region edit categories
-		public volatile SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
+		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
 		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
 		public class FolderCategorySelectorRow : ObservableData
 		{

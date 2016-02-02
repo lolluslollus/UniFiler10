@@ -24,7 +24,7 @@ namespace UniFiler10.Views
 		private AudioRecorder _audioRecorder = null;
 		private MediaCapture _mediaCapture;
 
-		private volatile string _lastMessage = string.Empty;
+		private volatile string _lastMessage = string.Empty; // LOLLO TODO do I know the volatile here at all? Make a little experiment.
 		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
 
 		// Prevent the screen from sleeping while the camera is running

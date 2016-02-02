@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
@@ -14,17 +15,28 @@ namespace UniFiler10.ViewModels
 		private Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
 
-		private volatile bool _isNewDbNameVisible = false;
+		private bool _isNewDbNameVisible = false;
 		public bool IsNewDbNameVisible { get { return _isNewDbNameVisible; } set { _isNewDbNameVisible = value; RaisePropertyChanged_UI(); if (_isNewDbNameVisible) { Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } } }
 
-		private volatile bool _isNewDbNameErrorMessageVisible = false;
+		private bool _isNewDbNameErrorMessageVisible = false;
 		public bool IsNewDbNameErrorMessageVisible { get { return _isNewDbNameErrorMessageVisible; } set { _isNewDbNameErrorMessageVisible = value; RaisePropertyChanged_UI(); } }
 
 		private string _newDbName = string.Empty;
 		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } }
 
-		private volatile bool _isCanImportExport = false;
-		public bool IsCanImportExport { get { return _isCanImportExport; } private set { _isCanImportExport = value; RaisePropertyChanged_UI(); } }
+		private bool _isCanImportExport = false;
+		public bool IsCanImportExport // LOLLO TODO this could be a case for volatile, or even Volatile.Read
+		{
+			get
+			{
+				return Volatile.Read(ref _isCanImportExport);
+				//lock (_isImportingExportingLocker)
+				//{
+				//	return _isCanImportExport;
+				//}
+			}
+			private set { _isCanImportExport = value; RaisePropertyChanged_UI(); }
+		}
 		private void UpdateIsCanImportExport()
 		{
 			lock (_isImportingExportingLocker)
@@ -103,7 +115,7 @@ namespace UniFiler10.ViewModels
 				//string step = RegistryAccess.GetValue(ConstantData.REG_IMPORT_BINDER_STEP);
 				//if (step == "1")
 				//{
-					await ContinueImportBinderStep1Async(_briefcase, dir).ConfigureAwait(false);
+				await ContinueImportBinderStep1Async(_briefcase, dir).ConfigureAwait(false);
 				//}
 				//else if (step == "2")
 				//{
@@ -130,30 +142,36 @@ namespace UniFiler10.ViewModels
 			Briefcase = null;
 			return Task.CompletedTask;
 		}
-		public bool AddDbStep0()
+		public Task<bool> AddDbStep0Async()
 		{
-			var bf = _briefcase;
-			if (bf == null || !bf.IsOpen) return false;
+			return RunFunctionIfOpenAsyncB(delegate
+			{
+				var bf = _briefcase;
+				if (bf == null || !bf.IsOpen) return false;
 
-			IsNewDbNameVisible = true;
+				IsNewDbNameVisible = true;
 
-			return true;
+				return true;
+			});
 		}
 
-		public async Task<bool> AddDbStep1Async()
+		public Task<bool> AddDbStep1Async()
 		{
-			var bf = _briefcase; if (bf == null) return false;
-
-			if (await bf.AddBinderAsync(_newDbName).ConfigureAwait(false))
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await bf.SetCurrentBinderNameAsync(_newDbName).ConfigureAwait(false))
-				{
-					IsNewDbNameVisible = false;
-					return true;
-				}
-			}
+				var bf = _briefcase; if (bf == null) return false;
 
-			return false;
+				if (await bf.AddBinderAsync(_newDbName).ConfigureAwait(false))
+				{
+					if (await bf.SetCurrentBinderNameAsync(_newDbName).ConfigureAwait(false))
+					{
+						IsNewDbNameVisible = false;
+						return true;
+					}
+				}
+
+				return false;
+			});
 		}
 
 		public async Task<bool> TryOpenCurrentBinderAsync(string dbName)
@@ -173,25 +191,28 @@ namespace UniFiler10.ViewModels
 			return _briefcase?.CloseCurrentBinderAsync();
 		}
 
-		private async Task UpdateIsNewDbNameErrorMessageVisibleAsync()
+		private Task UpdateIsNewDbNameErrorMessageVisibleAsync()
 		{
-			var bf = _briefcase;
-			if (bf != null)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				bool isDbNameWrongAndBriefcaseIsOpen = await bf.IsNewDbNameWrongAsync(_newDbName).ConfigureAwait(false);
-				if (isDbNameWrongAndBriefcaseIsOpen)
+				var bf = _briefcase;
+				if (bf != null)
 				{
-					IsNewDbNameErrorMessageVisible = true;
+					bool isDbNameWrongAndBriefcaseIsOpen = await bf.IsNewDbNameWrongAsync(_newDbName).ConfigureAwait(false);
+					if (isDbNameWrongAndBriefcaseIsOpen)
+					{
+						IsNewDbNameErrorMessageVisible = true;
+					}
+					else
+					{
+						IsNewDbNameErrorMessageVisible = false;
+					}
 				}
 				else
 				{
 					IsNewDbNameErrorMessageVisible = false;
 				}
-			}
-			else
-			{
-				IsNewDbNameErrorMessageVisible = false;
-			}
+			});
 		}
 
 		public async Task<bool> DeleteDbAsync(string dbName)
@@ -262,11 +283,11 @@ namespace UniFiler10.ViewModels
 						//{
 						//if (_isOpenOrOpening) // this will be false when running on a phone with low memory - No it won't!
 						//{
-							Logger.Add_TPL("ContinueImportBinderStep1Async(): user choice = " + nextAction.Item1.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
-							Logger.Add_TPL("ContinueImportBinderStep1Async(): user has interacted = " + nextAction.Item2.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
-							if (nextAction.Item1 == ImportBinderOperations.Merge) await ContinueImportBinderStep2_Merge_Async(bc, dir).ConfigureAwait(false);
-							else if (nextAction.Item1 == ImportBinderOperations.Import) await ContinueImportBinderStep2_Import_Async(bc, dir).ConfigureAwait(false);
-							else ContinueImportBinderStep2_Cancel();
+						Logger.Add_TPL("ContinueImportBinderStep1Async(): user choice = " + nextAction.Item1.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("ContinueImportBinderStep1Async(): user has interacted = " + nextAction.Item2.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
+						if (nextAction.Item1 == ImportBinderOperations.Merge) await ContinueImportBinderStep2_Merge_Async(bc, dir).ConfigureAwait(false);
+						else if (nextAction.Item1 == ImportBinderOperations.Import) await ContinueImportBinderStep2_Import_Async(bc, dir).ConfigureAwait(false);
+						else ContinueImportBinderStep2_Cancel();
 						//}
 						//else
 						//{

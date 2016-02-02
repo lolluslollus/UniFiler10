@@ -83,7 +83,7 @@ namespace UniFiler10.Views
 
 		private void OnAddBinderStep0_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			VM?.AddDbStep0();
+			Task add = VM?.AddDbStep0Async();
 		}
 		private void OnAddBinderStep1_Tapped(object sender, TappedRoutedEventArgs e)
 		{

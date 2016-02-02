@@ -37,7 +37,7 @@ namespace Utilz.Controlz
             }
         }
 
-        private volatile int _selectedIndexDesired = -1;
+        private int _selectedIndexDesired = -1;
         /// <summary>
         /// Fires when the collection is replaced or receives a new item or loses an item
         /// </summary>
@@ -50,13 +50,13 @@ namespace Utilz.Controlz
 
         private void UpdateSelectedIndex()
         {
-            if (_selectedIndexDesired != SelectedIndex && Items != null && Items.Count > _selectedIndexDesired)
+            IAsyncAction upd = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
             {
-                IAsyncAction upd = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
-                {
-                    SelectedIndexTolerant = _selectedIndexDesired;
-                });
-            }
+				if (_selectedIndexDesired != SelectedIndex && Items != null && Items.Count > _selectedIndexDesired)
+				{
+					SelectedIndexTolerant = _selectedIndexDesired;
+				}
+            });
         }
     }
 }

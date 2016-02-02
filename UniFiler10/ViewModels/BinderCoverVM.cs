@@ -234,10 +234,10 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private volatile SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
+		private SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
 		public SwitchableObservableDisposableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
 
-		private volatile SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
+		private SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
 		public SwitchableObservableDisposableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
 
 		private static readonly object _isImportingLocker = new object();
@@ -299,7 +299,7 @@ namespace UniFiler10.ViewModels
 		}
 
 		private void UpdateDataForFldFilter()
-		{
+		{// LOLLO TODO make sure this runs under a semaphore
 			var binder = _binder; if (binder == null) return;
 
 			_fldDscsInCat.Clear();
@@ -668,49 +668,58 @@ namespace UniFiler10.ViewModels
 			return false;
 		}
 
-		public async Task AddFolderAsync()
+		public Task AddFolderAsync()
 		{
-			var binder = _binder;
-			if (binder != null)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
+				var binder = _binder;
+				if (binder != null)
 				{
-					// if there is a filter in place, remove it to show the new folder 
-					if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
-					else SetIsDirty(true, true, 0);
+					if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
+					{
+						// if there is a filter in place, remove it to show the new folder 
+						if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
+						else SetIsDirty(true, true, 0);
+					}
 				}
-			}
+			});
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
 		}
 
-		public async Task<bool> AddAndOpenFolderAsync()
+		public Task<bool> AddAndOpenFolderAsync()
 		{
-			var binder = _binder;
-			if (binder != null)
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				var newFolder = await binder.AddFolderAsync();
-				if (newFolder != null)
+				var binder = _binder;
+				if (binder != null)
 				{
-					if (await SetCurrentFolderAsync(newFolder.Id).ConfigureAwait(false))
+					var newFolder = await binder.AddFolderAsync();
+					if (newFolder != null)
 					{
-						SetIsDirty(true, true, 0);
-						return true;
+						if (await SetCurrentFolderAsync(newFolder.Id).ConfigureAwait(false))
+						{
+							SetIsDirty(true, true, 0);
+							return true;
+						}
 					}
 				}
-			}
-			return false;
+				return false;
+			});
 		}
 
-		public async Task DeleteFolderAsync(Binder.FolderPreview fp)
+		public Task DeleteFolderAsync(Binder.FolderPreview fp)
 		{
-			var binder = _binder;
-			if (binder != null && fp != null)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (await binder.RemoveFolderAsync(fp.FolderId).ConfigureAwait(false))
+				var binder = _binder;
+				if (binder != null && fp != null)
 				{
-					SetIsDirty(true, true, 0);
+					if (await binder.RemoveFolderAsync(fp.FolderId).ConfigureAwait(false))
+					{
+						SetIsDirty(true, true, 0);
+					}
 				}
-			}
+			});
 		}
 
 		public async void StartImportFoldersFromBinder()

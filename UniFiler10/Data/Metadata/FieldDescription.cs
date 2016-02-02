@@ -115,7 +115,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		public bool AddPossibleValue(FieldValue newValue)
+		internal bool AddPossibleValue(FieldValue newValue)
 		{
 			if (newValue != null && !string.IsNullOrWhiteSpace(newValue.Vaalue) && !_possibleValues.Any(pv => pv.Vaalue == newValue.Vaalue || pv.Id == newValue.Id))
 			{
@@ -129,7 +129,7 @@ namespace UniFiler10.Data.Metadata
 			if (string.IsNullOrEmpty(newValue)) return FieldValue.Empty;
 			else return _possibleValues.FirstOrDefault(pv => pv.Vaalue == newValue);
 		}
-		public bool RemovePossibleValue(FieldValue removedValue)
+		internal bool RemovePossibleValue(FieldValue removedValue)
 		{
 			if (removedValue != null) return _possibleValues.Remove(removedValue);
 			else return false;
@@ -140,7 +140,7 @@ namespace UniFiler10.Data.Metadata
 			return fldDsc != null && fldDsc.Id != DEFAULT_ID && fldDsc.PossibleValues != null && !string.IsNullOrWhiteSpace(fldDsc.Caption);
 		}
 
-		public void AddToJustAssignedToCats(Category cat)
+		internal void AddToJustAssignedToCats(Category cat)
 		{
 			if (cat?.Id != null && _justAssignedToCats != null && !_justAssignedToCats.Contains(cat.Id))
 			{
@@ -148,7 +148,7 @@ namespace UniFiler10.Data.Metadata
 				RaisePropertyChanged_UI(nameof(JustAssignedToCats)); // in case someone wants to bind to it
 			}
 		}
-		public void RemoveFromJustAssignedToCats(Category cat)
+		internal void RemoveFromJustAssignedToCats(Category cat)
 		{
 			if (cat?.Id != null && _justAssignedToCats != null && _justAssignedToCats.Contains(cat.Id))
 			{
