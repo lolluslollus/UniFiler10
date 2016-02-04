@@ -363,7 +363,7 @@ namespace UniFiler10.ViewModels
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 
-					await Task.Delay(waitMsec, SafeCancellationTokenSource.GetCancellationTokenSafe(Cts)).ConfigureAwait(false);
+					await Task.Delay(waitMsec, CancToken).ConfigureAwait(false);
 					Debug.WriteLine("Finished waiting " + waitMsec + " msec");
 
 					await RunFunctionIfOpenAsyncT(UpdatePaneContent2Async);
@@ -731,7 +731,7 @@ namespace UniFiler10.ViewModels
 			if (binder != null && !IsImportingFolders)
 			{
 				IsImportingFolders = true;
-				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION });
+				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingFolders will stay true.

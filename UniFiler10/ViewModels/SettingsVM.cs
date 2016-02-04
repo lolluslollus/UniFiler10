@@ -235,7 +235,8 @@ namespace UniFiler10.ViewModels
 			{
 				IsExportingSettings = true;
 
-				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION });
+				// LOLLO TODO in the following and in similar places, I added ConfigureAwait(false): check if it still works on low memory phone
+				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingSettings will stay true.
@@ -284,7 +285,7 @@ namespace UniFiler10.ViewModels
 			if (bc != null && !IsImportingSettings)
 			{
 				IsImportingSettings = true;
-				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION });
+				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingSettings will stay true.

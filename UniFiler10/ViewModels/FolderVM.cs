@@ -331,7 +331,7 @@ namespace UniFiler10.ViewModels
 							{
 								IsAudioRecorderOverlayOpen = true;
 								await _audioRecorderView.OpenAsync();
-								bool hasRecorded = await _audioRecorderView.RecordAsync(file, SafeCancellationTokenSource.GetCancellationTokenSafe(Cts)); // this locks until explicitly unlocked
+								bool hasRecorded = await _audioRecorderView.RecordAsync(file, CancToken); // this locks until explicitly unlocked
 								await _audioRecorderView.CloseAsync();
 								IsAudioRecorderOverlayOpen = false;
 

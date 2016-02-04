@@ -385,7 +385,7 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && !IsExportingBinder)
 			{
-				IsExportingBinder = true;
+				IsExportingBinder = true; // LOLLO TODO this check on IsExportingBinder is not atomic, neither are all its siblings across the app
 
 				RegistryAccess.TrySetValue(ConstantData.REG_EXPORT_BINDER_DBNAME, dbName);
 				// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
