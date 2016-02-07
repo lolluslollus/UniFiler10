@@ -171,7 +171,7 @@ namespace UniFiler10.Data.Model
 
 		#region filter properties
 		public enum Filters { All, Recent, Cat, Field };
-		private const int HOW_MANY_IN_RECENT = 10;
+		private const int HOW_MANY_FOLDERS_IN_RECENT_VIEW = 10;
 
 		public class FolderPreview : ObservableData
 		{
@@ -252,12 +252,28 @@ namespace UniFiler10.Data.Model
 			});
 		}
 
+		private readonly object _whichFilterLocker = new object();
 		private volatile Filters _whichFilter = Filters.All;
 		[DataMember]
-		public Filters WhichFilter { get { return _whichFilter; } private set { _whichFilter = value; RaisePropertyChanged_UI(); } }
-		public void SetFilter(Filters newValue)
+		public Filters WhichFilter
 		{
-			if (_whichFilter != newValue) WhichFilter = newValue;
+			get
+			{
+				lock (_whichFilterLocker)
+				{
+					return _whichFilter;
+				}
+			}
+			set
+			{
+				lock (_whichFilterLocker)
+				{
+					if (_whichFilter != value)
+					{
+						_whichFilter = value; RaisePropertyChanged_UI();
+					}
+				}
+			}
 		}
 		#endregion filter properties
 
@@ -587,11 +603,6 @@ namespace UniFiler10.Data.Model
 
 				var folders = await _dbManager.GetFoldersAsync().ConfigureAwait(false);
 				var wallets = await _dbManager.GetWalletsAsync().ConfigureAwait(false);
-				// LOLLO TODO the following causes an uncatchable exception (without explanations) when you:
-				// open a folder
-				// start recording audio
-				// press the app back button
-				// the output window says The program '[15272] UniFiler10.exe' has exited with code 1073741855 (0x4000001f).
 				var docs = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
 
 				output = GetFolderPreviews(folders, wallets, docs);
@@ -605,8 +616,8 @@ namespace UniFiler10.Data.Model
 			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Recent) return;
-
-				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).OrderByDescending(ff => ff.DateCreated).Take(HOW_MANY_IN_RECENT);
+				// LOLLO TODO check if Take makes trouble when it takes N rows from a table with m rows, where m < n.
+				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).OrderByDescending(ff => ff.DateCreated).Take(HOW_MANY_FOLDERS_IN_RECENT_VIEW);
 				var wallets = await _dbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
 
@@ -625,8 +636,8 @@ namespace UniFiler10.Data.Model
 				//var dynCatsTest = await _binder.DbManager.GetDynamicCategoriesAsync().ConfigureAwait(false);
 				var dynCatsWithChosenId = await _dbManager.GetDynamicCategoriesByCatIdAsync(_catIdForCatFilter).ConfigureAwait(false);
 				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).Where(fol => dynCatsWithChosenId.Any(cat => cat.ParentId == fol.Id));
-				var wallets = await _dbManager.GetWalletsAsync().ConfigureAwait(false);
-				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
+				var wallets = (await _dbManager.GetWalletsAsync().ConfigureAwait(false)).Where(wal => folders.Any(fol => fol.Id == wal.ParentId));
+				var documents = (await _dbManager.GetDocumentsAsync().ConfigureAwait(false)).Where(doc => wallets.Any(wal => wal.Id == doc.ParentId));
 
 				output = GetFolderPreviews(folders, wallets, documents);
 			}).ConfigureAwait(false);
@@ -638,13 +649,13 @@ namespace UniFiler10.Data.Model
 			var output = new List<FolderPreview>();
 			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null) return;
+				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null || _fldDscIdForFldFilter == DEFAULT_ID) return;
 
 				var dynFldsWithChosenId = (await _dbManager.GetDynamicFieldsByFldDscIdAsync(_fldDscIdForFldFilter).ConfigureAwait(false))
 					.Where(df => df.FieldValue?.Id == _fldValIdForFldFilter);
 				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).Where(fol => dynFldsWithChosenId.Any(df => df.ParentId == fol.Id));
-				var wallets = await _dbManager.GetWalletsAsync().ConfigureAwait(false);
-				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
+				var wallets = (await _dbManager.GetWalletsAsync().ConfigureAwait(false)).Where(wal => folders.Any(fol => fol.Id == wal.ParentId));
+				var documents = (await _dbManager.GetDocumentsAsync().ConfigureAwait(false)).Where(doc => wallets.Any(wal => wal.Id == doc.ParentId));
 
 				output = GetFolderPreviews(folders, wallets, documents);
 			}).ConfigureAwait(false);

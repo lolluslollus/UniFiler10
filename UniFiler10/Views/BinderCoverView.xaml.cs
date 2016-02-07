@@ -22,7 +22,7 @@ namespace UniFiler10.Views
 
 
 		#region properties
-		private volatile BinderCoverVM _vm = null; // LOLLO TODO do I need volatile here?
+		private volatile BinderCoverVM _vm = null; // LOLLO TODO do I need volatile here? Only if I read it outside _isOpenSemaphore!
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 
 		private AnimationStarter _animationStarter = null;
