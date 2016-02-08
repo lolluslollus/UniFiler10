@@ -24,11 +24,12 @@ namespace UniFiler10.Views
 		private AudioRecorder _audioRecorder = null;
 		private MediaCapture _mediaCapture;
 
-		private volatile string _lastMessage = string.Empty; // LOLLO TODO do I know the volatile here at all? Make a little experiment.
-		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
+		private readonly object _lastMessageLocker = new object();
+		private volatile string _lastMessage = string.Empty;
+		public string LastMessage { get { lock (_lastMessageLocker) { return _lastMessage; } } set { lock (_lastMessageLocker) { _lastMessage = value; } RaisePropertyChanged_UI(); } }
 
 		// Prevent the screen from sleeping while the camera is running
-		// private readonly DisplayRequest _displayRequest = new DisplayRequest(); // LOLLO TODO check how this works
+		// private readonly DisplayRequest _displayRequest = new DisplayRequest(); // LOLLO TODO use KeepAlive instead? Do I want this at all?
 
 		// For listening to media property changes
 		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();

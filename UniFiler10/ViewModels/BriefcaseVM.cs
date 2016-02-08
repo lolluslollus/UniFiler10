@@ -25,15 +25,15 @@ namespace UniFiler10.ViewModels
 		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } }
 
 		private bool _isCanImportExport = false;
-		public bool IsCanImportExport // LOLLO TODO this could be a case for volatile, or even Volatile.Read
+		public bool IsCanImportExport
 		{
 			get
 			{
-				return Volatile.Read(ref _isCanImportExport);
-				//lock (_isImportingExportingLocker)
-				//{
-				//	return _isCanImportExport;
-				//}
+				// return Volatile.Read(ref _isCanImportExport); // this is slower than volatile
+				lock (_isImportingExportingLocker)
+				{
+					return _isCanImportExport;
+				}
 			}
 			private set { _isCanImportExport = value; RaisePropertyChanged_UI(); }
 		}

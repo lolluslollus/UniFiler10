@@ -585,7 +585,6 @@ namespace UniFiler10.Data.Model
 			await RunFunctionIfOpenAsyncT(async delegate
 			{
 				if (WhichFilter != Filters.Recent) return;
-				// LOLLO TODO check if Take makes trouble when it takes N rows from a table with m rows, where m < n.
 				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).OrderByDescending(ff => ff.DateCreated).Take(HOW_MANY_FOLDERS_IN_RECENT_VIEW);
 				var wallets = await _dbManager.GetWalletsAsync().ConfigureAwait(false);
 				var documents = await _dbManager.GetDocumentsAsync().ConfigureAwait(false);
