@@ -258,6 +258,18 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
+		private bool TrySetIsImportingFolders(bool newValue)
+		{
+			lock (_isImportingLocker)
+			{
+				if (IsImportingFolders != newValue)
+				{
+					IsImportingFolders = newValue;
+					return true;
+				}
+				return false;
+			}
+		}
 		#endregion properties
 
 
@@ -293,7 +305,7 @@ namespace UniFiler10.ViewModels
 		private Task UpdateCatFilterIdAsync()
 		{
 			var binder = _binder; if (binder == null) return Task.CompletedTask;
-			return  binder.SetIdsForCatFilterAsync(_metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Name == _catNameForCatFilter)?.Id);
+			return binder.SetIdsForCatFilterAsync(_metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Name == _catNameForCatFilter)?.Id);
 		}
 
 		private void UpdateFldFilterFromIds()
@@ -727,9 +739,8 @@ namespace UniFiler10.ViewModels
 			// LOLLO TODO use http://stackoverflow.com/questions/23866325/how-to-avoid-storagefile-copyasync-throw-exception-when-copying-big-file
 			// to copy files, across the app. Alternatively, warn when a file is too large.
 			var binder = _binder;
-			if (binder != null && !IsImportingFolders)
+			if (binder != null && TrySetIsImportingFolders(true))
 			{
-				IsImportingFolders = true;
 				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.

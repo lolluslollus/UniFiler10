@@ -53,7 +53,18 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
-
+		private bool TrySetIsImportingMedia(bool newValue)
+		{
+			lock (_isImportingLocker)
+			{
+				if (IsImportingMedia != newValue)
+				{
+					IsImportingMedia = newValue;
+					return true;
+				}
+				return false;
+			}
+		}
 		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
@@ -171,10 +182,8 @@ namespace UniFiler10.ViewModels
 		{
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
-			if (folder != null && directory != null && !IsImportingMedia)
+			if (folder != null && directory != null && TrySetIsImportingMedia(true))
 			{
-				IsImportingMedia = true;
-
 				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
 				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, string.Empty);
 				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, false.ToString());
@@ -201,10 +210,8 @@ namespace UniFiler10.ViewModels
 		{
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
-			if (folder != null && directory != null && !IsImportingMedia)
+			if (folder != null && directory != null && TrySetIsImportingMedia(true))
 			{
-				IsImportingMedia = true;
-
 				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
 				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, parentWallet == null ? string.Empty : parentWallet.Id);
 				RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, false.ToString());
@@ -231,12 +238,10 @@ namespace UniFiler10.ViewModels
 		{
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
-			if (folder != null && directory != null && !IsImportingMedia && RuntimeData.Instance?.IsCameraAvailable == true)
+			if (folder != null && directory != null && RuntimeData.Instance?.IsCameraAvailable == true && TrySetIsImportingMedia(true))
 			{
 				try
 				{
-					IsImportingMedia = true;
-
 					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_FOLDERID, folder.Id);
 					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_PARENTWALLETID, parentWallet == null ? string.Empty : parentWallet.Id);
 					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_MEDIA_IS_SHOOTING, true.ToString());

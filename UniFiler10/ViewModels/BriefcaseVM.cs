@@ -66,6 +66,18 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
+		private bool TrySetIsImportingBinder(bool newValue)
+		{
+			lock (_isImportingExportingLocker)
+			{
+				if (IsImportingBinder != newValue)
+				{
+					IsImportingBinder = newValue;
+					return true;
+				}
+				return false;
+			}
+		}
 
 		public bool IsExportingBinder
 		{
@@ -85,6 +97,18 @@ namespace UniFiler10.ViewModels
 					RaisePropertyChanged_UI();
 					IsCanImportExport = !value && !IsImportingBinder;
 				}
+			}
+		}
+		private bool TrySetIsExportingBinder(bool newValue)
+		{
+			lock (_isImportingExportingLocker)
+			{
+				if (IsExportingBinder != newValue)
+				{
+					IsExportingBinder = newValue;
+					return true;
+				}
+				return false;
 			}
 		}
 
@@ -231,10 +255,8 @@ namespace UniFiler10.ViewModels
 		public async void StartImportBinder()
 		{
 			var bc = _briefcase;
-			if (bc != null && !IsImportingBinder)
+			if (bc != null && TrySetIsImportingBinder(true))
 			{
-				IsImportingBinder = true;
-
 				//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
 
 				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
@@ -383,10 +405,8 @@ namespace UniFiler10.ViewModels
 		public async void StartExportBinder(string dbName)
 		{
 			var bc = _briefcase;
-			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && !IsExportingBinder)
+			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && TrySetIsExportingBinder(true))
 			{
-				IsExportingBinder = true; // LOLLO TODO this check on IsExportingBinder is not atomic, neither are all its siblings across the app
-
 				RegistryAccess.TrySetValue(ConstantData.REG_EXPORT_BINDER_DBNAME, dbName);
 				// LOLLO NOTE for some stupid reason, the following wants a non-empty extension list
 				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);

@@ -67,7 +67,18 @@ namespace UniFiler10.ViewModels
 				}
 			}
 		}
-
+		private bool TrySetIsImportingSettings(bool newValue)
+		{
+			lock (_isImportingExportingLocker)
+			{
+				if (IsImportingSettings != newValue)
+				{
+					IsImportingSettings = newValue;
+					return true;
+				}
+				return false;
+			}
+		}
 		public bool IsExportingSettings
 		{
 			get
@@ -85,6 +96,18 @@ namespace UniFiler10.ViewModels
 					RegistryAccess.TrySetValue(ConstantData.REG_SETTINGS_IS_EXPORTING, value.ToString());
 					RaisePropertyChanged_UI();
 				}
+			}
+		}
+		private bool TrySetIsExportingSettings(bool newValue)
+		{
+			lock (_isImportingExportingLocker)
+			{
+				if (IsExportingSettings != newValue)
+				{
+					IsExportingSettings = newValue;
+					return true;
+				}
+				return false;
 			}
 		}
 
@@ -231,10 +254,8 @@ namespace UniFiler10.ViewModels
 		public async void StartExport()
 		{
 			var bc = Briefcase.GetCurrentInstance();
-			if (bc != null && !IsExportingSettings)
+			if (bc != null && TrySetIsExportingSettings(true))
 			{
-				IsExportingSettings = true;
-
 				// LOLLO TODO in the following and in similar places, I added ConfigureAwait(false): check if it still works on low memory phone
 				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
@@ -282,9 +303,8 @@ namespace UniFiler10.ViewModels
 		public async void StartImport()
 		{
 			var bc = Briefcase.GetCurrentInstance();
-			if (bc != null && !IsImportingSettings)
+			if (bc != null && TrySetIsImportingSettings(true))
 			{
-				IsImportingSettings = true;
 				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
