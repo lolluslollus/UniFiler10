@@ -193,7 +193,7 @@ namespace UniFiler10.Data.Model
 		public string CatIdForCatFilter // the setter is only for serialising and copying
 		{
 			get { return _catIdForCatFilter; }
-			set
+			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; RaisePropertyChanged(); }
@@ -212,7 +212,7 @@ namespace UniFiler10.Data.Model
 		public string CatIdForFldFilter // the setter is only for serialising and copying
 		{
 			get { return _catIdForFldFilter; }
-			set
+			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; RaisePropertyChanged(); }
@@ -224,7 +224,7 @@ namespace UniFiler10.Data.Model
 		public string FldDscIdForFldFilter // the setter is only for serialising and copying
 		{
 			get { return _fldDscIdForFldFilter; }
-			set
+			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; RaisePropertyChanged(); }
@@ -236,7 +236,7 @@ namespace UniFiler10.Data.Model
 		public string FldValIdForFldFilter // the setter is only for serialising and copying
 		{
 			get { return _fldValIdForFldFilter; }
-			set
+			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; RaisePropertyChanged(); }
