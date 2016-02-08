@@ -11,7 +11,7 @@ namespace Utilz
 	public class UserConfirmationPopup : ObservableData
 	{
 		private const int DELAY = 50;
-		private static volatile UserConfirmationPopup _instance = null;
+		private static UserConfirmationPopup _instance = null;
 		private static readonly object _locker = new object();
 		public static UserConfirmationPopup GetInstance()
 		{

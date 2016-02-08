@@ -18,7 +18,7 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public sealed class Briefcase : OpenableObservableDisposableData
 	{
-		#region construct and dispose
+		#region lifecycle
 		private static readonly object _instanceLock = new object();
 		public static Briefcase GetCreateInstance()
 		{
@@ -39,10 +39,7 @@ namespace UniFiler10.Data.Model
 			}
 		}
 		private Briefcase() { }
-		#endregion construct and dispose
 
-
-		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
@@ -84,12 +81,11 @@ namespace UniFiler10.Data.Model
 		}
 		protected override void Dispose(bool isDisposing)
 		{
-			base.Dispose(isDisposing);
-
 			_dbNames?.Dispose();
 			_dbNames = null;
+			base.Dispose(isDisposing);
 		}
-		#endregion open and close
+		#endregion lifecycle
 
 
 		#region properties
@@ -98,7 +94,7 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		public static StorageFolder BindersDirectory { get { return _bindersDirectory; } }
 
-		private static volatile Briefcase _instance = null;
+		private static Briefcase _instance = null;
 
 		private MetaBriefcase _metaBriefcase = null;
 		[IgnoreDataMember]

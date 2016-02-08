@@ -69,7 +69,7 @@ namespace UniFiler10.ViewModels
 		#endregion properties
 
 
-		#region ctor and dispose
+		#region lifecycle
 		public FolderVM(Folder folder, IRecorder audioRecorder/*, IRecorder camera*/, AnimationStarter animationStarter)
 		{
 			_folder = folder;
@@ -80,20 +80,18 @@ namespace UniFiler10.ViewModels
 		}
 		protected override void Dispose(bool isDisposing)
 		{
-			base.Dispose(isDisposing);
-
 			_folder = null; // do not dispose it, only briefcase may do so.
-			_folderCategorySelector?.Dispose();
-			_folderCategorySelector = null;
+			base.Dispose(isDisposing);
 		}
-		#endregion ctor and dispose
 
-
-		#region open close
 		protected override async Task OpenMayOverrideAsync()
 		{
-			RuntimeData = RuntimeData.Instance;
-			UpdateCurrentFolderCategories();
+			await RunInUiThreadAsync(delegate
+			{
+				RuntimeData = RuntimeData.Instance;
+				FolderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
+				UpdateCurrentFolderCategories();
+			}).ConfigureAwait(false);
 
 			if (IsImportingMedia)
 			{
@@ -129,8 +127,13 @@ namespace UniFiler10.ViewModels
 			if (ar != null) await ar.CloseAsync();
 
 			IsAudioRecorderOverlayOpen = false;
+
+			await RunInUiThreadAsync(delegate
+			{
+				_folderCategorySelector?.Dispose();
+			}).ConfigureAwait(false);
 		}
-		#endregion open close
+		#endregion lifecycle
 
 
 		#region user actions
@@ -381,8 +384,8 @@ namespace UniFiler10.ViewModels
 
 
 		#region edit categories
-		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
-		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } }
+		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> _folderCategorySelector = null; // new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
+		public SwitchableObservableDisposableCollection<FolderCategorySelectorRow> FolderCategorySelector { get { return _folderCategorySelector; } private set { _folderCategorySelector = value; RaisePropertyChanged_UI(); } }
 		public class FolderCategorySelectorRow : ObservableData
 		{
 			private string _name = string.Empty;

@@ -20,9 +20,19 @@ namespace UniFiler10.Data.Metadata
 	public sealed class MetaBriefcase : OpenableObservableDisposableData
 	{
 		#region properties
-		private static volatile MetaBriefcase _instance = null;
+		private static MetaBriefcase _instance = null;
 		[IgnoreDataMember]
-		public static MetaBriefcase OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
+		public static MetaBriefcase OpenInstance
+		{
+			get
+			{
+				lock (_instanceLock)
+				{
+					if (_instance?._isOpen == true) return _instance;
+					else return null;
+				}
+			}
+		}
 
 		private string _currentCategoryId = null;
 		[DataMember]
@@ -111,7 +121,7 @@ namespace UniFiler10.Data.Metadata
 		#endregion properties
 
 
-		#region construct and dispose
+		#region lifecycle
 		private static readonly object _instanceLock = new object();
 		internal static MetaBriefcase GetCreateInstance()
 		{
@@ -129,18 +139,13 @@ namespace UniFiler10.Data.Metadata
 
 		protected override void Dispose(bool isDisposing)
 		{
-			base.Dispose(isDisposing);
-
+			_fieldDescriptions?.Dispose();
+			_fieldDescriptions = null;
 			_categories?.Dispose();
 			_categories = null;
 
-			_fieldDescriptions?.Dispose();
-			_fieldDescriptions = null;
+			base.Dispose(isDisposing);
 		}
-		#endregion construct and dispose
-
-
-		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await LoadAsync().ConfigureAwait(false);
@@ -168,7 +173,7 @@ namespace UniFiler10.Data.Metadata
 				}
 			}
 		}
-		#endregion open and close
+		#endregion lifecycle
 
 
 		#region loading methods

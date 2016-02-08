@@ -17,7 +17,7 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class Binder : DbBoundObservableData
 	{
-		#region ctor and dispose
+		#region lifecycle
 		private static readonly object _instanceLock = new object();
 		internal static Binder GetCreateInstance(string dbName)
 		{
@@ -37,16 +37,11 @@ namespace UniFiler10.Data.Model
 		}
 		protected override void Dispose(bool isDisposing)
 		{
-			base.Dispose(isDisposing);
-
 			_folders?.Dispose();
 			_folders = null;
+			base.Dispose(isDisposing);
 		}
 
-		#endregion ctor and dispose
-
-
-		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateDirectoryAsync().ConfigureAwait(false);
@@ -71,17 +66,15 @@ namespace UniFiler10.Data.Model
 
 			Task closeFolders = new Task(delegate
 			{
-				Parallel.ForEach(_folders, (folder) =>
-				{
+				Parallel.ForEach(_folders, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (folder) =>
+				   {
 					// await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
-					folder.Dispose();
-				});
+						folder?.Dispose();
+				   });
 			});
-
 			Task save = SaveNonDbPropertiesAsync();
-
 			closeFolders.Start();
-			// Task.WaitAll(closeFolders, save); // this is not awaitable
+
 			await Task.WhenAll(closeFolders, save).ConfigureAwait(false);
 
 			await RunInUiThreadAsync(delegate
@@ -89,28 +82,12 @@ namespace UniFiler10.Data.Model
 				_folders.Clear();
 				_currentFolder = null; // don't set CurrentFolder, it triggers stuff
 			}).ConfigureAwait(false);
-
-			//foreach (var folder in _folders)
-			//{
-			//	await folder.CloseAsync().ConfigureAwait(false);
-			//	folder.Dispose();
-			//}
-
-			//await SaveNonDbPropertiesAsync().ConfigureAwait(false);
-
-			//await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-			//{
-			//	_folders.Clear();
-			//	CurrentFolder = null;
-			//}).AsTask().ConfigureAwait(false);
 		}
-		#endregion open and close
+		#endregion lifecycle
 
 
 		#region main properties
-		private static volatile Binder _instance = null;
-		//[IgnoreDataMember]
-		//public static Binder OpenInstance { get { var instance = _instance; if (instance != null && instance._isOpen) return instance; else return null; } }
+		private static Binder _instance = null;
 
 		protected StorageFolder _directory = null;
 		[IgnoreDataMember]
@@ -141,18 +118,6 @@ namespace UniFiler10.Data.Model
 					_currentFolderId = value;
 					RaisePropertyChanged_UI();
 				}
-				//if (_currentFolderId != value)
-				//{
-				//	_currentFolderId = value;
-				//	Task upd = UpdateCurrentFolderAsync().ContinueWith(delegate
-				//	{
-				//		RaisePropertyChanged_UI();
-				//	});
-				//}
-				//else if (_currentFolder == null)
-				//{
-				//	Task upd = UpdateCurrentFolderAsync();
-				//}
 			}
 		}
 
@@ -264,15 +229,19 @@ namespace UniFiler10.Data.Model
 					return _whichFilter;
 				}
 			}
-			set
+			private set // LOLLO NOTE the lockless private set is only for serialisation
 			{
-				lock (_whichFilterLocker)
+				if (_whichFilter != value)
 				{
-					if (_whichFilter != value)
-					{
-						_whichFilter = value; RaisePropertyChanged_UI();
-					}
+					_whichFilter = value; RaisePropertyChanged_UI();
 				}
+			}
+		}
+		public void SetFilter(Filters whichFilter)
+		{
+			lock (_whichFilterLocker)
+			{
+				WhichFilter = whichFilter;
 			}
 		}
 		#endregion filter properties

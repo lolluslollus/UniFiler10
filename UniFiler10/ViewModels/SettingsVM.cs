@@ -24,8 +24,8 @@ namespace UniFiler10.ViewModels
 		private MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = new SwitchableObservableDisposableCollection<FieldDescription>();
-		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } }
+		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null; // new SwitchableObservableDisposableCollection<FieldDescription>();
+		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
 		private void UpdateUnassignedFields()
 		{
 			var mb = _metaBriefcase;
@@ -44,7 +44,10 @@ namespace UniFiler10.ViewModels
 
 		public static bool GetIsElevated()
 		{
-			return _instance?._metaBriefcase?.IsElevated == true;
+			lock (_instanceLocker)
+			{
+				return _instance?._metaBriefcase?.IsElevated == true;
+			}
 		}
 
 		private static readonly object _isImportingExportingLocker = new object();
@@ -111,35 +114,31 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
+		private static readonly object _instanceLocker = new object();
 		private static SettingsVM _instance = null;
 		private AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
-		#region ctor and dispose
+		#region lifecycle
 		public SettingsVM(MetaBriefcase metaBriefcase, AnimationStarter animationStarter)
 		{
-			MetaBriefcase = metaBriefcase;
-			_instance = this;
-			_animationStarter = animationStarter;
-			UpdateUnassignedFields();
+			lock (_instanceLocker)
+			{
+				MetaBriefcase = metaBriefcase;
+				_instance = this;
+				_animationStarter = animationStarter;
+				UpdateUnassignedFields();
+			}
 		}
 
-		protected override void Dispose(bool isDisposing)
-		{
-			base.Dispose(isDisposing);
-
-			// we don't touch MetaBriefcase or other data, only app.xaml.cs may do so.
-			_unassignedFields?.Clear();
-			_unassignedFields?.Dispose();
-			_unassignedFields = null;
-		}
-		#endregion ctor and dispose
-
-
-		#region open and close
 		protected override async Task OpenMayOverrideAsync()
 		{
+			await RunInUiThreadAsync(delegate
+			{
+				UnassignedFields = new SwitchableObservableDisposableCollection<FieldDescription>();
+			}).ConfigureAwait(false);
+
 			if (IsExportingSettings)
 			{
 				var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
@@ -156,8 +155,13 @@ namespace UniFiler10.ViewModels
 		{
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
+
+			await RunInUiThreadAsync(delegate
+			{
+				_unassignedFields?.Dispose();
+			}).ConfigureAwait(false);
 		}
-		#endregion open and close
+		#endregion lifecycle
 
 
 		#region user actions

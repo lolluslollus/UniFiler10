@@ -29,11 +29,11 @@ namespace UniFiler10.ViewModels
 		private readonly Binder _binder = null;
 		public Binder Binder { get { return _binder; } }
 
-		private MetaBriefcase _metaBriefcase = null;
-		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } private set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
+		private readonly MetaBriefcase _metaBriefcase = null;
+		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } }
 
-		private readonly SwitchableObservableDisposableCollection<Binder.FolderPreview> _folderPreviews = new SwitchableObservableDisposableCollection<Binder.FolderPreview>();
-		public SwitchableObservableDisposableCollection<Binder.FolderPreview> FolderPreviews { get { return _folderPreviews; } }
+		private SwitchableObservableDisposableCollection<Binder.FolderPreview> _folderPreviews = null; // new SwitchableObservableDisposableCollection<Binder.FolderPreview>();
+		public SwitchableObservableDisposableCollection<Binder.FolderPreview> FolderPreviews { get { return _folderPreviews; } private set { _folderPreviews = value; RaisePropertyChanged_UI(); } }
 
 		private volatile bool _isAllFolderPaneOpen = false;
 		public bool IsAllFoldersPaneOpen
@@ -44,7 +44,7 @@ namespace UniFiler10.ViewModels
 				if (_isAllFolderPaneOpen != value)
 				{
 					_isAllFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isAllFolderPaneOpen) { _binder.WhichFilter = Binder.Filters.All; CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
+					if (_isAllFolderPaneOpen) { _binder.SetFilter(Binder.Filters.All); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -58,7 +58,7 @@ namespace UniFiler10.ViewModels
 				if (_isRecentFolderPaneOpen != value)
 				{
 					_isRecentFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isRecentFolderPaneOpen) { _binder.WhichFilter = Binder.Filters.Recent; CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
+					if (_isRecentFolderPaneOpen) { _binder.SetFilter(Binder.Filters.Recent); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -72,7 +72,7 @@ namespace UniFiler10.ViewModels
 				if (_isByCatFolderPaneOpen != value)
 				{
 					_isByCatFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isByCatFolderPaneOpen) { _binder.WhichFilter = Binder.Filters.Cat; CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
+					if (_isByCatFolderPaneOpen) { _binder.SetFilter(Binder.Filters.Cat); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -86,7 +86,7 @@ namespace UniFiler10.ViewModels
 				if (_isByFldFolderPaneOpen != value)
 				{
 					_isByFldFolderPaneOpen = value; RaisePropertyChanged_UI();
-					if (_isByFldFolderPaneOpen) { _binder.WhichFilter = Binder.Filters.Field; CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
+					if (_isByFldFolderPaneOpen) { _binder.SetFilter(Binder.Filters.Field); CloseOtherPanes(); Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -179,7 +179,7 @@ namespace UniFiler10.ViewModels
 				{
 					UpdateFldFilterIdsAsync().ContinueWith(delegate
 					{
-						UpdateFldFilterFromIds();
+						UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
 						if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 					});
 				}
@@ -202,7 +202,7 @@ namespace UniFiler10.ViewModels
 				{
 					UpdateFldFilterIdsAsync().ContinueWith(delegate
 					{
-						UpdateFldFilterFromIds();
+						UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
 						if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 					});
 				}
@@ -225,18 +225,18 @@ namespace UniFiler10.ViewModels
 				{
 					UpdateFldFilterIdsAsync().ContinueWith(delegate
 					{
+						//UpdateDataForFldFilter(); // we don't need it here
 						if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 					});
-					//UpdateDataForFldFilter(); // we don't need it here
 				}
 			}
 		}
 
-		private readonly SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
-		public SwitchableObservableDisposableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } }
+		private SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = null; // new SwitchableObservableDisposableCollection<FieldDescription>();
+		public SwitchableObservableDisposableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
 
-		private readonly SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
-		public SwitchableObservableDisposableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } }
+		private SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = null; // new SwitchableObservableDisposableCollection<FieldValue>();
+		public SwitchableObservableDisposableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
 
 		private static readonly object _isImportingLocker = new object();
 		public bool IsImportingFolders
@@ -297,9 +297,9 @@ namespace UniFiler10.ViewModels
 		{
 			var binder = _binder; if (binder == null) return;
 
-			Category cat = null;
-			cat = _metaBriefcase?.Categories?.FirstOrDefault(ca => ca.Id == binder.CatIdForCatFilter);
-			SetCatNameForCatFilter(cat?.Name, false);
+			Category category = null;
+			category = _metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Id == binder.CatIdForCatFilter);
+			SetCatNameForCatFilter(category?.Name, false);
 		}
 
 		private Task UpdateCatFilterIdAsync()
@@ -440,20 +440,25 @@ namespace UniFiler10.ViewModels
 
 			_binder = binder;
 			RaisePropertyChanged_UI(nameof(Binder));
-			MetaBriefcase = MetaBriefcase.OpenInstance;
-			if (_metaBriefcase == null) Debugger.Break(); // LOLLO this must never happen, check it
+			_metaBriefcase = MetaBriefcase.OpenInstance;
+			if (_metaBriefcase == null) throw new ArgumentNullException("BinderCoverVM ctor: MetaBriefcase may not be null");
 			_animationStarter = animationStarter;
-
-			UpdateCatFilterFromIds();
-			UpdateFldFilterFromIds();
-
-			UpdateIsPaneOpen();
-
-			Logger.Add_TPL("BinderCoverVM ctor ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 
 		protected override async Task OpenMayOverrideAsync()
 		{
+			await RunInUiThreadAsync(delegate
+			{
+				FolderPreviews = new SwitchableObservableDisposableCollection<Binder.FolderPreview>();
+				FldDscsInCat = new SwitchableObservableDisposableCollection<FieldDescription>();
+				FldValsInFldDscs = new SwitchableObservableDisposableCollection<FieldValue>();
+
+				UpdateCatFilterFromIds();
+				UpdateFldFilterFromIds();
+
+				UpdateIsPaneOpen();
+			}).ConfigureAwait(false);
+
 			RegisterFoldersChanged();
 			await UpdatePaneContent2Async().ConfigureAwait(false);
 
@@ -469,18 +474,16 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		protected override Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync()
 		{
+			await RunInUiThreadAsync(delegate
+			{
+				_folderPreviews?.Dispose();
+				_fldDscsInCat?.Dispose();
+				_fldValsInFldDscs?.Dispose();
+			}).ConfigureAwait(false);
+
 			UnregisterFoldersChanged();
-			return Task.CompletedTask;
-		}
-
-		protected override void Dispose(bool isDisposing)
-		{
-			base.Dispose(isDisposing);
-
-			_folderPreviews?.Dispose();
-			_folderPreviews.Clear();
 		}
 		#endregion construct dispose open close
 

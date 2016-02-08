@@ -133,8 +133,17 @@ namespace UniFiler10.Data.Runtime
 		#endregion properties
 
 		#region construct dispose open close
-		private static volatile RuntimeData _instance = null;
-		public static RuntimeData Instance { get { return _instance; } }
+		private static RuntimeData _instance = null;
+		public static RuntimeData Instance
+		{
+			get
+			{
+				lock (_instanceLock)
+				{
+					return _instance;
+				}
+			}
+		}
 
 		private static readonly object _instanceLock = new object();
 		public static RuntimeData GetCreateInstance(Briefcase briefcase)

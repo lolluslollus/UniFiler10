@@ -163,7 +163,7 @@ namespace UniFiler10.ViewModels
 		protected override Task CloseMayOverrideAsync()
 		{
 			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
-			Briefcase = null;
+			_briefcase = null;
 			return Task.CompletedTask;
 		}
 		public Task<bool> AddDbStep0Async()
