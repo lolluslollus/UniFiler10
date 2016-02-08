@@ -293,7 +293,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private void UpdateDataForCatFilter()
+		private void UpdateCatFilterFromIds()
 		{
 			var binder = _binder; if (binder == null) return;
 
@@ -444,7 +444,7 @@ namespace UniFiler10.ViewModels
 			if (_metaBriefcase == null) Debugger.Break(); // LOLLO this must never happen, check it
 			_animationStarter = animationStarter;
 
-			UpdateDataForCatFilter();
+			UpdateCatFilterFromIds();
 			UpdateFldFilterFromIds();
 
 			UpdateIsPaneOpen();
