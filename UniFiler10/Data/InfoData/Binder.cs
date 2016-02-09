@@ -68,8 +68,8 @@ namespace UniFiler10.Data.Model
 			{
 				Parallel.ForEach(_folders, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (folder) =>
 				   {
-					// await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
-						folder?.Dispose();
+					   // await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
+					   folder?.Dispose();
 				   });
 			});
 			Task save = SaveNonDbPropertiesAsync();
@@ -153,78 +153,119 @@ namespace UniFiler10.Data.Model
 			public Document Document { get { return _document; } set { _document = value; RaisePropertyChanged_UI(); } }
 		}
 
-		private volatile string _catIdForCatFilter = DEFAULT_ID;
+		private string _catIdForCatFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForCatFilter // the setter is only for serialising and copying
 		{
-			get { return _catIdForCatFilter; }
+			get
+			{
+				lock (_filterLocker)
+				{
+					return _catIdForCatFilter;
+				}
+			}
 			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
-				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; RaisePropertyChanged(); }
+				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; }
 			}
 		}
-		public Task SetIdsForCatFilterAsync(string catId)
+		public void SetIdsForCatFilter(string catId)
 		{
-			return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			lock (_filterLocker)
 			{
 				CatIdForCatFilter = catId;
-			});
+			};
 		}
 
-		private volatile string _catIdForFldFilter = DEFAULT_ID;
+		//public Task SetIdsForCatFilterAsync(string catId)
+		//{
+		//	return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+		//	{
+		//		CatIdForCatFilter = catId;
+		//	});
+		//}
+
+		private string _catIdForFldFilter = DEFAULT_ID;
 		[DataMember]
 		public string CatIdForFldFilter // the setter is only for serialising and copying
 		{
-			get { return _catIdForFldFilter; }
+			get
+			{
+				lock (_filterLocker)
+				{
+					return _catIdForFldFilter;
+				}
+			}
 			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
-				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; RaisePropertyChanged(); }
+				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; }
 			}
 		}
 
-		private volatile string _fldDscIdForFldFilter = DEFAULT_ID;
+		private string _fldDscIdForFldFilter = DEFAULT_ID;
 		[DataMember]
 		public string FldDscIdForFldFilter // the setter is only for serialising and copying
 		{
-			get { return _fldDscIdForFldFilter; }
+			get
+			{
+				lock (_filterLocker)
+				{
+					return _fldDscIdForFldFilter;
+				}
+			}
 			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
-				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; RaisePropertyChanged(); }
+				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; }
 			}
 		}
 
-		private volatile string _fldValIdForFldFilter = DEFAULT_ID;
+		private string _fldValIdForFldFilter = DEFAULT_ID;
 		[DataMember]
 		public string FldValIdForFldFilter // the setter is only for serialising and copying
 		{
-			get { return _fldValIdForFldFilter; }
+			get
+			{
+				lock (_filterLocker)
+				{
+					return _fldValIdForFldFilter;
+				}
+			}
 			private set
 			{
 				string newValue = value ?? DEFAULT_ID;
-				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; RaisePropertyChanged(); }
+				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; }
 			}
 		}
-		public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
+		public void SetIdsForFldFilter(string catId, string fldDscId, string fldValId)
 		{
-			return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+			lock (_filterLocker)
 			{
 				CatIdForFldFilter = catId;
 				FldDscIdForFldFilter = fldDscId;
 				FldValIdForFldFilter = fldValId;
-			});
+			};
 		}
+		//public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
+		//{
+		//	return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
+		//	{
+		//		CatIdForFldFilter = catId;
+		//		FldDscIdForFldFilter = fldDscId;
+		//		FldValIdForFldFilter = fldValId;
+		//	});
+		//}
 
-		private readonly object _whichFilterLocker = new object();
+		private readonly object _filterLocker = new object();
 		private volatile Filters _whichFilter = Filters.All;
 		[DataMember]
 		public Filters WhichFilter
 		{
 			get
 			{
-				lock (_whichFilterLocker)
+				lock (_filterLocker)
 				{
 					return _whichFilter;
 				}
@@ -239,7 +280,7 @@ namespace UniFiler10.Data.Model
 		}
 		public void SetFilter(Filters whichFilter)
 		{
-			lock (_whichFilterLocker)
+			lock (_filterLocker)
 			{
 				WhichFilter = whichFilter;
 			}
@@ -599,10 +640,10 @@ namespace UniFiler10.Data.Model
 			var output = new List<FolderPreview>();
 			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (WhichFilter != Filters.Cat || _dbManager == null || _catIdForCatFilter == null || _catIdForCatFilter == DEFAULT_ID) return;
+				if (WhichFilter != Filters.Cat || _dbManager == null || CatIdForCatFilter == null || CatIdForCatFilter == DEFAULT_ID) return;
 
 				//var dynCatsTest = await _binder.DbManager.GetDynamicCategoriesAsync().ConfigureAwait(false);
-				var dynCatsWithChosenId = await _dbManager.GetDynamicCategoriesByCatIdAsync(_catIdForCatFilter).ConfigureAwait(false);
+				var dynCatsWithChosenId = await _dbManager.GetDynamicCategoriesByCatIdAsync(CatIdForCatFilter).ConfigureAwait(false);
 				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).Where(fol => dynCatsWithChosenId.Any(cat => cat.ParentId == fol.Id));
 				var wallets = (await _dbManager.GetWalletsAsync().ConfigureAwait(false)).Where(wal => folders.Any(fol => fol.Id == wal.ParentId));
 				var documents = (await _dbManager.GetDocumentsAsync().ConfigureAwait(false)).Where(doc => wallets.Any(wal => wal.Id == doc.ParentId));
@@ -617,10 +658,10 @@ namespace UniFiler10.Data.Model
 			var output = new List<FolderPreview>();
 			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (WhichFilter != Filters.Field || _dbManager == null || _fldDscIdForFldFilter == null || _fldDscIdForFldFilter == DEFAULT_ID) return;
+				if (WhichFilter != Filters.Field || _dbManager == null || FldDscIdForFldFilter == null || FldDscIdForFldFilter == DEFAULT_ID) return;
 
-				var dynFldsWithChosenId = (await _dbManager.GetDynamicFieldsByFldDscIdAsync(_fldDscIdForFldFilter).ConfigureAwait(false))
-					.Where(df => df.FieldValue?.Id == _fldValIdForFldFilter);
+				var dynFldsWithChosenId = (await _dbManager.GetDynamicFieldsByFldDscIdAsync(FldDscIdForFldFilter).ConfigureAwait(false))
+					.Where(df => df.FieldValue?.Id == FldValIdForFldFilter);
 				var folders = (await _dbManager.GetFoldersAsync().ConfigureAwait(false)).Where(fol => dynFldsWithChosenId.Any(df => df.ParentId == fol.Id));
 				var wallets = (await _dbManager.GetWalletsAsync().ConfigureAwait(false)).Where(wal => folders.Any(fol => fol.Id == wal.ParentId));
 				var documents = (await _dbManager.GetDocumentsAsync().ConfigureAwait(false)).Where(doc => wallets.Any(wal => wal.Id == doc.ParentId));

@@ -155,10 +155,8 @@ namespace UniFiler10.ViewModels
 				_catNameForCatFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForCatFilter));
 				if (doUpdates)
 				{
-					UpdateCatFilterIdAsync().ContinueWith(delegate
-					{
-						if (_isByCatFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-					});
+					UpdateCatFilterId_ToAConsistentState();
+					if (_isByCatFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -177,11 +175,9 @@ namespace UniFiler10.ViewModels
 				_catNameForFldFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForFldFilter));
 				if (doUpdates)
 				{
-					UpdateFldFilterIdsAsync().ContinueWith(delegate
-					{
-						UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
-						if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-					});
+					UpdateFldFilterIds_ToAConsistentState();
+					UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
+					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -200,11 +196,9 @@ namespace UniFiler10.ViewModels
 				_fldDscCaptionForFldFilter = newValue; RaisePropertyChanged_UI(nameof(FldDscCaptionForFldFilter));
 				if (doUpdates)
 				{
-					UpdateFldFilterIdsAsync().ContinueWith(delegate
-					{
-						UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
-						if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-					});
+					UpdateFldFilterIds_ToAConsistentState();
+					UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
+					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -223,11 +217,9 @@ namespace UniFiler10.ViewModels
 				_fldValVaalueForFldFilter = newValue; RaisePropertyChanged_UI(nameof(FldValVaalueForFldFilter));
 				if (doUpdates)
 				{
-					UpdateFldFilterIdsAsync().ContinueWith(delegate
-					{
-						//UpdateDataForFldFilter(); // we don't need it here
-						if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-					});
+					UpdateFldFilterIds_ToAConsistentState();
+					//UpdateDataForFldFilter(); // we don't need it here
+					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 				}
 			}
 		}
@@ -302,10 +294,9 @@ namespace UniFiler10.ViewModels
 			SetCatNameForCatFilter(category?.Name, false);
 		}
 
-		private Task UpdateCatFilterIdAsync()
+		private void UpdateCatFilterId_ToAConsistentState()
 		{
-			var binder = _binder; if (binder == null) return Task.CompletedTask;
-			return binder.SetIdsForCatFilterAsync(_metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Name == _catNameForCatFilter)?.Id);
+			_binder?.SetIdsForCatFilter(_metaBriefcase?.Categories?.FirstOrDefault(cat => cat.Name == _catNameForCatFilter)?.Id);
 		}
 
 		private void UpdateFldFilterFromIds()
@@ -335,7 +326,7 @@ namespace UniFiler10.ViewModels
 			SetFldValVaalueForFldFilter(fldDsc?.PossibleValues?.FirstOrDefault(fv => fv.Id == binder.FldValIdForFldFilter)?.Vaalue, false);
 		}
 
-		private async Task UpdateFldFilterIdsAsync()
+		private void UpdateFldFilterIds_ToAConsistentState()
 		{
 			var binder = _binder; if (binder == null) return;
 
@@ -362,7 +353,7 @@ namespace UniFiler10.ViewModels
 				}
 			}
 
-			await binder.SetIdsForFldFilterAsync(catId, fldDscId, fldValId).ConfigureAwait(false);
+			binder.SetIdsForFldFilter(catId, fldDscId, fldValId);
 		}
 
 		private async Task UpdatePaneContentAsync(int waitMsec)
