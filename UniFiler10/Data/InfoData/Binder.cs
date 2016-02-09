@@ -155,7 +155,7 @@ namespace UniFiler10.Data.Model
 
 		private string _catIdForCatFilter = DEFAULT_ID;
 		[DataMember]
-		public string CatIdForCatFilter // the setter is only for serialising and copying
+		public string CatIdForCatFilter
 		{
 			get
 			{
@@ -164,7 +164,7 @@ namespace UniFiler10.Data.Model
 					return _catIdForCatFilter;
 				}
 			}
-			private set
+			private set // the lockless setter is only for serialising and copying
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; }
@@ -188,7 +188,7 @@ namespace UniFiler10.Data.Model
 
 		private string _catIdForFldFilter = DEFAULT_ID;
 		[DataMember]
-		public string CatIdForFldFilter // the setter is only for serialising and copying
+		public string CatIdForFldFilter
 		{
 			get
 			{
@@ -197,7 +197,7 @@ namespace UniFiler10.Data.Model
 					return _catIdForFldFilter;
 				}
 			}
-			private set
+			private set // the lockless setter is only for serialising and copying
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; }
@@ -206,7 +206,7 @@ namespace UniFiler10.Data.Model
 
 		private string _fldDscIdForFldFilter = DEFAULT_ID;
 		[DataMember]
-		public string FldDscIdForFldFilter // the setter is only for serialising and copying
+		public string FldDscIdForFldFilter
 		{
 			get
 			{
@@ -215,7 +215,7 @@ namespace UniFiler10.Data.Model
 					return _fldDscIdForFldFilter;
 				}
 			}
-			private set
+			private set // the lockless setter is only for serialising and copying
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; }
@@ -224,7 +224,7 @@ namespace UniFiler10.Data.Model
 
 		private string _fldValIdForFldFilter = DEFAULT_ID;
 		[DataMember]
-		public string FldValIdForFldFilter // the setter is only for serialising and copying
+		public string FldValIdForFldFilter
 		{
 			get
 			{
@@ -233,7 +233,7 @@ namespace UniFiler10.Data.Model
 					return _fldValIdForFldFilter;
 				}
 			}
-			private set
+			private set // the lockless setter is only for serialising and copying
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; }
@@ -270,7 +270,7 @@ namespace UniFiler10.Data.Model
 					return _whichFilter;
 				}
 			}
-			private set // LOLLO NOTE the lockless private set is only for serialisation
+			private set // the lockless setter is only for serialising and copying
 			{
 				if (_whichFilter != value)
 				{
