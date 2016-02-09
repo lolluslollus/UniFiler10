@@ -150,7 +150,7 @@ namespace UniFiler10.Data.Model
 		}
 
 		[DataMember]
-		public override string ParentId { get { return DEFAULT_ID; } set { SetProperty(ref _parentId, DEFAULT_ID); } }
+		public override string ParentId { get { return DEFAULT_ID; } set { SetPropertyUpdatingDb(ref _parentId, DEFAULT_ID); } }
 		#endregion main properties
 
 
@@ -179,23 +179,26 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				lock (_filterLocker)
-				{
-					return _catIdForCatFilter;
-				}
+				return GetProperty(ref _catIdForCatFilter, _filterLocker);
+				//lock (_filterLocker)
+				//{
+				//	return _catIdForCatFilter;
+				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
-				string newValue = value ?? DEFAULT_ID;
-				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; }
+				_catIdForCatFilter = value ?? DEFAULT_ID;
+				//string newValue = value ?? DEFAULT_ID;
+				//if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; }
 			}
 		}
 		public void SetIdsForCatFilter(string catId)
 		{
-			lock (_filterLocker)
-			{
-				CatIdForCatFilter = catId;
-			};
+			SetProperty(ref _catIdForCatFilter, catId, _filterLocker);
+			//lock (_filterLocker)
+			//{
+			//	CatIdForCatFilter = catId;
+			//};
 		}
 
 		//public Task SetIdsForCatFilterAsync(string catId)
@@ -212,15 +215,17 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				lock (_filterLocker)
-				{
-					return _catIdForFldFilter;
-				}
+				return GetProperty(ref _catIdForFldFilter, _filterLocker);
+				//lock (_filterLocker)
+				//{
+				//	return _catIdForFldFilter;
+				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
-				string newValue = value ?? DEFAULT_ID;
-				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; }
+				_catIdForFldFilter = value ?? DEFAULT_ID;
+				//string newValue = value ?? DEFAULT_ID;
+				//if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; }
 			}
 		}
 
@@ -230,15 +235,17 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				lock (_filterLocker)
-				{
-					return _fldDscIdForFldFilter;
-				}
+				return GetProperty(ref _fldDscIdForFldFilter, _filterLocker);
+				//lock (_filterLocker)
+				//{
+				//	return _fldDscIdForFldFilter;
+				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
-				string newValue = value ?? DEFAULT_ID;
-				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; }
+				_fldDscIdForFldFilter = value ?? DEFAULT_ID;
+				//string newValue = value ?? DEFAULT_ID;
+				//if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; }
 			}
 		}
 
@@ -248,15 +255,17 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				lock (_filterLocker)
-				{
-					return _fldValIdForFldFilter;
-				}
+				return GetProperty(ref _fldValIdForFldFilter, _filterLocker);
+				//lock (_filterLocker)
+				//{
+				//	return _fldValIdForFldFilter;
+				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
-				string newValue = value ?? DEFAULT_ID;
-				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; }
+				_fldValIdForFldFilter = value ?? DEFAULT_ID;
+				//string newValue = value ?? DEFAULT_ID;
+				//if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; }
 			}
 		}
 		public void SetIdsForFldFilter(string catId, string fldDscId, string fldValId)
@@ -285,25 +294,28 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				lock (_filterLocker)
-				{
-					return _whichFilter;
-				}
+				return GetProperty(ref _whichFilter, _filterLocker);
+				//lock (_filterLocker)
+				//{
+				//	return _whichFilter;
+				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
-				if (_whichFilter != value)
-				{
-					_whichFilter = value; RaisePropertyChanged_UI();
-				}
+				_whichFilter = value;
+				//if (_whichFilter != value)
+				//{
+				//	_whichFilter = value; RaisePropertyChanged_UI();
+				//}
 			}
 		}
 		public void SetFilter(Filters whichFilter)
 		{
-			lock (_filterLocker)
-			{
-				WhichFilter = whichFilter;
-			}
+			SetProperty(ref _whichFilter, whichFilter, _filterLocker);
+			//lock (_filterLocker)
+			//{
+			//	WhichFilter = whichFilter;
+			//}
 		}
 		#endregion filter properties
 
@@ -419,7 +431,7 @@ namespace UniFiler10.Data.Model
 
 			await RunInUiThreadAsync(delegate
 			{
-				_folders.ReplaceRange(folders);
+				_folders.ReplaceAll(folders);
 			}).ConfigureAwait(false);
 		}
 

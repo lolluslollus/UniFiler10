@@ -45,7 +45,7 @@ namespace UniFiler10.Data.Model
 			set
 			{
 				string newValue = value == null ? string.Empty : Path.GetFileName(value);
-				SetProperty(ref _uri0, newValue);
+				SetPropertyUpdatingDb(ref _uri0, newValue);
 				//SetProperty(ref _uri0, value ?? string.Empty);
 			}
 		}

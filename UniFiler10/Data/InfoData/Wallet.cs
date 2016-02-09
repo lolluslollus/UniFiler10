@@ -30,15 +30,15 @@ namespace UniFiler10.Data.Model
 
 		private string _name = string.Empty;
 		[DataMember]
-		public string Name { get { return _name; } set { SetProperty(ref _name, value); } }
+		public string Name { get { return _name; } set { SetPropertyUpdatingDb(ref _name, value); } }
 
 		private string _descr0 = string.Empty;
 		[DataMember]
-		public string Descr0 { get { return _descr0; } set { SetProperty(ref _descr0, value); } }
+		public string Descr0 { get { return _descr0; } set { SetPropertyUpdatingDb(ref _descr0, value); } }
 
 		private DateTime _date0 = default(DateTime);
 		[DataMember]
-		public DateTime Date0 { get { return _date0; } set { SetProperty(ref _date0, value); } }
+		public DateTime Date0 { get { return _date0; } set { SetPropertyUpdatingDb(ref _date0, value); } }
 
 		private SwitchableObservableDisposableCollection<Document> _documents = new SwitchableObservableDisposableCollection<Document>();
 		[IgnoreDataMember]

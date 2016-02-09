@@ -44,7 +44,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			if (source != null && target != null)
 			{
-				target.FieldDescriptionIds.ReplaceRange(source.FieldDescriptionIds);
+				target.FieldDescriptionIds.ReplaceAll(source.FieldDescriptionIds);
 				// populate FieldDescriptions
 				List<FieldDescription> newFldDscs = new List<FieldDescription>();
 				foreach (var fldDscId in source.FieldDescriptionIds)
@@ -52,7 +52,7 @@ namespace UniFiler10.Data.Metadata
 					var newFldDsc = allFldDscs.FirstOrDefault(fd => fd.Id == fldDscId);
 					if (newFldDsc != null) newFldDscs.Add(newFldDsc);
 				}
-				target.FieldDescriptions.ReplaceRange(newFldDscs);
+				target.FieldDescriptions.ReplaceAll(newFldDscs);
 
 				target.Id = source.Id;
 				target.IsCustom = source.IsCustom;

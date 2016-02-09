@@ -512,7 +512,7 @@ namespace UniFiler10.ViewModels
 		{
 			return RunInUiThreadAsync(delegate
 			{
-				_folderPreviews?.ReplaceRange(folderPreviews);
+				_folderPreviews?.ReplaceAll(folderPreviews);
 				Debug.WriteLine("BinderCoverVM has refreshed the folder previews");
 			});
 		}
