@@ -234,7 +234,9 @@ namespace UniFiler10.Data.Model
 			{
 				if (string.IsNullOrWhiteSpace(dbName) || !_dbNames.Contains(dbName)) return false;
 
-				if (_dbNames.Remove(dbName))
+				bool isDbNameRemoved = false;
+				await RunInUiThreadAsync(() => isDbNameRemoved = _dbNames.Remove(dbName)).ConfigureAwait(false);
+				if (isDbNameRemoved)
 				{
 					// if deleting the current binder, close it and set another binder as current
 					if (_currentBinderName == dbName)
@@ -262,7 +264,7 @@ namespace UniFiler10.Data.Model
 				var binderDirectory = await BindersDirectory
 					.GetFolderAsync(dbName)
 					.AsTask().ConfigureAwait(false);
-				if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false);
+				if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 				return true;
 			}
 			catch (Exception ex)
@@ -281,19 +283,25 @@ namespace UniFiler10.Data.Model
 				var fromDirectory = await BindersDirectory
 					.GetFolderAsync(dbName)
 					.AsTask().ConfigureAwait(false);
-				if (fromDirectory != null)
-				{
-					var toDirectory = await toRootDirectory
-						.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
-						.AsTask().ConfigureAwait(false);
+				if (fromDirectory == null) return false;
 
-					if (toDirectory != null)
-					{
-						Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", toDirectory);
-						await fromDirectory.CopyDirContentsAsync(toDirectory).ConfigureAwait(false);
-						return true;
-					}
+				// what if you copy a directory to an existing one? Shouldn't you delete the contents first? No! But then, shouldn't you issue a warning?
+				var toDirectoryTest = await toRootDirectory.TryGetItemAsync(dbName).AsTask().ConfigureAwait(false);
+				if (toDirectoryTest != null)
+				{
+					var confirmation = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeExportingBinderAsync().ConfigureAwait(false);
+					if (confirmation == null || confirmation.Item1 == false || confirmation.Item2 == false) return false;
 				}
+
+				var toDirectory = await toRootDirectory
+					.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
+					.AsTask().ConfigureAwait(false);
+
+				if (toDirectory == null) return false;
+
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", toDirectory);
+				await fromDirectory.CopyDirContentsAsync(toDirectory).ConfigureAwait(false);
+				return true;
 			}
 			catch (Exception ex)
 			{
@@ -318,7 +326,10 @@ namespace UniFiler10.Data.Model
 
 				if (await ImportBinderFilesAsync(fromStorageFolder).ConfigureAwait(false))
 				{
-					if (!_dbNames.Contains(fromStorageFolder.Name)) _dbNames.Add(fromStorageFolder.Name);
+					if (!_dbNames.Contains(fromStorageFolder.Name))
+					{
+						await RunInUiThreadAsync(() => _dbNames.Add(fromStorageFolder.Name)).ConfigureAwait(false);
+					}
 					isOk = true;
 				}
 				// update the current binder and open it if it was open before

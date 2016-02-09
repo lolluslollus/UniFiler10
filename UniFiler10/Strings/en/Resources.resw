@@ -396,4 +396,7 @@
   <data name="Yes1.Text" xml:space="preserve">
     <value>Yes</value>
   </data>
+  <data name="ExportBinderConfirmationRequest.Text" xml:space="preserve">
+    <value>This will overwrite previous data. Are you sure?</value>
+  </data>
 </root>

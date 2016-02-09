@@ -25,7 +25,6 @@ namespace Utilz
 
 		private bool _isHasUserAnswered = false;
 
-
 		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeDeletingBinderAsync()
 		{
 			var result = new Tuple<bool, bool>(false, false);
@@ -36,6 +35,42 @@ namespace Utilz
 			{
 				dialog = new Flyout();
 				dialogContent = new ConfirmationBeforeDeletingBinder();
+
+				dialog.Closed += OnYesNoDialog_Closed;
+
+				dialog.Content = dialogContent;
+				dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
+
+				_isHasUserAnswered = false;
+				dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			}).ConfigureAwait(false);
+
+			while (!_isHasUserAnswered)
+			{
+				await Task.Delay(DELAY).ConfigureAwait(false);
+			}
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog.Closed -= OnYesNoDialog_Closed;
+				dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
+				dialog.Hide();
+				result = new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted);
+			}).ConfigureAwait(false);
+
+			return result;
+		}
+
+		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeExportingBinderAsync()
+		{
+			var result = new Tuple<bool, bool>(false, false);
+			Flyout dialog = null;
+			ConfirmationBeforeExportingBinder dialogContent = null;
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog = new Flyout();
+				dialogContent = new ConfirmationBeforeExportingBinder();
 
 				dialog.Closed += OnYesNoDialog_Closed;
 
