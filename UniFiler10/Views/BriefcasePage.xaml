@@ -24,29 +24,29 @@
 
 				<!-- actions for all binders -->
 				<uctl:UniversalWrapPanel Orientation="Horizontal"
-				x:Name="ActionsUWP">
+					x:Name="ActionsUWP">
 					<ctl:LolloButton x:Name="AButton"
-					Tapped="OnAddBinderStep0_Tapped"
-					Symbol="Add"
-					Uid="AddBinder"/>
+						Tapped="OnAddBinderStep0_Tapped"
+						Symbol="Add"
+						Uid="AddBinder"/>
 
 					<ctl:LolloButton
-					Tapped="OnImportButton_Tapped"
-					Symbol="Import"
-					Uid="ImportBinder"/>
+						Tapped="OnImportButton_Tapped"
+						Symbol="Import"
+						Uid="ImportBinder"/>
 
 					<ctl:LolloButton
-					Tapped="OnSettingsButton_Tapped"
-					Symbol="Setting"
-					Uid="Settings1"/>
+						Tapped="OnSettingsButton_Tapped"
+						Symbol="Setting"
+						Uid="Settings1"/>
 				</uctl:UniversalWrapPanel>
 
 				<!-- fields to add new binder -->
 				<uctl:UniversalWrapPanel Orientation="Horizontal"
-				RelativePanel.Below="ActionsUWP"
-				x:Name="NewBinderUWP">
-					<Grid
-						Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}">
+					RelativePanel.Below="ActionsUWP"
+					Visibility="{x:Bind VM.IsNewDbNameVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Collapsed}"
+					x:Name="NewBinderUWP">
+					<Grid>
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
@@ -79,34 +79,34 @@
 						</StackPanel>
 
 						<Border Grid.RowSpan="2"
-						VerticalAlignment="Stretch"
-						HorizontalAlignment="Stretch"
-						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
-							<Border
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
-							BorderBrush="{StaticResource FlashyForeground}"
-							BorderThickness="{StaticResource Thickness2222}"
-							Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+							Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+							<Border
+								VerticalAlignment="Stretch"
+								HorizontalAlignment="Stretch"
+								BorderBrush="{StaticResource FlashyForeground}"
+								BorderThickness="{StaticResource Thickness2222}"
+								Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 						</Border>
 					</Grid>
 
 					<ctl:LolloButton
-					Tapped="OnAddBinderStep1_Tapped"
-					Symbol="Go"
-					Uid="Go"
-					IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-					Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+						Tapped="OnAddBinderStep1_Tapped"
+						Symbol="Go"
+						Uid="Go"
+						IsEnabled="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+						Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 				</uctl:UniversalWrapPanel>
 
 				<!-- all binder miniatures -->
 				<uctl:TolerantListView
-				RelativePanel.Below="NewBinderUWP"
-                ItemsSource="{x:Bind VM.Briefcase.DbNames, Mode=OneWay}"
-                IsItemClickEnabled="True"
-                IsMultiSelectCheckBoxEnabled="False"
-                ItemClick="OnBinderPreviews_ItemClick"
-                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+					RelativePanel.Below="NewBinderUWP"
+					ItemsSource="{x:Bind VM.Briefcase.DbNames, Mode=OneWay}"
+					IsItemClickEnabled="True"
+					IsMultiSelectCheckBoxEnabled="False"
+					ItemClick="OnBinderPreviews_ItemClick"
+					ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
 							<ItemsWrapGrid Orientation="Horizontal"/>
