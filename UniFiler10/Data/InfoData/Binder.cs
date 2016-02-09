@@ -33,7 +33,7 @@ namespace UniFiler10.Data.Model
 		protected Binder(string dbName)
 		{
 			if (dbName == null || string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
-			DBName = dbName;
+			SetDBName(dbName);
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -98,10 +98,30 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		internal DBManager DbManager { get { return _dbManager; } }
 
-		private volatile string _dbName = string.Empty;
+		private readonly object _dbNameLocker = new object();
+		private string _dbName = string.Empty;
 		[DataMember]
-		public string DBName { get { return _dbName; } private set { if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); } } }
-
+		public string DBName
+		{
+			get
+			{
+				lock (_dbNameLocker)
+				{
+					return _dbName;
+				}
+			}
+			private set // this lockless set teris only for serialisation
+			{
+				if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); }
+			}
+		}
+		private void SetDBName(string dbName)
+		{
+			lock (_dbNameLocker)
+			{
+				DBName = dbName;
+			}
+		}
 		protected SwitchableObservableDisposableCollection<Folder> _folders = new SwitchableObservableDisposableCollection<Folder>();
 		[IgnoreDataMember]
 		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
@@ -164,7 +184,7 @@ namespace UniFiler10.Data.Model
 					return _catIdForCatFilter;
 				}
 			}
-			private set // the lockless setter is only for serialising and copying
+			private set // this lockless set teris only for serialisation
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; }
@@ -197,7 +217,7 @@ namespace UniFiler10.Data.Model
 					return _catIdForFldFilter;
 				}
 			}
-			private set // the lockless setter is only for serialising and copying
+			private set // this lockless set teris only for serialisation
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; }
@@ -215,7 +235,7 @@ namespace UniFiler10.Data.Model
 					return _fldDscIdForFldFilter;
 				}
 			}
-			private set // the lockless setter is only for serialising and copying
+			private set // this lockless set teris only for serialisation
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; }
@@ -233,7 +253,7 @@ namespace UniFiler10.Data.Model
 					return _fldValIdForFldFilter;
 				}
 			}
-			private set // the lockless setter is only for serialising and copying
+			private set // this lockless set teris only for serialisation
 			{
 				string newValue = value ?? DEFAULT_ID;
 				if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; }
@@ -259,7 +279,7 @@ namespace UniFiler10.Data.Model
 		//}
 
 		private readonly object _filterLocker = new object();
-		private volatile Filters _whichFilter = Filters.All;
+		private Filters _whichFilter = Filters.All;
 		[DataMember]
 		public Filters WhichFilter
 		{
@@ -270,7 +290,7 @@ namespace UniFiler10.Data.Model
 					return _whichFilter;
 				}
 			}
-			private set // the lockless setter is only for serialising and copying
+			private set // this lockless set teris only for serialisation
 			{
 				if (_whichFilter != value)
 				{
@@ -381,12 +401,16 @@ namespace UniFiler10.Data.Model
 		}
 		private void CopyFrom(Binder source)
 		{
-			CatIdForFldFilter = source._catIdForFldFilter;
-			FldDscIdForFldFilter = source._fldDscIdForFldFilter;
-			FldValIdForFldFilter = source._fldValIdForFldFilter;
-			CatIdForCatFilter = source._catIdForCatFilter;
-			WhichFilter = source._whichFilter;
-			DBName = source._dbName;
+			SetIdsForCatFilter(source._catIdForFldFilter);
+			// CatIdForFldFilter = source._catIdForFldFilter;
+			SetIdsForFldFilter(source._catIdForCatFilter, source._fldDscIdForFldFilter, source._fldValIdForFldFilter);
+			//FldDscIdForFldFilter = source._fldDscIdForFldFilter;
+			//FldValIdForFldFilter = source._fldValIdForFldFilter;
+			//CatIdForCatFilter = source._catIdForCatFilter;
+			SetFilter(source._whichFilter);
+			// WhichFilter = source._whichFilter;
+			SetDBName(source._dbName);
+			//DBName = source._dbName;
 			CurrentFolderId = source._currentFolderId; // CurrentFolder will be updated later
 		}
 		protected async Task LoadFoldersWithoutContentAsync()
@@ -499,7 +523,7 @@ namespace UniFiler10.Data.Model
 						isDeleteTempDir = true;
 					}
 
-					mergingBinder = MergingBinder.CreateInstance(_dbName, tempDirectory);
+					mergingBinder = MergingBinder.CreateInstance(DBName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
 
 					// parallelisation here seems ideal, but it screws with SQLite.
