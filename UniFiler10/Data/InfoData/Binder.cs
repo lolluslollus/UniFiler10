@@ -493,10 +493,8 @@ namespace UniFiler10.Data.Model
 
 			bool isOk = await RunFunctionIfOpenAsyncTB(async delegate
 			{
-				folder = new Folder(_dbManager);
+				folder = new Folder(_dbManager, RuntimeData.GetText("NewFolder"), DateTime.Now);
 				// folder.ParentId = Id; // folders may not have ParentId because they can be exported or imported
-				folder.Name = RuntimeData.GetText("NewFolder");
-				folder.DateCreated = DateTime.Now;
 
 				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
 				{

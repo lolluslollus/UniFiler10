@@ -15,7 +15,7 @@ namespace UniFiler10.Data.Model
 	public class DynamicCategory : DbBoundObservableData
 	{
 		public DynamicCategory() { }
-		public DynamicCategory(DBManager dbManager, string parentId, string categoryId)
+		public DynamicCategory(DBManager dbManager, string parentId, string categoryId) : base()
 		{
 			DBManager = dbManager;
 			ParentId = parentId;

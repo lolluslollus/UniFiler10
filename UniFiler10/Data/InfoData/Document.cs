@@ -19,7 +19,7 @@ namespace UniFiler10.Data.Model
 	public class Document : DbBoundObservableData
 	{
 		public Document() { }
-		public Document(DBManager dbManager, string parentId)
+		public Document(DBManager dbManager, string parentId) : base()
 		{
 			DBManager = dbManager;
 			ParentId = parentId;

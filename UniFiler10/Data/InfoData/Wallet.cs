@@ -16,7 +16,7 @@ namespace UniFiler10.Data.Model
 	public class Wallet : DbBoundObservableData
 	{
 		public Wallet() { }
-		public Wallet(DBManager dbManager, string parentId)
+		public Wallet(DBManager dbManager, string parentId) : base()
 		{
 			DBManager = dbManager;
 			ParentId = parentId;

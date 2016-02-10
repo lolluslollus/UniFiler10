@@ -20,11 +20,13 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public sealed class Folder : DbBoundObservableData
 	{
-		public Folder(DBManager dbManager)
+		public Folder() { }
+		public Folder(DBManager dbManager, string name, DateTime dateCreated) : base()
 		{
 			DBManager = dbManager;
+			Name = name;
+			DateCreated = dateCreated;
 		}
-		public Folder() { }
 
 		#region properties
 		private readonly object _dbManagerLocker = new object();

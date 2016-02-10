@@ -15,7 +15,7 @@ namespace UniFiler10.Data.Model
 	public class DynamicField : DbBoundObservableData
 	{
 		public DynamicField() { }
-		public DynamicField(DBManager dbManager, string parentId, string fieldDescriptionId)
+		public DynamicField(DBManager dbManager, string parentId, string fieldDescriptionId) : base()
 		{
 			DBManager = dbManager;
 			ParentId = parentId;
