@@ -156,10 +156,7 @@ namespace UniFiler10.ViewModels
 			var mbc = _metaBriefcase;
 			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
 
-			await RunInUiThreadAsync(delegate
-			{
-				_unassignedFields?.Dispose();
-			}).ConfigureAwait(false);
+			_unassignedFields?.Dispose();
 		}
 		#endregion lifecycle
 

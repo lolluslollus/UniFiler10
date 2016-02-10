@@ -82,7 +82,7 @@ namespace UniFiler10.Data.Model
 		protected override void Dispose(bool isDisposing)
 		{
 			_dbNames?.Dispose();
-			_dbNames = null;
+			//_dbNames = null;
 			base.Dispose(isDisposing);
 		}
 		#endregion lifecycle
@@ -142,9 +142,9 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		public Binder CurrentBinder { get { return _currentBinder; } private set { if (_currentBinder != value) { _currentBinder = value; RaisePropertyChanged_UI(); } } }
 
-		private SwitchableObservableDisposableCollection<string> _dbNames = new SwitchableObservableDisposableCollection<string>();
+		private readonly SwitchableObservableDisposableCollection<string> _dbNames = new SwitchableObservableDisposableCollection<string>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<string> DbNames { get { return _dbNames; } private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<string> DbNames { get { return _dbNames; } /*private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } }*/ }
 
 		private string _newDbName = string.Empty;
 		[DataMember]

@@ -17,10 +17,10 @@ namespace UniFiler10.Data.Model
 	public sealed class MergingBinder : Binder
 	{
 		#region ctor
-		private static readonly object _instanceLock = new object();
+		private static readonly object _instanceLocker = new object();
 		public static MergingBinder CreateInstance(string dbName, StorageFolder directory)
 		{
-			lock (_instanceLock)
+			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{

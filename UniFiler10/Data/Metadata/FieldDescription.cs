@@ -25,11 +25,11 @@ namespace UniFiler10.Data.Metadata
 
 		private bool _isJustAdded = false;
 		[IgnoreDataMember]
-		public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
+		public bool IsJustAdded { get { return _isJustAdded; } private set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
-		private List<string> _justAssignedToCats = new List<string>();
+		private readonly List<string> _justAssignedToCats = new List<string>();
 		[IgnoreDataMember]
-		public List<string> JustAssignedToCats { get { return _justAssignedToCats; } private set { _justAssignedToCats = value; RaisePropertyChanged_UI(); } }
+		public List<string> JustAssignedToCats { get { return _justAssignedToCats; } /*private set { _justAssignedToCats = value; RaisePropertyChanged_UI(); }*/ }
 
 		private bool _isAnyValueAllowed = false;
 		/// <summary>
@@ -43,6 +43,7 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public string Caption { get { return _caption; } set { _caption = value; RaisePropertyChanged_UI(); } }
 
+		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableDisposableCollection<FieldValue> _possibleValues = new SwitchableObservableDisposableCollection<FieldValue>();
 		[DataMember]
 		public SwitchableObservableDisposableCollection<FieldValue> PossibleValues { get { return _possibleValues; } private set { _possibleValues = value; RaisePropertyChanged_UI(); } }
@@ -69,6 +70,12 @@ namespace UniFiler10.Data.Metadata
 		public FieldDescription()
 		{
 			Id = Guid.NewGuid().ToString();
+		}
+		public FieldDescription(string caption, bool isCustom, bool isJustAdded) : this()
+		{
+			Caption = caption;
+			IsCustom = isCustom;
+			IsJustAdded = isJustAdded;
 		}
 		public void Dispose()
 		{

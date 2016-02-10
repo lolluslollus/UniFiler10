@@ -18,15 +18,16 @@ namespace UniFiler10.Data.Model
 		public Wallet() { }
 		public Wallet(DBManager dbManager, string parentId)
 		{
-			_dbManager = dbManager;
+			DBManager = dbManager;
 			ParentId = parentId;
 		}
 
 		#region properties
+		private readonly object _dbManagerLocker = new object();
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
 
 		private string _name = string.Empty;
 		[DataMember]
@@ -40,10 +41,10 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public DateTime Date0 { get { return _date0; } set { SetPropertyUpdatingDb(ref _date0, value); } }
 
-		private SwitchableObservableDisposableCollection<Document> _documents = new SwitchableObservableDisposableCollection<Document>();
+		private readonly SwitchableObservableDisposableCollection<Document> _documents = new SwitchableObservableDisposableCollection<Document>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableDisposableCollection<Document> Documents { get { return _documents; } private set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<Document> Documents { get { return _documents; } /*private set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } */}
 		#endregion properties
 
 		protected override async Task OpenMayOverrideAsync()
@@ -79,13 +80,13 @@ namespace UniFiler10.Data.Model
 			base.Dispose(isDisposing);
 
 			_documents?.Dispose();
-			_documents = null;
+			//_documents = null;
 
 			_dbManager = null;
 		}
 		protected override bool UpdateDbMustOverride()
 		{
-			return _dbManager?.UpdateWallets(this) == true;
+			return DBManager?.UpdateWallets(this) == true;
 		}
 
 		protected override bool CheckMeMustOverride()
@@ -101,7 +102,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (Document.Check(doc))
 				{
-					var dbM = _dbManager;
+					var dbM = DBManager;
 					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc, true))
 					{
 						await RunInUiThreadAsync(delegate { _documents.Add(doc); }).ConfigureAwait(false);
@@ -116,7 +117,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				var doc = new Document(_dbManager, Id);
+				var doc = new Document(DBManager, Id);
 				return await AddDocument2Async(doc).ConfigureAwait(false);
 			});
 		}
@@ -124,7 +125,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (doc != null && doc.ParentId == Id)
 			{
-				await _dbManager.DeleteFromDocumentsAsync(doc);
+				await DBManager.DeleteFromDocumentsAsync(doc);
 
 				int countBefore = _documents.Count;
 				await RunInUiThreadAsync(delegate { _documents.Remove(doc); }).ConfigureAwait(false);
@@ -163,19 +164,19 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (_dbManager != null && file != null && await file.GetFileSizeAsync() > 0)
+				if (DBManager != null && file != null && await file.GetFileSizeAsync() > 0)
 				{
-					var newDoc = new Document(_dbManager, Id);
+					var newDoc = new Document(DBManager, Id);
 
 					StorageFile newFile = null;
 					if (copyFile)
 					{
-						newFile = await file.CopyAsync(_dbManager.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
-						newDoc.Uri0 = Path.GetFileName(newFile.Path);						
+						newFile = await file.CopyAsync(DBManager.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
+						newDoc.SetUri0(Path.GetFileName(newFile.Path));
 					}
 					else
 					{
-						newDoc.Uri0 = Path.GetFileName(file.Path);
+						newDoc.SetUri0(Path.GetFileName(file.Path));
 					}
 
 					if (await AddDocument2Async(newDoc))

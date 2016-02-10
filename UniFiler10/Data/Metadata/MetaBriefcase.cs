@@ -26,7 +26,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			get
 			{
-				lock (_instanceLock)
+				lock (_instanceLocker)
 				{
 					if (_instance?._isOpen == true) return _instance;
 					else return null;
@@ -107,10 +107,12 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
+		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableDisposableCollection<Category> _categories = new SwitchableObservableDisposableCollection<Category>();
 		[DataMember]
 		public SwitchableObservableDisposableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
 
+		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
 		[DataMember]
 		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
@@ -122,10 +124,10 @@ namespace UniFiler10.Data.Metadata
 
 
 		#region lifecycle
-		private static readonly object _instanceLock = new object();
+		private static readonly object _instanceLocker = new object();
 		internal static MetaBriefcase GetCreateInstance()
 		{
-			lock (_instanceLock)
+			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
@@ -331,14 +333,14 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AddCategoryAsync()
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				string name = RuntimeData.GetText("NewCategory");
 				var newCat = new Category() { Name = name, IsCustom = true, IsJustAdded = true };
 
 				if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
 				{
-					_categories.Add(newCat);
+					await RunInUiThreadAsync(() => _categories.Add(newCat)).ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -346,11 +348,13 @@ namespace UniFiler10.Data.Metadata
 		}
 		public Task<bool> RemoveCategoryAsync(Category cat)
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (cat != null && (cat.IsJustAdded || _isElevated))
 				{
-					return _categories.Remove(cat);
+					bool isRemoved = false;
+					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
+					return isRemoved;
 				}
 				else
 				{
@@ -361,14 +365,14 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AddFieldDescriptionAsync()
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				string name = RuntimeData.GetText("NewFieldDescription");
-				var newFieldDesc = new FieldDescription() { Caption = name, IsCustom = true, IsJustAdded = true };
+				var newFieldDesc = new FieldDescription(name, true, true);
 
 				if (FieldDescription.Check(newFieldDesc) && !_fieldDescriptions.Any(fd => fd.Caption == newFieldDesc.Caption || fd.Id == newFieldDesc.Id))
 				{
-					_fieldDescriptions.Add(newFieldDesc);
+					await RunInUiThreadAsync(() => _fieldDescriptions.Add(newFieldDesc)).ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -377,15 +381,20 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fldDesc != null && (fldDesc.IsJustAdded || _isElevated))
 				{
-					foreach (var cat in _categories)
+					bool isRemoved = false;
+					await RunInUiThreadAsync(delegate
 					{
-						cat.RemoveFieldDescription(fldDesc);
-					}
-					return FieldDescriptions.Remove(fldDesc);
+						foreach (var cat in _categories)
+						{
+							cat.RemoveFieldDescription(fldDesc);
+						}
+						isRemoved = _fieldDescriptions.Remove(fldDesc);
+					}).ConfigureAwait(false);
+					return isRemoved;
 				}
 				else return false;
 			});
@@ -393,14 +402,16 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (_currentFieldDescription == null) return false;
 
 				string name = RuntimeData.GetText("NewFieldValue");
-				var newFldVal = new FieldValue() { Vaalue = name, IsCustom = true, IsJustAdded = true };
+				var newFldVal = new FieldValue(name, true, true);
 
-				return _currentFieldDescription.AddPossibleValue(newFldVal);
+				bool isAdded = false;
+				await RunInUiThreadAsync(() => isAdded = _currentFieldDescription.AddPossibleValue(newFldVal)).ConfigureAwait(false);
+				return isAdded;
 			});
 		}
 
@@ -418,7 +429,8 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (fldDsc == null || newFldVal == null) return false;
 
-				bool isOk = fldDsc.AddPossibleValue(newFldVal);
+				bool isOk = false;
+				await RunInUiThreadAsync(() => isOk = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
 				if (isOk && save) isOk = await SaveAsync().ConfigureAwait(false);
 				return isOk;
 			});
@@ -426,31 +438,37 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fldVal == null || _currentFieldDescription == null || (!fldVal.IsJustAdded && !_isElevated)) return false;
 
-				return _currentFieldDescription.RemovePossibleValue(fldVal);
+				bool isRemoved = false;
+				await RunInUiThreadAsync(() => isRemoved = _currentFieldDescription.RemovePossibleValue(fldVal)).ConfigureAwait(false);
+				return isRemoved;
 			});
 		}
 
 		public Task<bool> AssignFieldDescriptionToCurrentCategoryAsync(FieldDescription fldDsc)
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fldDsc == null || _currentCategory == null) return false;
 
-				return _currentCategory.AddFieldDescription(fldDsc);
+				bool isAdded = false;
+				await RunInUiThreadAsync(() => isAdded = _currentCategory.AddFieldDescription(fldDsc)).ConfigureAwait(false);
+				return isAdded;
 			});
 		}
 
 		public Task<bool> UnassignFieldDescriptionFromCurrentCategoryAsync(FieldDescription fldDsc)
 		{
-			return RunFunctionIfOpenAsyncB(delegate
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (fldDsc == null || _currentCategory == null || (!fldDsc.JustAssignedToCats.Contains(_currentCategoryId) && !_isElevated)) return false;
 
-				return _currentCategory.RemoveFieldDescription(fldDsc);
+				bool isRemoved = false;
+				await RunInUiThreadAsync(() => isRemoved = _currentCategory.RemoveFieldDescription(fldDsc)).ConfigureAwait(false);
+				return isRemoved;
 			});
 		}
 

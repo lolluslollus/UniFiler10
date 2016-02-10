@@ -17,7 +17,7 @@ namespace UniFiler10.Data.Model
 		public DynamicCategory() { }
 		public DynamicCategory(DBManager dbManager, string parentId, string categoryId)
 		{
-			_dbManager = dbManager;
+			DBManager = dbManager;
 			ParentId = parentId;
 			CategoryId = categoryId;
 		}
@@ -30,10 +30,11 @@ namespace UniFiler10.Data.Model
 
 
 		#region properties
+		private readonly object _dbManagerLocker = new object();
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
 
 		private volatile Category _category = null;
 		[IgnoreDataMember]
@@ -57,7 +58,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
-						if (_dbManager?.UpdateDynamicCategories(this) == false)
+						if (DBManager?.UpdateDynamicCategories(this) == false)
 						{
 							//_categoryId = oldValue;
 							//UpdateCategory2();
@@ -89,7 +90,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			return _dbManager?.UpdateDynamicCategories(this) == true;
+			return DBManager?.UpdateDynamicCategories(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)

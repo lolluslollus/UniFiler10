@@ -465,16 +465,15 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		protected override async Task CloseMayOverrideAsync()
+		protected override Task CloseMayOverrideAsync()
 		{
-			await RunInUiThreadAsync(delegate
-			{
-				_folderPreviews?.Dispose();
-				_fldDscsInCat?.Dispose();
-				_fldValsInFldDscs?.Dispose();
-			}).ConfigureAwait(false);
+			_folderPreviews?.Dispose();
+			_fldDscsInCat?.Dispose();
+			_fldValsInFldDscs?.Dispose();
 
 			UnregisterFoldersChanged();
+
+			return Task.CompletedTask;
 		}
 		#endregion construct dispose open close
 

@@ -17,7 +17,7 @@ namespace UniFiler10.Data.Model
 		public DynamicField() { }
 		public DynamicField(DBManager dbManager, string parentId, string fieldDescriptionId)
 		{
-			_dbManager = dbManager;
+			DBManager = dbManager;
 			ParentId = parentId;
 			FieldDescriptionId = fieldDescriptionId;
 		}
@@ -30,10 +30,11 @@ namespace UniFiler10.Data.Model
 
 
 		#region properties
+		private readonly object _dbManagerLocker = new object();
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
 
 		private volatile FieldValue _fieldValue = null;
 		[IgnoreDataMember]
@@ -57,7 +58,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
-						if (_dbManager?.UpdateDynamicFields(this) == false)
+						if (DBManager?.UpdateDynamicFields(this) == false)
 						{
 							//_fieldValueId = oldValue;
 							//UpdateDynamicValues2();
@@ -95,7 +96,7 @@ namespace UniFiler10.Data.Model
 
 					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
-						if (_dbManager?.UpdateDynamicFields(this) == false)
+						if (DBManager?.UpdateDynamicFields(this) == false)
 						{
 							//_fieldDescriptionId = oldValue;
 							//UpdateDynamicValues2();
@@ -136,7 +137,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			return _dbManager?.UpdateDynamicFields(this) == true;
+			return DBManager?.UpdateDynamicFields(this) == true;
 		}
 
 		private bool IsValueAllowed()
@@ -191,7 +192,7 @@ namespace UniFiler10.Data.Model
 			}
 			else if (_fieldDescription.IsAnyValueAllowed)
 			{
-				var newFldVal = new FieldValue() { Vaalue = newValue, IsCustom = true, IsJustAdded = true };
+				var newFldVal = new FieldValue(newValue, true, true);
 				var mb = MetaBriefcase.OpenInstance;
 				if (mb != null)
 				{

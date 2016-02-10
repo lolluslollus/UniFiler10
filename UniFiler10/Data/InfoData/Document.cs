@@ -21,7 +21,7 @@ namespace UniFiler10.Data.Model
 		public Document() { }
 		public Document(DBManager dbManager, string parentId)
 		{
-			_dbManager = dbManager;
+			DBManager = dbManager;
 			ParentId = parentId;
 		}
 		protected override void Dispose(bool isDisposing)
@@ -32,32 +32,45 @@ namespace UniFiler10.Data.Model
 		}
 
 		#region properties
+		private readonly object _dbManagerLocker = new object();
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
 
+		private readonly object _uri0Locker = new object();
 		private string _uri0 = string.Empty;
 		[DataMember]
 		public string Uri0
 		{
-			get { return _uri0; }
-			set
+			get
+			{
+				return GetProperty(ref _uri0, _uri0Locker);
+				//lock (_uri0Locker)
+				//{
+				//	return _uri0;
+				//}
+			}
+			set // this lockless setter is only for the serialiser and the db
 			{
 				string newValue = value == null ? string.Empty : Path.GetFileName(value);
 				SetPropertyUpdatingDb(ref _uri0, newValue);
-				//SetProperty(ref _uri0, value ?? string.Empty);
 			}
+		}
+		public void SetUri0(string newValue)
+		{
+			string okValue = newValue == null ? string.Empty : Path.GetFileName(newValue);
+			SetPropertyUpdatingDb(ref _uri0, okValue, _uri0Locker);
 		}
 		public string GetFullUri0()
 		{
-			if (string.IsNullOrWhiteSpace(_uri0)) return string.Empty;
+			if (string.IsNullOrWhiteSpace(Uri0)) return string.Empty;
 			else
 			{
-				var dbM = _dbManager;
+				var dbM = DBManager;
 				if (dbM != null)
 				{
-					return Path.Combine(dbM.Directory.Path, _uri0);
+					return Path.Combine(dbM.Directory.Path, Uri0);
 				}
 				else
 				{
@@ -67,15 +80,15 @@ namespace UniFiler10.Data.Model
 		}
 		public string GetFullUri0(StorageFolder directory)
 		{
-			if (string.IsNullOrWhiteSpace(_uri0) || directory == null) return string.Empty;
-			else return Path.Combine(directory.Path, _uri0);
+			if (string.IsNullOrWhiteSpace(Uri0) || directory == null) return string.Empty;
+			else return Path.Combine(directory.Path, Uri0);
 		}
 		#endregion properties
 
 
 		protected override bool UpdateDbMustOverride()
 		{
-			return _dbManager?.UpdateDocuments(this) == true;
+			return DBManager?.UpdateDocuments(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
@@ -99,7 +112,7 @@ namespace UniFiler10.Data.Model
 			{
 				try
 				{
-					if (!string.IsNullOrWhiteSpace(_uri0))
+					if (!string.IsNullOrWhiteSpace(Uri0))
 					{
 						var file = await StorageFile.GetFileFromPathAsync(GetFullUri0()).AsTask().ConfigureAwait(false);
 						if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);

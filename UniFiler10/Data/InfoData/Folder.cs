@@ -22,25 +22,26 @@ namespace UniFiler10.Data.Model
 	{
 		public Folder(DBManager dbManager)
 		{
-			_dbManager = dbManager;
+			DBManager = dbManager;
 		}
 		public Folder() { }
 
 		#region properties
+		private readonly object _dbManagerLocker = new object();
 		private DBManager _dbManager = null;
 		[IgnoreDataMember]
 		[Ignore]
-		public DBManager DBManager { get { return _dbManager; } set { _dbManager = value; } }
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
 
-		private SwitchableObservableDisposableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableDisposableCollection<DynamicCategory>();
+		private readonly SwitchableObservableDisposableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableDisposableCollection<DynamicCategory>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableDisposableCollection<DynamicCategory> DynamicCategories { get { return _dynamicCategories; } set { if (_dynamicCategories != value) { _dynamicCategories = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<DynamicCategory> DynamicCategories { get { return _dynamicCategories; } }
 
-		private SwitchableObservableDisposableCollection<DynamicField> _dynamicFields = new SwitchableObservableDisposableCollection<DynamicField>();
+		private readonly SwitchableObservableDisposableCollection<DynamicField> _dynamicFields = new SwitchableObservableDisposableCollection<DynamicField>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableDisposableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } set { if (_dynamicFields != value) { _dynamicFields = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } }
 
 		private string _name = string.Empty;
 		[DataMember]
@@ -82,10 +83,10 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public DateTime Date3 { get { return _date3; } set { SetPropertyUpdatingDb(ref _date3, value); } }
 
-		private SwitchableObservableDisposableCollection<Wallet> _wallets = new SwitchableObservableDisposableCollection<Wallet>();
+		private readonly SwitchableObservableDisposableCollection<Wallet> _wallets = new SwitchableObservableDisposableCollection<Wallet>();
 		[IgnoreDataMember]
 		[Ignore]
-		public SwitchableObservableDisposableCollection<Wallet> Wallets { get { return _wallets; } private set { if (_wallets != value) { _wallets = value; RaisePropertyChanged_UI(); } } }
+		public SwitchableObservableDisposableCollection<Wallet> Wallets { get { return _wallets; } }
 
 		private bool _isEditingCategories = true;
 		[DataMember]
@@ -97,7 +98,7 @@ namespace UniFiler10.Data.Model
 
 		protected override bool UpdateDbMustOverride()
 		{
-			return _dbManager?.UpdateFolders(this) == true;
+			return DBManager?.UpdateFolders(this) == true;
 		}
 
 		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
@@ -129,19 +130,19 @@ namespace UniFiler10.Data.Model
 		#region loading methods
 		protected override async Task OpenMayOverrideAsync()
 		{
-			if (_dbManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
+			if (DBManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
 
 			// read children from db
-			var wallets = await _dbManager.GetWalletsAsync(Id).ConfigureAwait(false);
+			var wallets = await DBManager.GetWalletsAsync(Id).ConfigureAwait(false);
 			foreach (var wallet in wallets)
 			{
-				var docs = await _dbManager.GetDocumentsAsync(wallet.Id).ConfigureAwait(false);
+				var docs = await DBManager.GetDocumentsAsync(wallet.Id).ConfigureAwait(false);
 				wallet.Documents.ReplaceAll(docs);
 			}
 
-			var dynamicFields = await _dbManager.GetDynamicFieldsAsync(Id).ConfigureAwait(false);
+			var dynamicFields = await DBManager.GetDynamicFieldsAsync(Id).ConfigureAwait(false);
 
-			var dynamicCategories = await _dbManager.GetDynamicCategoriesByParentIdAsync(Id).ConfigureAwait(false);
+			var dynamicCategories = await DBManager.GetDynamicCategoriesByParentIdAsync(Id).ConfigureAwait(false);
 
 			// populate my collections
 			await RunInUiThreadAsync(delegate
@@ -215,13 +216,10 @@ namespace UniFiler10.Data.Model
 			base.Dispose(isDisposing);
 
 			_wallets?.Dispose();
-			_wallets = null;
 
 			_dynamicCategories?.Dispose();
-			_dynamicCategories = null;
 
 			_dynamicFields?.Dispose();
-			_dynamicFields = null;
 
 			// do not touch _dbManager, it was imported in the ctor and it it does not belong here
 			_dbManager = null;
@@ -258,7 +256,7 @@ namespace UniFiler10.Data.Model
 		/// <returns></returns>
 		private async Task RefreshDynamicFieldsAsync()
 		{
-			var dbM = _dbManager;
+			var dbM = DBManager;
 			if (dbM == null) return;
 
 			try
@@ -311,7 +309,7 @@ namespace UniFiler10.Data.Model
 				var newFldDscs = shouldBeFldDscs.Where(fldDsc => !_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
 				foreach (var newFldDsc in newFldDscs)
 				{
-					var dynFld = new DynamicField(_dbManager, Id, newFldDsc.Id);
+					var dynFld = new DynamicField(DBManager, Id, newFldDsc.Id);
 					if (await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
 					{
 						await RunInUiThreadAsync(delegate
@@ -336,7 +334,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncA(delegate
 			{
-				_dbManager = dbManager;
+				DBManager = dbManager;
 				foreach (var wal in _wallets)
 				{
 					wal.DBManager = dbManager;
@@ -359,7 +357,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				var wallet = new Wallet(_dbManager, Id);
+				var wallet = new Wallet(DBManager, Id);
 				return await AddWallet2Async(wallet).ConfigureAwait(false);
 			});
 		}
@@ -370,7 +368,7 @@ namespace UniFiler10.Data.Model
 			{
 				if (Wallet.Check(wallet))
 				{
-					var dbM = _dbManager;
+					var dbM = DBManager;
 					if (dbM != null && await dbM.InsertIntoWalletsAsync(wallet, true))
 					{
 						await RunInUiThreadAsync(delegate { _wallets.Add(wallet); }).ConfigureAwait(false);
@@ -410,7 +408,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (wallet != null && wallet.ParentId == Id)
 			{
-				await _dbManager.DeleteFromWalletsAsync(wallet);
+				await DBManager.DeleteFromWalletsAsync(wallet);
 
 				await RunInUiThreadAsync(delegate { _wallets.Remove(wallet); }).ConfigureAwait(false);
 
@@ -430,12 +428,12 @@ namespace UniFiler10.Data.Model
 			{
 				if (!string.IsNullOrWhiteSpace(catId))
 				{
-					var newDynCat = new DynamicCategory(_dbManager, Id, catId);
+					var newDynCat = new DynamicCategory(DBManager, Id, catId);
 
 					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
 					{
 						List<DynamicField> newDynFlds = new List<DynamicField>();
-						var dbM = _dbManager;
+						var dbM = DBManager;
 						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newDynFlds, true))
 						{
 							_dynamicCategories.Add(newDynCat);
@@ -468,7 +466,7 @@ namespace UniFiler10.Data.Model
 				if (dynCat != null)
 				{
 					var descriptionIdsOfFieldsToBeRemoved = new List<string>();
-					var dbM = _dbManager;
+					var dbM = DBManager;
 					if (dbM != null && await dbM.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
 					{
 						_dynamicCategories.Remove(dynCat);
@@ -494,9 +492,9 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (_dbManager != null && file != null)
+				if (DBManager != null && file != null)
 				{
-					var newWallet = new Wallet(_dbManager, Id);
+					var newWallet = new Wallet(DBManager, Id);
 					await newWallet.OpenAsync().ConfigureAwait(false); // open the wallet or the following won't run
 					bool isOk = await newWallet.ImportMediaFileAsync(file, copyFile).ConfigureAwait(false)
 						&& await AddWallet2Async(newWallet).ConfigureAwait(false);

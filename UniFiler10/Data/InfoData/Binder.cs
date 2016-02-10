@@ -18,10 +18,10 @@ namespace UniFiler10.Data.Model
 	public class Binder : DbBoundObservableData
 	{
 		#region lifecycle
-		private static readonly object _instanceLock = new object();
+		private static readonly object _instanceLocker = new object();
 		internal static Binder GetCreateInstance(string dbName)
 		{
-			lock (_instanceLock)
+			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
@@ -38,7 +38,7 @@ namespace UniFiler10.Data.Model
 		protected override void Dispose(bool isDisposing)
 		{
 			_folders?.Dispose();
-			_folders = null;
+			//_folders = null;
 			base.Dispose(isDisposing);
 		}
 
@@ -95,8 +95,8 @@ namespace UniFiler10.Data.Model
 
 
 		protected DBManager _dbManager = null;
-		[IgnoreDataMember]
-		internal DBManager DbManager { get { return _dbManager; } }
+		//[IgnoreDataMember]
+		//internal DBManager DbManager { get { return _dbManager; } }
 
 		private readonly object _dbNameLocker = new object();
 		private string _dbName = string.Empty;
@@ -110,21 +110,22 @@ namespace UniFiler10.Data.Model
 					return _dbName;
 				}
 			}
-			private set // this lockless set teris only for serialisation
+			private set // this lockless setter is only for serialisation
 			{
 				if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); }
 			}
 		}
 		private void SetDBName(string dbName)
 		{
-			lock (_dbNameLocker)
-			{
-				DBName = dbName;
-			}
+			SetProperty(ref _dbName, dbName, _dbNameLocker);
+			//lock (_dbNameLocker)
+			//{
+			//	DBName = dbName;
+			//}
 		}
-		protected SwitchableObservableDisposableCollection<Folder> _folders = new SwitchableObservableDisposableCollection<Folder>();
+		protected readonly SwitchableObservableDisposableCollection<Folder> _folders = new SwitchableObservableDisposableCollection<Folder>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } } }
+		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } /*protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } }*/ }
 
 		private volatile string _currentFolderId = DEFAULT_ID;
 		[DataMember]
@@ -488,25 +489,25 @@ namespace UniFiler10.Data.Model
 
 		public async Task<Folder> AddFolderAsync()
 		{
-			var folder = new Folder(_dbManager);
+			Folder folder = null;
 
 			bool isOk = await RunFunctionIfOpenAsyncTB(async delegate
 			{
+				folder = new Folder(_dbManager);
 				// folder.ParentId = Id; // folders may not have ParentId because they can be exported or imported
 				folder.Name = RuntimeData.GetText("NewFolder");
 				folder.DateCreated = DateTime.Now;
 
 				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
 				{
-					await RunInUiThreadAsync(()=>_folders.Add(folder)).ConfigureAwait(false);
+					await RunInUiThreadAsync(() => _folders.Add(folder)).ConfigureAwait(false);
 					return true;
 				}
 
 				return false;
 			});
 
-			if (isOk) return folder;
-			else return null;
+			return folder;
 		}
 		public Task<bool> ImportFoldersAsync(StorageFolder fromDirectory)
 		{
@@ -616,7 +617,7 @@ namespace UniFiler10.Data.Model
 						{
 							// the file name might change to avoid name collisions
 							var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-							doc.Uri0 = copiedFile.Name;
+							doc.SetUri0(copiedFile.Name);
 						}
 					}
 					await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);

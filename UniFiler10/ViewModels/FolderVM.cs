@@ -124,14 +124,11 @@ namespace UniFiler10.ViewModels
 		{
 			Debug.WriteLine("CloseMayOverrideAsync() is about to close the audio recorder");
 			var ar = _audioRecorderView;
-			if (ar != null) await ar.CloseAsync();
+			if (ar != null) await ar.CloseAsync().ConfigureAwait(false);
 
 			IsAudioRecorderOverlayOpen = false;
 
-			await RunInUiThreadAsync(delegate
-			{
-				_folderCategorySelector?.Dispose();
-			}).ConfigureAwait(false);
+			_folderCategorySelector?.Dispose();
 		}
 		#endregion lifecycle
 

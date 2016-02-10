@@ -138,17 +138,17 @@ namespace UniFiler10.Data.Runtime
 		{
 			get
 			{
-				lock (_instanceLock)
+				lock (_instanceLocker)
 				{
 					return _instance;
 				}
 			}
 		}
 
-		private static readonly object _instanceLock = new object();
+		private static readonly object _instanceLocker = new object();
 		public static RuntimeData GetCreateInstance(Briefcase briefcase)
 		{
-			lock (_instanceLock)
+			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{

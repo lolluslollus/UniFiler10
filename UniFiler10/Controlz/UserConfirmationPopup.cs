@@ -12,10 +12,10 @@ namespace Utilz
 	{
 		private const int DELAY = 50;
 		private static UserConfirmationPopup _instance = null;
-		private static readonly object _locker = new object();
+		private static readonly object _instanceLocker = new object();
 		public static UserConfirmationPopup GetInstance()
 		{
-			lock (_locker)
+			lock (_instanceLocker)
 			{
 				if (_instance == null) _instance = new UserConfirmationPopup();
 				return _instance;

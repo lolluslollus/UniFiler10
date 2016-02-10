@@ -31,10 +31,11 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
+		private readonly SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } /*set { _fieldDescriptions = value; RaisePropertyChanged_UI(); }*/ }
 
+		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableDisposableCollection<string> _fieldDescriptionIds = new SwitchableObservableDisposableCollection<string>();
 		[DataMember]
 		public SwitchableObservableDisposableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }
@@ -44,10 +45,10 @@ namespace UniFiler10.Data.Metadata
 		{
 			if (source != null && target != null)
 			{
-				target.FieldDescriptionIds.ReplaceAll(source.FieldDescriptionIds);
+				target._fieldDescriptionIds.ReplaceAll(source._fieldDescriptionIds);
 				// populate FieldDescriptions
 				List<FieldDescription> newFldDscs = new List<FieldDescription>();
-				foreach (var fldDscId in source.FieldDescriptionIds)
+				foreach (var fldDscId in source._fieldDescriptionIds)
 				{
 					var newFldDsc = allFldDscs.FirstOrDefault(fd => fd.Id == fldDscId);
 					if (newFldDsc != null) newFldDscs.Add(newFldDsc);
@@ -87,7 +88,7 @@ namespace UniFiler10.Data.Metadata
 			_isDisposed = true;
 
 			_fieldDescriptions?.Dispose();
-			_fieldDescriptions = null;
+			//_fieldDescriptions = null;
 
 			_fieldDescriptionIds?.Dispose();
 			_fieldDescriptionIds = null;
@@ -116,7 +117,8 @@ namespace UniFiler10.Data.Metadata
 			if (fdToBeRemoved != null)
 			{
 				fdToBeRemoved.RemoveFromJustAssignedToCats(this);
-				return _fieldDescriptions.Remove(fdToBeRemoved) & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
+				bool isOk = _fieldDescriptions.Remove(fdToBeRemoved) & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
+				return isOk;
 			}
 			return false;
 		}
