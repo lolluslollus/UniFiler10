@@ -539,44 +539,47 @@ namespace UniFiler10.Data.Model
 					mergingBinder = MergingBinder.CreateInstance(DBName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
 
-					// parallelisation here seems ideal, but it screws with SQLite. LOLLO TODO the following works but it does not preserve the folder sequence.
-					var tasks = new List<Task>();
-					foreach (var fol in mergingBinder.Folders)
-					{
-						tasks.Add(Task.Run(() => Import1FolderAsync(fol, fromDirectory), CancToken));
-					}
-					await Task.WhenAll(tasks).ConfigureAwait(false);
-
-					//// parallelisation here seems ideal, but it screws with SQLite.
+					//// parallelisation here seems ideal, but it screws with SQLite. LOLLO TODO the following works but it does not preserve the folder sequence.
+					//var tasks = new List<Task>();
 					//foreach (var fol in mergingBinder.Folders)
 					//{
-					//	await fol.OpenAsync().ConfigureAwait(false);
-					//	if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
-					//	{
-					//		await fol.SetDbManager(_dbManager).ConfigureAwait(false);
-
-					//		await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
-					//		foreach (var wal in fol.Wallets)
-					//		{
-					//			foreach (var doc in wal.Documents)
-					//			{
-					//				var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
-					//				if (file != null)
-					//				{
-					//					// the file name might change to avoid name collisions
-					//					var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-					//					doc.Uri0 = copiedFile.Name;
-					//				}
-					//			}
-					//			await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
-					//		}
-
-					//		await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
-					//		await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
-
-					//		await RunInUiThreadAsync(()=>_folders.Add(fol)).ConfigureAwait(false);
-					//	}
+					//	tasks.Add(Task.Run(() => Import1FolderAsync(fol, fromDirectory), CancToken));
 					//}
+					//await Task.WhenAll(tasks).ConfigureAwait(false);
+
+					// parallelisation here seems ideal, but it screws with SQLite.
+					foreach (var fol in mergingBinder.Folders)
+					{
+						if (fol != null)
+						{
+							await fol.OpenAsync().ConfigureAwait(false);
+							if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
+							{
+								await fol.SetDbManager(_dbManager).ConfigureAwait(false);
+
+								await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
+								foreach (var wal in fol.Wallets)
+								{
+									foreach (var doc in wal.Documents)
+									{
+										var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
+										if (file != null)
+										{
+											// the file name might change to avoid name collisions
+											var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+											doc.Uri0 = copiedFile.Name;
+										}
+									}
+									await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
+								}
+
+								await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
+								await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
+
+								await RunInUiThreadAsync(() => _folders.Add(fol)).ConfigureAwait(false);
+							}
+						}
+					}
 					isOk = true;
 				}
 				catch (OperationCanceledException) { }
@@ -597,36 +600,44 @@ namespace UniFiler10.Data.Model
 				return isOk;
 			});
 		}
-		private async Task Import1FolderAsync(Folder fol, StorageFolder fromDirectory)
-		{
-			var folder = fol;
-			await folder.OpenAsync().ConfigureAwait(false);
-			if (await _dbManager.InsertIntoFoldersAsync(folder, true).ConfigureAwait(false))
-			{
-				await folder.SetDbManager(_dbManager).ConfigureAwait(false);
+		//private async Task Import1FolderAsync(Folder fol, StorageFolder fromDirectory)
+		//{
+		//	try
+		//	{
+		//		if (fol == null) return;
+		//		var folder = fol;
+		//		await folder.OpenAsync().ConfigureAwait(false);
+		//		if (await _dbManager.InsertIntoFoldersAsync(folder, true).ConfigureAwait(false))
+		//		{
+		//			await folder.SetDbManager(_dbManager).ConfigureAwait(false);
 
-				await _dbManager.InsertIntoWalletsAsync(folder.Wallets, true).ConfigureAwait(false);
-				foreach (var wal in folder.Wallets)
-				{
-					foreach (var doc in wal.Documents)
-					{
-						var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
-						if (file != null)
-						{
-							// the file name might change to avoid name collisions
-							var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-							doc.SetUri0(copiedFile.Name);
-						}
-					}
-					await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
-				}
+		//			await _dbManager.InsertIntoWalletsAsync(folder.Wallets, true).ConfigureAwait(false);
+		//			foreach (var wal in folder.Wallets)
+		//			{
+		//				foreach (var doc in wal.Documents)
+		//				{
+		//					var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
+		//					if (file != null)
+		//					{
+		//						// the file name might change to avoid name collisions
+		//						var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+		//						doc.SetUri0(copiedFile.Name);
+		//					}
+		//				}
+		//				await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
+		//			}
 
-				await _dbManager.InsertIntoDynamicFieldsAsync(folder.DynamicFields, true).ConfigureAwait(false);
-				await _dbManager.InsertIntoDynamicCategoriesAsync(folder.DynamicCategories, true).ConfigureAwait(false);
+		//			await _dbManager.InsertIntoDynamicFieldsAsync(folder.DynamicFields, true).ConfigureAwait(false);
+		//			await _dbManager.InsertIntoDynamicCategoriesAsync(folder.DynamicCategories, true).ConfigureAwait(false);
 
-				await RunInUiThreadAsync(() => _folders.Add(folder)).ConfigureAwait(false);
-			}
-		}
+		//			await RunInUiThreadAsync(() => _folders.Add(folder)).ConfigureAwait(false);
+		//		}
+		//	}
+		//	catch(Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
 			return RunFunctionIfOpenAsyncTB(delegate

@@ -28,9 +28,6 @@ namespace UniFiler10.Views
 		private volatile string _lastMessage = string.Empty;
 		public string LastMessage { get { lock (_lastMessageLocker) { return _lastMessage; } } set { lock (_lastMessageLocker) { _lastMessage = value; } RaisePropertyChanged_UI(); } }
 
-		// Prevent the screen from sleeping while the camera is running
-		// private readonly DisplayRequest _displayRequest = new DisplayRequest(); // LOLLO TODO use KeepAlive instead? Do I want this at all?
-
 		// For listening to media property changes
 		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
 

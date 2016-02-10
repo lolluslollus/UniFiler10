@@ -21,20 +21,24 @@ namespace UniFiler10.ViewModels
 	public sealed class SettingsVM : OpenableObservableDisposableData
 	{
 		#region properties
-		private MetaBriefcase _metaBriefcase = null;
-		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } set { _metaBriefcase = value; RaisePropertyChanged_UI(); } }
+		private readonly MetaBriefcase _metaBriefcase = null;
+		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } /*set { _metaBriefcase = value; RaisePropertyChanged_UI(); }*/ }
 
 		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null; // new SwitchableObservableDisposableCollection<FieldDescription>();
 		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
 		private void UpdateUnassignedFields()
 		{
 			var mb = _metaBriefcase;
-			_unassignedFields.Clear();
-			if (mb != null && mb.FieldDescriptions != null && mb.CurrentCategory != null && mb.CurrentCategory.FieldDescriptionIds != null)
+			var unaFlds = _unassignedFields;
+			if (unaFlds != null)
 			{
-				_unassignedFields.AddRange(mb.FieldDescriptions
-					.Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
-				RaisePropertyChanged_UI(nameof(UnassignedFields));
+				unaFlds.Clear();
+				if (mb != null && mb.FieldDescriptions != null && mb.CurrentCategory != null && mb.CurrentCategory.FieldDescriptionIds != null)
+				{
+					_unassignedFields.AddRange(mb.FieldDescriptions
+						.Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
+					RaisePropertyChanged_UI(nameof(UnassignedFields));
+				}
 			}
 		}
 		public void OnDataContextChanged()
@@ -125,7 +129,8 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_instanceLocker)
 			{
-				MetaBriefcase = metaBriefcase;
+				_metaBriefcase = metaBriefcase;
+				RaisePropertyChanged_UI(nameof(MetaBriefcase));
 				_instance = this;
 				_animationStarter = animationStarter;
 				UpdateUnassignedFields();
@@ -257,7 +262,6 @@ namespace UniFiler10.ViewModels
 			var bc = Briefcase.GetCurrentInstance();
 			if (bc != null && TrySetIsExportingSettings(true))
 			{
-				// LOLLO TODO in the following and in similar places, I added ConfigureAwait(false): check if it still works on low memory phone
 				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
