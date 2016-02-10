@@ -71,7 +71,7 @@ namespace UniFiler10.Data.Model
 					   // await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
 					   folder?.Dispose();
 				   });
-			});
+			}) ?? Task.CompletedTask;
 			Task save = SaveNonDbPropertiesAsync();
 			closeFolders.Start();
 
