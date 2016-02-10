@@ -387,26 +387,26 @@ namespace UniFiler10.ViewModels
 			{
 				if (_isAllFoldersDirty && _isAllFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadAllFoldersAsync(); }).ConfigureAwait(false);
+					await Task.Run(delegate { return ReadAllFoldersAsync(); }, CancToken).ConfigureAwait(false);
 					IsAllFoldersDirty = false;
 					IsRecentFoldersDirty = true;
 				}
 				if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadRecentFoldersAsync(); }).ConfigureAwait(false);
+					await Task.Run(delegate { return ReadRecentFoldersAsync(); }, CancToken).ConfigureAwait(false);
 					IsAllFoldersDirty = true;
 					IsRecentFoldersDirty = false;
 				}
 				if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadByCatFoldersAsync(); }).ConfigureAwait(false);
+					await Task.Run(delegate { return ReadByCatFoldersAsync(); }, CancToken).ConfigureAwait(false);
 					//IsByCatFoldersDirty = false;
 					IsAllFoldersDirty = true;
 					IsRecentFoldersDirty = true;
 				}
 				if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadByFldFoldersAsync(); }).ConfigureAwait(false);
+					await Task.Run(delegate { return ReadByFldFoldersAsync(); }, CancToken).ConfigureAwait(false);
 					//IsByFldFoldersDirty = false;
 					IsAllFoldersDirty = true;
 					IsRecentFoldersDirty = true;

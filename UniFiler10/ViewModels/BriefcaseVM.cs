@@ -326,7 +326,7 @@ namespace UniFiler10.ViewModels
 					}
 					else if (isDbNameAvailable == BoolWhenOpen.ObjectClosed)
 					{
-						await Logger.AddAsync("ContinueImportBinderStep1Async(): briefcase is closed, which should never happen", Logger.AppEventsLogFilename).ConfigureAwait(false);
+						await Logger.AddAsync("ContinueImportBinderStep1Async(): briefcase is closed, which should never happen, or the operation was cancelled", Logger.AppEventsLogFilename).ConfigureAwait(false);
 					}
 				}
 			}

@@ -223,7 +223,7 @@ namespace UniFiler10.Data.Model
 			{
 				await RunInUiThreadAsync(delegate
 				{
-					DbNames.Add(dbName);
+					_dbNames.Add(dbName);
 				}).ConfigureAwait(false);
 				return true;
 			}
@@ -242,7 +242,7 @@ namespace UniFiler10.Data.Model
 					if (_currentBinderName == dbName)
 					{
 						await _currentBinder.CloseAsync().ConfigureAwait(false);
-						if (DbNames.Count > 0)
+						if (_dbNames.Count > 0)
 						{
 							CurrentBinderName = _dbNames[0];
 						}
@@ -300,9 +300,10 @@ namespace UniFiler10.Data.Model
 				if (toDirectory == null) return false;
 
 				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", toDirectory);
-				await fromDirectory.CopyDirContentsAsync(toDirectory).ConfigureAwait(false);
+				await fromDirectory.CopyDirContentsAsync(toDirectory, CancToken).ConfigureAwait(false);
 				return true;
 			}
+			catch (OperationCanceledException) { }
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
@@ -369,9 +370,10 @@ namespace UniFiler10.Data.Model
 					var toDirectory = await BindersDirectory
 						.CreateFolderAsync(fromDirectory.Name, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					await fromDirectory.CopyDirContentsAsync(toDirectory).ConfigureAwait(false);
+					await fromDirectory.CopyDirContentsAsync(toDirectory, CancToken).ConfigureAwait(false);
 					return true;
 				}
+				catch (OperationCanceledException) { }
 				catch (Exception ex)
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
