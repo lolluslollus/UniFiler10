@@ -45,7 +45,7 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				return GetProperty(ref _uri0, _uri0Locker);
+				return GetPropertyLocking(ref _uri0, _uri0Locker);
 				//lock (_uri0Locker)
 				//{
 				//	return _uri0;

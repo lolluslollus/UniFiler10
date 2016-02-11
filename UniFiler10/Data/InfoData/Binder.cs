@@ -117,7 +117,7 @@ namespace UniFiler10.Data.Model
 		}
 		private void SetDBName(string dbName)
 		{
-			SetPropertyRaising(ref _dbName, dbName, _dbNameLocker);
+			SetPropertyLocking(ref _dbName, dbName, _dbNameLocker);
 			//lock (_dbNameLocker)
 			//{
 			//	DBName = dbName;
@@ -180,7 +180,7 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				return GetProperty(ref _catIdForCatFilter, _filterLocker);
+				return GetPropertyLocking(ref _catIdForCatFilter, _filterLocker);
 				//lock (_filterLocker)
 				//{
 				//	return _catIdForCatFilter;
@@ -195,7 +195,7 @@ namespace UniFiler10.Data.Model
 		}
 		public void SetIdsForCatFilter(string catId)
 		{
-			SetPropertyRaising(ref _catIdForCatFilter, catId, _filterLocker);
+			SetPropertyLocking(ref _catIdForCatFilter, catId, _filterLocker, false);
 			//lock (_filterLocker)
 			//{
 			//	CatIdForCatFilter = catId;
@@ -216,7 +216,7 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				return GetProperty(ref _catIdForFldFilter, _filterLocker);
+				return GetPropertyLocking(ref _catIdForFldFilter, _filterLocker);
 				//lock (_filterLocker)
 				//{
 				//	return _catIdForFldFilter;
@@ -236,7 +236,7 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				return GetProperty(ref _fldDscIdForFldFilter, _filterLocker);
+				return GetPropertyLocking(ref _fldDscIdForFldFilter, _filterLocker);
 				//lock (_filterLocker)
 				//{
 				//	return _fldDscIdForFldFilter;
@@ -256,7 +256,7 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				return GetProperty(ref _fldValIdForFldFilter, _filterLocker);
+				return GetPropertyLocking(ref _fldValIdForFldFilter, _filterLocker);
 				//lock (_filterLocker)
 				//{
 				//	return _fldValIdForFldFilter;
@@ -295,7 +295,7 @@ namespace UniFiler10.Data.Model
 		{
 			get
 			{
-				return GetProperty(ref _whichFilter, _filterLocker);
+				return GetPropertyLocking(ref _whichFilter, _filterLocker);
 				//lock (_filterLocker)
 				//{
 				//	return _whichFilter;
@@ -312,7 +312,7 @@ namespace UniFiler10.Data.Model
 		}
 		public void SetFilter(Filters whichFilter)
 		{
-			SetPropertyRaising(ref _whichFilter, whichFilter, _filterLocker);
+			SetPropertyLocking(ref _whichFilter, whichFilter, _filterLocker);
 			//lock (_filterLocker)
 			//{
 			//	WhichFilter = whichFilter;
