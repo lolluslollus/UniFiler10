@@ -139,7 +139,7 @@
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
-									Icon="Zoom"
+									Icon="View"
                                     IsCompact="True"
                                     Click="OnSelectCategory_Click"
                                     VerticalAlignment="Center"/>
@@ -228,7 +228,7 @@
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
-									Icon="Zoom"
+									Icon="View"
                                     IsCompact="True"
                                     Click="OnSelectAssignedFldDsc_Click"
                                     VerticalAlignment="Center"/>
@@ -321,7 +321,7 @@
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
-									Icon="Zoom"
+									Icon="View"
                                     IsCompact="True"
                                     Click="OnSelectUnassignedFldDsc_Click"
                                     VerticalAlignment="Center"/>
