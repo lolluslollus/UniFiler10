@@ -13,7 +13,7 @@ using Windows.Storage;
 using Windows.Storage.Streams;
 
 namespace UniFiler10.Data.Model
-{
+{// LOLLO TODO beware of errors coming from null tasks, app-wide
 	[DataContract]
 	public class Binder : DbBoundObservableData
 	{
