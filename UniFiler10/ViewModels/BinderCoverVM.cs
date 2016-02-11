@@ -141,7 +141,7 @@ namespace UniFiler10.ViewModels
 			//IsByFldFoldersDirty = newValue; // we don't use these variables to avoid catching all sorts of data changes
 		}
 
-		private volatile string _catNameForCatFilter = null;
+		private volatile string _catNameForCatFilter = string.Empty;
 		public string CatNameForCatFilter
 		{
 			get { return _catNameForCatFilter; }
@@ -161,7 +161,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private volatile string _catNameForFldFilter = null;
+		private volatile string _catNameForFldFilter = string.Empty;
 		public string CatNameForFldFilter
 		{
 			get { return _catNameForFldFilter; }
@@ -182,7 +182,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private volatile string _fldDscCaptionForFldFilter = null;
+		private volatile string _fldDscCaptionForFldFilter = string.Empty;
 		public string FldDscCaptionForFldFilter
 		{
 			get { return _fldDscCaptionForFldFilter; }
@@ -203,7 +203,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private volatile string _fldValVaalueForFldFilter = null;
+		private volatile string _fldValVaalueForFldFilter = string.Empty;
 		public string FldValVaalueForFldFilter
 		{
 			get { return _fldValVaalueForFldFilter; }
@@ -521,10 +521,11 @@ namespace UniFiler10.ViewModels
 		#region binder data events
 		private void RegisterFoldersChanged()
 		{
-			if (_binder?.Folders != null)
+			var folders = _binder?.Folders;
+			if (folders != null)
 			{
-				_binder.Folders.CollectionChanged += OnFol_CollectionChanged;
-				foreach (Folder fol in _binder.Folders)
+				folders.CollectionChanged += OnFol_CollectionChanged;
+				foreach (Folder fol in folders)
 				{
 					RegisterFolderChanged(fol);
 				}
@@ -555,10 +556,11 @@ namespace UniFiler10.ViewModels
 		{
 			SetIsDirty(false, false, 0);
 
-			if (_binder?.Folders != null)
+			var folders = _binder?.Folders;
+			if (folders != null)
 			{
-				_binder.Folders.CollectionChanged -= OnFol_CollectionChanged;
-				foreach (Folder fol in _binder.Folders)
+				folders.CollectionChanged -= OnFol_CollectionChanged;
+				foreach (Folder fol in folders)
 				{
 					UnregisterFolderChanged(fol);
 				}
@@ -728,6 +730,7 @@ namespace UniFiler10.ViewModels
 
 		public async void StartImportFoldersFromBinder()
 		{
+			if (!IsOpen) return;
 			await Logger.AddAsync("StartImportFoldersFromBinder() starting", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			// LOLLO TODO use http://stackoverflow.com/questions/23866325/how-to-avoid-storagefile-copyasync-throw-exception-when-copying-big-file
 			// to copy files, across the app. Alternatively, warn when a file is too large.

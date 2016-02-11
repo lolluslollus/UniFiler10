@@ -169,96 +169,93 @@ namespace UniFiler10.ViewModels
 		#region user actions
 		public Task<bool> AddCategoryAsync()
 		{
-			return _metaBriefcase?.AddCategoryAsync();
+			return RunFunctionIfOpenAsyncTB(_metaBriefcase.AddCategoryAsync);
 		}
 
 		public Task<bool> RemoveCategoryAsync(Category cat)
 		{
-			return _metaBriefcase?.RemoveCategoryAsync(cat);
+			return RunFunctionIfOpenAsyncTB(delegate { return _metaBriefcase.RemoveCategoryAsync(cat); });
 		}
 
-		public async Task<bool> AddFieldDescriptionAsync()
+		public Task<bool> AddFieldDescriptionAsync()
 		{
-			var mbf = _metaBriefcase;
-			if (mbf != null)
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await mbf.AddFieldDescriptionAsync())
+				if (await _metaBriefcase.AddFieldDescriptionAsync())
 				{
 					UpdateUnassignedFields();
 					return true;
 				}
-			}
-			return false;
+				return false;
+			});
 		}
 
-		public async Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
+		public Task<bool> RemoveFieldDescriptionAsync(FieldDescription fldDesc)
 		{
-			var mbf = _metaBriefcase;
-			if (mbf != null)
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await mbf.RemoveFieldDescriptionAsync(fldDesc))
+				if (await _metaBriefcase.RemoveFieldDescriptionAsync(fldDesc))
 				{
 					UpdateUnassignedFields();
 					return true;
 				}
-			}
-			return false;
+				return false;
+			});
 		}
-		public async Task<bool> AssignFieldDescriptionToCurrentCategoryAsync(FieldDescription fldDsc)
+		public Task<bool> AssignFieldDescriptionToCurrentCategoryAsync(FieldDescription fldDsc)
 		{
-			var mb = _metaBriefcase;
-			if (mb == null) return false;
-
-			if (await mb.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				UpdateUnassignedFields();
-				return true;
-			}
-			return false;
+				if (await _metaBriefcase.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
+				{
+					UpdateUnassignedFields();
+					return true;
+				}
+				return false;
+			});
 		}
 
-		public async Task<bool> UnassignFieldDescriptionFromCurrentCategoryAsync(FieldDescription fldDsc)
+		public Task<bool> UnassignFieldDescriptionFromCurrentCategoryAsync(FieldDescription fldDsc)
 		{
-			var mb = _metaBriefcase;
-			if (mb == null) return false;
-
-			if (await mb.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				UpdateUnassignedFields();
-				return true;
-			}
-			return false;
+				if (await _metaBriefcase.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
+				{
+					UpdateUnassignedFields();
+					return true;
+				}
+				return false;
+			});
 		}
 
 		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{
-			return _metaBriefcase?.AddPossibleValueToCurrentFieldDescriptionAsync();
+			return RunFunctionIfOpenAsyncTB(_metaBriefcase.AddPossibleValueToCurrentFieldDescriptionAsync);
 		}
 
 		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
 		{
-			return _metaBriefcase.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal);
+			return RunFunctionIfOpenAsyncTB(delegate { return _metaBriefcase.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal); });
 		}
-		public async Task SetCurrentCategoryAsync(Category newItem)
+		public Task SetCurrentCategoryAsync(Category newItem)
 		{
-			var mb = _metaBriefcase;
-			if (mb != null)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				await mb.SetCurrentCategoryAsync(newItem);
+				await _metaBriefcase.SetCurrentCategoryAsync(newItem);
 				UpdateUnassignedFields();
-			}
+			});
 		}
-		public async Task SetCurrentFieldDescriptionAsync(FieldDescription newItem)
+		public Task SetCurrentFieldDescriptionAsync(FieldDescription newItem)
 		{
-			var mb = _metaBriefcase;
-			if (mb != null)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				await mb.SetCurrentFieldDescriptionAsync(newItem);
-			}
+				await _metaBriefcase.SetCurrentFieldDescriptionAsync(newItem);
+			});
 		}
 
 		public async void StartExport()
 		{
+			if (!IsOpen) return;
 			var bc = Briefcase.GetCurrentInstance();
 			if (bc != null && TrySetIsExportingSettings(true))
 			{
@@ -307,6 +304,7 @@ namespace UniFiler10.ViewModels
 
 		public async void StartImport()
 		{
+			if (!IsOpen) return;
 			var bc = Briefcase.GetCurrentInstance();
 			if (bc != null && TrySetIsImportingSettings(true))
 			{

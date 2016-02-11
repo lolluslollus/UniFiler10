@@ -37,7 +37,7 @@ namespace UniFiler10.ViewModels
 		}
 		public Task CloseBinderAsync()
 		{
-			return _briefcase?.CloseCurrentBinderAsync();
+			return _briefcase?.CloseCurrentBinderAsync() ?? Task.CompletedTask;
 		}
 	}
 }

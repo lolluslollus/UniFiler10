@@ -53,7 +53,7 @@
                         Click="OnOpenCover_Click"/>
 
 					<!--SelectedIndexTolerant="{Binding CurrentFolder, Mode=OneWay, Converter={StaticResource FolderIdToIndex}}"-->
-					<uctl:TolerantListView Grid.Row="1"
+					<ListView Grid.Row="1"
                         ItemsSource="{x:Bind Path=VM.Binder.Folders, Mode=OneWay}"
                         IsMultiSelectCheckBoxEnabled="False" 
                         IsItemClickEnabled="True"
@@ -80,7 +80,7 @@
 								</uctl:TextBlockScaler>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>
-					</uctl:TolerantListView>
+					</ListView>
 				</Grid>
 			</ScrollViewer>
 		</ctl:LolloSplitView.PaneContent>

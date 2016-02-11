@@ -77,18 +77,6 @@ namespace UniFiler10.Views
 		private void OnDocumentView_DeleteClicked(object sender, DocumentView.DocumentClickedArgs e)
 		{
 			Task del = VM?.RemoveDocumentFromWalletAsync(e?.Wallet, e?.Document);
-			//bool isOk = false;
-			//var vm = VM;
-			//if (vm != null && e != null)
-			//{
-			//if (await vm.RemoveDocumentFromWalletAsync(e.Wallet, e.Document).ConfigureAwait(false))
-			//{
-			//	if (e.Wallet.Documents.Count < 1) // if there are no more documents in the wallet, delete the wallet, too
-			//	{						
-			//		isOk = await vm.RemoveWalletFromFolderAsync(e.Wallet).ConfigureAwait(false);
-			//	}
-			//}
-			//}
 		}
 	}
 }

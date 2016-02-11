@@ -254,6 +254,7 @@ namespace UniFiler10.ViewModels
 
 		public async void StartImportBinder()
 		{
+			if (!IsOpen) return;
 			var bc = _briefcase;
 			if (bc != null && TrySetIsImportingBinder(true))
 			{
@@ -404,6 +405,7 @@ namespace UniFiler10.ViewModels
 
 		public async void StartExportBinder(string dbName)
 		{
+			if (!IsOpen) return;
 			var bc = _briefcase;
 			if (!string.IsNullOrWhiteSpace(dbName) && bc?.DbNames?.Contains(dbName) == true && TrySetIsExportingBinder(true))
 			{

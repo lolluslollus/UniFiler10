@@ -116,29 +116,6 @@ namespace UniFiler10.Views
 		private string _previousUri = null;
 
 		private static SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//private async void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
-		//{
-		//	try
-		//	{
-		//		await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
-
-		//		var newDoc = DataContext as Document;
-		//		if (newDoc == null)
-		//		{
-		//			_previousUri = null;
-		//			Task render = RenderPreviewAsync(newDoc);
-		//		}
-		//		else if (newDoc.GetFullUri0() != _previousUri)
-		//		{
-		//			_previousUri = newDoc.GetFullUri0();
-		//			Task render = RenderPreviewAsync(newDoc);
-		//		}
-		//	}
-		//	finally
-		//	{
-		//		SemaphoreSlimSafeRelease.TryRelease(_previousUriSemaphore);
-		//	}
-		//}
 
 		private async Task RenderPreviewAsync(Document doc)
 		{
@@ -407,14 +384,6 @@ namespace UniFiler10.Views
 				await DisplayImageFileAsync(stream).ConfigureAwait(false);
 			}
 		}
-		//private static void OnPixelHeightChanged(DependencyObject obj, DependencyProperty prop)
-		//{
-
-		//}
-		//private static void OnPixelWidthChanged(DependencyObject obj, DependencyProperty prop)
-		//{
-
-		//}
 
 		private async Task DisplayImageFileAsync(IRandomAccessStream stream)
 		{
@@ -466,20 +435,14 @@ namespace UniFiler10.Views
 		#region event handlers
 		private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task del = RunInUiThreadAsync(delegate
-			{
-				e.Handled = true;
-				if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
-			});
+			e.Handled = true;
+			if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
 		private void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task del = RunInUiThreadAsync(delegate
-			{
-				e.Handled = true;
-				DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
-			});
+			e.Handled = true;
+			DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
 		private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)

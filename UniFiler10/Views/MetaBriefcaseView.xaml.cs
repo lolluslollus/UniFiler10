@@ -47,7 +47,7 @@ namespace UniFiler10.Views
 
 		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			VM?.OnDataContextChanged();
+			Task ccc = RunInUiThreadAsync(() => VM?.OnDataContextChanged());
 		}
 
 		private void OnCategoryListView_ItemClick(object sender, ItemClickEventArgs e)

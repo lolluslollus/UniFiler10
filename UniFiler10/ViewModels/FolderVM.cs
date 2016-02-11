@@ -180,6 +180,7 @@ namespace UniFiler10.ViewModels
 		#region add media
 		public async void StartLoadMediaFile()
 		{
+			if (!IsOpen) return;
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
 			if (folder != null && directory != null && TrySetIsImportingMedia(true))
@@ -208,6 +209,7 @@ namespace UniFiler10.ViewModels
 
 		public async void StartLoadMediaFile(Wallet parentWallet)
 		{
+			if (!IsOpen) return;
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
 			if (folder != null && directory != null && TrySetIsImportingMedia(true))
@@ -236,6 +238,7 @@ namespace UniFiler10.ViewModels
 
 		public async void StartShoot(Wallet parentWallet)
 		{
+			if (!IsOpen) return;
 			var folder = _folder;
 			var directory = folder?.DBManager?.Directory;
 			if (folder != null && directory != null && RuntimeData.Instance?.IsCameraAvailable == true && TrySetIsImportingMedia(true))

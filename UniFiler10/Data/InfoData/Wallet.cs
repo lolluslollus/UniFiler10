@@ -144,9 +144,13 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				while (_documents?.Count > 0)
+				var docs = _documents;
+				if (docs != null)
 				{
-					await RemoveDocument2Async(_documents[0]).ConfigureAwait(false);
+					while (docs.Count > 0)
+					{
+						await RemoveDocument2Async(docs[0]).ConfigureAwait(false);
+					}
 				}
 				return true;
 			});

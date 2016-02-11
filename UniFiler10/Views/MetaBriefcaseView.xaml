@@ -108,7 +108,7 @@
 						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
-				<uctl:TolerantListView
+				<ListView
                     ItemsSource="{Binding Categories, Mode=OneWay}"
                     SelectedItem="{Binding CurrentCategory, Mode=OneWay}"
 					ItemClick="OnCategoryListView_ItemClick"
@@ -159,7 +159,7 @@
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
-				</uctl:TolerantListView>
+				</ListView>
 			</StackPanel>
 
 			<!-- field descriptions-->
@@ -193,7 +193,7 @@
 				<!-- LOLLO NOTE not only here, use ItemClick instead of SelectionChanged
 				to be sure you only catch the user click and not the initial list filling -->
 				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
-				<uctl:TolerantListView
+				<ListView
                     x:Name="AssignedLV"
                     ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
 					ItemClick="OnAssignedFieldDescriptionsListView_ItemClick"
@@ -257,7 +257,7 @@
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
-				</uctl:TolerantListView>
+				</ListView>
 
 				<Grid>
 					<Grid.ColumnDefinitions>
@@ -286,7 +286,7 @@
 
 				<!-- unassigned field descriptions -->
 				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
-				<uctl:TolerantListView
+				<ListView
                     x:Name="UnassignedLV"
                     ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
 					ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
@@ -348,7 +348,7 @@
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
-				</uctl:TolerantListView>
+				</ListView>
 			</StackPanel>
 
 			<!-- field values -->
@@ -397,7 +397,7 @@
 						Height="{StaticResource MetaItemHeight}"/>
 				</Grid>
 
-				<uctl:TolerantListView x:Name="PossibleValuesLV"
+				<ListView x:Name="PossibleValuesLV"
                     ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
@@ -437,7 +437,7 @@
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
-				</uctl:TolerantListView>
+				</ListView>
 			</StackPanel>
 		</Grid>
 	</ScrollViewer>

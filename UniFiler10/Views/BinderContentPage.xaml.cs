@@ -47,18 +47,6 @@ namespace UniFiler10.Views
 				vm.Dispose();
 				VM = null;
 			}
-
-			//var ar = AudioRecorderView;
-			//if (ar != null)
-			//{
-			//	await ar.CloseAsync();
-			//}
-
-			//var cam = CameraView;
-			//if (cam != null)
-			//{
-			//	await cam.CloseAsync();
-			//}
 		}
 		#endregion construct, open, close
 

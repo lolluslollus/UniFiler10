@@ -270,7 +270,7 @@
 			</uctl:UniversalWrapPanel>
 
 			<!-- folders grid -->
-			<uctl:TolerantListView
+			<ListView
 				RelativePanel.Below="FldFilter"
                 ItemsSource="{x:Bind VM.FolderPreviews, Mode=OneWay}"
                 IsItemClickEnabled="True"
@@ -319,7 +319,7 @@
 						</Grid>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
-			</uctl:TolerantListView>
+			</ListView>
 
 			<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="FldFilter" Canvas.ZIndex="900"/>
 

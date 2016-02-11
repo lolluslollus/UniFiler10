@@ -55,7 +55,7 @@ namespace UniFiler10.ViewModels
 		#region user actions
 		public Task SetCurrentFolderAsync(string folderId)
 		{
-			return _binder?.OpenFolderAsync(folderId);
+			return _binder?.OpenFolderAsync(folderId) ?? Task.CompletedTask;
 		}
 		#endregion user actions
 	}

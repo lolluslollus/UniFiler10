@@ -60,7 +60,7 @@ namespace UniFiler10.Data.Model
 		public void SetUri0(string newValue)
 		{
 			string okValue = newValue == null ? string.Empty : Path.GetFileName(newValue);
-			SetPropertyUpdatingDb(ref _uri0, okValue, _uri0Locker);
+			SetPropertyLockingUpdatingDb(ref _uri0, okValue, _uri0Locker);
 		}
 		public string GetFullUri0()
 		{

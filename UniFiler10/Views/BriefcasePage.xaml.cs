@@ -98,11 +98,6 @@ namespace UniFiler10.Views
 		private void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			VM?.StartImportBinder();
-			//var vm = VM;
-			//if (vm != null)
-			//{
-			//	await vm.StartImportDb();
-			//}
 		}
 
 		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
