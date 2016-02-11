@@ -117,7 +117,7 @@ namespace UniFiler10.Data.Model
 		}
 		private void SetDBName(string dbName)
 		{
-			SetProperty(ref _dbName, dbName, _dbNameLocker);
+			SetPropertyRaising(ref _dbName, dbName, _dbNameLocker);
 			//lock (_dbNameLocker)
 			//{
 			//	DBName = dbName;
@@ -195,7 +195,7 @@ namespace UniFiler10.Data.Model
 		}
 		public void SetIdsForCatFilter(string catId)
 		{
-			SetProperty(ref _catIdForCatFilter, catId, _filterLocker);
+			SetPropertyRaising(ref _catIdForCatFilter, catId, _filterLocker);
 			//lock (_filterLocker)
 			//{
 			//	CatIdForCatFilter = catId;
@@ -312,7 +312,7 @@ namespace UniFiler10.Data.Model
 		}
 		public void SetFilter(Filters whichFilter)
 		{
-			SetProperty(ref _whichFilter, whichFilter, _filterLocker);
+			SetPropertyRaising(ref _whichFilter, whichFilter, _filterLocker);
 			//lock (_filterLocker)
 			//{
 			//	WhichFilter = whichFilter;
