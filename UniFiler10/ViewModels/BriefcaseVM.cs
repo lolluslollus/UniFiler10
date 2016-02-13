@@ -13,7 +13,7 @@ namespace UniFiler10.ViewModels
 	public class BriefcaseVM : OpenableObservableDisposableData
 	{
 		private Briefcase _briefcase = null;
-		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
+		public Briefcase Briefcase { get { return _briefcase; } }
 
 		private bool _isNewDbNameVisible = false;
 		public bool IsNewDbNameVisible { get { return _isNewDbNameVisible; } set { _isNewDbNameVisible = value; RaisePropertyChanged_UI(); if (_isNewDbNameVisible) { Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } } }
@@ -70,12 +70,10 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_isImportingExportingLocker)
 			{
-				if (IsImportingBinder != newValue)
-				{
-					IsImportingBinder = newValue;
-					return true;
-				}
-				return false;
+				if (IsImportingBinder == newValue) return false;
+
+				IsImportingBinder = newValue;
+				return true;
 			}
 		}
 
@@ -103,16 +101,14 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_isImportingExportingLocker)
 			{
-				if (IsExportingBinder != newValue)
-				{
-					IsExportingBinder = newValue;
-					return true;
-				}
-				return false;
+				if (IsExportingBinder == newValue) return false;
+
+				IsExportingBinder = newValue;
+				return true;
 			}
 		}
 
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 
 		public BriefcaseVM(AnimationStarter animationStarter)
 		{
@@ -201,14 +197,9 @@ namespace UniFiler10.ViewModels
 		public async Task<bool> TryOpenCurrentBinderAsync(string dbName)
 		{
 			var bf = _briefcase;
-			if (bf != null)
-			{
-				if (await bf.SetCurrentBinderNameAsync(dbName).ConfigureAwait(false))
-				{
-					return true;
-				}
-			}
-			return false;
+			if (bf == null) return false;
+
+			return await bf.SetCurrentBinderNameAsync(dbName).ConfigureAwait(false);
 		}
 		public Task CloseBinderAsync()
 		{
@@ -223,14 +214,7 @@ namespace UniFiler10.ViewModels
 				if (bf != null)
 				{
 					bool isDbNameWrongAndBriefcaseIsOpen = await bf.IsNewDbNameWrongAsync(_newDbName).ConfigureAwait(false);
-					if (isDbNameWrongAndBriefcaseIsOpen)
-					{
-						IsNewDbNameErrorMessageVisible = true;
-					}
-					else
-					{
-						IsNewDbNameErrorMessageVisible = false;
-					}
+					IsNewDbNameErrorMessageVisible = isDbNameWrongAndBriefcaseIsOpen;
 				}
 				else
 				{
@@ -260,16 +244,13 @@ namespace UniFiler10.ViewModels
 			{
 				//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
 
-				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				var dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingBinder will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingBinder and, if true, we try again.
 				// ContinueAfterPickAsync sets IsImportingBinder to false, so there won't be redundant attempts.
-				await RunFunctionIfOpenThreeStateAsyncT(delegate
-				{
-					return ContinueImportBinderStep1Async(bc, dir);
-				}).ConfigureAwait(false);
+				await RunFunctionIfOpenThreeStateAsyncT(() => ContinueImportBinderStep1Async(bc, dir)).ConfigureAwait(false);
 			}
 			else
 			{
@@ -355,14 +336,9 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isImported)
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			}
-			else
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-			}
+			_animationStarter.StartAnimation(isImported
+				? AnimationStarter.Animations.Success
+				: AnimationStarter.Animations.Failure);
 
 			IsImportingBinder = false;
 		}
@@ -384,14 +360,9 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isImported)
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			}
-			else
-			{
-				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
-			}
+			_animationStarter.StartAnimation(isImported
+				? AnimationStarter.Animations.Success
+				: AnimationStarter.Animations.Failure);
 
 			IsImportingBinder = false;
 		}
@@ -417,10 +388,7 @@ namespace UniFiler10.ViewModels
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingFolders will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingFolders and, if true, we try again.
 				// ContinueAfterPickAsync sets IsImportingFolders to false, so there won't be redundant attempts.
-				await RunFunctionIfOpenThreeStateAsyncT(delegate
-				{
-					return ContinueAfterExportBinderPickerAsync(dir, dbName, bc);
-				}).ConfigureAwait(false);
+				await RunFunctionIfOpenThreeStateAsyncT(() => ContinueAfterExportBinderPickerAsync(dir, dbName, bc)).ConfigureAwait(false);
 			}
 			else
 			{
@@ -446,8 +414,9 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isExported) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			_animationStarter.StartAnimation(isExported
+				? AnimationStarter.Animations.Success
+				: AnimationStarter.Animations.Failure);
 
 			IsExportingBinder = false;
 		}

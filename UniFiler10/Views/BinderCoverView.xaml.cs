@@ -25,7 +25,7 @@ namespace UniFiler10.Views
 		private volatile BinderCoverVM _vm = null;
 		public BinderCoverVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
@@ -94,15 +94,12 @@ namespace UniFiler10.Views
 		#region event handlers
 		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			Task upd = RunFunctionIfOpenAsyncT(delegate
-			{
-				return UpdateVMAsync();
-			});
+			Task upd = RunFunctionIfOpenAsyncT(UpdateVMAsync);
 		}
 
 		private void OnDocumentView_DeleteClicked(object sender, DocumentView.DocumentClickedArgs e)
 		{
-			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement).DataContext as Binder.FolderPreview);
+			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement)?.DataContext as Binder.FolderPreview);
 		}
 
 		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)

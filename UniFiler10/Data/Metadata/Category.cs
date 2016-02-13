@@ -96,7 +96,7 @@ namespace UniFiler10.Data.Metadata
 
 		private volatile bool _isDisposed = false;
 		[IgnoreDataMember]
-		public bool IsDisposed { get { return _isDisposed; } private set { if (_isDisposed != value) { _isDisposed = value; } } }
+		public bool IsDisposed { get { return _isDisposed; } }
 		#endregion ctor and dispose
 
 

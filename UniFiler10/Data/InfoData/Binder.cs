@@ -32,7 +32,7 @@ namespace UniFiler10.Data.Model
 		}
 		protected Binder(string dbName)
 		{
-			if (dbName == null || string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
+			if (string.IsNullOrWhiteSpace(dbName)) throw new ArgumentException("Binder ctor: dbName cannot be null or empty");
 			SetDBName(dbName);
 		}
 		protected override void Dispose(bool isDisposing)
@@ -64,14 +64,15 @@ namespace UniFiler10.Data.Model
 			}
 			_dbManager = null;
 
+			// LOLLO TODO check what happens if _folders is empty
 			Task closeFolders = new Task(delegate
 			{
-				Parallel.ForEach(_folders, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (folder) =>
+				Parallel.ForEach(_folders, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, folder =>
 				   {
 					   // await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
 					   folder?.Dispose();
 				   });
-			}) ?? Task.CompletedTask;
+			});
 			Task save = SaveNonDbPropertiesAsync();
 			closeFolders.Start();
 
@@ -147,7 +148,7 @@ namespace UniFiler10.Data.Model
 		public Folder CurrentFolder
 		{
 			get { return _currentFolder; }
-			private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
+			//private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
 		}
 
 		[DataMember]
@@ -156,7 +157,7 @@ namespace UniFiler10.Data.Model
 
 
 		#region filter properties
-		public enum Filters { All, Recent, Cat, Field };
+		public enum Filters { All, Recent, Cat, Field }
 		private const int HOW_MANY_FOLDERS_IN_RECENT_VIEW = 10;
 
 		public class FolderPreview : ObservableData
@@ -276,7 +277,7 @@ namespace UniFiler10.Data.Model
 				CatIdForFldFilter = catId;
 				FldDscIdForFldFilter = fldDscId;
 				FldValIdForFldFilter = fldValId;
-			};
+			}
 		}
 		//public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
 		//{
@@ -444,15 +445,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (_folders != null)
 			{
-				if (_currentFolderId != null)
-				{
-					// do not close the folder, just disable it. It keeps more memory busy but it's faster.
-					_currentFolder = _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
-				}
-				else
-				{
-					_currentFolder = null;
-				}
+				_currentFolder = _currentFolderId != null ? _folders.FirstOrDefault(fo => fo.Id == _currentFolderId) : null;
 				if (_currentFolder != null && openTheFolder)
 				{
 					await _currentFolder.OpenAsync().ConfigureAwait(false);
@@ -472,10 +465,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenCurrentFolderAsync()
 		{
-			return RunFunctionIfOpenAsyncT(delegate
-			{
-				return UpdateCurrentFolder2Async(true);
-			});
+			return RunFunctionIfOpenAsyncT(() => UpdateCurrentFolder2Async(true));
 		}
 
 		public Task<bool> OpenFolderAsync(string folderId)
@@ -534,7 +524,7 @@ namespace UniFiler10.Data.Model
 						isDeleteTempDir = true;
 					}
 
-					if (CancToken == null || CancToken.IsCancellationRequested) return false;
+					if (CancToken.IsCancellationRequested) return false;
 
 					mergingBinder = MergingBinder.CreateInstance(DBName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
@@ -550,35 +540,29 @@ namespace UniFiler10.Data.Model
 					// parallelisation here seems ideal, but it screws with SQLite.
 					foreach (var fol in mergingBinder.Folders)
 					{
-						if (fol != null)
+						if (fol == null) continue;
+						await fol.OpenAsync().ConfigureAwait(false);
+						if (!await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false)) continue;
+						await fol.SetDbManager(_dbManager).ConfigureAwait(false);
+
+						await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
+						foreach (var wal in fol.Wallets)
 						{
-							await fol.OpenAsync().ConfigureAwait(false);
-							if (await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false))
+							foreach (var doc in wal.Documents)
 							{
-								await fol.SetDbManager(_dbManager).ConfigureAwait(false);
-
-								await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
-								foreach (var wal in fol.Wallets)
-								{
-									foreach (var doc in wal.Documents)
-									{
-										var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
-										if (file != null)
-										{
-											// the file name might change to avoid name collisions
-											var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-											doc.Uri0 = copiedFile.Name;
-										}
-									}
-									await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
-								}
-
-								await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
-								await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
-
-								await RunInUiThreadAsync(() => _folders.Add(fol)).ConfigureAwait(false);
+								var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
+								if (file == null) continue;
+								// the file name might change to avoid name collisions
+								var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
+								doc.Uri0 = copiedFile.Name;
 							}
+							await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
 						}
+
+						await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
+						await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
+
+						await RunInUiThreadAsync(() => _folders.Add(fol)).ConfigureAwait(false);
 					}
 					isOk = true;
 				}
@@ -640,17 +624,11 @@ namespace UniFiler10.Data.Model
 		//}
 		public Task<bool> RemoveFolderAsync(string folderId)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return RemoveFolder2Async(folderId);
-			});
+			return RunFunctionIfOpenAsyncTB(() => RemoveFolder2Async(folderId));
 		}
 		public Task<bool> RemoveFolderAsync(Folder folder)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return RemoveFolder2Async(folder);
-			});
+			return RunFunctionIfOpenAsyncTB(() => RemoveFolder2Async(folder));
 		}
 		private async Task<bool> RemoveFolder2Async(string folderId)
 		{
@@ -679,11 +657,9 @@ namespace UniFiler10.Data.Model
 
 				return true;
 			}
-			else
-			{
-				Debugger.Break(); // LOLLO this must never happen, check it
-				await Logger.AddAsync("Attempting to remove folder, the db operation failed", Logger.FileErrorLogFilename).ConfigureAwait(false);
-			}
+			Debugger.Break(); // LOLLO this must never happen, check it
+			await Logger.AddAsync("Attempting to remove folder, the db operation failed", Logger.FileErrorLogFilename).ConfigureAwait(false);
+
 			return false;
 		}
 		#endregion while open methods
@@ -756,7 +732,7 @@ namespace UniFiler10.Data.Model
 			}).ConfigureAwait(false);
 			return output;
 		}
-		private List<FolderPreview> GetFolderPreviews(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
+		private static List<FolderPreview> GetFolderPreviews(IEnumerable<Folder> folders, IEnumerable<Wallet> wallets, IEnumerable<Document> documents)
 		{
 			var folderPreviews = new List<FolderPreview>();
 

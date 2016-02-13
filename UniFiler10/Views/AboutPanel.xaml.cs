@@ -71,7 +71,7 @@ namespace UniFiler10.Views
 
 		private async void OnLogButton_Click(object sender, RoutedEventArgs e)
 		{
-			String cnt = (sender as Button).Content.ToString();
+			string cnt = (sender as Button)?.Content?.ToString();
 			if (cnt == "FileError")
 			{
 				LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);

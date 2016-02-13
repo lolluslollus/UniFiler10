@@ -44,7 +44,7 @@ namespace UniFiler10.Views
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (file == null || cancToken == null) return false;
+				if (file == null) return false;
 				bool isOk = await StartRecordingAsync(file).ConfigureAwait(false);
 
 				// Lock the thread asynchronously until explicitly closed from the caller. 
@@ -175,7 +175,7 @@ namespace UniFiler10.Views
 				//await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate { PreviewControl.Source = _mediaCapture; });
 				//await _mediaCapture.StartPreviewAsync();
 
-				_isRecording = true;
+				IsRecording = true;
 				isOk = await _audioRecorder.StartRecordingAsync().ConfigureAwait(false);
 				if (!isOk)
 				{
@@ -202,7 +202,7 @@ namespace UniFiler10.Views
 			var ar = _audioRecorder;
 			if (ar != null)
 			{
-				_isRecording = false;
+				IsRecording = false;
 				isOk = await ar.StopRecordingAsync();
 			}
 

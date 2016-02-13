@@ -57,7 +57,7 @@ namespace UniFiler10.Views
 
 		private void OnSelectCategory_Click(object sender, RoutedEventArgs e)
 		{
-			Task upd = VM?.SetCurrentCategoryAsync((sender as FrameworkElement).DataContext as Category);
+			Task upd = VM?.SetCurrentCategoryAsync((sender as FrameworkElement)?.DataContext as Category);
 		}
 
 		private void OnUnassignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
@@ -67,7 +67,7 @@ namespace UniFiler10.Views
 
 		private void OnSelectUnassignedFldDsc_Click(object sender, RoutedEventArgs e)
 		{
-			Task sel = SelectUnaFldDsc((sender as FrameworkElement).DataContext as FieldDescription);
+			Task sel = SelectUnaFldDsc((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
 
 		private async Task SelectUnaFldDsc(FieldDescription fldDsc)
@@ -87,7 +87,7 @@ namespace UniFiler10.Views
 
 		private void OnSelectAssignedFldDsc_Click(object sender, RoutedEventArgs e)
 		{
-			Task sel = SelectAssFldDsc((sender as FrameworkElement).DataContext as FieldDescription);
+			Task sel = SelectAssFldDsc((sender as FrameworkElement)?.DataContext as FieldDescription);
 		}
 
 		private async Task SelectAssFldDsc(FieldDescription fldDsc)
@@ -170,7 +170,7 @@ namespace UniFiler10.Views
 					// LOLLO TODO the following line was buggy, check it
 					var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
 
-					if (catsWhereThisFieldWasAssignedBefore != null && catsWhereThisFieldWasAssignedBefore.Count() > 0) AllowIfElevated(sender);
+					if (catsWhereThisFieldWasAssignedBefore?.Any() == true) AllowIfElevated(sender);
 					else Allow(sender);
 				}
 				else Allow(sender);
@@ -181,21 +181,20 @@ namespace UniFiler10.Views
 		private static void Forbid(object sender)
 		{
 			(sender as FrameworkElement).Visibility = Visibility.Collapsed;
-			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, null));
+			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, string.Empty));
 		}
 
 		private static void AllowIfElevated(object sender)
 		{
-			if (SettingsVM.GetIsElevated()) (sender as FrameworkElement).Visibility = Visibility.Visible;
-			else (sender as FrameworkElement).Visibility = Visibility.Collapsed;
+			(sender as FrameworkElement).Visibility = SettingsVM.GetIsElevated() ? Visibility.Visible : Visibility.Collapsed;
 
-			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, null));
+			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, string.Empty));
 		}
 
 		private static void Allow(object sender)
 		{
 			(sender as FrameworkElement).Visibility = Visibility.Visible;
-			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(true, null, null, null));
+			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(true, null, null, string.Empty));
 		}
 	}
 }

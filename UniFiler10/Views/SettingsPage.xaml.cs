@@ -20,7 +20,7 @@ namespace UniFiler10.Views
 		private SettingsVM _vm = null;
 		public SettingsVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
 
 

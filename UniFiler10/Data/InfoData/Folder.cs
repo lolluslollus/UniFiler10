@@ -244,7 +244,8 @@ namespace UniFiler10.Data.Model
 			var availableCats = MetaBriefcase.OpenInstance?.Categories;
 			if (availableCats == null) return;
 
-			var obsoleteDynCats = _dynamicCategories.Where(dynCat => !availableCats.Any(cat => cat.Id == dynCat.CategoryId)).ToList();
+			//var obsoleteDynCats = _dynamicCategories.Where(dynCat => !availableCats.Any(cat => cat.Id == dynCat.CategoryId)).ToList();
+			var obsoleteDynCats = _dynamicCategories.Where(dynCat => availableCats.All(cat => cat.Id != dynCat.CategoryId)).ToList();
 			foreach (var obsoleteDynCat in obsoleteDynCats)
 			{
 				await RemoveDynamicCategoryAndItsDynFields2Async(obsoleteDynCat.CategoryId).ConfigureAwait(false);
@@ -270,7 +271,8 @@ namespace UniFiler10.Data.Model
 					{
 						foreach (var fldDsc in dynCat.Category.FieldDescriptions)
 						{
-							if (!shouldBeFldDscs.Any(fd => fd.Id == fldDsc.Id)) shouldBeFldDscs.Add(fldDsc);
+							//if (!shouldBeFldDscs.Any(fd => fd.Id == fldDsc.Id)) shouldBeFldDscs.Add(fldDsc);
+							if (shouldBeFldDscs.All(fd => fd.Id != fldDsc.Id)) shouldBeFldDscs.Add(fldDsc);
 						}
 					}
 					else
@@ -281,7 +283,8 @@ namespace UniFiler10.Data.Model
 				}
 				// remove obsolete fields
 				// LOLLO I create a List, instead of using the IEnumerable, otherwise the following Remove will break the ienumerable and dump!
-				var obsoleteDynFlds = _dynamicFields.Where(dynFld => !shouldBeFldDscs.Any(fldDsc => fldDsc.Id == dynFld.FieldDescriptionId)).ToList();
+				//var obsoleteDynFlds = _dynamicFields.Where(dynFld => !shouldBeFldDscs.Any(fldDsc => fldDsc.Id == dynFld.FieldDescriptionId)).ToList();
+				var obsoleteDynFlds = _dynamicFields.Where(dynFld => shouldBeFldDscs.All(fldDsc => fldDsc.Id != dynFld.FieldDescriptionId)).ToList();
 				foreach (var obsoleteDynFld in obsoleteDynFlds)
 				{
 					if (await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
@@ -308,7 +311,8 @@ namespace UniFiler10.Data.Model
 
 				// add new fields // LOLLO this dumps after removing an obsolete field. the kludgy loop above, instead, works. find out why. 
 				// maybe because it was a hashset, and i did not set it properly? it seems so.
-				var newFldDscs = shouldBeFldDscs.Where(fldDsc => !_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
+				//var newFldDscs = shouldBeFldDscs.Where(fldDsc => !_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
+				var newFldDscs = shouldBeFldDscs.Where(fldDsc => _dynamicFields.All(dynFld => dynFld.FieldDescriptionId != fldDsc.Id));
 				foreach (var newFldDsc in newFldDscs)
 				{
 					var dynFld = new DynamicField(DBManager, Id, newFldDsc.Id);
@@ -401,10 +405,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> RemoveWalletAsync(Wallet wallet)
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
-			{
-				return await RemoveWallet2Async(wallet).ConfigureAwait(false);
-			});
+			return RunFunctionIfOpenAsyncTB(async () => await RemoveWallet2Async(wallet).ConfigureAwait(false));
 		}
 		private async Task<bool> RemoveWallet2Async(Wallet wallet)
 		{
@@ -432,7 +433,8 @@ namespace UniFiler10.Data.Model
 				{
 					var newDynCat = new DynamicCategory(DBManager, Id, catId);
 
-					if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
+					//if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
+					if (Check(newDynCat) && _dynamicCategories.All(dc => dc.CategoryId != catId))
 					{
 						List<DynamicField> newDynFlds = new List<DynamicField>();
 						var dbM = DBManager;
@@ -455,10 +457,8 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDynamicCategoryAndItsFieldsAsync(string catId)
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
-			{
-				return await RemoveDynamicCategoryAndItsDynFields2Async(catId).ConfigureAwait(false);
-			});
+			return RunFunctionIfOpenAsyncTB(
+				async () => await RemoveDynamicCategoryAndItsDynFields2Async(catId).ConfigureAwait(false));
 		}
 		private async Task<bool> RemoveDynamicCategoryAndItsDynFields2Async(string catId)
 		{

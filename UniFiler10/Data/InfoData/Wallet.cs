@@ -158,10 +158,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDocumentAsync(Document doc)
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
-			{
-				return await RemoveDocument2Async(doc).ConfigureAwait(false);
-			});
+			return RunFunctionIfOpenAsyncTB(async () => await RemoveDocument2Async(doc).ConfigureAwait(false));
 		}
 
 		public Task<bool> ImportMediaFileAsync(StorageFile file, bool copyFile)

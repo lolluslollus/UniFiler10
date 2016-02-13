@@ -37,7 +37,7 @@
 		<ctl:LolloSplitView.PaneContent>
 			<ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
                 HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
-				<Grid Background="{ThemeResource SystemChromeWhiteColor}">
+				<Grid Background="{StaticResource LolloSystemChromeWhiteBrush}">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="*"/>

@@ -56,7 +56,7 @@ namespace UniFiler10.Views
 		private readonly DisplayRequest _displayRequest = new DisplayRequest();
 
 		// For listening to media property changes
-		private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
+		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
 
 		// MediaCapture and its state variables
 		private MediaCapture _mediaCapture;
@@ -92,8 +92,10 @@ namespace UniFiler10.Views
 					_triggerSemaphore = new SemaphoreSlimSafeRelease(0, 1); // this semaphore is always closed at the beginning
 					try
 					{
-						await _triggerSemaphore.WaitAsync().ConfigureAwait(false);
+						await _triggerSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
 					}
+					catch (OperationCanceledException)
+					{ }
 					catch (Exception ex)
 					{
 						if (SemaphoreSlimSafeRelease.IsAlive(_triggerSemaphore))
@@ -113,10 +115,7 @@ namespace UniFiler10.Views
 		public Task<bool> StopAsync()
 		{
 			SemaphoreSlimSafeRelease.TryRelease(_triggerSemaphore);
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return Stop2Async();
-			});
+			return RunFunctionIfOpenAsyncTB(Stop2Async);
 		}
 		private async Task TakePhotoAndStopAsync()
 		{
@@ -175,12 +174,12 @@ namespace UniFiler10.Views
 
 
 		#region Event handlers
-		/// <summary>
-		/// In the event of the app being minimized this method handles media property change events. If the app receives a mute
-		/// notification, it is no longer in the foregroud.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="args"></param>
+		///// <summary>
+		///// In the event of the app being minimized this method handles media property change events. If the app receives a mute
+		///// notification, it is no longer in the foregroud.
+		///// </summary>
+		///// <param name="sender"></param>
+		///// <param name="args"></param>
 		//     private async void OnSystemMediaControls_PropertyChanged(SystemMediaTransportControls sender, SystemMediaTransportControlsPropertyChangedEventArgs args)
 		//     {
 		//         await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async delegate
@@ -306,90 +305,88 @@ namespace UniFiler10.Views
 		{
 			LastMessage = RuntimeData.GetText("CameraInitialising");
 
-			if (_mediaCapture == null)
+			if (_mediaCapture != null) return true;
+			// Attempt to get the back camera if one is available, but use any camera device if not
+			//var cameraDevice = await FindCameraDeviceByPanelAsync(Windows.Devices.Enumeration.Panel.Back);
+			var cameraDevice = RuntimeData.Instance?.VideoDevice;
+			if (cameraDevice == null)
 			{
-				// Attempt to get the back camera if one is available, but use any camera device if not
-				//var cameraDevice = await FindCameraDeviceByPanelAsync(Windows.Devices.Enumeration.Panel.Back);
-				var cameraDevice = RuntimeData.Instance?.VideoDevice;
-				if (cameraDevice == null)
-				{
-					LastMessage = RuntimeData.GetText("CameraDeviceNotFound");
-					return false;
-				}
-				//// LOLLO TEST the following should find out what a device is capable of: check it
-				//// according to https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
-				//// but my pad has no profiles it seems
-				//// so maybe https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt592658.aspx helps?
-				// it seems so. However, I still need to 
-				// Match the aspect ratio of the preview and capture streams
-				// and
-				// Determine if the preview and capture streams are independent
-				//
-				//// i already copied its helper class here at the bottom of the include.
-				//var profiles = MediaCapture.FindAllVideoProfiles(cameraDevice.Id);
-
-				//var match = (from profile in profiles
-				//			 from desc in profile.SupportedRecordMediaDescription
-				//				 //where desc.Width == 640 && desc.Height == 480 && Math.Round(desc.FrameRate) == 30
-				//			 select new { profile, desc, desc.Width, desc.Height });
-				//int test = profiles.Count; // LOLLO it does not find any profiles, even though the device is video capable.
-				// not all devices have profiles. To find out the max resolution, use
-				// check https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt282142.aspx
-
-				// Create MediaCapture and its settings
-				_mediaCapture = new MediaCapture();
-
-				// Register for a notification when video recording has reached the maximum time and when something goes wrong
-				//_mediaCapture.RecordLimitationExceeded += OnMediaCapture_RecordLimitationExceeded;
-				_mediaCapture.Failed += OnMediaCapture_Failed;
-
-				var settings = new MediaCaptureInitializationSettings { VideoDeviceId = cameraDevice.Id, MediaCategory = MediaCategory.Media, StreamingCaptureMode = StreamingCaptureMode.Video };
-
-				// Initialize MediaCapture
-				try
-				{
-					await _mediaCapture.InitializeAsync(settings);
-					_isInitialized = true;
-				}
-				catch (UnauthorizedAccessException)
-				{
-					LastMessage = RuntimeData.GetText("CameraNoAccess");
-					return false;
-				}
-				catch (Exception ex)
-				{
-					//                    LastMessage = string.Format("Exception when initializing MediaCapture with {0}: {1}", cameraDevice.Id, ex.ToString());
-					LastMessage = string.Format(RuntimeData.GetText("CameraInitialiseExceptionW1Params"), cameraDevice.Id, ex.ToString());
-					return false;
-				}
-
-				// If initialisation was ok, activate its button
-				FlashButton.IsEnabled = _mediaCapture.VideoDeviceController.FlashControl.Supported;
-
-				// If initialization succeeded, start the preview
-				// Figure out where the camera is located
-				if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Unknown)
-				{
-					// No information on the location of the camera, assume it's an external camera, not integrated on the device
-					_isExternalCamera = true;
-					_isMirroringPreview = false;
-				}
-				else
-				{
-					// Camera is fixed on the device
-					_isExternalCamera = false;
-
-					// Only mirror the preview if the camera is on the front panel
-					_isMirroringPreview = (cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front);
-				}
-
-				UpdateFlash();
-
-				LastMessage = string.Empty;
-				await StartPreviewAsync();
-
-				await UpdateCaptureControlsAsync();
+				LastMessage = RuntimeData.GetText("CameraDeviceNotFound");
+				return false;
 			}
+			//// LOLLO TEST the following should find out what a device is capable of: check it
+			//// according to https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt280221.aspx
+			//// but my pad has no profiles it seems
+			//// so maybe https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt592658.aspx helps?
+			// it seems so. However, I still need to 
+			// Match the aspect ratio of the preview and capture streams
+			// and
+			// Determine if the preview and capture streams are independent
+			//
+			//// i already copied its helper class here at the bottom of the include.
+			//var profiles = MediaCapture.FindAllVideoProfiles(cameraDevice.Id);
+
+			//var match = (from profile in profiles
+			//			 from desc in profile.SupportedRecordMediaDescription
+			//				 //where desc.Width == 640 && desc.Height == 480 && Math.Round(desc.FrameRate) == 30
+			//			 select new { profile, desc, desc.Width, desc.Height });
+			//int test = profiles.Count; // LOLLO it does not find any profiles, even though the device is video capable.
+			// not all devices have profiles. To find out the max resolution, use
+			// check https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt282142.aspx
+
+			// Create MediaCapture and its settings
+			_mediaCapture = new MediaCapture();
+
+			// Register for a notification when video recording has reached the maximum time and when something goes wrong
+			//_mediaCapture.RecordLimitationExceeded += OnMediaCapture_RecordLimitationExceeded;
+			_mediaCapture.Failed += OnMediaCapture_Failed;
+
+			var settings = new MediaCaptureInitializationSettings { VideoDeviceId = cameraDevice.Id, MediaCategory = MediaCategory.Media, StreamingCaptureMode = StreamingCaptureMode.Video };
+
+			// Initialize MediaCapture
+			try
+			{
+				await _mediaCapture.InitializeAsync(settings);
+				_isInitialized = true;
+			}
+			catch (UnauthorizedAccessException)
+			{
+				LastMessage = RuntimeData.GetText("CameraNoAccess");
+				return false;
+			}
+			catch (Exception ex)
+			{
+				//                    LastMessage = string.Format("Exception when initializing MediaCapture with {0}: {1}", cameraDevice.Id, ex.ToString());
+				LastMessage = string.Format(RuntimeData.GetText("CameraInitialiseExceptionW1Params"), cameraDevice.Id, ex.ToString());
+				return false;
+			}
+
+			// If initialisation was ok, activate its button
+			FlashButton.IsEnabled = _mediaCapture.VideoDeviceController.FlashControl.Supported;
+
+			// If initialization succeeded, start the preview
+			// Figure out where the camera is located
+			if (cameraDevice.EnclosureLocation == null || cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Unknown)
+			{
+				// No information on the location of the camera, assume it's an external camera, not integrated on the device
+				_isExternalCamera = true;
+				_isMirroringPreview = false;
+			}
+			else
+			{
+				// Camera is fixed on the device
+				_isExternalCamera = false;
+
+				// Only mirror the preview if the camera is on the front panel
+				_isMirroringPreview = cameraDevice.EnclosureLocation.Panel == Windows.Devices.Enumeration.Panel.Front;
+			}
+
+			UpdateFlash();
+
+			LastMessage = string.Empty;
+			await StartPreviewAsync();
+
+			await UpdateCaptureControlsAsync();
 			return true;
 		}
 
@@ -526,9 +523,9 @@ namespace UniFiler10.Views
 					// LOLLO check this
 					// https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt243896.aspx
 
-					var keys = imageEncodingProperties.Properties.Keys;
-					var testXR = ImageEncodingProperties.CreateJpegXR();
-					var keysXR = testXR.Properties.Keys;
+					//var keys = imageEncodingProperties.Properties.Keys;
+					//var testXR = ImageEncodingProperties.CreateJpegXR();
+					//var keysXR = testXR.Properties.Keys;
 
 					LastMessage = RuntimeData.GetText("CameraTakenPhoto");
 
@@ -550,16 +547,16 @@ namespace UniFiler10.Views
 			//VideoButton.Opacity = 1;
 		}
 
-		private bool IsPreviewAndCaptureStreamsIdentical()
-		{
-			if (_mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic == VideoDeviceCharacteristic.AllStreamsIdentical ||
-				_mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic == VideoDeviceCharacteristic.PreviewRecordStreamsIdentical)
-			{
-				return true;
-				// ShowMessageToUser("Preview and video streams for this device are identical. Changing one will affect the other");
-			}
-			return false;
-		}
+		//private bool IsPreviewAndCaptureStreamsIdentical()
+		//{
+		//	if (_mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic == VideoDeviceCharacteristic.AllStreamsIdentical ||
+		//		_mediaCapture.MediaCaptureSettings.VideoDeviceCharacteristic == VideoDeviceCharacteristic.PreviewRecordStreamsIdentical)
+		//	{
+		//		return true;
+		//		// ShowMessageToUser("Preview and video streams for this device are identical. Changing one will affect the other");
+		//	}
+		//	return false;
+		//}
 
 		/// <summary>
 		/// Records an MP4 video to a StorageFile and adds rotation metadata to it
@@ -685,10 +682,7 @@ namespace UniFiler10.Views
 		/// <returns></returns>
 		private async Task CleanupUiAsync()
 		{
-			await RunInUiThreadAsync(delegate
-			{
-				UnregisterEventHandlers();
-			});
+			await RunInUiThreadAsync(UnregisterEventHandlers);
 			// Show the status bar
 			if (ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
 			{
@@ -803,7 +797,7 @@ namespace UniFiler10.Views
 		/// <summary>
 		/// Applies the given orientation to a photo stream and saves it as a StorageFile
 		/// </summary>
-		/// <param name="stream">The photo stream</param>
+		/// <param name="inputStream">The photo stream</param>
 		/// <param name="photoOrientation">The orientation metadata to apply to the photo</param>
 		/// <returns></returns>
 		private async Task ReencodeAndSavePhotoAsync(IRandomAccessStream inputStream, PhotoOrientation photoOrientation)
@@ -831,10 +825,10 @@ namespace UniFiler10.Views
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
 				Debugger.Break();
 			}
-			finally
-			{
-				//VM?.ForceEndShootAsync();
-			}
+			//finally
+			//{
+			//	//VM?.ForceEndShootAsync();
+			//}
 		}
 		///// <summary>
 		///// If I take multiple photos, I need multiple files
@@ -899,41 +893,40 @@ namespace UniFiler10.Views
 			}
 
 			// If the preview is being mirrored for a front-facing camera, then the rotation should be inverted
-			if (_isMirroringPreview)
-			{
-				// This only affects the 90 and 270 degree cases, because rotating 0 and 180 degrees is the same clockwise and counter-clockwise
-				switch (result)
-				{
-					case SimpleOrientation.Rotated90DegreesCounterclockwise:
-						return SimpleOrientation.Rotated270DegreesCounterclockwise;
-					case SimpleOrientation.Rotated270DegreesCounterclockwise:
-						return SimpleOrientation.Rotated90DegreesCounterclockwise;
-				}
-			}
+			if (!_isMirroringPreview) return result;
 
+			// This only affects the 90 and 270 degree cases, because rotating 0 and 180 degrees is the same clockwise and counter-clockwise
+			if (result == SimpleOrientation.Rotated90DegreesCounterclockwise)
+			{
+				return SimpleOrientation.Rotated270DegreesCounterclockwise;
+			}
+			if (result == SimpleOrientation.Rotated270DegreesCounterclockwise)
+			{
+				return SimpleOrientation.Rotated90DegreesCounterclockwise;
+			}
 			return result;
 		}
 
-		/// <summary>
-		/// Converts the given orientation of the device in space to the corresponding rotation in degrees
-		/// </summary>
-		/// <param name="orientation">The orientation of the device in space</param>
-		/// <returns>An orientation in degrees</returns>
-		private static int ConvertDeviceOrientationToDegrees(SimpleOrientation orientation)
-		{
-			switch (orientation)
-			{
-				case SimpleOrientation.Rotated90DegreesCounterclockwise:
-					return 90;
-				case SimpleOrientation.Rotated180DegreesCounterclockwise:
-					return 180;
-				case SimpleOrientation.Rotated270DegreesCounterclockwise:
-					return 270;
-				case SimpleOrientation.NotRotated:
-				default:
-					return 0;
-			}
-		}
+		///// <summary>
+		///// Converts the given orientation of the device in space to the corresponding rotation in degrees
+		///// </summary>
+		///// <param name="orientation">The orientation of the device in space</param>
+		///// <returns>An orientation in degrees</returns>
+		//private static int ConvertDeviceOrientationToDegrees(SimpleOrientation orientation)
+		//{
+		//	switch (orientation)
+		//	{
+		//		case SimpleOrientation.Rotated90DegreesCounterclockwise:
+		//			return 90;
+		//		case SimpleOrientation.Rotated180DegreesCounterclockwise:
+		//			return 180;
+		//		case SimpleOrientation.Rotated270DegreesCounterclockwise:
+		//			return 270;
+		//		case SimpleOrientation.NotRotated:
+		//		default:
+		//			return 0;
+		//	}
+		//}
 
 		/// <summary>
 		/// Converts the given orientation of the app on the screen to the corresponding rotation in degrees
@@ -950,7 +943,6 @@ namespace UniFiler10.Views
 					return 180;
 				case DisplayOrientations.PortraitFlipped:
 					return 270;
-				case DisplayOrientations.Landscape:
 				default:
 					return 0;
 			}
@@ -971,7 +963,6 @@ namespace UniFiler10.Views
 					return PhotoOrientation.Rotate180;
 				case SimpleOrientation.Rotated270DegreesCounterclockwise:
 					return PhotoOrientation.Rotate270;
-				case SimpleOrientation.NotRotated:
 				default:
 					return PhotoOrientation.Normal;
 			}
@@ -1004,9 +995,9 @@ namespace UniFiler10.Views
 		#endregion Rotation helpers
 	}
 
-	class StreamPropertiesHelper
+	internal class StreamPropertiesHelper
 	{
-		private IMediaEncodingProperties _properties;
+		private readonly IMediaEncodingProperties _properties;
 
 		public StreamPropertiesHelper(IMediaEncodingProperties properties)
 		{
@@ -1064,13 +1055,12 @@ namespace UniFiler10.Views
 		{
 			get
 			{
-				if (_properties is VideoEncodingProperties)
+				if (!(_properties is VideoEncodingProperties)) return 0;
+
+				if ((_properties as VideoEncodingProperties).FrameRate?.Denominator != 0)
 				{
-					if ((_properties as VideoEncodingProperties).FrameRate.Denominator != 0)
-					{
-						return (_properties as VideoEncodingProperties).FrameRate.Numerator /
-							(_properties as VideoEncodingProperties).FrameRate.Denominator;
-					}
+					return (_properties as VideoEncodingProperties).FrameRate.Numerator /
+					       (_properties as VideoEncodingProperties).FrameRate.Denominator;
 				}
 
 				return 0;
@@ -1103,5 +1093,4 @@ namespace UniFiler10.Views
 		}
 
 	}
-
 }

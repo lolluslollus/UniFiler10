@@ -20,7 +20,7 @@ namespace UniFiler10.Views
 		private BriefcaseVM _vm = null;
         public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged(); } }
 
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
 
 

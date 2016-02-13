@@ -18,6 +18,7 @@
 
     <SolidColorBrush x:Key="FlashyForeground" Color="Red" />
     <SolidColorBrush x:Key="EmailForeground" Color="Blue" />
+	<SolidColorBrush x:Key="LolloSystemChromeWhiteBrush" Color="{ThemeResource SystemChromeWhiteColor}"/>
     <media:FontFamily x:Key="DefaultFontFamily">Segoe WP</media:FontFamily>
 
     <!--<GridLength x:Key="MiniatureWidth_ForGrid">200</GridLength>
@@ -121,12 +122,12 @@
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
     </Style>
 
-    <Style x:Key="ListItemTextStyle" TargetType="TextBlock">
+    <!--<Style x:Key="ListItemTextStyle" TargetType="TextBlock">
 		<Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}"/>
         <Setter Property="FontSize" Value="22"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
-    </Style>
+    </Style>-->
 
     <Style x:Key="HugeTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe WP Black"/>

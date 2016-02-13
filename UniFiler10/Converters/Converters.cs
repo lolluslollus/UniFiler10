@@ -18,9 +18,9 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null) return false;
-			return true;
+			return value != null;
 		}
+
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			throw new Exception("this is a one-way binding, it should never come here");
@@ -30,9 +30,9 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null) return Visibility.Collapsed;
-			return Visibility.Visible;
+			return value == null ? Visibility.Collapsed : Visibility.Visible;
 		}
+
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			throw new Exception("this is a one-way binding, it should never come here");
@@ -70,12 +70,12 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return false;
+			if (!(value is bool)) return false;
 			return !((bool)value);
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return false;
+			if (!(value is bool)) return false;
 			return !((bool)value);
 		}
 	}
@@ -84,10 +84,10 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return Visibility.Collapsed;
+			if (!(value is bool)) return Visibility.Collapsed;
 			bool boo = (bool)value;
 			if (boo) return Visibility.Visible;
-			else return Visibility.Collapsed;
+			return Visibility.Collapsed;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -99,10 +99,10 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return Visibility.Visible;
+			if (!(value is bool)) return Visibility.Visible;
 			bool boo = (bool)value;
 			if (boo) return Visibility.Collapsed;
-			else return Visibility.Visible;
+			return Visibility.Visible;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -114,10 +114,10 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return Application.Current.Resources["FlashyForeground"];
+			if (!(value is bool)) return Application.Current.Resources["FlashyForeground"];
 			bool boo = (bool)value;
 			if (boo) return Application.Current.Resources["SystemControlForegroundBaseHighBrush"];
-			else return Application.Current.Resources["FlashyForeground"];
+			return Application.Current.Resources["FlashyForeground"];
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -129,7 +129,7 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is string)) return Visibility.Visible;
+			if (!(value is string)) return Visibility.Visible;
 			string txt = value.ToString();
 			if (string.IsNullOrWhiteSpace(txt)) return Visibility.Visible;
 			else return Visibility.Collapsed;
@@ -143,7 +143,7 @@ namespace UniFiler10.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is string)) return Visibility.Collapsed;
+			if (!(value is string)) return Visibility.Collapsed;
 			string txt = value.ToString();
 			if (string.IsNullOrWhiteSpace(txt)) return Visibility.Collapsed;
 			else return Visibility.Visible;
@@ -161,7 +161,7 @@ namespace UniFiler10.Converters
 			string output = string.Empty;
 			try
 			{
-				output = string.Format(CultureInfo.CurrentUICulture, format, new object[1] { value });
+				output = string.Format(CultureInfo.CurrentUICulture, format, new[] { value });
 			}
 			catch (FormatException)
 			{

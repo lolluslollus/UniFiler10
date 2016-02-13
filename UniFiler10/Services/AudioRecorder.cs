@@ -30,8 +30,8 @@ namespace Utilz
 		//private AudioDeviceOutputNode _deviceOutputNode; // away, so we get no echo
 		private AudioDeviceInputNode _deviceInputNode;
 		private DeviceInformationCollection _outputDevices;
-		private IMessageWriter _messageWriter;
-		private StorageFile _file;
+		private readonly IMessageWriter _messageWriter;
+		private readonly StorageFile _file;
 		#endregion properties
 
 		#region lifecycle
@@ -94,7 +94,6 @@ namespace Utilz
 		/// <summary>
 		/// Required before starting recording
 		/// </summary>
-		/// <param name="file"></param>
 		/// <returns></returns>
 		private async Task<string> CreateAudioGraphAsync()
 		{
@@ -187,17 +186,20 @@ namespace Utilz
 			return string.Empty;
 		}
 
-		private MediaEncodingProfile CreateMediaEncodingProfile(StorageFile file)
+		private static MediaEncodingProfile CreateMediaEncodingProfile(IStorageFile file)
 		{
 			MediaEncodingProfile output = null;
-			switch (file.FileType.ToString().ToLowerInvariant())
+			switch (file?.FileType?.ToLowerInvariant())
 			{
 				case ".wma":
-					output = MediaEncodingProfile.CreateWma(AudioEncodingQuality.High); break;
+					output = MediaEncodingProfile.CreateWma(AudioEncodingQuality.High);
+					break;
 				case ".mp3":
-					output = MediaEncodingProfile.CreateMp3(AudioEncodingQuality.High); break; // LOLLO NOTE error with phone Unknown failure as a consequence of this. Wav works instead.
+					output = MediaEncodingProfile.CreateMp3(AudioEncodingQuality.High);
+					break; // LOLLO NOTE error with phone Unknown failure as a consequence of this. Wav works instead.
 				case ".wav":
-					output = MediaEncodingProfile.CreateWav(AudioEncodingQuality.High); break;
+					output = MediaEncodingProfile.CreateWav(AudioEncodingQuality.High);
+					break;
 				default:
 					throw new ArgumentException("AudioRecorder.CreateMediaEncodingProfile() : wrong media encoding profile");
 			}

@@ -76,7 +76,7 @@ namespace UniFiler10.Data.Model
 		private void UpdateCategory2()
 		{
 			var mbf = MetaBriefcase.OpenInstance;
-			if (mbf != null && mbf.Categories != null && !string.IsNullOrEmpty(_categoryId))
+			if (mbf?.Categories != null && !string.IsNullOrEmpty(_categoryId))
 			{
 				Category = mbf.Categories.FirstOrDefault(a => a.Id == _categoryId);
 			}

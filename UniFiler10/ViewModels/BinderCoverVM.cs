@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,7 +21,7 @@ namespace UniFiler10.ViewModels
 	{
 		#region fields
 		private const int REFRESH_INTERVAL_LONG_MSEC = 5000;
-		private const int REFRESH_INTERVAL_SHORT_MSEC = 25;
+		//private const int REFRESH_INTERVAL_SHORT_MSEC = 25;
 		private readonly AnimationStarter _animationStarter = null;
 		#endregion fields
 
@@ -129,12 +130,9 @@ namespace UniFiler10.ViewModels
 			IsAllFoldersDirty = newValue;
 			IsRecentFoldersDirty = newValue;
 
-			if (scheduleUpdate)
+			if (scheduleUpdate && (_isAllFoldersDirty || _isRecentFoldersDirty))
 			{
-				if (_isAllFoldersDirty || _isRecentFoldersDirty)
-				{
-					Task upd = UpdatePaneContentAsync(withinMsec);
-				}
+				Task upd = UpdatePaneContentAsync(withinMsec);
 			}
 
 			//IsByCatFoldersDirty = newValue; // we don't use these variables to avoid catching all sorts of data changes
@@ -150,15 +148,13 @@ namespace UniFiler10.ViewModels
 		private void SetCatNameForCatFilter(string value, bool doUpdates)
 		{
 			string newValue = value ?? string.Empty;
-			if (_catNameForCatFilter != newValue)
-			{
-				_catNameForCatFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForCatFilter));
-				if (doUpdates)
-				{
-					UpdateCatFilterId_ToAConsistentState();
-					if (_isByCatFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-				}
-			}
+			if (_catNameForCatFilter == newValue) return;
+
+			_catNameForCatFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForCatFilter));
+			if (!doUpdates) return;
+
+			UpdateCatFilterId_ToAConsistentState();
+			if (_isByCatFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 		}
 
 		private volatile string _catNameForFldFilter = string.Empty;
@@ -170,16 +166,14 @@ namespace UniFiler10.ViewModels
 		private void SetCatNameForFldFilter(string value, bool doUpdates)
 		{
 			string newValue = value ?? string.Empty;
-			if (_catNameForFldFilter != newValue)
-			{
-				_catNameForFldFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForFldFilter));
-				if (doUpdates)
-				{
-					UpdateFldFilterIds_ToAConsistentState();
-					UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
-					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-				}
-			}
+			if (_catNameForFldFilter == newValue) return;
+
+			_catNameForFldFilter = newValue; RaisePropertyChanged_UI(nameof(CatNameForFldFilter));
+			if (!doUpdates) return;
+
+			UpdateFldFilterIds_ToAConsistentState();
+			UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
+			if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 		}
 
 		private volatile string _fldDscCaptionForFldFilter = string.Empty;
@@ -191,16 +185,14 @@ namespace UniFiler10.ViewModels
 		private void SetFldDscCaptionForFldFilter(string value, bool doUpdates)
 		{
 			string newValue = value ?? string.Empty;
-			if (_fldDscCaptionForFldFilter != newValue)
-			{
-				_fldDscCaptionForFldFilter = newValue; RaisePropertyChanged_UI(nameof(FldDscCaptionForFldFilter));
-				if (doUpdates)
-				{
-					UpdateFldFilterIds_ToAConsistentState();
-					UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
-					if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
-				}
-			}
+			if (_fldDscCaptionForFldFilter == newValue) return;
+
+			_fldDscCaptionForFldFilter = newValue; RaisePropertyChanged_UI(nameof(FldDscCaptionForFldFilter));
+			if (!doUpdates) return;
+
+			UpdateFldFilterIds_ToAConsistentState();
+			UpdateFldFilterFromIds(); // call this coz this property can affect other *FldFilter properties
+			if (_isByFldFolderPaneOpen) { Task upd = UpdatePaneContentAsync(0); }
 		}
 
 		private volatile string _fldValVaalueForFldFilter = string.Empty;
@@ -315,10 +307,7 @@ namespace UniFiler10.ViewModels
 				if (cat.FieldDescriptions != null) _fldDscsInCat.AddRange(cat.FieldDescriptions);
 
 				fldDsc = cat.FieldDescriptions.FirstOrDefault(fd => fd.Id == binder.FldDscIdForFldFilter);
-				if (fldDsc != null)
-				{
-					if (fldDsc.PossibleValues != null) _fldValsInFldDscs.AddRange(fldDsc.PossibleValues);
-				}
+				if (fldDsc?.PossibleValues != null) _fldValsInFldDscs.AddRange(fldDsc.PossibleValues);
 			}
 
 			SetCatNameForFldFilter(cat?.Name, false);
@@ -387,26 +376,26 @@ namespace UniFiler10.ViewModels
 			{
 				if (_isAllFoldersDirty && _isAllFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadAllFoldersAsync(); }, CancToken).ConfigureAwait(false);
+					await Task.Run(ReadAllFoldersAsync, CancToken).ConfigureAwait(false);
 					IsAllFoldersDirty = false;
 					IsRecentFoldersDirty = true;
 				}
 				if (_isRecentFoldersDirty && _isRecentFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadRecentFoldersAsync(); }, CancToken).ConfigureAwait(false);
+					await Task.Run(ReadRecentFoldersAsync, CancToken).ConfigureAwait(false);
 					IsAllFoldersDirty = true;
 					IsRecentFoldersDirty = false;
 				}
 				if (/*_isByCatFoldersDirty &&*/ _isByCatFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadByCatFoldersAsync(); }, CancToken).ConfigureAwait(false);
+					await Task.Run(ReadByCatFoldersAsync, CancToken).ConfigureAwait(false);
 					//IsByCatFoldersDirty = false;
 					IsAllFoldersDirty = true;
 					IsRecentFoldersDirty = true;
 				}
 				if (/*_isByFldFoldersDirty &&*/ _isByFldFolderPaneOpen)
 				{
-					await Task.Run(delegate { return ReadByFldFoldersAsync(); }, CancToken).ConfigureAwait(false);
+					await Task.Run(ReadByFldFoldersAsync, CancToken).ConfigureAwait(false);
 					//IsByFldFoldersDirty = false;
 					IsAllFoldersDirty = true;
 					IsRecentFoldersDirty = true;
@@ -507,7 +496,7 @@ namespace UniFiler10.ViewModels
 			await RefreshFolderPreviewsAsync(fp).ConfigureAwait(false);
 		}
 
-		private Task RefreshFolderPreviewsAsync(List<Binder.FolderPreview> folderPreviews)
+		private Task RefreshFolderPreviewsAsync(IEnumerable<Binder.FolderPreview> folderPreviews)
 		{
 			return RunInUiThreadAsync(delegate
 			{
@@ -548,7 +537,7 @@ namespace UniFiler10.ViewModels
 				RegisterDocumentChanged(doc);
 			}
 		}
-		private void RegisterDocumentChanged(Document doc)
+		private void RegisterDocumentChanged(INotifyPropertyChanged doc)
 		{
 			doc.PropertyChanged += OnFolWalDoc_PropertyChanged;
 		}
@@ -557,13 +546,12 @@ namespace UniFiler10.ViewModels
 			SetIsDirty(false, false, 0);
 
 			var folders = _binder?.Folders;
-			if (folders != null)
+			if (folders == null) return;
+
+			folders.CollectionChanged -= OnFol_CollectionChanged;
+			foreach (Folder fol in folders)
 			{
-				folders.CollectionChanged -= OnFol_CollectionChanged;
-				foreach (Folder fol in folders)
-				{
-					UnregisterFolderChanged(fol);
-				}
+				UnregisterFolderChanged(fol);
 			}
 		}
 		private void UnregisterFolderChanged(Folder fol)
@@ -583,7 +571,7 @@ namespace UniFiler10.ViewModels
 				UnregisterDocumentChanged(doc);
 			}
 		}
-		private void UnregisterDocumentChanged(Document doc)
+		private void UnregisterDocumentChanged(INotifyPropertyChanged doc)
 		{
 			doc.PropertyChanged -= OnFolWalDoc_PropertyChanged;
 		}
@@ -662,16 +650,13 @@ namespace UniFiler10.ViewModels
 		#region user actions
 		public async Task<bool> SetCurrentFolderAsync(string folderId)
 		{
-			if (!string.IsNullOrWhiteSpace(folderId))
-			{
-				var binder = _binder;
-				if (binder != null)
-				{
-					await binder.SetCurrentFolderIdAsync(folderId);
-					return true;
-				}
-			}
-			return false;
+			if (string.IsNullOrWhiteSpace(folderId)) return false;
+
+			var binder = _binder;
+			if (binder == null) return false;
+
+			await binder.SetCurrentFolderIdAsync(folderId);
+			return true;
 		}
 
 		public Task AddFolderAsync()
@@ -679,14 +664,13 @@ namespace UniFiler10.ViewModels
 			return RunFunctionIfOpenAsyncT(async delegate
 			{
 				var binder = _binder;
-				if (binder != null)
+				if (binder == null) return;
+
+				if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
 				{
-					if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
-					{
-						// if there is a filter in place, remove it to show the new folder 
-						if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
-						else SetIsDirty(true, true, 0);
-					}
+					// if there is a filter in place, remove it to show the new folder 
+					if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
+					else SetIsDirty(true, true, 0);
 				}
 			});
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
@@ -784,8 +768,9 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			_animationStarter.StartAnimation(isImported
+				? AnimationStarter.Animations.Success
+				: AnimationStarter.Animations.Failure);
 
 			IsImportingFolders = false;
 		}

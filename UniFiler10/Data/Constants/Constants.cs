@@ -41,8 +41,8 @@ namespace UniFiler10.Data.Constants
 		public const string REG_SETTINGS_IS_EXPORTING = "ImpExpSettings.IsExporting";
 		public const string REG_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
 
-		public static string AppName { get { return ConstantData.APPNAME; } }
-        private static string _version = Package.Current.Id.Version.Major.ToString()
+		public static string AppName { get { return APPNAME; } }
+        private static readonly string _version = Package.Current.Id.Version.Major.ToString()
             + "."
             + Package.Current.Id.Version.Minor.ToString()
             + "."

@@ -14,12 +14,14 @@ using Utilz.Data;
 using Windows.Media.Capture;
 using Windows.Storage;
 
+// LOLLO TODO Allow taking small, medium and large pics. The are only large at present.
+
 namespace UniFiler10.ViewModels
 {
 	public class FolderVM : OpenableObservableDisposableData
 	{
 		#region properties
-		private IRecorder _audioRecorderView = null;
+		private readonly IRecorder _audioRecorderView = null;
 		private Folder _folder = null;
 		public Folder Folder { get { return _folder; } }
 
@@ -65,7 +67,7 @@ namespace UniFiler10.ViewModels
 				return false;
 			}
 		}
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
@@ -136,17 +138,11 @@ namespace UniFiler10.ViewModels
 		#region user actions
 		public Task<bool> TrySetFieldValueAsync(DynamicField dynFld, string newValue)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return dynFld?.TrySetFieldValueAsync(newValue);
-			});
+			return RunFunctionIfOpenAsyncTB(() => dynFld?.TrySetFieldValueAsync(newValue));
 		}
 		public Task<bool> RemoveWalletFromFolderAsync(Wallet wallet)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return _folder?.RemoveWalletAsync(wallet);
-			});
+			return RunFunctionIfOpenAsyncTB(() => _folder?.RemoveWalletAsync(wallet));
 		}
 		public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
 		{
@@ -195,10 +191,7 @@ namespace UniFiler10.ViewModels
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingMedia will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingMedia and, if true, we try again.
 				// ContinueAfterFilePickAsync sets IsImportingMedia to false, so there won't be redundant attempts.
-				await RunFunctionIfOpenThreeStateAsyncT(delegate
-				{
-					return ContinueAfterFilePickAsync(file, directory, folder, null);
-				}).ConfigureAwait(false);
+				await RunFunctionIfOpenThreeStateAsyncT(() => ContinueAfterFilePickAsync(file, directory, folder, null)).ConfigureAwait(false);
 			}
 			else
 			{
@@ -224,10 +217,7 @@ namespace UniFiler10.ViewModels
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingMedia will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingMedia and, if true, we try again.
 				// ContinueAfterFilePickAsync sets IsImportingMedia to false, so there won't be redundant attempts.
-				await RunFunctionIfOpenThreeStateAsyncT(delegate
-				{
-					return ContinueAfterFilePickAsync(file, directory, folder, parentWallet);
-				}).ConfigureAwait(false);
+				await RunFunctionIfOpenThreeStateAsyncT(() => ContinueAfterFilePickAsync(file, directory, folder, parentWallet)).ConfigureAwait(false);
 			}
 			else
 			{
@@ -260,10 +250,7 @@ namespace UniFiler10.ViewModels
 					// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingMedia will stay true.
 					// In OpenMayOverrideAsync, we check IsImportingMedia and, if true, we try again.
 					// ContinueAfterFilePickAsync sets IsImportingMedia to false, so there won't be redundant attempts.
-					await RunFunctionIfOpenThreeStateAsyncT(delegate
-					{
-						return ContinueAfterFilePickAsync(file, directory, folder, parentWallet);
-					}).ConfigureAwait(false);
+					await RunFunctionIfOpenThreeStateAsyncT(() => ContinueAfterFilePickAsync(file, directory, folder, parentWallet)).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
@@ -279,7 +266,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private async Task ContinueAfterFilePickAsync(StorageFile file, StorageFolder directory, Folder folder, Wallet parentWallet, bool deleteFile = false)
+		private async Task ContinueAfterFilePickAsync(IStorageFile file, IStorageFolder directory, Folder folder, Wallet parentWallet, bool deleteFile = false)
 		{
 			bool isImported = false;
 
@@ -317,8 +304,9 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isImported) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			_animationStarter.StartAnimation(isImported
+				? AnimationStarter.Animations.Success
+				: AnimationStarter.Animations.Failure);
 
 			IsImportingMedia = false;
 		}
@@ -350,7 +338,7 @@ namespace UniFiler10.ViewModels
 								}
 								else
 								{
-									if (file != null) await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+									await file.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 									Debug.WriteLine("RecordAudioAsync(): recording interrupted");
 								}
 							}
@@ -401,24 +389,23 @@ namespace UniFiler10.ViewModels
 				get { return _isOn; }
 				set
 				{
-					if (_isOn != value)
+					if (_isOn == value) return;
+
+					_isOn = value; RaisePropertyChanged_UI();
+					if (value)
 					{
-						_isOn = value; RaisePropertyChanged_UI();
-						if (_isOn)
-						{
-							Task upd = _vm?.Folder?.AddDynamicCategoryAsync(_catId);
-						}
-						else
-						{
-							Task upd = _vm?.Folder?.RemoveDynamicCategoryAndItsFieldsAsync(_catId);
-						}
+						Task upd = _vm?.Folder?.AddDynamicCategoryAsync(_catId);
+					}
+					else
+					{
+						Task upd = _vm?.Folder?.RemoveDynamicCategoryAndItsFieldsAsync(_catId);
 					}
 				}
 			}
 
-			private string _catId = null;
+			private readonly string _catId = null;
 
-			private FolderVM _vm = null;
+			private readonly FolderVM _vm = null;
 
 			internal FolderCategorySelectorRow(FolderVM vm, string name, string catId, bool isOn)
 			{
@@ -430,14 +417,13 @@ namespace UniFiler10.ViewModels
 		}
 		public void UpdateCurrentFolderCategories()
 		{
-			if (_folder?.DynamicCategories != null && MetaBriefcase.OpenInstance?.Categories != null)
+			if (_folder?.DynamicCategories == null || MetaBriefcase.OpenInstance?.Categories == null) return;
+
+			_folderCategorySelector.Clear();
+			foreach (var metaCat in MetaBriefcase.OpenInstance.Categories)
 			{
-				_folderCategorySelector.Clear();
-				foreach (var metaCat in MetaBriefcase.OpenInstance.Categories)
-				{
-					var newSelectorRow = new FolderCategorySelectorRow(this, metaCat.Name, metaCat.Id, _folder.DynamicCategories.Any(a => a.CategoryId == metaCat.Id));
-					_folderCategorySelector.Add(newSelectorRow);
-				}
+				var newSelectorRow = new FolderCategorySelectorRow(this, metaCat.Name, metaCat.Id, _folder.DynamicCategories.Any(a => a.CategoryId == metaCat.Id));
+				_folderCategorySelector.Add(newSelectorRow);
 			}
 		}
 		#endregion edit categories

@@ -159,7 +159,7 @@ namespace Utilz
 			}
 		}
 
-		private async static Task<LicenseInformation> GetLicenseInformation()
+		private static async Task<LicenseInformation> GetLicenseInformation()
 		{
 #if DEBUG && TRIALTESTING
 			StorageFolder proxyDataFolder = await Package.Current.InstalledLocation.GetFolderAsync("Assets");
@@ -181,7 +181,7 @@ namespace Utilz
 			DateTimeOffset folderCreateDate = assetsFolder.DateCreated;
 
 			if (Package.Current.InstalledDate.IsBefore(folderCreateDate)) return Package.Current.InstalledDate;
-			else return folderCreateDate;
+			return folderCreateDate;
 		}
 		private static DateTimeOffset GetExpiryDate(LicenseInformation licenseInformation, DateTimeOffset installDate)
 		{
@@ -194,9 +194,9 @@ namespace Utilz
 		private static async Task<bool> AskQuitOrBuyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
-			UICommand quitCommand = new UICommand(RuntimeData.GetText("LicenserQuit"), (command) => { });
+			UICommand quitCommand = new UICommand(RuntimeData.GetText("LicenserQuit"), command => { });
 			dialog.Commands.Add(quitCommand);
-			UICommand buyCommand = new UICommand(RuntimeData.GetText("LicenserBuy"), (command) => { });
+			UICommand buyCommand = new UICommand(RuntimeData.GetText("LicenserBuy"), command => { });
 			dialog.Commands.Add(buyCommand);
 			// Set the command that will be invoked by default
 			dialog.DefaultCommandIndex = 1;
@@ -268,12 +268,9 @@ namespace Utilz
 					return false;
 				}
 			}
-			else
-			{
-				Logger.Add_TPL("ERROR: Licenser.BuyAsync() was called after the product had been bought already", Logger.ForegroundLogFilename);
-				await NotifyAsync(RuntimeData.GetText("LicenserAlreadyBoughtLong"), RuntimeData.GetText("LicenserAlreadyBoughtShort"));
-				return true;
-			}
+			Logger.Add_TPL("ERROR: Licenser.BuyAsync() was called after the product had been bought already", Logger.ForegroundLogFilename);
+			await NotifyAsync(RuntimeData.GetText("LicenserAlreadyBoughtLong"), RuntimeData.GetText("LicenserAlreadyBoughtShort"));
+			return true;
 		}
 
 		/// <summary>
@@ -297,7 +294,7 @@ namespace Utilz
 		private static async Task NotifyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
-			UICommand okCommand = new UICommand(RuntimeData.GetText("Ok"), (command) => { });
+			UICommand okCommand = new UICommand(RuntimeData.GetText("Ok"), command => { });
 			dialog.Commands.Add(okCommand);
 
 			Task<IUICommand> taskReply = null;
@@ -327,7 +324,7 @@ namespace Utilz
 		}
 		private class LicenserData
 		{
-			public const int LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT = 0;
+			private const int LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT = 0;
 			public static readonly DateTimeOffset DATE_DEFAULT = default(DateTimeOffset);
 
 			private static int _lastNonNegativeUsageDays = LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT;
@@ -397,14 +394,7 @@ namespace Utilz
 			{
 				string lastInstallDate = RegistryAccess.GetValue(nameof(LastInstallDate));
 				long ticks = default(long);
-				if (long.TryParse(lastInstallDate, out ticks))
-				{
-					return DateTimeOffset.FromFileTime(ticks);
-				}
-				else
-				{
-					return DATE_DEFAULT;
-				}
+				return long.TryParse(lastInstallDate, out ticks) ? DateTimeOffset.FromFileTime(ticks) : DATE_DEFAULT;
 			}
 			private static void SaveLastInstallDate()
 			{
@@ -415,14 +405,7 @@ namespace Utilz
 			{
 				string lastExpiryDate = RegistryAccess.GetValue(nameof(LastExpiryDate));
 				long ticks = default(long);
-				if (long.TryParse(lastExpiryDate, out ticks))
-				{
-					return DateTimeOffset.FromFileTime(ticks);
-				}
-				else
-				{
-					return DATE_DEFAULT;
-				}
+				return long.TryParse(lastExpiryDate, out ticks) ? DateTimeOffset.FromFileTime(ticks) : DATE_DEFAULT;
 			}
 			private static void SaveLastExpiryDate()
 			{

@@ -14,6 +14,8 @@ using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
+// LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
+
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
@@ -99,7 +101,7 @@ namespace UniFiler10.Data.Metadata
 			if (_fieldDescriptions != null && _currentFieldDescriptionId != null)
 			{
 				CurrentFieldDescription = _fieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
-				///CurrentFieldDescription = _currentCategory.FieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
+				//CurrentFieldDescription = _currentCategory.FieldDescriptions.FirstOrDefault(fd => fd.Id == _currentFieldDescriptionId);
 			}
 			else
 			{
@@ -193,13 +195,9 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				StorageFile file = _sourceFile;
-				if (file == null)
-				{
-					file = await GetDirectory()
-						.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-						.AsTask().ConfigureAwait(false);
-				}
+				StorageFile file = _sourceFile ?? await GetDirectory()
+					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
+					.AsTask().ConfigureAwait(false);
 				_sourceFile = null;
 				//String ssss = null; //this is useful when you debug and want to see the file as a string
 				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
@@ -296,7 +294,7 @@ namespace UniFiler10.Data.Metadata
 
 			return true;
 		}
-		private StorageFolder GetDirectory()
+		private static StorageFolder GetDirectory()
 		{
 			return ApplicationData.Current.RoamingFolder; // was LocalFolder
 		}
@@ -396,7 +394,7 @@ namespace UniFiler10.Data.Metadata
 					}).ConfigureAwait(false);
 					return isRemoved;
 				}
-				else return false;
+				return false;
 			});
 		}
 
@@ -471,16 +469,15 @@ namespace UniFiler10.Data.Metadata
 				return isRemoved;
 			});
 		}
-
+		// LOLLO TODO check that we don't save too often and not too rarely
 		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate { return SaveAsync(file); });
-			//return SaveAsync(file);
+			return RunFunctionIfOpenAsyncTB(() => SaveAsync(file));
 		}
 
 		public Task<bool> SaveACopyAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(delegate { return SaveAsync(); });
+			return RunFunctionIfOpenAsyncTB(() => SaveAsync());
 		}
 		#endregion while open methods
 	}

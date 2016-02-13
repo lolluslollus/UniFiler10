@@ -13,14 +13,14 @@ namespace UniFiler10.Controlz
 	public sealed partial class AnimationsControl : OpenableObservableControl
 	{
 		#region properties
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		public AnimationStarter AnimationStarter { get { return _animationStarter; } }
 		#endregion properties
 
 		public AnimationsControl()
 		{
 			InitializeComponent();
-			_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
+			_animationStarter = new AnimationStarter(UpdatingStoryboard, SuccessStoryboard, FailureStoryboard);
 		}
 
 		protected override Task CloseMayOverrideAsync()
@@ -33,7 +33,7 @@ namespace UniFiler10.Controlz
 	public class AnimationStarter
 	{
 		public enum Animations { Updating, Success, Failure }
-		private Storyboard[] _animations = null;
+		private readonly Storyboard[] _animations = null;
 
 		internal AnimationStarter(params Storyboard[] animations)
 		{
@@ -76,7 +76,7 @@ namespace UniFiler10.Controlz
 				}
 			});
 		}
-		private async Task RunInUiThreadAsync(DispatchedHandler action)
+		private static async Task RunInUiThreadAsync(DispatchedHandler action)
 		{
 			try
 			{

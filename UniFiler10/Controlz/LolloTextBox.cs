@@ -22,13 +22,13 @@ namespace UniFiler10.Controlz
 	{
 		#region fields
 		private ApplicationView _appView = null;
-		Button _dropDownButton = null;
-		Button _deleteButton = null;
-		Border _popupBorder = null;
-		Flyout _flyout = null;
-		ListView _listView = null;
-		ScrollViewer _contentElement = null;
-		ContentPresenter _headerContentPresenter = null;
+		private Button _dropDownButton = null;
+		private Button _deleteButton = null;
+		private Border _popupBorder = null;
+		private Flyout _flyout = null;
+		private ListView _listView = null;
+		//private ScrollViewer _contentElement = null;
+		//private ContentPresenter _headerContentPresenter = null;
 		#endregion fields
 
 
@@ -135,7 +135,7 @@ namespace UniFiler10.Controlz
 		{
 			if (args == null || args.NewValue == args.OldValue) return;
 
-			var ltb = (obj as LolloTextBox);
+			var ltb = obj as LolloTextBox;
 			if (ltb != null)
 			{
 				if (args.OldValue is INotifyCollectionChanged) (args.OldValue as INotifyCollectionChanged).CollectionChanged -= ltb.OnItemsSource_CollectionChanged;
@@ -185,8 +185,8 @@ namespace UniFiler10.Controlz
 		{
 			DefaultStyleKey = "LolloTextBoxStyle";
 
-			RegisterPropertyChangedCallback(TextBox.IsReadOnlyProperty, OnIsReadOnlyChanged);
-			RegisterPropertyChangedCallback(TextBox.IsEnabledProperty, OnIsEnabledChanged);
+			RegisterPropertyChangedCallback(IsReadOnlyProperty, OnIsReadOnlyChanged);
+			RegisterPropertyChangedCallback(IsEnabledProperty, OnIsEnabledChanged);
 		}
 
 		protected override void OnApplyTemplate()
@@ -215,9 +215,9 @@ namespace UniFiler10.Controlz
 				_listView.ItemClick += OnListView_ItemClick;
 			}
 
-			_contentElement = GetTemplateChild("ContentElement") as ScrollViewer;
+			//_contentElement = GetTemplateChild("ContentElement") as ScrollViewer;
 
-			_headerContentPresenter = GetTemplateChild("HeaderContentPresenter") as ContentPresenter;
+			//_headerContentPresenter = GetTemplateChild("HeaderContentPresenter") as ContentPresenter;
 
 			UpdateEDV();
 			UpdateDropDownButtonVisibility();
@@ -252,7 +252,7 @@ namespace UniFiler10.Controlz
 
 		private void OnListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			if (e == null || e.ClickedItem == null) return;
+			if (e?.ClickedItem == null) return;
 
 			string selItem = e.ClickedItem.GetType()?.GetProperties()?
 				.FirstOrDefault(pro => pro.Name == DisplayMemberPath)?

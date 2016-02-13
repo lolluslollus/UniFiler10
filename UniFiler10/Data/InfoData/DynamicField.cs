@@ -5,7 +5,6 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
-using System;
 using Utilz;
 using Utilz.Data;
 
@@ -114,7 +113,7 @@ namespace UniFiler10.Data.Model
 		private void UpdateDynamicValues2()
 		{
 			var mbf = MetaBriefcase.OpenInstance;
-			if (mbf != null && mbf.FieldDescriptions != null && !string.IsNullOrEmpty(_fieldDescriptionId))
+			if (mbf?.FieldDescriptions != null && !string.IsNullOrEmpty(_fieldDescriptionId))
 			{
 				FieldDescription = mbf.FieldDescriptions.FirstOrDefault(fldDsc => fldDsc.Id == _fieldDescriptionId);
 			}
@@ -123,7 +122,7 @@ namespace UniFiler10.Data.Model
 				FieldDescription = null;
 			}
 
-			if (string.IsNullOrEmpty(_fieldValueId) || _fieldDescription == null || _fieldDescription.PossibleValues == null)
+			if (string.IsNullOrEmpty(_fieldValueId) || _fieldDescription?.PossibleValues == null)
 			{
 				FieldValue = null;
 			}
@@ -142,9 +141,12 @@ namespace UniFiler10.Data.Model
 
 		private bool IsValueAllowed()
 		{
-			if (_fieldDescription != null && _fieldValue != null)
-				return string.IsNullOrWhiteSpace(_fieldValue.Vaalue) || _fieldDescription.IsAnyValueAllowed || _fieldDescription.PossibleValues.Any(a => a.Vaalue == _fieldValue.Vaalue);
-			else if (_fieldDescription != null && _fieldValue == null)
+			var fd = _fieldDescription;
+			var fv = _fieldValue;
+
+			if (fd != null && fv != null)
+				return string.IsNullOrWhiteSpace(fv.Vaalue) || fd.IsAnyValueAllowed || fd.PossibleValues.Any(a => a.Vaalue == fv.Vaalue);
+			else if (fd != null && fv == null)
 				return true;
 			else
 				return false;
@@ -161,46 +163,48 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (_fieldDescription == null) return false;
+				var fd = _fieldDescription;
+				if (fd == null) return false;
+				var fv = _fieldValue;
 
 				bool isOk = false;
 
-				if (_fieldValue != null && _fieldValue.Vaalue != newValue)
+				if (fv != null && fv.Vaalue != newValue)
 				{
-					string oldValue = _fieldValue.Vaalue;
-					isOk = await TrySetFieldValueId(newValue);
-					if (!isOk) _fieldValue.Vaalue = oldValue;
+					string oldValue = fv.Vaalue;
+					isOk = await TrySetFieldValueId(fd, newValue);
+					if (!isOk) fv.Vaalue = oldValue;
 				}
-				else if (_fieldValue == null)
+				else if (fv == null)
 				{
-					isOk = await TrySetFieldValueId(newValue);
+					isOk = await TrySetFieldValueId(fd, newValue);
 				}
 
 				return isOk;
 			});
 		}
 
-		private async Task<bool> TrySetFieldValueId(string newValue)
+		private async Task<bool> TrySetFieldValueId(FieldDescription fd, string newValue)
 		{
-			if (_fieldDescription == null) return false;
+			if (fd == null) return false;
 
-			var availableFldVal = _fieldDescription.GetValueFromPossibleValues(newValue);
+			var availableFldVal = fd.GetValueFromPossibleValues(newValue);
 			if (availableFldVal != null)
 			{
 				FieldValueId = availableFldVal.Id;
 				return true;
 			}
-			else if (_fieldDescription.IsAnyValueAllowed)
+			if (fd.IsAnyValueAllowed)
 			{
-				var newFldVal = new FieldValue(newValue, true, true);
 				var mb = MetaBriefcase.OpenInstance;
 				if (mb != null)
 				{
+					var newFldVal = new FieldValue(newValue, true, true);
 					// LOLLO NOTE save metaBriefcase, in case there is a crash before the next Suspend.
 					// This problem actually affects all XML-based stuff, because they only save on closing.
 					// We only take extra care of MetaBriefcase because Briefcase and Binder do not save critical data.
 					// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
-					if (await mb.AddPossibleValueToFieldDescriptionAsync(_fieldDescription, newFldVal, true))
+					if (await mb.AddPossibleValueToFieldDescriptionAsync(fd, newFldVal, true))
 					{
 						FieldValueId = newFldVal.Id;
 						return true;

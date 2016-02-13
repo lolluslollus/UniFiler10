@@ -68,19 +68,18 @@ namespace UniFiler10.Views
 			{
 				await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
 				var instance = obj as DocumentView;
-				if (instance != null)
+				if (instance == null) return;
+
+				var newDoc = args.NewValue as Document;
+				if (newDoc == null)
 				{
-					var newDoc = args.NewValue as Document;
-					if (newDoc == null)
-					{
-						instance._previousUri = null;
-						Task render = instance.RenderPreviewAsync(newDoc);
-					}
-					else if (newDoc.GetFullUri0() != instance._previousUri)
-					{
-						instance._previousUri = newDoc.GetFullUri0();
-						Task render = instance.RenderPreviewAsync(newDoc);
-					}
+					instance._previousUri = null;
+					Task render = instance.RenderPreviewAsync(null);
+				}
+				else if (newDoc.GetFullUri0() != instance._previousUri)
+				{
+					instance._previousUri = newDoc.GetFullUri0();
+					Task render = instance.RenderPreviewAsync(newDoc);
 				}
 			}
 			finally
@@ -95,8 +94,8 @@ namespace UniFiler10.Views
 		private volatile bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
 
-		private uint _height = 0;
-		private uint _width = 0;
+		private readonly uint _height = 0;
+		private readonly uint _width = 0;
 		#endregion properties
 
 
@@ -115,7 +114,7 @@ namespace UniFiler10.Views
 		#region render
 		private string _previousUri = null;
 
-		private static SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private async Task RenderPreviewAsync(Document doc)
 		{
@@ -198,21 +197,18 @@ namespace UniFiler10.Views
 				await RunInUiThreadAsync(delegate { uriStr = Document?.GetFullUri0(); }).ConfigureAwait(false);
 
 				Uri uri = new Uri(uriStr);
-				if (uri != null)
+				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 				{
-					await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+					try
 					{
-						try
-						{
-							ShowWebViewer();
-							WebViewer.Navigate(uri);
-						}
-						catch (Exception ex)
-						{
-							Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-						}
-					}).AsTask().ConfigureAwait(false);
-				}
+						ShowWebViewer();
+						WebViewer.Navigate(uri);
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
+				}).AsTask().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -360,30 +356,29 @@ namespace UniFiler10.Views
 		private PdfPageRenderOptions GetPdfRenderOptions(PdfPage pdfPage)
 		{
 			PdfPageRenderOptions output = null;
-			if (pdfPage != null)
+			if (pdfPage == null) return null;
+
+			double xZoomFactor = pdfPage.Size.Height / _height;
+			double yZoomFactor = pdfPage.Size.Width / _width;
+			double zoomFactor = Math.Max(xZoomFactor, yZoomFactor);
+			if (zoomFactor > 0)
 			{
-				double xZoomFactor = pdfPage.Size.Height / _height;
-				double yZoomFactor = pdfPage.Size.Width / _width;
-				double zoomFactor = Math.Max(xZoomFactor, yZoomFactor);
-				if (zoomFactor > 0)
+				output = new PdfPageRenderOptions()
 				{
-					output = new PdfPageRenderOptions()
-					{
-						DestinationHeight = (uint)(pdfPage.Size.Height / zoomFactor),
-						DestinationWidth = (uint)(pdfPage.Size.Width / zoomFactor)
-					};
-				}
+					DestinationHeight = (uint)(pdfPage.Size.Height / zoomFactor),
+					DestinationWidth = (uint)(pdfPage.Size.Width / zoomFactor)
+				};
 			}
 			return output;
 		}
-		private async Task DisplayImageFileAsync(StorageFile file)
-		{
-			if (file != null)
-			{
-				IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false);
-				await DisplayImageFileAsync(stream).ConfigureAwait(false);
-			}
-		}
+		//private async Task DisplayImageFileAsync(StorageFile file)
+		//{
+		//	if (file != null)
+		//	{
+		//		IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false);
+		//		await DisplayImageFileAsync(stream).ConfigureAwait(false);
+		//	}
+		//}
 
 		private async Task DisplayImageFileAsync(IRandomAccessStream stream)
 		{
@@ -414,10 +409,10 @@ namespace UniFiler10.Views
 		#region events
 		public class DocumentClickedArgs : EventArgs
 		{
-			private Wallet _wallet = null;
+			private readonly Wallet _wallet = null;
 			public Wallet Wallet { get { return _wallet; } }
 
-			private Document _document = null;
+			private readonly Document _document = null;
 			public Document Document { get { return _document; } }
 
 			public DocumentClickedArgs(Wallet wallet, Document document)

@@ -78,7 +78,7 @@
 								Visibility="{Binding IsNewDbNameErrorMessageVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 						</StackPanel>
 
-						<Border Grid.RowSpan="2"
+						<Border Grid.Row="0" Grid.RowSpan="2"
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
 							Visibility="{Binding NewDbName, Converter={StaticResource TextEmptyToCollapsedConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
@@ -147,7 +147,6 @@
 									Canvas.ZIndex="150"
 									Style="{StaticResource AppBarButtonRecoloured}"
 									Foreground="{StaticResource FlashyForeground}"
-									HorizontalAlignment="Left" VerticalAlignment="Top"
 									IsEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"/>
 
 								<AppBarButton Icon="Delete"
@@ -155,7 +154,7 @@
 									Canvas.ZIndex="150"
 									Style="{StaticResource AppBarButtonRecoloured}"
 									Foreground="{StaticResource FlashyForeground}"
-									HorizontalAlignment="Right" VerticalAlignment="Top"
+									HorizontalAlignment="Right"
 									IsEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"/>
 							</Grid>
 						</DataTemplate>

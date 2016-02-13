@@ -28,18 +28,18 @@ namespace UniFiler10.ViewModels
 		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
 		private void UpdateUnassignedFields()
 		{
-			var mb = _metaBriefcase;
+			var mbc = _metaBriefcase;
 			var unaFlds = _unassignedFields;
-			if (unaFlds != null)
-			{
-				unaFlds.Clear();
-				if (mb != null && mb.FieldDescriptions != null && mb.CurrentCategory != null && mb.CurrentCategory.FieldDescriptionIds != null)
-				{
-					_unassignedFields.AddRange(mb.FieldDescriptions
-						.Where(allFldDsc => !mb.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
-					RaisePropertyChanged_UI(nameof(UnassignedFields));
-				}
-			}
+			if (unaFlds == null) return;
+
+			unaFlds.Clear();
+			if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptionIds == null) return;
+			// LOLLO TODO check this
+			_unassignedFields.AddRange(mbc.FieldDescriptions
+				.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id)));
+			//				_unassignedFields.AddRange(mbc.FieldDescriptions
+			//					.Where(allFldDsc => !mbc.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
+			RaisePropertyChanged_UI(nameof(UnassignedFields));
 		}
 		public void OnDataContextChanged()
 		{
@@ -78,12 +78,10 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_isImportingExportingLocker)
 			{
-				if (IsImportingSettings != newValue)
-				{
-					IsImportingSettings = newValue;
-					return true;
-				}
-				return false;
+				if (IsImportingSettings == newValue) return false;
+
+				IsImportingSettings = newValue;
+				return true;
 			}
 		}
 		public bool IsExportingSettings
@@ -109,18 +107,16 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_isImportingExportingLocker)
 			{
-				if (IsExportingSettings != newValue)
-				{
-					IsExportingSettings = newValue;
-					return true;
-				}
-				return false;
+				if (IsExportingSettings == newValue) return false;
+
+				IsExportingSettings = newValue;
+				return true;
 			}
 		}
 
 		private static readonly object _instanceLocker = new object();
 		private static SettingsVM _instance = null;
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
 
 
@@ -174,7 +170,7 @@ namespace UniFiler10.ViewModels
 
 		public Task<bool> RemoveCategoryAsync(Category cat)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate { return _metaBriefcase.RemoveCategoryAsync(cat); });
+			return RunFunctionIfOpenAsyncTB(() => _metaBriefcase.RemoveCategoryAsync(cat));
 		}
 
 		public Task<bool> AddFieldDescriptionAsync()
@@ -235,7 +231,7 @@ namespace UniFiler10.ViewModels
 
 		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate { return _metaBriefcase.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal); });
+			return RunFunctionIfOpenAsyncTB(() => _metaBriefcase.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal));
 		}
 		public Task SetCurrentCategoryAsync(Category newItem)
 		{
@@ -296,8 +292,9 @@ namespace UniFiler10.ViewModels
 			}
 
 			_animationStarter.EndAllAnimations();
-			if (isExported) _animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-			else _animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			_animationStarter.StartAnimation(isExported
+				? AnimationStarter.Animations.Success
+				: AnimationStarter.Animations.Failure);
 
 			IsExportingSettings = false;
 		}
@@ -366,7 +363,7 @@ namespace UniFiler10.ViewModels
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return false;
+			if (!(value is bool)) return false;
 			bool output = (bool)value || SettingsVM.GetIsElevated();
 			return output;
 		}
@@ -379,10 +376,9 @@ namespace UniFiler10.ViewModels
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return Visibility.Collapsed;
+			if (!(value is bool)) return Visibility.Collapsed;
 			bool output = (bool)value || SettingsVM.GetIsElevated();
-			if (output) return Visibility.Visible;
-			else return Visibility.Collapsed;
+			return output ? Visibility.Visible : Visibility.Collapsed;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{

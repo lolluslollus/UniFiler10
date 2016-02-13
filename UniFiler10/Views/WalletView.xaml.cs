@@ -54,23 +54,21 @@ namespace UniFiler10.Views
 		private async void OnDocumentView_DocumentClicked(object sender, DocumentView.DocumentClickedArgs e)
 		{
 			var doc = e?.Document;
-			if (doc != null && !string.IsNullOrWhiteSpace(doc.Uri0))
+			if (string.IsNullOrWhiteSpace(doc?.Uri0)) return;
+
+			var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
+			if (file == null) return;
+
+			bool isOk = false;
+			try
 			{
-				var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
-				if (file != null)
-				{
-					bool isOk = false;
-					try
-					{
-						//isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
-						isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						Debugger.Break();
-						await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-					}
-				}
+				//isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
+				isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Debugger.Break();
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
 		}
 

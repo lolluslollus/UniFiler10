@@ -68,7 +68,7 @@
 			</Viewbox>
 		</Border>
 		<!-- Capture + Record buttons -->
-		<StackPanel Grid.Column="1" Grid.RowSpan="2"
+		<StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
 			VerticalAlignment="Center">
 			<Button Tapped="OnStopRecordingButton_Tapped"
 				Style="{StaticResource ButtonLolloStyle}">
@@ -88,7 +88,7 @@
 				TickFrequency="49" TickPlacement="Outside"/>
 		</StackPanel>
 
-		<Border Grid.Row="1" Grid.ColumnSpan="2" 
+		<Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
 			HorizontalAlignment="Center">
 			<TextBlock Text="{x:Bind LastMessage, Mode=OneWay}" 
 				HorizontalAlignment="Center" VerticalAlignment="Center"/>

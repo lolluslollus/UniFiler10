@@ -9,7 +9,7 @@ namespace UniFiler10.ViewModels
 	public class BriefcaseContentVM : OpenableObservableDisposableData
 	{
 		private Briefcase _briefcase = null;
-		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
+		public Briefcase Briefcase { get { return _briefcase; } }
 
 		public BriefcaseContentVM() { }
 		protected override async Task OpenMayOverrideAsync()

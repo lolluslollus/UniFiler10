@@ -17,7 +17,7 @@ namespace UniFiler10.Views
 		private volatile FolderVM _vm = null;
 		public FolderVM VM { get { return _vm; } private set { _vm = value; RaisePropertyChanged_UI(); } }
 
-		private AnimationStarter _animationStarter = null;
+		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
 
 		public FolderView()
@@ -41,10 +41,7 @@ namespace UniFiler10.Views
 
 		private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
 		{
-			Task upd = RunFunctionIfOpenAsyncT(delegate
-			{
-				return UpdateFolderVMAsync();
-			});
+			Task upd = RunFunctionIfOpenAsyncT(UpdateFolderVMAsync);
 		}
 		private async Task UpdateFolderVMAsync()
 		{

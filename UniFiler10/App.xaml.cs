@@ -41,7 +41,7 @@ namespace UniFiler10
 
 			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
-		private async Task OpenAsync()
+		private static async Task OpenAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
 			if (briefcase != null)
@@ -50,7 +50,7 @@ namespace UniFiler10
 			}
 		}
 
-		private async Task CloseAsync()
+		private static async Task CloseAsync()
 		{
 			var briefcase = Briefcase.GetCurrentInstance();
 			if (briefcase != null)
@@ -77,7 +77,7 @@ namespace UniFiler10
 				Logger.Severity.Info,
 				false);
 
-			Frame rootFrame = Window.Current.Content as Frame;
+			var rootFrame = Window.Current.Content as Frame;
 
 			// Do not repeat app initialization when the Window already has content,
 			// just ensure that the window is active
@@ -122,7 +122,7 @@ namespace UniFiler10
 		/// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
 		/// You do not need to restore other app state when the app resumes.
 		/// LOLLO NOTE this is the first OnResuming to fire. The other OnResuming() fire later.
-		private async void OnResuming(object sender, object e)
+		private static async void OnResuming(object sender, object e)
 		{
 			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
@@ -150,7 +150,7 @@ namespace UniFiler10
 		/// of memory still intact.
 		/// LOLLO NOTE this is the first OnSuspending to fire
 		/// </summary>
-		private async void OnSuspending(object sender, SuspendingEventArgs e)
+		private static async void OnSuspending(object sender, SuspendingEventArgs e)
 		{
 			var deferral = e.SuspendingOperation.GetDeferral();
 			Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
@@ -168,12 +168,12 @@ namespace UniFiler10
 		/// <summary>
 		/// Invoked when Navigation to a certain page fails
 		/// </summary>
-		private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+		private static void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
 		{
 			throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
 		}
 
-		private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+		private static async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
 			await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename);
 		}
@@ -206,11 +206,9 @@ namespace UniFiler10
 
 		public static void ShortVibration()
 		{
-			if (_isVibrationDevicePresent)
-			{
-				VibrationDevice myDevice = VibrationDevice.GetDefault();
-				myDevice.Vibrate(TimeSpan.FromSeconds(.12));
-			}
+			if (!_isVibrationDevicePresent) return;
+			var myDevice = VibrationDevice.GetDefault();
+			myDevice.Vibrate(TimeSpan.FromSeconds(.12));
 		}
 		#endregion services
 	}

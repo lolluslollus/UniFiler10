@@ -16,7 +16,7 @@ namespace UniFiler10.ViewModels
 	{
 		#region properties
 		private Binder _binder = null;
-		public Binder Binder { get { return _binder; } private set { _binder = value; RaisePropertyChanged_UI(); } }
+		public Binder Binder { get { return _binder; } }
 
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
@@ -25,7 +25,7 @@ namespace UniFiler10.ViewModels
 
 		#region lifecycle
 		public BinderContentVM() { }
-		protected async override Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
 			await briefcase.OpenAsync();

@@ -26,11 +26,14 @@ namespace UniFiler10.Controlz
             if (args.NewValue != args.OldValue)
             {
                 var instance = obj as LolloSplitView;
-                var newValue = (UIElement)args.NewValue;
+	            if (instance != null)
+	            {
+		            var newValue = (UIElement) args.NewValue;
 
-                instance.PaneScrollViewer.Child = newValue;
-                // instance.PaneScrollViewer.Content = newValue;
-                // ReplaceColumnContent(instance, newValue, 0);
+		            instance.PaneScrollViewer.Child = newValue;
+		            // instance.PaneScrollViewer.Content = newValue;
+		            // ReplaceColumnContent(instance, newValue, 0);
+	            }
             }
         }
 
@@ -46,11 +49,14 @@ namespace UniFiler10.Controlz
             if (args.NewValue != args.OldValue)
             {
                 var instance = obj as LolloSplitView;
-                var newValue = (UIElement)args.NewValue;
+	            if (instance != null)
+	            {
+		            var newValue = (UIElement) args.NewValue;
 
-                instance.BodyScrollViewer.Child = newValue;
-                // instance.BodyScrollViewer.Content = newValue;
-                // ReplaceColumnContent(instance, newValue, 1);
+		            instance.BodyScrollViewer.Child = newValue;
+		            // instance.BodyScrollViewer.Content = newValue;
+		            // ReplaceColumnContent(instance, newValue, 1);
+	            }
             }
         }
 
@@ -66,14 +72,17 @@ namespace UniFiler10.Controlz
             if (args.NewValue != args.OldValue)
             {
                 var instance = obj as LolloSplitView;
-                var newValue = (double)args.NewValue;
-                if (CheckLength(newValue))
-                {
-                    if (!instance.IsPaneOpen)
-                    {
-                        instance.PaneWidth = new GridLength(newValue, GridUnitType.Pixel);
-                    }
-                }
+	            if (instance != null)
+	            {
+		            var newValue = (double) args.NewValue;
+		            if (CheckLength(newValue))
+		            {
+			            if (!instance.IsPaneOpen)
+			            {
+				            instance.PaneWidth = new GridLength(newValue, GridUnitType.Pixel);
+			            }
+		            }
+	            }
             }
         }
 
@@ -89,14 +98,17 @@ namespace UniFiler10.Controlz
             if (args.NewValue != args.OldValue)
             {
                 var instance = obj as LolloSplitView;
-                var newValue = (double)args.NewValue;
-                if (CheckLength(newValue))
-                {
-                    if (instance.IsPaneOpen)
-                    {
-                        instance.PaneWidth = new GridLength(newValue, GridUnitType.Pixel);
-                    }
-                }
+	            if (instance != null)
+	            {
+		            var newValue = (double) args.NewValue;
+		            if (CheckLength(newValue))
+		            {
+			            if (instance.IsPaneOpen)
+			            {
+				            instance.PaneWidth = new GridLength(newValue, GridUnitType.Pixel);
+			            }
+		            }
+	            }
             }
         }
 
@@ -112,15 +124,11 @@ namespace UniFiler10.Controlz
             if (args.NewValue != args.OldValue)
             {
                 var instance = obj as LolloSplitView;
-                var newValue = (bool)args.NewValue;
-                if (newValue)
-                {
-                    instance.PaneWidth = new GridLength(instance.OpenPaneLength, GridUnitType.Pixel);
-                }
-                else
-                {
-                    instance.PaneWidth = new GridLength(instance.ClosedPaneLength, GridUnitType.Pixel);
-                }
+	            if (instance != null)
+	            {
+		            var newValue = (bool) args.NewValue;
+		            instance.PaneWidth = newValue ? new GridLength(instance.OpenPaneLength, GridUnitType.Pixel) : new GridLength(instance.ClosedPaneLength, GridUnitType.Pixel);
+	            }
             }
         }
 

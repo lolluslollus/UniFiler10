@@ -6,7 +6,7 @@ using Utilz.Data;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace Utilz
+namespace UniFiler10.Controlz
 {
 	public class UserConfirmationPopup : ObservableData
 	{
@@ -17,8 +17,7 @@ namespace Utilz
 		{
 			lock (_instanceLocker)
 			{
-				if (_instance == null) _instance = new UserConfirmationPopup();
-				return _instance;
+				return _instance ?? (_instance = new UserConfirmationPopup());
 			}
 		}
 		private UserConfirmationPopup() { }

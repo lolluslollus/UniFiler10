@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using UniFiler10.Controlz;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
@@ -12,6 +13,8 @@ using Utilz;
 using Utilz.Data;
 using Windows.Storage;
 using Windows.Storage.Streams;
+
+// LOLLO TODO Saving to roaming area: save with the elaborate class, like in the (unnecessary) Hiking Mate SaveGPX
 
 namespace UniFiler10.Data.Model
 {
@@ -140,7 +143,7 @@ namespace UniFiler10.Data.Model
 
 		private volatile Binder _currentBinder = null;
 		[IgnoreDataMember]
-		public Binder CurrentBinder { get { return _currentBinder; } private set { if (_currentBinder != value) { _currentBinder = value; RaisePropertyChanged_UI(); } } }
+		public Binder CurrentBinder { get { return _currentBinder; } }
 
 		private readonly SwitchableObservableDisposableCollection<string> _dbNames = new SwitchableObservableDisposableCollection<string>();
 		[IgnoreDataMember]
@@ -161,7 +164,7 @@ namespace UniFiler10.Data.Model
 				RaisePropertyChanged_UI(nameof(CurrentBinder));
 				return false;
 			}
-			else if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName))
+			if ((_currentBinder == null && !string.IsNullOrEmpty(_currentBinderName))
 				|| (_currentBinder != null && _currentBinder.DBName != _currentBinderName))
 			{
 				await CloseCurrentBinder2Async().ConfigureAwait(false);
@@ -171,7 +174,7 @@ namespace UniFiler10.Data.Model
 				RaisePropertyChanged_UI(nameof(CurrentBinder)); // notify the UI once the data has been loaded
 				return true;
 			}
-			else if (_currentBinder != null)
+			if (_currentBinder != null)
 			{
 				if (openTheBinder) await _currentBinder.OpenAsync().ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(CurrentBinder));
@@ -191,10 +194,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenCurrentBinderAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return UpdateCurrentBinder2Async(true);
-			});
+			return RunFunctionIfOpenAsyncTB(() => UpdateCurrentBinder2Async(true));
 		}
 
 		public Task<bool> OpenBinderAsync(string dbName)
@@ -208,10 +208,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> AddBinderAsync(string dbName)
 		{
-			return RunFunctionIfOpenAsyncTB(delegate
-			{
-				return AddBinder2Async(dbName);
-			});
+			return RunFunctionIfOpenAsyncTB(() => AddBinder2Async(dbName));
 		}
 		private async Task<bool> AddBinder2Async(string dbName)
 		{
@@ -219,14 +216,11 @@ namespace UniFiler10.Data.Model
 			{
 				return false;
 			}
-			else
+			await RunInUiThreadAsync(delegate
 			{
-				await RunInUiThreadAsync(delegate
-				{
-					_dbNames.Add(dbName);
-				}).ConfigureAwait(false);
-				return true;
-			}
+				_dbNames.Add(dbName);
+			}).ConfigureAwait(false);
+			return true;
 		}
 		public Task<bool> DeleteBinderAsync(string dbName)
 		{
@@ -242,14 +236,7 @@ namespace UniFiler10.Data.Model
 					if (_currentBinderName == dbName)
 					{
 						await _currentBinder.CloseAsync().ConfigureAwait(false);
-						if (_dbNames.Count > 0)
-						{
-							CurrentBinderName = _dbNames[0];
-						}
-						else
-						{
-							CurrentBinderName = string.Empty;
-						}
+						CurrentBinderName = _dbNames.Count > 0 ? _dbNames[0] : string.Empty;
 						await UpdateCurrentBinder2Async(false);
 					}
 					return await DeleteBinderFilesAsync(dbName).ConfigureAwait(false);
@@ -257,7 +244,7 @@ namespace UniFiler10.Data.Model
 				return false;
 			});
 		}
-		private async Task<bool> DeleteBinderFilesAsync(string dbName)
+		private static async Task<bool> DeleteBinderFilesAsync(string dbName)
 		{
 			try
 			{
@@ -343,7 +330,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (fromDirectory == null || string.IsNullOrWhiteSpace(fromDirectory.Name) || !_dbNames.Contains(fromDirectory.Name)) return false;
+				if (string.IsNullOrWhiteSpace(fromDirectory?.Name) || !_dbNames.Contains(fromDirectory.Name)) return false;
 
 				// close the current binder if it is NOT the one to be merged into, and open the binder to be merged into
 				CurrentBinderName = fromDirectory.Name;
@@ -384,7 +371,7 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> CloseCurrentBinderAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(delegate { return CloseCurrentBinder2Async(); });
+			return RunFunctionIfOpenAsyncTB(CloseCurrentBinder2Async);
 		}
 		private async Task<bool> CloseCurrentBinder2Async()
 		{
@@ -402,22 +389,16 @@ namespace UniFiler10.Data.Model
 
 		public Task<BoolWhenOpen> IsDbNameAvailableAsync(string dbName)
 		{
-			return RunFunctionIfOpenThreeStateAsyncB(delegate { return _dbNames.Contains(dbName); });
+			return RunFunctionIfOpenThreeStateAsyncB(() => _dbNames.Contains(dbName));
 		}
 		public Task<bool> IsNewDbNameWrongAsync(string newDbName)
 		{
-			return RunFunctionIfOpenAsyncB(delegate { return IsNewDbNameWrong2(newDbName); });
+			return RunFunctionIfOpenAsyncB(() => IsNewDbNameWrong2(newDbName));
 		}
 		private bool IsNewDbNameWrong2(string newDbName)
 		{
-			if (string.IsNullOrWhiteSpace(newDbName))
-			{
-				return true;
-			}
-			else
-			{
-				return _dbNames.Contains(newDbName);
-			}
+			if (string.IsNullOrWhiteSpace(newDbName)) return true;
+			return _dbNames.Contains(newDbName);
 		}
 		public Task<bool> ExportSettingsAsync(StorageFile toFile)
 		{
@@ -557,12 +538,12 @@ namespace UniFiler10.Data.Model
 			return true;
 		}
 
-		private StorageFolder GetDirectory()
+		private static StorageFolder GetDirectory()
 		{
 			return ApplicationData.Current.RoamingFolder;
 		}
 
-		private async Task GetCreateBindersDirectoryAsync()
+		private static async Task GetCreateBindersDirectoryAsync()
 		{
 			if (_bindersDirectory == null)
 			{

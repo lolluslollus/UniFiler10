@@ -48,7 +48,7 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public SwitchableObservableDisposableCollection<FieldValue> PossibleValues { get { return _possibleValues; } private set { _possibleValues = value; RaisePropertyChanged_UI(); } }
 
-		public enum FieldTypez { str, dat, dec, boo, nil };
+		public enum FieldTypez { str, dat, dec, boo, nil }
 		private FieldTypez _typez = FieldTypez.str;
 		[DataMember]
 		public FieldTypez Typez
@@ -88,7 +88,7 @@ namespace UniFiler10.Data.Metadata
 
 		private volatile bool _isDisposed = false;
 		[IgnoreDataMember]
-		public bool IsDisposed { get { return _isDisposed; } private set { if (_isDisposed != value) { _isDisposed = value; } } }
+		public bool IsDisposed { get { return _isDisposed; } }
 		#endregion ctor and dispose
 
 
@@ -124,7 +124,7 @@ namespace UniFiler10.Data.Metadata
 
 		internal bool AddPossibleValue(FieldValue newValue)
 		{
-			if (newValue != null && !string.IsNullOrWhiteSpace(newValue.Vaalue) && !_possibleValues.Any(pv => pv.Vaalue == newValue.Vaalue || pv.Id == newValue.Id))
+			if (!string.IsNullOrWhiteSpace(newValue?.Vaalue) && !_possibleValues.Any(pv => pv.Vaalue == newValue.Vaalue || pv.Id == newValue.Id))
 			{
 				_possibleValues.Add(newValue);
 				return true;

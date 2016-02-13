@@ -32,7 +32,7 @@
 			<ctl:LolloSplitView.PaneContent>
 				<ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled"
                     HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
-					<Grid Background="{ThemeResource SystemChromeWhiteColor}">
+					<Grid Background="{StaticResource LolloSystemChromeWhiteBrush}">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="*"/>
@@ -61,7 +61,7 @@
 							</ItemsControl.ItemsPanel>
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
-									<uctl:TextBlockScaler Grid.Row="0"
+									<uctl:TextBlockScaler
 										Height="{StaticResource CompactPaneLength}"
 										Width="{StaticResource CompactPaneLength}">
 										<uctl:TextBlockScaler.TextBlock>

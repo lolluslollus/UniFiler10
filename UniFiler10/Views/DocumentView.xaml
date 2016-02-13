@@ -40,25 +40,20 @@
         </Border.Background>-->
 
         <Grid>
-            <AppBarButton Icon="FullScreen"
+			<AppBarButton Icon="FullScreen"
 				Visibility="{x:Bind IsViewLargeButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
                 Tapped="OnPreview_Tapped"
                 Canvas.ZIndex="150"
                 Style="{StaticResource AppBarButtonRecoloured}"
-                IsCompact="True"
-                Foreground="{StaticResource FlashyForeground}"
-                Opacity="1"
-                HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                Foreground="{StaticResource FlashyForeground}"/>
 
-            <AppBarButton Icon="Delete"
+			<AppBarButton Icon="Delete"
                 Visibility="{x:Bind IsDeleteButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
                 Tapped="OnItemDelete_Tapped"
                 Canvas.ZIndex="150"
                 Style="{StaticResource AppBarButtonRecoloured}"
-                IsCompact="True"
                 Foreground="{StaticResource FlashyForeground}"
-                Opacity="1"
-                HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                HorizontalAlignment="Right"/>
 
             <!--<PathIcon Data="M 0,19 V18 H19 V19 M19,19 V0 H18 V19 M4,16 V15 H16 V16 M16,16 V4 H15 V16 Z"
                     Foreground="{StaticResource FlashyForeground}"

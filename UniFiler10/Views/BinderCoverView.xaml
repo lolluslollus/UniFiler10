@@ -109,7 +109,7 @@
 					TextWrapping="Wrap"
 					Visibility="{Binding ElementName=me, Path=VM.CatNameForCatFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-				<Border Grid.RowSpan="2"
+				<Border Grid.Row="0" Grid.RowSpan="2"
 					VerticalAlignment="Stretch"
 					HorizontalAlignment="Stretch"
 					BorderBrush="{StaticResource FlashyForeground}"
@@ -162,7 +162,7 @@
 						TextWrapping="Wrap"
 						Visibility="{Binding ElementName=me, Path=VM.CatNameForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
-					<Border Grid.RowSpan="2"
+					<Border Grid.Row="0" Grid.RowSpan="2"
 						VerticalAlignment="Stretch"
 						HorizontalAlignment="Stretch"
 						BorderBrush="{StaticResource FlashyForeground}"
@@ -211,7 +211,7 @@
 							TextWrapping="Wrap"
 							Visibility="{Binding ElementName=me, Path=VM.FldDscCaptionForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
-						<Border Grid.RowSpan="2"
+						<Border Grid.Row="0" Grid.RowSpan="2"
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
 							BorderBrush="{StaticResource FlashyForeground}"
@@ -258,7 +258,7 @@
 							TextWrapping="Wrap"
 							Visibility="{Binding ElementName=me, Path=VM.FldValVaalueForFldFilter, Converter={StaticResource TextEmptyToVisibleConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=Collapsed}"/>
 
-						<Border Grid.RowSpan="2"
+						<Border Grid.Row="0" Grid.RowSpan="2"
 							VerticalAlignment="Stretch"
 							HorizontalAlignment="Stretch"
 							BorderBrush="{StaticResource FlashyForeground}"

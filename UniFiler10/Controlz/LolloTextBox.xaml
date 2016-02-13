@@ -193,7 +193,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}" 
                             BorderBrush="{TemplateBinding BorderBrush}"/>
 						<ContentPresenter x:Name="HeaderContentPresenter" 
-							Grid.ColumnSpan="4" 
+							Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" 
                             ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" 
 							Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}" FontWeight="Normal"
 							Padding="4,2,4,8" TextWrapping="Wrap"

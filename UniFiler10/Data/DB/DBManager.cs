@@ -15,7 +15,7 @@ namespace UniFiler10.Data.DB
 	public sealed class DBManager : OpenableObservableDisposableData
 	{
 		#region enums
-		private enum InsertResult { NothingDone, AlreadyThere, Added };
+		private enum InsertResult { NothingDone, AlreadyThere, Added }
 		//private enum InsertResult { NothingDone, AlreadyThere, Added, SomeAdded, SomeAlreadyThere };
 		//private enum DeleteResult { NothingDone, AlreadyMissing, Deleted };
 		#endregion enums
@@ -24,14 +24,14 @@ namespace UniFiler10.Data.DB
 		// one db for all tables
 		// one semaphore each table
 		public const string DB_FILE_NAME = "Db.db";
-		private string _dbFullPath = string.Empty;
-		private StorageFolder _directory = null;
+		private readonly string _dbFullPath = string.Empty;
+		private readonly StorageFolder _directory = null;
 		internal StorageFolder Directory { get { return _directory; } }
 
-		private readonly bool _isStoreDateTimeAsTicks = true;
-		private static readonly SQLiteOpenFlags _openFlagsReadWrite = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
-		private static readonly SQLiteOpenFlags _openFlagsReadOnly = SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
-		private readonly SQLiteOpenFlags _myOpenFlags = _openFlagsReadWrite;
+		private const bool IS_STORE_DATE_TIME_AS_TICKS = true;
+		private const SQLiteOpenFlags OPEN_FLAGS_READ_WRITE = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
+		private const SQLiteOpenFlags OPEN_FLAGS_READ_ONLY = SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
+		private readonly SQLiteOpenFlags _myOpenFlags = OPEN_FLAGS_READ_WRITE;
 
 		private SemaphoreSlimSafeRelease _foldersSemaphore = null;
 		private SemaphoreSlimSafeRelease _walletsSemaphore = null;
@@ -46,14 +46,7 @@ namespace UniFiler10.Data.DB
 		{
 			if (directory != null)
 			{
-				if (isReadOnly)
-				{
-					_myOpenFlags = _openFlagsReadOnly;
-				}
-				else
-				{
-					_myOpenFlags = _openFlagsReadWrite;
-				}
+				_myOpenFlags = isReadOnly ? OPEN_FLAGS_READ_ONLY : OPEN_FLAGS_READ_WRITE;
 
 				_directory = directory;
 				_dbFullPath = Path.Combine(directory.Path, DB_FILE_NAME);
@@ -212,7 +205,7 @@ namespace UniFiler10.Data.DB
 				if (DynamicField.Check(newDynFld)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dynFldsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newDynFld.ParentId).ConfigureAwait(false);
-					if (!dynFldsAlreadyInFolder.Any(dynFld => dynFld.FieldDescriptionId == newDynFld.FieldDescriptionId))
+					if (dynFldsAlreadyInFolder.All(dynFld => dynFld.FieldDescriptionId != newDynFld.FieldDescriptionId))
 					{
 						var dbResult = await InsertAsync(newDynFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 						if (dbResult == InsertResult.Added) result = true;
@@ -230,7 +223,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				if (dynFlds.Count() > 0 && DynamicField.Check(dynFlds)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (dynFlds.Any() && DynamicField.Check(dynFlds)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync(dynFlds, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
@@ -251,7 +244,8 @@ namespace UniFiler10.Data.DB
 				if (DynamicCategory.Check(newCat)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var catsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), newCat.ParentId).ConfigureAwait(false);
-					if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
+					//if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
+					if (catsAlreadyInFolder.All(ca => ca.CategoryId != newCat.CategoryId))
 					{
 						var dbResult = await InsertAsync(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 						if (dbResult == InsertResult.Added) result = true;
@@ -296,7 +290,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				if (dynCats.Count() > 0 && DynamicCategory.Check(dynCats)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (dynCats.Any() && DynamicCategory.Check(dynCats)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync(dynCats, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
@@ -392,7 +386,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				if (docs.Count() > 0 && Document.Check(docs)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
+				if (docs.Any() && Document.Check(docs)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync(docs, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
@@ -426,7 +420,7 @@ namespace UniFiler10.Data.DB
 			bool result = false;
 			try
 			{
-				if (wallets.Count() > 0 && Wallet.Check(wallets)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
+				if (wallets.Any() && Wallet.Check(wallets)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
 					var dbResult = await InsertManyAsync(wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
@@ -459,7 +453,7 @@ namespace UniFiler10.Data.DB
 
 		internal async Task<List<DynamicCategory>> GetDynamicCategoriesByParentIdAsync(string parentId)
 		{
-			List<DynamicCategory> dynCats = new List<DynamicCategory>();
+			var dynCats = new List<DynamicCategory>();
 			try
 			{
 				dynCats = await ReadRecordsWithParentIdAsync<DynamicCategory>(_dynamicCategoriesSemaphore, nameof(DynamicCategory), parentId).ConfigureAwait(false);
@@ -691,10 +685,7 @@ namespace UniFiler10.Data.DB
 		#region private methods
 		private Task<bool> DeleteAsync<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() =>
-			{
-				return Delete<T>(primaryKey, semaphore);
-			});
+			return Task.Run(() => Delete<T>(primaryKey, semaphore));
 		}
 		private bool Delete<T>(object primaryKey, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
@@ -715,7 +706,7 @@ namespace UniFiler10.Data.DB
 					//    }
 					//}
 
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -758,14 +749,13 @@ namespace UniFiler10.Data.DB
 		/// <param name="semaphore"></param>
 		/// <param name="tableName"></param>
 		/// <param name="parentId"></param>
+		/// <param name="parentIdFieldName"></param>
 		/// <returns></returns>
 		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-			{
-				return DeleteRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName);
-			});
+				DeleteRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName));
 		}
 		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
@@ -777,7 +767,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -814,10 +804,7 @@ namespace UniFiler10.Data.DB
 		}
 		private Task<bool> DeleteAllAsync<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() =>
-			{
-				return DeleteAll<T>(semaphore);
-			});
+			return Task.Run(() => DeleteAll<T>(semaphore));
 		}
 		private bool DeleteAll<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
@@ -829,7 +816,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -863,9 +850,7 @@ namespace UniFiler10.Data.DB
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-			{
-				return ReadTable<T>(SemaphoreSlimSafeRelease);
-			});
+				ReadTable<T>(SemaphoreSlimSafeRelease));
 		}
 		private List<T> ReadTable<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
@@ -877,7 +862,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -919,9 +904,7 @@ namespace UniFiler10.Data.DB
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-			{
-				return ReadRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName);
-			});
+				ReadRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName));
 		}
 		private List<T> ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
@@ -933,7 +916,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -967,9 +950,7 @@ namespace UniFiler10.Data.DB
 		{
 			return Task.Run(() =>
 			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
-			{
-				return ReadRecordById<T>(semaphore, primaryKey);
-			});
+				ReadRecordById<T>(semaphore, primaryKey));
 		}
 		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
 		{
@@ -981,7 +962,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -1013,11 +994,9 @@ namespace UniFiler10.Data.DB
 
 		private Task<InsertResult> InsertAsync<T>(T item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() =>
-			{
-				return Insert(item, checkMaxEntries, semaphore);
-			});
+			return Task.Run(() => Insert(item, checkMaxEntries, semaphore));
 		}
+		// LOLLO TODO if you want to use checkMaxEntries, do so; otherwise, kill it.
 		private InsertResult Insert<T>(T item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			InsertResult result = InsertResult.NothingDone;
@@ -1028,7 +1007,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -1066,10 +1045,7 @@ namespace UniFiler10.Data.DB
 
 		private Task<InsertResult> InsertManyAsync<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() =>
-			{
-				return InsertMany<T>(items, checkMaxEntries, semaphore);
-			});
+			return Task.Run(() => InsertMany<T>(items, checkMaxEntries, semaphore));
 		}
 		private InsertResult InsertMany<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
@@ -1081,15 +1057,16 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					if (items.Count() > 0)
+					if (items.Any())
 					{
-						var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+						var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 						try
 						{
 							var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
 							int aResult = conn.CreateTable(typeof(T));
 							var itemsInTable = conn.Table<T>();
-							var newItems = items.Where(item => !itemsInTable.Any(itemInTable => itemInTable.Id == item.Id));
+							//var newItems = items.Where(item => !itemsInTable.Any(itemInTable => itemInTable.Id == item.Id));
+							var newItems = items.Where(item => itemsInTable.All(itemInTable => itemInTable.Id != item.Id));
 							int howManyNewItems = newItems.Count();
 							if (howManyNewItems > 0)
 							{
@@ -1133,10 +1110,7 @@ namespace UniFiler10.Data.DB
 
 		private Task<bool> UpdateAsync<T>(T item, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() =>
-			{
-				return Update<T>(item, semaphore);
-			});
+			return Task.Run(() => Update(item, semaphore));
 		}
 		private bool Update<T>(T item, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
@@ -1148,7 +1122,7 @@ namespace UniFiler10.Data.DB
 				semaphore.Wait();
 				if (_isOpen)
 				{
-					var connectionString = new SQLiteConnectionString(_dbFullPath, _isStoreDateTimeAsTicks);
+					var connectionString = new SQLiteConnectionString(_dbFullPath, IS_STORE_DATE_TIME_AS_TICKS);
 					try
 					{
 						var conn = _connectionPool.GetConnection(connectionString, _myOpenFlags);
@@ -1187,7 +1161,7 @@ namespace UniFiler10.Data.DB
 			private sealed class ConnectionEntry : IDisposable
 			{
 				private volatile SQLiteConnectionString _connectionString = null;
-				public SQLiteConnectionString ConnectionString { get { return _connectionString; } private set { _connectionString = value; } }
+				private SQLiteConnectionString ConnectionString { get { return _connectionString; } set { _connectionString = value; } }
 				private volatile SQLiteConnection _connection = null;
 				public SQLiteConnection Connection { get { return _connection; } private set { _connection = value; } }
 
@@ -1234,8 +1208,7 @@ namespace UniFiler10.Data.DB
 				{
 					SemaphoreSlimSafeRelease.TryRelease(_connectionsDictSemaphore);
 				}
-				if (conn != null) return conn.Connection;
-				return null;
+				return conn?.Connection;
 			}
 			/// <summary>
 			/// Closes a given connection managed by this pool. 
