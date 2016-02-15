@@ -25,6 +25,7 @@ namespace UniFiler10.Views
 		public BinderContentPage()
 		{
 			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
+			NavigationCacheMode = NavigationCacheMode.Enabled;
 			InitializeComponent();
 		}
 		protected override async Task OpenMayOverrideAsync()

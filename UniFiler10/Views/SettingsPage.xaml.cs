@@ -9,6 +9,7 @@ using Utilz;
 using Utilz.Controlz;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -28,6 +29,7 @@ namespace UniFiler10.Views
 		public SettingsPage()
 		{
 			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
+			NavigationCacheMode = NavigationCacheMode.Enabled; // LOLLO TODO test NavigationCacheMode.Required too
 			InitializeComponent();
 			// LOLLO NOTE with x:Bind set on a nullable bool property, such as ToggleButton.IsChecked, FallbackValue=True and FallbackValue=False cause errors.
 			// Instead, use Binding ElementName=me, Path=....

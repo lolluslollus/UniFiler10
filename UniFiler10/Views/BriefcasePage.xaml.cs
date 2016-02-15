@@ -6,6 +6,7 @@ using Utilz.Controlz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -28,6 +29,7 @@ namespace UniFiler10.Views
 		public BriefcasePage()
         {
 			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
+			NavigationCacheMode = NavigationCacheMode.Enabled;
 			InitializeComponent();
 			_animationStarter = AnimationsControl.AnimationStarter;
 			//_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });

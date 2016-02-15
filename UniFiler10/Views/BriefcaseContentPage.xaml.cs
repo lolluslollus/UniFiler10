@@ -23,6 +23,7 @@ namespace UniFiler10.Views
 		public BriefcaseContentPage()
 		{
 			LastNavigatedPageRegKey = App.LAST_NAVIGATED_PAGE_REG_KEY;
+			NavigationCacheMode = NavigationCacheMode.Enabled;
 			InitializeComponent();
 		}
 
