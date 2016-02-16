@@ -13,6 +13,8 @@ using Utilz;
 using Utilz.Data;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Microsoft.OneDrive.Sdk;
+using UniFiler10.Data.Constants;
 
 
 namespace UniFiler10.Data.Model
@@ -42,8 +44,62 @@ namespace UniFiler10.Data.Model
 		}
 		private Briefcase() { }
 
+		private IOneDriveClient _client = null;
+		private AccountSession _token = null;
+		private readonly string[] _scopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin" };
+		//private IItemRequestBuilder _builder = null;
+
 		protected override async Task OpenMayOverrideAsync()
 		{
+			// LOLLO TODO testing the onedrive sdk
+
+			try
+			{
+				// LOLLO NOTE this must all run in the UI thread!
+				_client = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_scopes);
+				_token = await _client.AuthenticateAsync();
+				var ddd = await _client.Drive.Root.ItemWithPath("LOLLO.txt").Request().GetAsync();
+				var dddd = await _client.Drive.Root.ItemWithPath("LOLLO.txt").Content.Request().GetAsync();
+				using (var reader = new StreamReader(dddd))
+				{
+					Debug.WriteLine(reader.ReadToEnd());
+				}
+
+				var appRoot = await _client.Drive.Special.AppRoot.Request().GetAsync(); // just for testing or we need it?
+
+				Item file = null;
+				try
+				{
+					file = await _client.Drive.Special.AppRoot.ItemWithPath(FILENAME).Request().GetAsync();
+					var wq = await _client.Drive.Special.AppRoot.ItemWithPath(FILENAME).Content.Request().GetAsync();
+					using (var reader = new StreamReader(wq))
+					{
+						Debug.WriteLine(reader.ReadToEnd());
+					}
+				}
+				catch(OneDriveException ex)
+				{
+					if (ex.IsMatch("itemNotFound"))
+					{
+						var newFile = new Item
+						{
+							Name = FILENAME,
+							File = new Microsoft.OneDrive.Sdk.File()
+						};
+						// the following takes ages, do not wait for it!
+						var newFileCreated = _client.Drive
+							.Special.AppRoot
+							.Children
+							.Request()
+							.AddAsync(newFile);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+
 			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
 			await LoadAsync().ConfigureAwait(false);
 
