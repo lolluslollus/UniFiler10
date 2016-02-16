@@ -34,7 +34,7 @@ namespace UniFiler10.ViewModels
 
 			unaFlds.Clear();
 			if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptionIds == null) return;
-			// LOLLO TODO check this
+
 			_unassignedFields.AddRange(mbc.FieldDescriptions
 				.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id)));
 			//				_unassignedFields.AddRange(mbc.FieldDescriptions
@@ -155,7 +155,7 @@ namespace UniFiler10.ViewModels
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var mbc = _metaBriefcase;
-			if (mbc != null) await mbc.SaveACopyAsync().ConfigureAwait(false);
+			if (mbc != null) await mbc.SaveAsync().ConfigureAwait(false);
 
 			_unassignedFields?.Dispose();
 		}

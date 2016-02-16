@@ -14,7 +14,6 @@ using Utilz.Data;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
-// LOLLO TODO Saving to roaming area: save with the elaborate class, like in the (unnecessary) Hiking Mate SaveGPX
 
 namespace UniFiler10.Data.Model
 {
@@ -493,21 +492,24 @@ namespace UniFiler10.Data.Model
 
 			try
 			{
-				using (MemoryStream memoryStream = new MemoryStream())
+				using (var memoryStream = new MemoryStream())
 				{
-					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
+					var sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
 					sessionDataSerializer.WriteObject(memoryStream, this);
 
 					var file = await GetDirectory()
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
-					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+					using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{
 						memoryStream.Seek(0, SeekOrigin.Begin);
 						await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
 						await memoryStream.FlushAsync().ConfigureAwait(false);
 						await fileStream.FlushAsync().ConfigureAwait(false);
 					}
+
+					// LOLLO TODO ApplicationData.RoamingStorageQuota says one can save 100 KB tops. 
+					// use OneDrive instead, these files can get way larger.
 				}
 				Debug.WriteLine("ended method Briefcase.SaveAsync()");
 			}

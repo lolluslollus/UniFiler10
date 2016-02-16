@@ -64,7 +64,6 @@ namespace UniFiler10.Data.Model
 			}
 			_dbManager = null;
 
-			// LOLLO TODO check what happens if _folders is empty
 			Task closeFolders = new Task(delegate
 			{
 				Parallel.ForEach(_folders, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, folder =>

@@ -1047,6 +1047,7 @@ namespace UniFiler10.Data.DB
 		{
 			return Task.Run(() => InsertMany<T>(items, checkMaxEntries, semaphore));
 		}
+		// LOLLO TODO if you want to use checkMaxEntries, do so; otherwise, kill it.
 		private InsertResult InsertMany<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			var result = InsertResult.NothingDone;

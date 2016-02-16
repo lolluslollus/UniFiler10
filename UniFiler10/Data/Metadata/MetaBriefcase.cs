@@ -157,7 +157,7 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await SaveAsync().ConfigureAwait(false);
+			await Save2Async().ConfigureAwait(false);
 
 			var fldDscs = _fieldDescriptions;
 			if (fldDscs != null)
@@ -236,7 +236,7 @@ namespace UniFiler10.Data.Metadata
 
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
-		private async Task<bool> SaveAsync(StorageFile file = null)
+		private async Task<bool> Save2Async(StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
@@ -266,6 +266,10 @@ namespace UniFiler10.Data.Metadata
 						await fileStream.FlushAsync().ConfigureAwait(false);
 					}
 				}
+				var sizeBytes = await file.GetFileSizeAsync().ConfigureAwait(false);
+				// LOLLO TODO ApplicationData.RoamingStorageQuota says one can save 100 KB tops. 
+				// use OneDrive instead, these files can get way larger.
+				var quotaKBytes = ApplicationData.Current.RoamingStorageQuota;
 				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
 				return true;
 			}
@@ -427,10 +431,10 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (fldDsc == null || newFldVal == null) return false;
 
-				bool isOk = false;
-				await RunInUiThreadAsync(() => isOk = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
-				if (isOk && save) isOk = await SaveAsync().ConfigureAwait(false);
-				return isOk;
+				bool isAdded = false;
+				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
+				if (isAdded && save) isAdded = await Save2Async().ConfigureAwait(false);
+				return isAdded;
 			});
 		}
 
@@ -469,15 +473,15 @@ namespace UniFiler10.Data.Metadata
 				return isRemoved;
 			});
 		}
-		// LOLLO TODO check that we don't save too often and not too rarely
+
 		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionIfOpenAsyncTB(() => SaveAsync(file));
+			return RunFunctionIfOpenAsyncTB(() => Save2Async(file));
 		}
 
-		public Task<bool> SaveACopyAsync()
+		public Task<bool> SaveAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(() => SaveAsync());
+			return RunFunctionIfOpenAsyncTB(() => Save2Async());
 		}
 		#endregion while open methods
 	}

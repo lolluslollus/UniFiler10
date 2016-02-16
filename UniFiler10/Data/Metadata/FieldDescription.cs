@@ -126,8 +126,9 @@ namespace UniFiler10.Data.Metadata
 		{
 			if (!string.IsNullOrWhiteSpace(newValue?.Vaalue) && !_possibleValues.Any(pv => pv.Vaalue == newValue.Vaalue || pv.Id == newValue.Id))
 			{
+				int cntBefore = _possibleValues.Count;
 				_possibleValues.Add(newValue);
-				return true;
+				return _possibleValues.Count > cntBefore;
 			}
 			return false;
 		}
