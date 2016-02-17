@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.OneDrive.Sdk;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -122,24 +123,30 @@ namespace UniFiler10.Data.Metadata
 		private volatile bool _isElevated = false;
 		[DataMember]
 		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
+
+		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private readonly IOneDriveClient _oneDriveClient = null;
 		#endregion properties
 
 
 		#region lifecycle
 		private static readonly object _instanceLocker = new object();
-		internal static MetaBriefcase GetCreateInstance()
+		internal static MetaBriefcase GetInstance(IOneDriveClient oneDriveClient)
 		{
 			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
-					_instance = new MetaBriefcase();
+					_instance = new MetaBriefcase(oneDriveClient);
 				}
 				return _instance;
 			}
 		}
 
-		private MetaBriefcase() { }
+		private MetaBriefcase(IOneDriveClient oneDriveClient)
+		{
+			_oneDriveClient = oneDriveClient;
+		}
 
 		protected override void Dispose(bool isDisposing)
 		{
@@ -157,7 +164,7 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await Save2Async().ConfigureAwait(false);
+			await Save2Async(true).ConfigureAwait(false);
 
 			var fldDscs = _fieldDescriptions;
 			if (fldDscs != null)
@@ -195,7 +202,8 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				StorageFile file = _sourceFile ?? await GetDirectory()
+				await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				StorageFile localFile = _sourceFile ?? await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 				_sourceFile = null;
@@ -208,15 +216,34 @@ namespace UniFiler10.Data.Metadata
 				//    }
 				//}
 
-				using (IInputStream inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
+				if (CancToken.IsCancellationRequested) return;
+				var children = await _oneDriveClient.Drive.Special.AppRoot.Children.Request().GetAsync();
+				if (CancToken.IsCancellationRequested) return;
+				var oneDriveFile = children.FirstOrDefault(child => child.Name == FILENAME);
+				if (CancToken.IsCancellationRequested) return;
+				DataContractSerializer serializer = new DataContractSerializer(typeof(MetaBriefcase));
+				if (oneDriveFile != null)
 				{
-					using (var iinStream = inStream.AsStreamForRead())
+					//_oneDriveFileUrl = oneDriveFile.Id;
+
+					using (var oneDriveFileStream = await _oneDriveClient.Drive.Special.AppRoot.ItemWithPath(FILENAME).Content.Request().GetAsync())
 					{
-						DataContractSerializer serializer = new DataContractSerializer(typeof(MetaBriefcase));
-						iinStream.Position = 0;
-						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(iinStream));
-						await iinStream.FlushAsync().ConfigureAwait(false);
+						oneDriveFileStream.Position = 0;
+						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(oneDriveFileStream));
+						await oneDriveFileStream.FlushAsync().ConfigureAwait(false);
 					}
+					// sync local from OneDrive
+					Task syncLocal = Task.Run(() => newMetaBriefcase?.Save2Async(false), CancToken);
+				}
+				else
+				{
+					var localFileStream = await localFile.OpenStreamForReadAsync().ConfigureAwait(false);
+					localFileStream.Position = 0;
+					newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileStream));
+					await localFileStream.FlushAsync().ConfigureAwait(false);
+
+					// sync OneDrive from local
+					Task syncOneDrive = Task.Run(() => SyncOneDrive(localFileStream), CancToken).ContinueWith(state => localFileStream?.Dispose());
 				}
 			}
 			catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
@@ -229,6 +256,10 @@ namespace UniFiler10.Data.Metadata
 				errorMessage = "could not restore the data, starting afresh";
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+			}
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
 				if (newMetaBriefcase != null) CopyFrom(newMetaBriefcase);
@@ -236,7 +267,7 @@ namespace UniFiler10.Data.Metadata
 
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
-		private async Task<bool> Save2Async(StorageFile file = null)
+		private async Task<bool> Save2Async(bool updateOneDrive, StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
@@ -246,6 +277,8 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
+				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
+
 				if (file == null)
 				{
 					file = await GetDirectory()
@@ -265,6 +298,8 @@ namespace UniFiler10.Data.Metadata
 						await memoryStream.FlushAsync().ConfigureAwait(false);
 						await fileStream.FlushAsync().ConfigureAwait(false);
 					}
+
+					if (updateOneDrive) await SyncOneDrive(memoryStream).ConfigureAwait(false);
 				}
 				var sizeBytes = await file.GetFileSizeAsync().ConfigureAwait(false);
 				// LOLLO TODO ApplicationData.RoamingStorageQuota says one can save 100 KB tops. 
@@ -277,9 +312,37 @@ namespace UniFiler10.Data.Metadata
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+			}
 			return false;
 		}
+		private async Task SyncOneDrive(Stream stream)
+		{
+			try
+			{
+				stream.Position = 0;
 
+				Task<Item> tsk = null;
+				// LOLLO TODO try and do this in a non-UI thread
+				await RunInUiThreadIdleAsync(() =>
+				{
+					tsk = _oneDriveClient.Drive.Special.AppRoot
+					 .ItemWithPath(FILENAME)
+					 .Content.Request()
+					 .PutAsync<Item>(stream);
+				}).ConfigureAwait(false);
+
+				var oneDriveFile = await tsk;
+
+				// _oneDriveFileUrl = oneDriveFile?.WebUrl;
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+		}
 		private bool CopyFrom(MetaBriefcase source)
 		{
 			if (source == null) return false;
@@ -300,7 +363,7 @@ namespace UniFiler10.Data.Metadata
 		}
 		private static StorageFolder GetDirectory()
 		{
-			return ApplicationData.Current.RoamingFolder; // was LocalFolder
+			return ApplicationData.Current.LocalFolder; // was .RoamingFolder;
 		}
 		#endregion loading methods
 
@@ -433,7 +496,7 @@ namespace UniFiler10.Data.Metadata
 
 				bool isAdded = false;
 				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
-				if (isAdded && save) isAdded = await Save2Async().ConfigureAwait(false);
+				if (isAdded && save) isAdded = await Save2Async(false).ConfigureAwait(false);
 				return isAdded;
 			});
 		}
@@ -476,12 +539,12 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionIfOpenAsyncTB(() => Save2Async(file));
+			return RunFunctionIfOpenAsyncTB(() => Save2Async(false, file));
 		}
 
 		public Task<bool> SaveAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(() => Save2Async());
+			return RunFunctionIfOpenAsyncTB(() => Save2Async(true));
 		}
 		#endregion while open methods
 	}

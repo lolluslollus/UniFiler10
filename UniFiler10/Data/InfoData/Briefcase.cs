@@ -47,15 +47,6 @@ namespace UniFiler10.Data.Model
 		}
 		private Briefcase() { }
 
-		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private IOneDriveClient _client = null;
-		private AccountSession _oneDriveAccessToken = null;
-		private readonly string[] _scopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin" };
-		private const string _appRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
-		//private string _fileId = string.Empty;
-		//private IItemRequestBuilder _builder = null;
-		private string _fileUrl = null;
-
 		protected override async Task OpenMayOverrideAsync()
 		{
 			// LOLLO TODO testing the onedrive sdk
@@ -65,56 +56,20 @@ namespace UniFiler10.Data.Model
 
 			try
 			{
-				// LOLLO NOTE this must all run in the UI thread!
-				_client = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_scopes);
-				_oneDriveAccessToken = await _client.AuthenticateAsync();
-				//var ddd = await _client.Drive.Root.ItemWithPath("LOLLO.txt").Request().GetAsync();
-				//var dddd = await _client.Drive.Root.ItemWithPath("LOLLO.txt").Content.Request().GetAsync();
-				//using (var reader = new StreamReader(dddd))
-				//{
-				//	Debug.WriteLine(reader.ReadToEnd());
-				//}
-
-				// https://api.onedrive.com/v1.0/drive/special/approot
-				// var url = _client.Drive.Special.AppRoot.RequestUrl;
-
-				var appRoot = await _client.Drive.Special.AppRoot.Request().GetAsync(); // just for testing or we need it?
-
-				//var children = await _client.Drive.Special.AppRoot.Children.Request().GetAsync();
-				//Item oneDriveFile = children.FirstOrDefault(child => child.Name == FILENAME);
-
-				//	var localFile = await GetDirectory()
-				//		.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists);
-
-				//	using (var stream = await localFile.OpenStreamForReadAsync())
-				//	{
-				//		oneDriveFile = await _client.Drive.Special.AppRoot
-				//		  .ItemWithPath(FILENAME)
-				//		  .Content.Request()
-				//		  .PutAsync<Item>(stream);
-				//		// Save for the GetLink demo
-				//		//_fileId = oneDriveFile.Id;
-				//		_fileUrl = oneDriveFile.WebUrl;
-				//	}
-				//var testStr = string.Empty;
-				//using (var test = await _client.Drive.Special.AppRoot.ItemWithPath(FILENAME).Content.Request().GetAsync())
-				//{
-				//	using (var reader = new StreamReader(test))
-				//	{
-				//		testStr = reader.ReadToEnd();
-				//		Debug.WriteLine(reader.ReadToEnd());
-				//	}
-				//}
+				// LOLLO NOTE all one drive operations must run in the UI thread!
+				_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
+				_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+				var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false); // just for testing or we need it?
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
-			await GetCreateBindersDirectoryAsync(); //.ConfigureAwait(false);
+			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
 			await LoadAsync().ConfigureAwait(false);
 
-			_metaBriefcase = MetaBriefcase.GetCreateInstance();
+			_metaBriefcase = MetaBriefcase.GetInstance(_oneDriveClient);
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
@@ -218,6 +173,17 @@ namespace UniFiler10.Data.Model
 		private string _newDbName = string.Empty;
 		[DataMember]
 		public string NewDbName { get { return _newDbName; } set { if (_newDbName != value) { _newDbName = value; RaisePropertyChanged_UI(); } } }
+
+		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private IOneDriveClient _oneDriveClient = null;
+		//[IgnoreDataMember]
+		//public IOneDriveClient OneDriveClient => _oneDriveClient;
+		private AccountSession _oneDriveAccessToken = null;
+		private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin" };
+		private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
+		//private string _fileId = string.Empty;
+		//private IItemRequestBuilder _builder = null;
+		private string _oneDriveFileUrl = null;
 		#endregion properties
 
 
@@ -470,7 +436,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(delegate
 			{
-				var mbc = MetaBriefcase.GetCreateInstance();
+				var mbc = _metaBriefcase; // LOLLO TODO test this: it was GetCreateInstance
 				return mbc.SaveACopyAsync(toFile);
 			});
 		}
@@ -508,7 +474,7 @@ namespace UniFiler10.Data.Model
 			try
 			{
 				await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
-				var file = await GetDirectory()
+				var localFile = await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask(); //.ConfigureAwait(false);
 
@@ -522,16 +488,16 @@ namespace UniFiler10.Data.Model
 				//}
 
 				if (CancToken.IsCancellationRequested) return;
-				var children = await _client.Drive.Special.AppRoot.Children.Request().GetAsync();
+				var children = await _oneDriveClient.Drive.Special.AppRoot.Children.Request().GetAsync();
 				if (CancToken.IsCancellationRequested) return;
 				var oneDriveFile = children.FirstOrDefault(child => child.Name == FILENAME);
 				if (CancToken.IsCancellationRequested) return;
 				DataContractSerializer serializer = new DataContractSerializer(typeof(Briefcase));
 				if (oneDriveFile != null)
 				{
-					_fileUrl = oneDriveFile.Id;
+					_oneDriveFileUrl = oneDriveFile.Id;
 
-					using (var oneDriveFileStream = await _client.Drive.Special.AppRoot.ItemWithPath(FILENAME).Content.Request().GetAsync())
+					using (var oneDriveFileStream = await _oneDriveClient.Drive.Special.AppRoot.ItemWithPath(FILENAME).Content.Request().GetAsync())
 					{
 						oneDriveFileStream.Position = 0;
 						newBriefcase = (Briefcase)(serializer.ReadObject(oneDriveFileStream));
@@ -542,7 +508,7 @@ namespace UniFiler10.Data.Model
 				}
 				else
 				{
-					var localFileStream = await file.OpenStreamForReadAsync().ConfigureAwait(false);
+					var localFileStream = await localFile.OpenStreamForReadAsync().ConfigureAwait(false);
 					localFileStream.Position = 0;
 					newBriefcase = (Briefcase)(serializer.ReadObject(localFileStream));
 					await localFileStream.FlushAsync().ConfigureAwait(false);
@@ -586,7 +552,7 @@ namespace UniFiler10.Data.Model
 				// LOLLO TODO try and do this in a non-UI thread
 				await RunInUiThreadIdleAsync(() =>
 				{
-					tsk = _client.Drive.Special.AppRoot
+					tsk = _oneDriveClient.Drive.Special.AppRoot
 					 .ItemWithPath(FILENAME)
 					 .Content.Request()
 					 .PutAsync<Item>(stream);
@@ -594,7 +560,7 @@ namespace UniFiler10.Data.Model
 
 				var oneDriveFile = await tsk;
 
-				_fileUrl = oneDriveFile?.WebUrl;
+				_oneDriveFileUrl = oneDriveFile?.WebUrl;
 			}
 			catch (Exception ex)
 			{
