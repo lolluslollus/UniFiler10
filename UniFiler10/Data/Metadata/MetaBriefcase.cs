@@ -202,10 +202,11 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				await _loadSaveSemaphore.WaitAsync(CancToken); //.ConfigureAwait(false);
+
 				StorageFile localFile = _sourceFile ?? await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-					.AsTask().ConfigureAwait(false);
+					.AsTask(); //.ConfigureAwait(false);
 				_sourceFile = null;
 				//String ssss = null; //this is useful when you debug and want to see the file as a string
 				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
@@ -260,6 +261,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
 			}
+
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
 				if (newMetaBriefcase != null) CopyFrom(newMetaBriefcase);
@@ -286,25 +288,23 @@ namespace UniFiler10.Data.Metadata
 						.AsTask().ConfigureAwait(false);
 				}
 
-				using (MemoryStream memoryStream = new MemoryStream())
+				var memoryStream = new MemoryStream();
+				var sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
+				sessionDataSerializer.WriteObject(memoryStream, this);
+
+				using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 				{
-					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
-					sessionDataSerializer.WriteObject(memoryStream, this);
-
-					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-					{
-						memoryStream.Seek(0, SeekOrigin.Begin);
-						await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-						await memoryStream.FlushAsync().ConfigureAwait(false);
-						await fileStream.FlushAsync().ConfigureAwait(false);
-					}
-
-					if (updateOneDrive) await SyncOneDrive(memoryStream).ConfigureAwait(false);
+					memoryStream.Seek(0, SeekOrigin.Begin);
+					await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+					await memoryStream.FlushAsync().ConfigureAwait(false);
+					await fileStream.FlushAsync().ConfigureAwait(false);
 				}
-				var sizeBytes = await file.GetFileSizeAsync().ConfigureAwait(false);
-				// LOLLO TODO ApplicationData.RoamingStorageQuota says one can save 100 KB tops. 
-				// use OneDrive instead, these files can get way larger.
-				var quotaKBytes = ApplicationData.Current.RoamingStorageQuota;
+
+				if (updateOneDrive)
+				{
+					Task syncOneDrive = Task.Run(() => SyncOneDrive(memoryStream)).ContinueWith(state => memoryStream?.Dispose());
+				}
+
 				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
 				return true;
 			}
@@ -325,7 +325,7 @@ namespace UniFiler10.Data.Metadata
 				stream.Position = 0;
 
 				Task<Item> tsk = null;
-				// LOLLO TODO try and do this in a non-UI thread
+				// LOLLO TODO try and do this in a non-UI thread, maybe even in a background task.
 				await RunInUiThreadIdleAsync(() =>
 				{
 					tsk = _oneDriveClient.Drive.Special.AppRoot

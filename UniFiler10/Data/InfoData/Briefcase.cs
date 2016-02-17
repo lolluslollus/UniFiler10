@@ -59,15 +59,15 @@ namespace UniFiler10.Data.Model
 				// LOLLO NOTE all one drive operations must run in the UI thread!
 				_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
 				_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
-				var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false); // just for testing or we need it?
+				var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); // just for testing or we need it?
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
-			await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
-			await LoadAsync().ConfigureAwait(false);
+			await GetCreateBindersDirectoryAsync(); //.ConfigureAwait(false);
+			await LoadAsync(); //.ConfigureAwait(false);
 
 			_metaBriefcase = MetaBriefcase.GetInstance(_oneDriveClient);
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
@@ -168,7 +168,7 @@ namespace UniFiler10.Data.Model
 
 		private readonly SwitchableObservableDisposableCollection<string> _dbNames = new SwitchableObservableDisposableCollection<string>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<string> DbNames { get { return _dbNames; } /*private set { if (_dbNames != value) { _dbNames = value; RaisePropertyChanged_UI(); } }*/ }
+		public SwitchableObservableDisposableCollection<string> DbNames { get { return _dbNames; } }
 
 		private string _newDbName = string.Empty;
 		[DataMember]
@@ -179,7 +179,7 @@ namespace UniFiler10.Data.Model
 		//[IgnoreDataMember]
 		//public IOneDriveClient OneDriveClient => _oneDriveClient;
 		private AccountSession _oneDriveAccessToken = null;
-		private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin" };
+		private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin"/*, "wl.offline_access"*/ };
 		private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		//private string _fileId = string.Empty;
 		//private IItemRequestBuilder _builder = null;
@@ -469,11 +469,11 @@ namespace UniFiler10.Data.Model
 		private async Task LoadAsync()
 		{
 			string errorMessage = string.Empty;
-			Briefcase newBriefcase = null;			
+			Briefcase newBriefcase = null;
 
 			try
 			{
-				await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				await _loadSaveSemaphore.WaitAsync(CancToken); //.ConfigureAwait(false);
 				var localFile = await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask(); //.ConfigureAwait(false);
@@ -533,6 +533,7 @@ namespace UniFiler10.Data.Model
 				// if (CancToken.IsCancellationRequested) localFileStream?.Dispose();
 				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
 			}
+
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
 				if (newBriefcase != null) CopyFrom(newBriefcase);
@@ -549,7 +550,7 @@ namespace UniFiler10.Data.Model
 				stream.Position = 0;
 
 				Task<Item> tsk = null;
-				// LOLLO TODO try and do this in a non-UI thread
+				// LOLLO TODO try and do this in a non-UI thread, maybe even in a background task.
 				await RunInUiThreadIdleAsync(() =>
 				{
 					tsk = _oneDriveClient.Drive.Special.AppRoot
@@ -582,25 +583,26 @@ namespace UniFiler10.Data.Model
 			{
 				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
 
-				//var memoryStream = new MemoryStream();
-				using (var memoryStream = new MemoryStream())
+				var memoryStream = new MemoryStream();
+				var sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
+				sessionDataSerializer.WriteObject(memoryStream, this);
+
+				var file = await GetDirectory()
+					.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
+					.AsTask().ConfigureAwait(false);
+				using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 				{
-					var sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
-					sessionDataSerializer.WriteObject(memoryStream, this);
-
-					var file = await GetDirectory()
-						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
-						.AsTask().ConfigureAwait(false);
-					using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-					{
-						memoryStream.Seek(0, SeekOrigin.Begin);
-						await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-						await memoryStream.FlushAsync().ConfigureAwait(false);
-						await fileStream.FlushAsync().ConfigureAwait(false);
-					}
-
-					if (updateOneDrive) await SyncOneDrive(memoryStream).ConfigureAwait(false);
+					memoryStream.Seek(0, SeekOrigin.Begin);
+					await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+					await memoryStream.FlushAsync().ConfigureAwait(false);
+					await fileStream.FlushAsync().ConfigureAwait(false);
 				}
+
+				if (updateOneDrive)
+				{
+					Task syncOneDrive = Task.Run(() => SyncOneDrive(memoryStream)).ContinueWith(state => memoryStream?.Dispose());
+				}
+
 				Debug.WriteLine("ended method Briefcase.SaveAsync()");
 			}
 			catch (Exception ex)
