@@ -146,7 +146,7 @@ namespace UniFiler10.Data.Runtime
 		}
 
 		private static readonly object _instanceLocker = new object();
-		public static RuntimeData GetCreateInstance(Briefcase briefcase)
+		public static RuntimeData GetInstance(Briefcase briefcase)
 		{
 			lock (_instanceLocker)
 			{

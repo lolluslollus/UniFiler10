@@ -218,9 +218,10 @@ namespace UniFiler10.Data.Metadata
 				//}
 
 				if (CancToken.IsCancellationRequested) return;
-				var children = await _oneDriveClient.Drive.Special.AppRoot.Children.Request().GetAsync();
+				IChildrenCollectionPage children = null;
+				if (_oneDriveClient != null) children = await _oneDriveClient.Drive.Special.AppRoot.Children.Request().GetAsync();
 				if (CancToken.IsCancellationRequested) return;
-				var oneDriveFile = children.FirstOrDefault(child => child.Name == FILENAME);
+				var oneDriveFile = children?.FirstOrDefault(child => child.Name == FILENAME);
 				if (CancToken.IsCancellationRequested) return;
 				DataContractSerializer serializer = new DataContractSerializer(typeof(MetaBriefcase));
 				if (oneDriveFile != null)
@@ -244,7 +245,7 @@ namespace UniFiler10.Data.Metadata
 					await localFileStream.FlushAsync().ConfigureAwait(false);
 
 					// sync OneDrive from local
-					Task syncOneDrive = Task.Run(() => SyncOneDrive(localFileStream), CancToken).ContinueWith(state => localFileStream?.Dispose());
+					Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileStream), CancToken).ContinueWith(state => localFileStream?.Dispose());
 				}
 			}
 			catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
@@ -302,7 +303,7 @@ namespace UniFiler10.Data.Metadata
 
 				if (updateOneDrive)
 				{
-					Task syncOneDrive = Task.Run(() => SyncOneDrive(memoryStream)).ContinueWith(state => memoryStream?.Dispose());
+					Task saveToOneDrive = Task.Run(() => SaveToOneDrive(memoryStream)).ContinueWith(state => memoryStream?.Dispose());
 				}
 
 				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
@@ -318,14 +319,15 @@ namespace UniFiler10.Data.Metadata
 			}
 			return false;
 		}
-		private async Task SyncOneDrive(Stream stream)
+		private async Task SaveToOneDrive(Stream stream)
 		{
 			try
 			{
 				stream.Position = 0;
 
 				Task<Item> tsk = null;
-				// LOLLO TODO try and do this in a non-UI thread, maybe even in a background task.
+				// LOLLO TODO try and do this in a non-UI thread, best in a background task.
+				// Otherwise, it will wait too long and break while closing the app!
 				await RunInUiThreadIdleAsync(() =>
 				{
 					tsk = _oneDriveClient.Drive.Special.AppRoot
