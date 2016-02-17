@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -12,13 +11,8 @@ using UniFiler10.Data.Runtime;
 using Utilz;
 using Utilz.Data;
 using Windows.Storage;
-using Windows.Storage.Streams;
-using Microsoft.OneDrive.Sdk;
 using UniFiler10.Data.Constants;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using System.Threading;
+
 
 namespace UniFiler10.Data.Model
 {
@@ -49,34 +43,16 @@ namespace UniFiler10.Data.Model
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			// LOLLO TODO testing the onedrive sdk
-			// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
-			// https://msdn.microsoft.com/en-us/magazine/mt632271.aspx
-			// https://onedrive.live.com/?authkey=%21ADtqHIG1cV7g5EI&cid=40CFFDE85F1AB56A&id=40CFFDE85F1AB56A%212187&parId=40CFFDE85F1AB56A%212186&action=locate
-
-			try
-			{
-				// LOLLO TODO what if the connection is very slow?
-				// LOLLO NOTE all one drive operations must run in the UI thread!
-				_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
-				_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
-				var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-			}
-
 			await GetCreateBindersDirectoryAsync(); //.ConfigureAwait(false);
 			await LoadAsync(); //.ConfigureAwait(false);
 
-			_metaBriefcase = MetaBriefcase.GetInstance(_oneDriveClient);
+			_runtimeData = RuntimeData.GetInstance(this);
+			await _runtimeData.OpenAsync(); //.ConfigureAwait(false);
+			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
+
+			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
-
-			_runtimeData = RuntimeData.GetInstance(this);
-			await _runtimeData.OpenAsync().ConfigureAwait(false);
-			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
 			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
 
@@ -164,9 +140,9 @@ namespace UniFiler10.Data.Model
 		public string NewDbName { get { return _newDbName; } set { if (_newDbName != value) { _newDbName = value; RaisePropertyChanged_UI(); } } }
 
 		//private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private IOneDriveClient _oneDriveClient = null;
-		private AccountSession _oneDriveAccessToken = null;
-		private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin"/*, "wl.offline_access"*/ };
+		//private IOneDriveClient _oneDriveClient = null;
+		//private AccountSession _oneDriveAccessToken = null;
+		//private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin"/*, "wl.offline_access"*/ };
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		////private string _fileId = string.Empty;
 		//private string _oneDriveFileUrl = null;

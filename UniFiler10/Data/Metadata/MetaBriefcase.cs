@@ -1,19 +1,16 @@
 ﻿using Microsoft.OneDrive.Sdk;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
 using Utilz;
 using Utilz.Data;
-using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
-using Windows.Storage.Streams;
+
 
 // LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
 
@@ -125,27 +122,30 @@ namespace UniFiler10.Data.Metadata
 		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
 
 		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private readonly IOneDriveClient _oneDriveClient = null;
+		private IOneDriveClient _oneDriveClient = null;
+		private AccountSession _oneDriveAccessToken = null;
+		private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin"/*, "wl.offline_access"*/ };
+		private readonly RuntimeData _runtimeData = null;
 		#endregion properties
 
 
 		#region lifecycle
 		private static readonly object _instanceLocker = new object();
-		internal static MetaBriefcase GetInstance(IOneDriveClient oneDriveClient)
+		internal static MetaBriefcase GetInstance(RuntimeData runtimeData)
 		{
 			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
-					_instance = new MetaBriefcase(oneDriveClient);
+					_instance = new MetaBriefcase(runtimeData);
 				}
 				return _instance;
 			}
 		}
 
-		private MetaBriefcase(IOneDriveClient oneDriveClient)
+		private MetaBriefcase(RuntimeData runtimeData)
 		{
-			_oneDriveClient = oneDriveClient;
+			_runtimeData = runtimeData;
 		}
 
 		protected override void Dispose(bool isDisposing)
@@ -159,6 +159,21 @@ namespace UniFiler10.Data.Metadata
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
+			if (_runtimeData.IsConnectionAvailable)
+			{
+				try
+				{
+					// LOLLO TODO what if the connection is very slow?
+					// LOLLO NOTE all one drive operations must run in the UI thread!
+					_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
+					_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+					var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+				}
+			}
 			await LoadAsync().ConfigureAwait(false);
 		}
 
@@ -197,6 +212,11 @@ namespace UniFiler10.Data.Metadata
 
 		private async Task LoadAsync()
 		{
+			// LOLLO TODO testing the onedrive sdk
+			// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
+			// https://msdn.microsoft.com/en-us/magazine/mt632271.aspx
+			// https://onedrive.live.com/?authkey=%21ADtqHIG1cV7g5EI&cid=40CFFDE85F1AB56A&id=40CFFDE85F1AB56A%212187&parId=40CFFDE85F1AB56A%212186&action=locate
+
 			string errorMessage = string.Empty;
 			MetaBriefcase newMetaBriefcase = null;
 
@@ -326,7 +346,7 @@ namespace UniFiler10.Data.Metadata
 				stream.Position = 0;
 
 				Task<Item> tsk = null;
-				// LOLLO TODO try and do this in a non-UI thread, best in a background task.
+				// LOLLO TODO try and do this in a background task.
 				// Otherwise, it will wait too long and break while closing the app!
 				await RunInUiThreadIdleAsync(() =>
 				{

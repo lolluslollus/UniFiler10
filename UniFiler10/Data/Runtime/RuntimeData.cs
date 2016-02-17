@@ -46,8 +46,8 @@ namespace UniFiler10.Data.Runtime
 				var level = profile.GetNetworkConnectivityLevel();
 				if (level == NetworkConnectivityLevel.InternetAccess || level == NetworkConnectivityLevel.LocalAccess)
 				{
-					if (_briefcase.IsOpen)
-					{
+					//if (_briefcase.IsOpen)
+					//{
 						if (
 							_briefcase.IsAllowMeteredConnection
 							||
@@ -56,11 +56,11 @@ namespace UniFiler10.Data.Runtime
 						{
 							IsConnectionAvailable = true;
 						}
-					}
-					else
-					{
-						IsConnectionAvailable = false;
-					}
+					//}
+					//else
+					//{
+					//	IsConnectionAvailable = false;
+					//}
 				}
 				else
 				{
