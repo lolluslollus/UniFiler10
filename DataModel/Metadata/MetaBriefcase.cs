@@ -12,6 +12,7 @@ using Utilz;
 using Utilz.Data;
 using Windows.Storage;
 using UniFiler10.Data.Constants;
+using System.Net.Http.Headers;
 
 
 // LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
@@ -128,6 +129,7 @@ namespace UniFiler10.Data.Metadata
 		private AccountSession _oneDriveAccessToken = null;
 		public static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access", "wl.skydrive", "wl.skydrive_update" };
 		private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
+		private const string _oneDriveAppRootUri4Path = "https://api.onedrive.com/v1.0/drive/special/approot:/";
 		private readonly RuntimeData _runtimeData = null;
 		#endregion properties
 
@@ -174,7 +176,7 @@ namespace UniFiler10.Data.Metadata
 					//_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
 					//_oneDriveClient.AuthenticationProvider.AppendAuthHeaderAsync(new HttpRequestMessage())
 
-					_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(ConstantData.ClientID, _oneDriveScopes);
+					_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(/*ConstantData.ClientID, */_oneDriveScopes);
 					_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
 
 					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
@@ -370,21 +372,43 @@ namespace UniFiler10.Data.Metadata
 			{
 				stream.Position = 0;
 
-				Task<Item> tsk = null;
-				// LOLLO TODO try and do this in the background task.
-				// Otherwise, it will wait too long and break while closing the app!
-				//await _oneDriveClient.SignOutAsync();
-				//_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(ConstantData.ClientID, _oneDriveScopes);
-				_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+				// this works
 
-				tsk = _oneDriveClient?.Drive.Special.AppRoot
-					 .ItemWithPath(FILENAME)
-					 .Content.Request()
-					 .PutAsync<Item>(stream);
+				//var uri = new Uri("https://api.onedrive.com/v1.0/drive/special/music");
+				//var uri = new Uri(_oneDriveAppRootUri);
+				var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME);
+				var client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization =
+				  new AuthenticationHeaderValue("Bearer", _oneDriveAccessToken.AccessToken);
+				var json = await client.GetStringAsync(uri);
 
-				var oneDriveFile = await tsk;
+				uri = new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content");
+				//client = new HttpClient();
+				//client.DefaultRequestHeaders.Authorization =
+				//  new AuthenticationHeaderValue("Bearer", _oneDriveAccessToken.AccessToken);
+				json = await client.GetStringAsync(uri);
 
-				// _oneDriveFileUrl = oneDriveFile?.WebUrl;
+
+				var content = new StreamContent(stream);
+				await client.PutAsync(uri, content);
+
+				// this fails
+
+				//Task<Item> tsk = null;
+				//// LOLLO TODO try and do this in the background task.
+				//// Otherwise, it will wait too long and break while closing the app!
+				////await _oneDriveClient.SignOutAsync();
+				////_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(ConstantData.ClientID, _oneDriveScopes);
+				////_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+
+				//tsk = _oneDriveClient?.Drive.Special.AppRoot
+				//	 .ItemWithPath(FILENAME)
+				//	 .Content.Request()
+				//	 .PutAsync<Item>(stream);
+
+				//var oneDriveFile = await tsk;
+
+				//// _oneDriveFileUrl = oneDriveFile?.WebUrl;
 			}
 			catch (Exception ex)
 			{
