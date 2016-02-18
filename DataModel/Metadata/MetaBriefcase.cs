@@ -1,5 +1,4 @@
 ﻿using Microsoft.OneDrive.Sdk;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
@@ -7,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Data.Runtime;
 using Utilz;
@@ -16,8 +14,6 @@ using Windows.Storage;
 using UniFiler10.Data.Constants;
 using System.Net.Http.Headers;
 using System.Threading;
-using Windows.UI.Xaml;
-
 
 // LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
 
@@ -129,13 +125,13 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-		private volatile bool _isElevated = false;
+		private volatile bool _isElevated = false; // LOLLO TODO this does not belong here. move it to the briefcase.
 		[DataMember]
 		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
 
 		//private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		//private IOneDriveClient _oneDriveClient = null;
-		private static AccountSession _oneDriveAccountSession = null;
+		//private static AccountSession _oneDriveAccountSession = null;
 
 		public static string OneDriveAccessToken
 		{
@@ -185,15 +181,15 @@ namespace UniFiler10.Data.Metadata
 				{
 					// LOLLO TODO what if the connection is very slow?
 
-					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(/*ConstantData.ClientID, */_oneDriveScopes);
-					_oneDriveAccountSession = await oneDriveClient.AuthenticateAsync();
+					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
+					var oneDriveAccountSession = await oneDriveClient.AuthenticateAsync();
 
 					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
 					// and here, use the authentication broker with appId = dashboard - settings - app settings - client id
 					// this allows working outside the UI thread, for whatever reason.
 					// However, you still need to be in the UI thread here.
 
-					OneDriveAccessToken = _oneDriveAccountSession.AccessToken;
+					OneDriveAccessToken = oneDriveAccountSession.AccessToken;
 					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
@@ -304,7 +300,7 @@ namespace UniFiler10.Data.Metadata
 
 				using (var client = new HttpClient())
 				{
-					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oneDriveAccountSession.AccessToken);
+					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
 
 					try
 					{

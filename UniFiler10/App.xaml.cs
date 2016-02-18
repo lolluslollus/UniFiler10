@@ -7,7 +7,6 @@ using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Background;
-using Windows.Foundation;
 using Windows.Phone.Devices.Notification;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -63,7 +62,7 @@ namespace UniFiler10
 			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
 		}
 
-		private async Task CloseAsync()
+		private static async Task CloseAsync()
 		{
 			var briefcase = Briefcase.GetCurrentInstance();
 			if (briefcase != null)
@@ -97,7 +96,7 @@ namespace UniFiler10
 			if (rootFrame == null)
 			{
 				// Create a Frame to act as the navigation context and navigate to the first page
-				rootFrame = new Frame() { UseLayoutRounding = true };
+				rootFrame = new Frame { UseLayoutRounding = true };
 
 				rootFrame.NavigationFailed += OnNavigationFailed;
 
@@ -287,7 +286,7 @@ namespace UniFiler10
 					// Regardless of the answer, register the background task. If the user later adds this application
 					// to the lock screen, the background task will be ready to run.
 					// Create a new background task builder
-					BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder()
+					BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder
 					{
 						Name = ConstantData.ODU_BACKGROUND_TASK_NAME,
 						TaskEntryPoint = ConstantData.ODU_BACKGROUND_TASK_ENTRY_POINT

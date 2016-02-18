@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
-using Utilz;
 using Utilz.Controlz;
-using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 

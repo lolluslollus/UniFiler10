@@ -1,11 +1,7 @@
 ﻿using System;
-using UniFiler10.Data.Constants;
-using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
 using Windows.ApplicationModel.Background;
-using Microsoft.OneDrive.Sdk;
-using System.IO;
 
 
 namespace BackgroundTasks

@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Utilz;
-using Windows.Foundation.Metadata;
-using Windows.Phone.UI.Input;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-
-namespace Utilz.Controlz
+﻿namespace Utilz.Controlz
 {
 	// LOLLO this is all too complicated! I only keep it for reference.
 	public abstract class BackableOpenableObservableControl : OpenableObservableControl

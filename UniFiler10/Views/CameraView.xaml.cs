@@ -12,7 +12,6 @@ using Windows.Foundation;
 using Windows.Foundation.Metadata;
 using Windows.Graphics.Display;
 using Windows.Graphics.Imaging;
-using Windows.Media;
 using Windows.Media.Capture;
 using Windows.Media.MediaProperties;
 using Windows.Phone.UI.Input;

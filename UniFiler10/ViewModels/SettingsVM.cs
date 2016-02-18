@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Resources;
-using System.Text;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
@@ -11,7 +7,6 @@ using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
 using Utilz.Data;
-using Windows.ApplicationModel.Resources.Core;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
@@ -305,7 +300,7 @@ namespace UniFiler10.ViewModels
 			var bc = Briefcase.GetCurrentInstance();
 			if (bc != null && TrySetIsImportingSettings(true))
 			{
-				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				var file = await Pickers.PickOpenFileAsync(new[] { ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingSettings will stay true.

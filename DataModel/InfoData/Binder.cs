@@ -344,11 +344,11 @@ namespace UniFiler10.Data.Model
 				//    }
 				//}
 
-				using (IInputStream inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
+				using (var inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
 				{
 					using (var iinStream = inStream.AsStreamForRead())
 					{
-						DataContractSerializer serializer = new DataContractSerializer(typeof(Binder));
+						var serializer = new DataContractSerializer(typeof(Binder));
 						iinStream.Position = 0;
 						newBinder = (Binder)(serializer.ReadObject(iinStream));
 						await iinStream.FlushAsync().ConfigureAwait(false);

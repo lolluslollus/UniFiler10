@@ -12,9 +12,9 @@ namespace Utilz.Controlz
     /// </summary>
     public class TolerantListView : ListView
     {
-        public TolerantListView() : base() { }
+		public TolerantListView() : base() { }
 
-        public int SelectedIndexTolerant
+		public int SelectedIndexTolerant
         {
             // get { return (int)GetValue(SelectedIndexTolerantProperty); }
             get { return (int)GetValue(SelectedIndexProperty); }
@@ -33,7 +33,6 @@ namespace Utilz.Controlz
                 {
                     instance.SelectedIndex = newValue;
                 }
-                else { }
             }
         }
 

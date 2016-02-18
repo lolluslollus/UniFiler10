@@ -808,8 +808,8 @@ namespace UniFiler10.Data.DB
 		}
 		private bool DeleteAll<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
+			if (!_isOpen) return false;
 			bool result = false;
-			if (!_isOpen) return result;
 
 			try
 			{
@@ -954,8 +954,8 @@ namespace UniFiler10.Data.DB
 		}
 		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
 		{
+			if (!_isOpen) return null;
 			T result = null; //default(T);
-			if (!_isOpen) return result;
 
 			try
 			{
@@ -1045,7 +1045,7 @@ namespace UniFiler10.Data.DB
 
 		private Task<InsertResult> InsertManyAsync<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() => InsertMany<T>(items, checkMaxEntries, semaphore));
+			return Task.Run(() => InsertMany(items, checkMaxEntries, semaphore));
 		}
 		// LOLLO TODO if you want to use checkMaxEntries, do so; otherwise, kill it.
 		private InsertResult InsertMany<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()

@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
@@ -612,7 +610,7 @@ namespace UniFiler10.ViewModels
 			if (isDirty) SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 		}
 
-		private void OnFol_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void OnFol_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Folder.DateCreated) || e.PropertyName == nameof(Folder.Name))
 			{
@@ -637,7 +635,7 @@ namespace UniFiler10.ViewModels
 			if (isDirty) SetIsDirty(true, true, REFRESH_INTERVAL_LONG_MSEC);
 		}
 
-		private void OnFolWalDoc_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void OnFolWalDoc_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Document.Uri0))
 			{
@@ -721,7 +719,7 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null && TrySetIsImportingFolders(true))
 			{
-				var dir = await Pickers.PickDirectoryAsync(new string[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				var dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingFolders will stay true.

@@ -12,9 +12,9 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <UserControl.Resources>
+    <!--<UserControl.Resources>
         <SolidColorBrush x:Key="TranslucentBlackBrush" Color="Black" Opacity="0.3"/>
-    </UserControl.Resources>
+    </UserControl.Resources>-->
 
 	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
 	<Grid Background="Gold">

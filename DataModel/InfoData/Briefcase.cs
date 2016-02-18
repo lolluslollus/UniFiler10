@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -11,8 +10,6 @@ using Utilz;
 using Utilz.Data;
 using Windows.Storage;
 using UniFiler10.Data.Constants;
-using Windows.ApplicationModel.Background;
-using Windows.Foundation;
 
 namespace UniFiler10.Data.Model
 {
@@ -498,10 +495,10 @@ namespace UniFiler10.Data.Model
 			return true;
 		}
 
-		private static StorageFolder GetDirectory()
-		{
-			return ApplicationData.Current.LocalFolder; //.RoamingFolder;
-		}
+		//private static StorageFolder GetDirectory()
+		//{
+		//	return ApplicationData.Current.LocalFolder; //.RoamingFolder;
+		//}
 
 		private static async Task GetCreateBindersDirectoryAsync()
 		{

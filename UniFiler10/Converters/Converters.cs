@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UniFiler10.Data.Model;
-using UniFiler10.Data.Metadata;
-using Utilz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 using System.Collections;
 using System.Globalization;
-using Windows.UI.Xaml.Controls;
 
 namespace UniFiler10.Converters
 {

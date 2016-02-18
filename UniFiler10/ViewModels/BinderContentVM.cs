@@ -1,14 +1,7 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using UniFiler10.Data.Metadata;
+﻿using System.Threading.Tasks;
 using UniFiler10.Data.Model;
 using UniFiler10.Data.Runtime;
-using Utilz;
 using Utilz.Data;
-using Windows.Storage;
 
 namespace UniFiler10.ViewModels
 {

@@ -188,33 +188,33 @@ namespace UniFiler10.Views
 			}
 			catch { }
 		}
-		private async Task RenderHtmlMiniature2Async()
-		{
-			// LOLLO the WebView sometimes renders, sometimes not. This is pedestrian but works better than the other method.
-			try
-			{
-				string uriStr = string.Empty;
-				await RunInUiThreadAsync(delegate { uriStr = Document?.GetFullUri0(); }).ConfigureAwait(false);
+		//private async Task RenderHtmlMiniature2Async()
+		//{
+		//	// LOLLO the WebView sometimes renders, sometimes not. This is pedestrian but works better than the other method.
+		//	try
+		//	{
+		//		string uriStr = string.Empty;
+		//		await RunInUiThreadAsync(delegate { uriStr = Document?.GetFullUri0(); }).ConfigureAwait(false);
 
-				Uri uri = new Uri(uriStr);
-				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
-				{
-					try
-					{
-						ShowWebViewer();
-						WebViewer.Navigate(uri);
-					}
-					catch (Exception ex)
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-					}
-				}).AsTask().ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-			}
-		}
+		//		Uri uri = new Uri(uriStr);
+		//		await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+		//		{
+		//			try
+		//			{
+		//				ShowWebViewer();
+		//				WebViewer.Navigate(uri);
+		//			}
+		//			catch (Exception ex)
+		//			{
+		//				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//			}
+		//		}).AsTask().ConfigureAwait(false);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+		//	}
+		//}
 		private async Task RenderAudioMiniatureAsync()
 		{
 			try
