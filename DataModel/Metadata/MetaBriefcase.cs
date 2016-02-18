@@ -196,6 +196,7 @@ namespace UniFiler10.Data.Metadata
 					//	await _oneDriveClient.AuthenticateAsync();
 					//}
 
+					// LOLLO TODO see if I can get rid of this (it takes time): delete the app folder in one drive and the run the app.
 					var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
 				}
 				catch (Exception ex) // LOLLO TODO authentication cancelled? why?
