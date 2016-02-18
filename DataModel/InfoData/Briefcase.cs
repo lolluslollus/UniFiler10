@@ -51,11 +51,11 @@ namespace UniFiler10.Data.Model
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateBindersDirectoryAsync(); //.ConfigureAwait(false);
-			await LoadAsync().ConfigureAwait(false);
-			await LoadDbNames().ConfigureAwait(false);
+			await LoadAsync(); //.ConfigureAwait(false);
+			await LoadDbNames(); //.ConfigureAwait(false);
 
 			_runtimeData = RuntimeData.GetInstance(this, false);
-			await _runtimeData.OpenAsync().ConfigureAwait(false);
+			await _runtimeData.OpenAsync(); //.ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
@@ -69,7 +69,7 @@ namespace UniFiler10.Data.Model
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await SaveAsync(/*true*/).ConfigureAwait(false);
-
+			var bkgUploadToOneDrive = _trigger?.RequestAsync();
 			await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 			var rd = _runtimeData;
@@ -86,9 +86,7 @@ namespace UniFiler10.Data.Model
 				await mb.CloseAsync().ConfigureAwait(false);
 				mb.Dispose();
 				MetaBriefcase = null;
-			}
-
-			var bkgUploadToOneDrive = _trigger?.RequestAsync();
+			}			
 		}
 		protected override void Dispose(bool isDisposing)
 		{

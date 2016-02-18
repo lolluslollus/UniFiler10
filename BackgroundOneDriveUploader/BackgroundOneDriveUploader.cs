@@ -64,7 +64,12 @@ namespace BackgroundTasks
 				if (bc.RuntimeData?.IsConnectionAvailable == true)
 				{
 					if (cancToken.IsCancellationRequested) return;
+
+					//var oneDriveClient = OneDriveClientExtensions.GetClientUsingWebAuthenticationBroker(ConstantData.ClientID, MetaBriefcase._oneDriveScopes);
+					//if (oneDriveClient?.IsAuthenticated == false) await oneDriveClient.AuthenticateAsync();
+
 					var oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingWebAuthenticationBroker(ConstantData.ClientID, MetaBriefcase._oneDriveScopes);
+
 					if (cancToken.IsCancellationRequested) return;
 					var localFile = await MetaBriefcase.GetDirectory().GetFileAsync(MetaBriefcase.FILENAME).AsTask(cancToken).ConfigureAwait(false);
 					if (cancToken.IsCancellationRequested) return;

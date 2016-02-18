@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
@@ -125,7 +126,7 @@ namespace UniFiler10.Data.Metadata
 		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private IOneDriveClient _oneDriveClient = null;
 		private AccountSession _oneDriveAccessToken = null;
-		public static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access" };
+		public static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access", "wl.skydrive", "wl.skydrive_update" };
 		private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		private readonly RuntimeData _runtimeData = null;
 		#endregion properties
@@ -171,16 +172,29 @@ namespace UniFiler10.Data.Metadata
 
 					//_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
 					//_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+					//_oneDriveClient.AuthenticationProvider.AppendAuthHeaderAsync(new HttpRequestMessage())
+
+					_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(ConstantData.ClientID, _oneDriveScopes);
+					_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
 
 					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
 					// and here, use the authentication broker with appId = dashboard - settings - app settings - client id
 					// this allows working outside the UI thread, for whatever reason.
+					// However, you still need to be in the UI thread here.
+					// this is also crap coz the user must log on every time and the bkg task does not work. It looks like SSO is broken.
 
-					_oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingWebAuthenticationBroker(ConstantData.ClientID, _oneDriveScopes);
+					//_oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingWebAuthenticationBroker(ConstantData.ClientID, _oneDriveScopes);
+
+					//_oneDriveClient = OneDriveClientExtensions.GetClientUsingWebAuthenticationBroker(ConstantData.ClientID, _oneDriveScopes);
+					//if (_oneDriveClient?.AuthenticationProvider?.CurrentAccountSession?.AccessToken == null)
+					////if (_oneDriveClient?.IsAuthenticated == false) // this is broken
+					//{
+					//	await _oneDriveClient.AuthenticateAsync();
+					//}
 
 					var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
 				}
-				catch (Exception ex)
+				catch (Exception ex) // LOLLO TODO authentication cancelled? why?
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 				}
@@ -359,8 +373,11 @@ namespace UniFiler10.Data.Metadata
 				Task<Item> tsk = null;
 				// LOLLO TODO try and do this in the background task.
 				// Otherwise, it will wait too long and break while closing the app!
+				//await _oneDriveClient.SignOutAsync();
+				//_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(ConstantData.ClientID, _oneDriveScopes);
+				_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
 
-					tsk = _oneDriveClient.Drive.Special.AppRoot
+				tsk = _oneDriveClient?.Drive.Special.AppRoot
 					 .ItemWithPath(FILENAME)
 					 .Content.Request()
 					 .PutAsync<Item>(stream);

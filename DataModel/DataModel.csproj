@@ -126,6 +126,14 @@
     <EmbeddedResource Include="Properties\DataModel.rd.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\onedrive-sdk-csharp-master\src\OneDriveSdk.WinStore\OneDriveSdk.WinStore.csproj">
+      <Project>{a8c54259-542c-40ac-aeb6-eefc3aa79859}</Project>
+      <Name>OneDriveSdk.WinStore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\onedrive-sdk-csharp-master\src\OneDriveSdk\OneDriveSdk.csproj">
+      <Project>{1368527b-d7b2-46ad-893d-6dc8c073d819}</Project>
+      <Name>OneDriveSdk</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Utilz\Utilz\Utilz.csproj">
       <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
       <Name>Utilz</Name>
