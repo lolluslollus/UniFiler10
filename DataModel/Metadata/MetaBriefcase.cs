@@ -133,18 +133,18 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
 
-		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		//private IOneDriveClient _oneDriveClient = null;
-		private AccountSession _oneDriveAccountSession = null;
+		private static AccountSession _oneDriveAccountSession = null;
 
-		public string OneDriveAccessToken
+		public static string OneDriveAccessToken
 		{
 			get { return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_TKN); }
 			private set { RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_TKN, value); }
 		}
 		private static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access", "wl.skydrive", "wl.skydrive_update" };
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
-		private const string _oneDriveAppRootUri4Path = "https://api.onedrive.com/v1.0/drive/special/approot:/";
+		private const string _oneDriveAppRootUri4Path = "https://api.onedrive.com/v1.0/drive/special/approot:/"; // this is useful if you don't know the file ids but you know the paths
 		private readonly RuntimeData _runtimeData = null;
 		#endregion properties
 
@@ -194,8 +194,7 @@ namespace UniFiler10.Data.Metadata
 					// However, you still need to be in the UI thread here.
 
 					OneDriveAccessToken = _oneDriveAccountSession.AccessToken;
-					// LOLLO TODO see if I can get rid of this (it takes time): delete the app folder in one drive and the run the app.
-					var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
+					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
@@ -251,7 +250,8 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+				// await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
 				StorageFile localFile = null;
 				var odLastModifiedWhen = default(DateTime);
@@ -340,7 +340,8 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+				_oneDriveMetaBriefcaseSemaphore.TryRelease();
+				//SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
 			}
 
 			if (string.IsNullOrWhiteSpace(errorMessage))
@@ -360,7 +361,8 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
+				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+				// await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
 
 				if (file == null)
 				{
@@ -390,7 +392,8 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+				_oneDriveMetaBriefcaseSemaphore.TryRelease();
+				//SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
 			}
 			return false;
 		}
@@ -424,7 +427,12 @@ namespace UniFiler10.Data.Metadata
 							//var json = await client.GetStringAsync(uri);
 
 							var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content");
-							var remoteFilecontentString = await client.GetStringAsync(uri).ConfigureAwait(false);
+							string remoteFilecontentString = string.Empty;
+							try
+							{
+								remoteFilecontentString = await client.GetStringAsync(uri).ConfigureAwait(false);
+							}
+							catch { }
 
 							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal)) return;
 
