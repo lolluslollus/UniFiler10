@@ -146,23 +146,27 @@ namespace UniFiler10.Data.Runtime
 		}
 
 		private static readonly object _instanceLocker = new object();
-		public static RuntimeData GetInstance(Briefcase briefcase)
+		public static RuntimeData GetInstance(Briefcase briefcase, bool isLight)
 		{
 			lock (_instanceLocker)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
-					_instance = new RuntimeData(briefcase);
+					_instance = new RuntimeData(briefcase, isLight);
 				}
 				return _instance;
 			}
 		}
 
 		private static Briefcase _briefcase = null;
+		private readonly bool _isLight = false;
 
-		private RuntimeData(Briefcase briefcase)
+		private RuntimeData(Briefcase briefcase, bool isLight)
 		{
 			_briefcase = briefcase;
+			_isLight = isLight;
+			if (isLight) return;
+
 			_videoDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.VideoCapture);
 			_audioDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.AudioCapture);
 		}
@@ -170,6 +174,7 @@ namespace UniFiler10.Data.Runtime
 		{
 			AddHandlers();
 			UpdateIsConnectionAvailable();
+			if (_isLight) return;
 
 			_videoDeviceWatcher.Start();
 			_audioDeviceWatcher.Start();
@@ -194,8 +199,11 @@ namespace UniFiler10.Data.Runtime
 		{
 			if (!_isHandlersActive)
 			{
+				_isHandlersActive = true;
 				NetworkInformation.NetworkStatusChanged += OnNetworkStatusChanged;
 				_briefcase.PropertyChanged += OnPersistentData_PropertyChanged;
+
+				if (_isLight) return;
 
 				_videoDeviceWatcher.EnumerationCompleted += OnVideoDeviceWatcher_EnumerationCompleted;
 				_videoDeviceWatcher.Added += OnVideoDeviceWatcher_Added;
@@ -206,8 +214,6 @@ namespace UniFiler10.Data.Runtime
 				_audioDeviceWatcher.Added += OnAudioDeviceWatcher_Added;
 				_audioDeviceWatcher.Updated += OnAudioDeviceWatcher_Updated;
 				_audioDeviceWatcher.Removed += OnAudioDeviceWatcher_Removed;
-
-				_isHandlersActive = true;
 			}
 		}
 

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using UniFiler10.Controlz;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
@@ -12,7 +11,8 @@ using Utilz;
 using Utilz.Data;
 using Windows.Storage;
 using UniFiler10.Data.Constants;
-
+using Windows.ApplicationModel.Background;
+using Windows.Foundation;
 
 namespace UniFiler10.Data.Model
 {
@@ -41,20 +41,28 @@ namespace UniFiler10.Data.Model
 		}
 		private Briefcase() { }
 
+		public async Task OpenLightAsync()
+		{
+			await LoadAsync().ConfigureAwait(false);
+			_runtimeData = RuntimeData.GetInstance(this, true);
+			await _runtimeData.OpenAsync().ConfigureAwait(false);
+		}
+
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await GetCreateBindersDirectoryAsync(); //.ConfigureAwait(false);
-			await LoadAsync(); //.ConfigureAwait(false);
+			await LoadAsync().ConfigureAwait(false);
+			await LoadDbNames().ConfigureAwait(false);
 
-			_runtimeData = RuntimeData.GetInstance(this);
-			await _runtimeData.OpenAsync(); //.ConfigureAwait(false);
+			_runtimeData = RuntimeData.GetInstance(this, false);
+			await _runtimeData.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
-			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
+			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
 
 			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
@@ -79,6 +87,8 @@ namespace UniFiler10.Data.Model
 				mb.Dispose();
 				MetaBriefcase = null;
 			}
+
+			var bkgUploadToOneDrive = _trigger?.RequestAsync();
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -255,24 +265,24 @@ namespace UniFiler10.Data.Model
 			return false;
 		}
 
-		public async Task<bool> ExportBinderAsync(string dbName, StorageFolder toRootDirectory)
+		public async Task<bool> ExportBinderAsync(string dbName, StorageFolder fromDirectory, StorageFolder toRootDirectory)
 		{
 			try
 			{
-				if (string.IsNullOrWhiteSpace(dbName) /*|| _dbNames?.Contains(dbName) == false */|| toRootDirectory == null) return false;
+				if (string.IsNullOrWhiteSpace(dbName) /*|| _dbNames?.Contains(dbName) == false */ || fromDirectory == null || toRootDirectory == null) return false;
 
-				var fromDirectory = await BindersDirectory
-					.GetFolderAsync(dbName)
-					.AsTask().ConfigureAwait(false);
-				if (fromDirectory == null) return false;
+				//var fromDirectory = await BindersDirectory
+				//	.GetFolderAsync(dbName)
+				//	.AsTask().ConfigureAwait(false);
+				//if (fromDirectory == null) return false;
 
-				// what if you copy a directory to an existing one? Shouldn't you delete the contents first? No! But then, shouldn't you issue a warning?
-				var toDirectoryTest = await toRootDirectory.TryGetItemAsync(dbName).AsTask().ConfigureAwait(false);
-				if (toDirectoryTest != null)
-				{
-					var confirmation = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeExportingBinderAsync().ConfigureAwait(false);
-					if (confirmation == null || confirmation.Item1 == false || confirmation.Item2 == false) return false;
-				}
+				//// what if you copy a directory to an existing one? Shouldn't you delete the contents first? No! But then, shouldn't you issue a warning?
+				//var toDirectoryTest = await toRootDirectory.TryGetItemAsync(dbName).AsTask().ConfigureAwait(false);
+				//if (toDirectoryTest != null)
+				//{
+				//	var confirmation = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeExportingBinderAsync().ConfigureAwait(false);
+				//	if (confirmation == null || confirmation.Item1 == false || confirmation.Item2 == false) return false;
+				//}
 
 				var toDirectory = await toRootDirectory
 					.CreateFolderAsync(dbName, CreationCollisionOption.ReplaceExisting)
@@ -426,6 +436,116 @@ namespace UniFiler10.Data.Model
 
 
 		#region loading methods
+
+		private IBackgroundTaskRegistration _oduBkgTaskReg = null;
+		private ApplicationTrigger _trigger = null;
+		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
+		{
+			//return (from cur in BackgroundTaskRegistration.AllTasks
+			//		where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
+			//		select cur.Value).FirstOrDefault();
+			foreach (var cur in BackgroundTaskRegistration.AllTasks)
+			{
+				if (cur.Value.Name == ConstantData.GET_ODU_BACKGROUND_TASK_NAME)
+				{
+					return cur.Value;
+				}
+			}
+			return null;
+		}
+
+		//private void CloseGetLocBackgroundTask_All()
+		//{
+		//	if (_oduBkgTaskReg != null)
+		//	{
+		//		_oduBkgTaskReg.Unregister(true);
+		//		_oduBkgTaskReg = null;
+		//	}
+
+		//	var allBkgTasks = BackgroundTaskRegistration.AllTasks.Values.ToList(); // clone
+		//	foreach (var item in allBkgTasks)
+		//	{
+		//		if (item.Name == ConstantData.GET_ODU_BACKGROUND_TASK_NAME)
+		//		{
+		//			item.Unregister(true);
+		//		}
+		//	}
+		//}
+		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
+		{
+			bool isOk = false;
+			string msg = string.Empty;
+
+			string errorMsg = string.Empty;
+			BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
+
+			_oduBkgTaskReg = GetTaskIfAlreadyRegistered();
+
+			if (_oduBkgTaskReg == null) // bkg task not registered yet: register it
+			{
+				try
+				{
+					//maniman
+					//CloseGetLocBackgroundTask_All();
+
+					// Get permission for a background task from the user. If the user has already answered once,
+					// this does nothing and the user must manually update their preference via PC Settings.
+					backgroundAccessStatus = await BackgroundExecutionManager.RequestAccessAsync().AsTask().ConfigureAwait(false);
+
+					// Regardless of the answer, register the background task. If the user later adds this application
+					// to the lock screen, the background task will be ready to run.
+					// Create a new background task builder
+					BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder()
+					{
+						Name = ConstantData.GET_ODU_BACKGROUND_TASK_NAME,
+						TaskEntryPoint = ConstantData.GET_ODU_BACKGROUND_TASK_ENTRY_POINT
+					};
+
+					//SystemCondition condition = new SystemCondition(SystemConditionType.UserPresent);
+					//var trigger = new SystemTrigger(SystemTriggerType.UserAway, false);
+					_trigger = new ApplicationTrigger();
+					bkgTaskBuilder.SetTrigger(_trigger); // LOLLO TODO check this
+
+					// Register the background task
+					_oduBkgTaskReg = bkgTaskBuilder.Register();
+				}
+				catch (Exception ex)
+				{
+					errorMsg = ex.ToString();
+					backgroundAccessStatus = BackgroundAccessStatus.Denied;
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			}
+			else // bkg task registered: see if it is ok
+			{
+				try
+				{
+					backgroundAccessStatus = BackgroundExecutionManager.GetAccessStatus();
+				}
+				catch (Exception ex)
+				{
+					errorMsg = ex.ToString();
+					backgroundAccessStatus = BackgroundAccessStatus.Denied;
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			}
+
+			switch (backgroundAccessStatus)
+			{
+				case BackgroundAccessStatus.Unspecified:
+					msg = "Cannot run in background, enable it in the \"Battery Saver\" app";
+					break;
+				case BackgroundAccessStatus.Denied:
+					msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Settings - Privacy - Background apps" : errorMsg;
+					break;
+				default:
+					msg = "Background task on";
+					isOk = true;
+					break;
+			}
+
+			return Tuple.Create(isOk, msg);
+		}
 		private const string FILENAME = "LolloSessionDataBriefcase.xml";
 
 		private async Task LoadAsync()
@@ -466,8 +586,6 @@ namespace UniFiler10.Data.Model
 			{
 				CopyFrom(newBriefcase);
 			}
-
-			await LoadDbNames().ConfigureAwait(false);
 
 			Debug.WriteLine("ended method Briefcase.LoadAsync()");
 		}

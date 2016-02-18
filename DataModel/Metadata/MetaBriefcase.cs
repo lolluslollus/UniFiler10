@@ -10,6 +10,7 @@ using UniFiler10.Data.Runtime;
 using Utilz;
 using Utilz.Data;
 using Windows.Storage;
+using UniFiler10.Data.Constants;
 
 
 // LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
@@ -124,7 +125,8 @@ namespace UniFiler10.Data.Metadata
 		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private IOneDriveClient _oneDriveClient = null;
 		private AccountSession _oneDriveAccessToken = null;
-		private readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin"/*, "wl.offline_access"*/ };
+		public static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access" };
+		private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		private readonly RuntimeData _runtimeData = null;
 		#endregion properties
 
@@ -164,9 +166,18 @@ namespace UniFiler10.Data.Metadata
 				try
 				{
 					// LOLLO TODO what if the connection is very slow?
-					// LOLLO NOTE all one drive operations must run in the UI thread!
-					_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
-					_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+
+					// _oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingOnlineIdAuthenticator(_oneDriveScopes);
+
+					//_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
+					//_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
+
+					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
+					// and here, use the authentication broker with appId = dashboard - settings - app settings - client id
+					// this allows working outside the UI thread, for whatever reason.
+
+					_oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingWebAuthenticationBroker(ConstantData.ClientID, _oneDriveScopes);
+
 					var appRoot = await _oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
 				}
 				catch (Exception ex)
@@ -346,15 +357,13 @@ namespace UniFiler10.Data.Metadata
 				stream.Position = 0;
 
 				Task<Item> tsk = null;
-				// LOLLO TODO try and do this in a background task.
+				// LOLLO TODO try and do this in the background task.
 				// Otherwise, it will wait too long and break while closing the app!
-				await RunInUiThreadIdleAsync(() =>
-				{
+
 					tsk = _oneDriveClient.Drive.Special.AppRoot
 					 .ItemWithPath(FILENAME)
 					 .Content.Request()
 					 .PutAsync<Item>(stream);
-				}).ConfigureAwait(false);
 
 				var oneDriveFile = await tsk;
 
@@ -365,6 +374,32 @@ namespace UniFiler10.Data.Metadata
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 		}
+		//private async Task SaveToOneDrive(Stream stream)
+		//{
+		//	try
+		//	{
+		//		stream.Position = 0;
+
+		//		Task<Item> tsk = null;
+		//		// LOLLO TODO try and do this in a background task.
+		//		// Otherwise, it will wait too long and break while closing the app!
+		//		await RunInUiThreadIdleAsync(() =>
+		//		{
+		//			tsk = _oneDriveClient.Drive.Special.AppRoot
+		//			 .ItemWithPath(FILENAME)
+		//			 .Content.Request()
+		//			 .PutAsync<Item>(stream);
+		//		}).ConfigureAwait(false);
+
+		//		var oneDriveFile = await tsk;
+
+		//		// _oneDriveFileUrl = oneDriveFile?.WebUrl;
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+		//	}
+		//}
 		private bool CopyFrom(MetaBriefcase source)
 		{
 			if (source == null) return false;
@@ -383,7 +418,7 @@ namespace UniFiler10.Data.Metadata
 
 			return true;
 		}
-		private static StorageFolder GetDirectory()
+		public static StorageFolder GetDirectory()
 		{
 			return ApplicationData.Current.LocalFolder; // was .RoamingFolder;
 		}

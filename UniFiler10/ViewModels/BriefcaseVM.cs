@@ -405,20 +405,39 @@ namespace UniFiler10.ViewModels
 				if (bc != null && toDir != null)
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-					isExported = await bc.ExportBinderAsync(dbName, toDir).ConfigureAwait(false);
+
+					if (string.IsNullOrWhiteSpace(dbName) /*|| _dbNames?.Contains(dbName) == false */|| toDir == null) return;
+
+					var fromDirectory = await Briefcase.BindersDirectory
+						.GetFolderAsync(dbName)
+						.AsTask().ConfigureAwait(false);
+					if (fromDirectory == null) return;
+					// what if you copy a directory to an existing one? Shouldn't you delete the contents first? No! But then, shouldn't you issue a warning?
+					var toDirectoryTest = await toDir.TryGetItemAsync(dbName).AsTask().ConfigureAwait(false);
+					if (toDirectoryTest != null)
+					{
+						var confirmation =
+							await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeExportingBinderAsync().ConfigureAwait(false);
+						if (confirmation == null || confirmation.Item1 == false || confirmation.Item2 == false) return;
+					}
+
+
+					isExported = await bc.ExportBinderAsync(dbName, fromDirectory, toDir).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 			}
+			finally
+			{
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(isExported
+					? AnimationStarter.Animations.Success
+					: AnimationStarter.Animations.Failure);
 
-			_animationStarter.EndAllAnimations();
-			_animationStarter.StartAnimation(isExported
-				? AnimationStarter.Animations.Success
-				: AnimationStarter.Animations.Failure);
-
-			IsExportingBinder = false;
+				IsExportingBinder = false;
+			}
 		}
 	}
 }

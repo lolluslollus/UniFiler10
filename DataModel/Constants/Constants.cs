@@ -21,6 +21,9 @@ namespace UniFiler10.Data.Constants
 		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9nblggh6g8vv"; // LOLLO TODO this id comes from the dashboard
 		public const int TRIAL_LENGTH_DAYS = 7;
 
+	    public const string ClientID = "000000004817C625";
+		//Client secret:   KoXu5wZMz5e8GK1TWY1wMMsq8wgTA6GR
+
 		public const string REG_EXPORT_BINDER_IS_EXPORTING = "ExportBinder.IsExporting";
 		public const string REG_EXPORT_BINDER_DBNAME = "ExportBinder.DbName";
 		public const string REG_IMPORT_BINDER_IS_IMPORTING = "ImportBinder.IsImporting";
@@ -42,6 +45,9 @@ namespace UniFiler10.Data.Constants
 		public const string REG_SETTINGS_IS_IMPORTING = "ImpExpSettings.IsImporting";
 
 		public const string REG_BRIEFCASE = "Briefcase.LastSave";
+
+		public const string GET_ODU_BACKGROUND_TASK_NAME = "BackgroundOneDriveUploader";
+		public const string GET_ODU_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.BackgroundOneDriveUploader";
 
 		public static string AppName { get { return APPNAME; } }
         private static readonly string _version = Package.Current.Id.Version.Major.ToString()

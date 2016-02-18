@@ -43,6 +43,7 @@ namespace UniFiler10
 		}
 		private static async Task OpenAsync()
 		{
+			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
 			var briefcase = Briefcase.GetCreateInstance();
 			if (briefcase != null)
 			{

@@ -117,24 +117,9 @@
     </Compile>
     <Compile Include="Controlz\LolloTextBox.cs" />
     <Compile Include="Converters\Converters.cs" />
-    <Compile Include="Data\InfoData\DynamicCategory.cs" />
-    <Compile Include="Data\InfoData\DynamicField.cs" />
-    <Compile Include="Data\InfoData\MergingBinder.cs" />
-    <Compile Include="Data\InfoData\Wallet.cs" />
-    <Compile Include="Data\InfoData\Binder.cs" />
-    <Compile Include="Data\Runtime\RuntimeData.cs" />
-    <Compile Include="Data\InfoData\Folder.cs" />
-    <Compile Include="Data\InfoData\Document.cs" />
-    <Compile Include="Data\Metadata\Category.cs" />
-    <Compile Include="Data\Metadata\MetaBriefcase.cs" />
-    <Compile Include="Data\Metadata\FieldDescription.cs" />
-    <Compile Include="Data\Metadata\FieldValue.cs" />
     <Compile Include="Services\AudioRecorder.cs" />
     <Compile Include="Services\DocumentExtensions.cs" />
-    <Compile Include="Data\Constants\Constants.cs" />
     <Compile Include="Services\Licenser.cs" />
-    <Compile Include="Data\InfoData\Briefcase.cs" />
-    <Compile Include="Data\DB\DBManager.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
     <Compile Include="Controlz\UserConfirmationPopup.cs" />
     <Compile Include="ViewModels\BinderCoverVM.cs" />
@@ -330,6 +315,14 @@
     <ProjectReference Include="..\..\Utilz\Utilz\Utilz.csproj">
       <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
       <Name>Utilz</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BackgroundOneDriveUploader\BackgroundOneDriveUploader.csproj">
+      <Project>{a5e40534-5799-4590-83c6-439adb08c728}</Project>
+      <Name>BackgroundOneDriveUploader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DataModel\DataModel.csproj">
+      <Project>{b5e7ad27-3e03-456e-950d-81d2ebf2634b}</Project>
+      <Name>DataModel</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

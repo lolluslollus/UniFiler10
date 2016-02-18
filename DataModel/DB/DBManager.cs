@@ -26,7 +26,7 @@ namespace UniFiler10.Data.DB
 		public const string DB_FILE_NAME = "Db.db";
 		private readonly string _dbFullPath = string.Empty;
 		private readonly StorageFolder _directory = null;
-		internal StorageFolder Directory { get { return _directory; } }
+		public StorageFolder Directory { get { return _directory; } }
 
 		private const bool IS_STORE_DATE_TIME_AS_TICKS = true;
 		private const SQLiteOpenFlags OPEN_FLAGS_READ_WRITE = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
