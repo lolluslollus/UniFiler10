@@ -15,6 +15,8 @@ using Utilz.Data;
 using Windows.Storage;
 using UniFiler10.Data.Constants;
 using System.Net.Http.Headers;
+using System.Threading;
+using Windows.UI.Xaml;
 
 
 // LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
@@ -24,6 +26,11 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class MetaBriefcase : OpenableObservableDisposableData
 	{
+		#region events
+		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
+		#endregion events
+
+
 		#region properties
 		private static MetaBriefcase _instance = null;
 		[IgnoreDataMember]
@@ -128,7 +135,13 @@ namespace UniFiler10.Data.Metadata
 
 		private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		//private IOneDriveClient _oneDriveClient = null;
-		private AccountSession _oneDriveAccessToken = null;
+		private AccountSession _oneDriveAccountSession = null;
+
+		public string OneDriveAccessToken
+		{
+			get { return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_TKN); }
+			private set { RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_TKN, value); }
+		}
 		private static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access", "wl.skydrive", "wl.skydrive_update" };
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		private const string _oneDriveAppRootUri4Path = "https://api.onedrive.com/v1.0/drive/special/approot:/";
@@ -172,34 +185,19 @@ namespace UniFiler10.Data.Metadata
 				{
 					// LOLLO TODO what if the connection is very slow?
 
-					// _oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingOnlineIdAuthenticator(_oneDriveScopes);
-
-					//_oneDriveClient = OneDriveClientExtensions.GetClientUsingOnlineIdAuthenticator(_oneDriveScopes);
-					//_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
-					//_oneDriveClient.AuthenticationProvider.AppendAuthHeaderAsync(new HttpRequestMessage())
-
 					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(/*ConstantData.ClientID, */_oneDriveScopes);
-					_oneDriveAccessToken = await oneDriveClient.AuthenticateAsync();
+					_oneDriveAccountSession = await oneDriveClient.AuthenticateAsync();
 
 					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
 					// and here, use the authentication broker with appId = dashboard - settings - app settings - client id
 					// this allows working outside the UI thread, for whatever reason.
 					// However, you still need to be in the UI thread here.
-					// this is also crap coz the user must log on every time and the bkg task does not work. It looks like SSO is broken.
 
-					//_oneDriveClient = await OneDriveClientExtensions.GetAuthenticatedClientUsingWebAuthenticationBroker(ConstantData.ClientID, _oneDriveScopes);
-
-					//_oneDriveClient = OneDriveClientExtensions.GetClientUsingWebAuthenticationBroker(ConstantData.ClientID, _oneDriveScopes);
-					//if (_oneDriveClient?.AuthenticationProvider?.CurrentAccountSession?.AccessToken == null)
-					////if (_oneDriveClient?.IsAuthenticated == false) // this is broken
-					//{
-					//	await _oneDriveClient.AuthenticateAsync();
-					//}
-
+					OneDriveAccessToken = _oneDriveAccountSession.AccessToken;
 					// LOLLO TODO see if I can get rid of this (it takes time): delete the app folder in one drive and the run the app.
 					var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync(); //.ConfigureAwait(false); // just for testing or we need it?
 				}
-				catch (Exception ex) // LOLLO TODO authentication cancelled? why?
+				catch (Exception ex)
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 				}
@@ -209,7 +207,8 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await Save2Async(true).ConfigureAwait(false);
+			await Save2Async().ConfigureAwait(false);
+			UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 
 			var fldDscs = _fieldDescriptions;
 			if (fldDscs != null)
@@ -242,7 +241,7 @@ namespace UniFiler10.Data.Metadata
 
 		private async Task LoadAsync()
 		{
-			// LOLLO TODO testing the onedrive sdk
+			// LOLLO NOTE on the onedrive sdk
 			// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
 			// https://msdn.microsoft.com/en-us/magazine/mt632271.aspx
 			// https://onedrive.live.com/?authkey=%21ADtqHIG1cV7g5EI&cid=40CFFDE85F1AB56A&id=40CFFDE85F1AB56A%212187&parId=40CFFDE85F1AB56A%212186&action=locate
@@ -252,7 +251,7 @@ namespace UniFiler10.Data.Metadata
 
 			try
 			{
-				await _loadSaveSemaphore.WaitAsync(CancToken); //.ConfigureAwait(false);
+				await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
 				StorageFile localFile = null;
 				var odLastModifiedWhen = default(DateTime);
@@ -290,7 +289,7 @@ namespace UniFiler10.Data.Metadata
 				}
 				finally
 				{
-					_sourceFile = null;
+					_sourceFile = null; // LOLLO TODO see if you can make this less crappy!
 				}
 				//String ssss = null; //this is useful when you debug and want to see the file as a string
 				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
@@ -305,7 +304,7 @@ namespace UniFiler10.Data.Metadata
 
 				using (var client = new HttpClient())
 				{
-					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oneDriveAccessToken.AccessToken);
+					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oneDriveAccountSession.AccessToken);
 
 					try
 					{
@@ -322,14 +321,15 @@ namespace UniFiler10.Data.Metadata
 							newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 						}
 						// sync local from OneDrive
-						Task syncLocal = Task.Run(() => newMetaBriefcase?.Save2Async(false), CancToken);
+						Task syncLocal = Task.Run(() => newMetaBriefcase?.Save2Async(), CancToken);
 					}
 					else
 					{
 						var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false);
 						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
 						// sync OneDrive from local
-						Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccessToken.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
+						UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+						//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
 					}
 				}
 			}
@@ -350,7 +350,7 @@ namespace UniFiler10.Data.Metadata
 
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
-		private async Task<bool> Save2Async(bool updateOneDrive, StorageFile file = null)
+		private async Task<bool> Save2Async(StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
@@ -381,11 +381,6 @@ namespace UniFiler10.Data.Metadata
 					await fileStream.FlushAsync().ConfigureAwait(false);
 				}
 
-				if (updateOneDrive)
-				{
-					Task saveToOneDrive = Task.Run(() => SaveToOneDrive(memoryStream, _oneDriveAccessToken.AccessToken)).ContinueWith(state => memoryStream?.Dispose());
-				}
-
 				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
 				return true;
 			}
@@ -399,77 +394,61 @@ namespace UniFiler10.Data.Metadata
 			}
 			return false;
 		}
-		public static async Task SaveToOneDrive(Stream stream, string accessToken)
+
+		private static readonly Semaphore _oneDriveMetaBriefcaseSemaphore = new Semaphore(1, 1, "Unifiler10_OneDriveMetaBriefcaseSemaphore");
+		public async Task SaveToOneDriveAsync(CancellationToken cancToken)
 		{
 			try
 			{
-				stream.Position = 0;
+				if (!_runtimeData.IsConnectionAvailable) return;
 
-				// this works
+				var localFile =
+					await GetDirectory().TryGetItemAsync(FILENAME).AsTask(cancToken).ConfigureAwait(false) as StorageFile;
+				if (localFile == null) return;
 
-				//var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME);
-				using (var client = new HttpClient())
+				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+
+				using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
 				{
-					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-					//var json = await client.GetStringAsync(uri);
-
-					var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content");
-					//json = await client.GetStringAsync(uri);
-
-					using (var content = new StreamContent(stream))
+					var localFileContentString = string.Empty;
+					using (var streamReader = new StreamReader(localFileContent))
 					{
-						await client.PutAsync(uri, content);
+						localFileContentString = streamReader.ReadToEnd();
+
+						if (cancToken.IsCancellationRequested) return;
+
+						//var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME);
+						using (var client = new HttpClient())
+						{
+							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
+							//var json = await client.GetStringAsync(uri);
+
+							var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content");
+							var remoteFilecontentString = await client.GetStringAsync(uri).ConfigureAwait(false);
+
+							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal)) return;
+
+							if (cancToken.IsCancellationRequested) return;
+
+							localFileContent.Position = 0;
+							using (var content = new StreamContent(localFileContent))
+							{
+								await client.PutAsync(uri, content, cancToken).ConfigureAwait(false);
+							}
+						}
 					}
 				}
-				// this fails
-
-				//Task<Item> tsk = null;
-				//// LOLLO TODO try and do this in the background task.
-				//// Otherwise, it will wait too long and break while closing the app!
-				////await _oneDriveClient.SignOutAsync();
-				////_oneDriveClient = OneDriveClientExtensions.GetUniversalClient(ConstantData.ClientID, _oneDriveScopes);
-				////_oneDriveAccessToken = await _oneDriveClient.AuthenticateAsync();
-
-				//tsk = _oneDriveClient?.Drive.Special.AppRoot
-				//	 .ItemWithPath(FILENAME)
-				//	 .Content.Request()
-				//	 .PutAsync<Item>(stream);
-
-				//var oneDriveFile = await tsk;
-
-				//// _oneDriveFileUrl = oneDriveFile?.WebUrl;
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 			}
+			finally
+			{
+				_oneDriveMetaBriefcaseSemaphore.TryRelease();
+			}
 		}
-		//private async Task SaveToOneDrive(Stream stream)
-		//{
-		//	try
-		//	{
-		//		stream.Position = 0;
 
-		//		Task<Item> tsk = null;
-		//		// LOLLO TODO try and do this in a background task.
-		//		// Otherwise, it will wait too long and break while closing the app!
-		//		await RunInUiThreadIdleAsync(() =>
-		//		{
-		//			tsk = _oneDriveClient.Drive.Special.AppRoot
-		//			 .ItemWithPath(FILENAME)
-		//			 .Content.Request()
-		//			 .PutAsync<Item>(stream);
-		//		}).ConfigureAwait(false);
-
-		//		var oneDriveFile = await tsk;
-
-		//		// _oneDriveFileUrl = oneDriveFile?.WebUrl;
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-		//	}
-		//}
 		private bool CopyFrom(MetaBriefcase source)
 		{
 			if (source == null) return false;
@@ -623,7 +602,7 @@ namespace UniFiler10.Data.Metadata
 
 				bool isAdded = false;
 				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
-				if (isAdded && save) isAdded = await Save2Async(false).ConfigureAwait(false);
+				if (isAdded && save) isAdded = await Save2Async().ConfigureAwait(false);
 				return isAdded;
 			});
 		}
@@ -666,12 +645,14 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionIfOpenAsyncTB(() => Save2Async(false, file));
+			return RunFunctionIfOpenAsyncTB(() => Save2Async(file));
 		}
 
-		public Task<bool> SaveAsync()
+		public async Task<bool> SaveAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(() => Save2Async(true));
+			var result = await RunFunctionIfOpenAsyncTB(() => Save2Async());
+			UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			return result;
 		}
 		#endregion while open methods
 	}

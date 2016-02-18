@@ -46,8 +46,9 @@ namespace UniFiler10.Data.Constants
 
 		public const string REG_BRIEFCASE = "Briefcase.LastSave";
 
-		public const string GET_ODU_BACKGROUND_TASK_NAME = "BackgroundOneDriveUploader";
-		public const string GET_ODU_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.BackgroundOneDriveUploader";
+		public const string ODU_BACKGROUND_TASK_NAME = "BackgroundOneDriveUploader";
+		public const string ODU_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.BackgroundOneDriveUploader";
+	    public const string REG_MBC_ODU_TKN = "MetaBriefcase.OneDriveAccessToken";
 
 		public static string AppName { get { return APPNAME; } }
         private static readonly string _version = Package.Current.Id.Version.Major.ToString()

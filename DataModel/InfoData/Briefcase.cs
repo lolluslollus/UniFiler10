@@ -46,6 +46,7 @@ namespace UniFiler10.Data.Model
 			await LoadAsync().ConfigureAwait(false);
 			_runtimeData = RuntimeData.GetInstance(this, true);
 			await _runtimeData.OpenAsync().ConfigureAwait(false);
+			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
 		}
 
 		protected override async Task OpenMayOverrideAsync()
@@ -60,16 +61,13 @@ namespace UniFiler10.Data.Model
 
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
-			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
-
-			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
+			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded			
 
 			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await SaveAsync(/*true*/).ConfigureAwait(false);
-			var bkgUploadToOneDrive = _trigger?.RequestAsync();
 			await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 			var rd = _runtimeData;
@@ -434,116 +432,6 @@ namespace UniFiler10.Data.Model
 
 
 		#region loading methods
-
-		private IBackgroundTaskRegistration _oduBkgTaskReg = null;
-		private ApplicationTrigger _trigger = null;
-		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
-		{
-			//return (from cur in BackgroundTaskRegistration.AllTasks
-			//		where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
-			//		select cur.Value).FirstOrDefault();
-			foreach (var cur in BackgroundTaskRegistration.AllTasks)
-			{
-				if (cur.Value.Name == ConstantData.GET_ODU_BACKGROUND_TASK_NAME)
-				{
-					return cur.Value;
-				}
-			}
-			return null;
-		}
-
-		//private void CloseGetLocBackgroundTask_All()
-		//{
-		//	if (_oduBkgTaskReg != null)
-		//	{
-		//		_oduBkgTaskReg.Unregister(true);
-		//		_oduBkgTaskReg = null;
-		//	}
-
-		//	var allBkgTasks = BackgroundTaskRegistration.AllTasks.Values.ToList(); // clone
-		//	foreach (var item in allBkgTasks)
-		//	{
-		//		if (item.Name == ConstantData.GET_ODU_BACKGROUND_TASK_NAME)
-		//		{
-		//			item.Unregister(true);
-		//		}
-		//	}
-		//}
-		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
-		{
-			bool isOk = false;
-			string msg = string.Empty;
-
-			string errorMsg = string.Empty;
-			BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
-
-			_oduBkgTaskReg = GetTaskIfAlreadyRegistered();
-
-			if (_oduBkgTaskReg == null) // bkg task not registered yet: register it
-			{
-				try
-				{
-					//maniman
-					//CloseGetLocBackgroundTask_All();
-
-					// Get permission for a background task from the user. If the user has already answered once,
-					// this does nothing and the user must manually update their preference via PC Settings.
-					backgroundAccessStatus = await BackgroundExecutionManager.RequestAccessAsync().AsTask().ConfigureAwait(false);
-
-					// Regardless of the answer, register the background task. If the user later adds this application
-					// to the lock screen, the background task will be ready to run.
-					// Create a new background task builder
-					BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder()
-					{
-						Name = ConstantData.GET_ODU_BACKGROUND_TASK_NAME,
-						TaskEntryPoint = ConstantData.GET_ODU_BACKGROUND_TASK_ENTRY_POINT
-					};
-
-					//SystemCondition condition = new SystemCondition(SystemConditionType.UserPresent);
-					//var trigger = new SystemTrigger(SystemTriggerType.UserAway, false);
-					_trigger = new ApplicationTrigger();
-					bkgTaskBuilder.SetTrigger(_trigger); // LOLLO TODO check this
-
-					// Register the background task
-					_oduBkgTaskReg = bkgTaskBuilder.Register();
-				}
-				catch (Exception ex)
-				{
-					errorMsg = ex.ToString();
-					backgroundAccessStatus = BackgroundAccessStatus.Denied;
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-			}
-			else // bkg task registered: see if it is ok
-			{
-				try
-				{
-					backgroundAccessStatus = BackgroundExecutionManager.GetAccessStatus();
-				}
-				catch (Exception ex)
-				{
-					errorMsg = ex.ToString();
-					backgroundAccessStatus = BackgroundAccessStatus.Denied;
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-			}
-
-			switch (backgroundAccessStatus)
-			{
-				case BackgroundAccessStatus.Unspecified:
-					msg = "Cannot run in background, enable it in the \"Battery Saver\" app";
-					break;
-				case BackgroundAccessStatus.Denied:
-					msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Settings - Privacy - Background apps" : errorMsg;
-					break;
-				default:
-					msg = "Background task on";
-					isOk = true;
-					break;
-			}
-
-			return Tuple.Create(isOk, msg);
-		}
 		private const string FILENAME = "LolloSessionDataBriefcase.xml";
 
 		private async Task LoadAsync()
@@ -554,27 +442,10 @@ namespace UniFiler10.Data.Model
 			try
 			{
 				if (CancToken.IsCancellationRequested) return;
-
 				newBriefcase = await RegistryAccess.GetObject<Briefcase>(ConstantData.REG_BRIEFCASE).ConfigureAwait(false);
-
-				//var localFile = await GetDirectory()
-				//	.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-				//	.AsTask().ConfigureAwait(false);
-
-				//if (CancToken.IsCancellationRequested) return;
-
-				//var localFileStream = await localFile.OpenStreamForReadAsync().ConfigureAwait(false);
-				//localFileStream.Position = 0;
-				//newBriefcase = (Briefcase)(new DataContractSerializer(typeof(Briefcase)).ReadObject(localFileStream));
-				//await localFileStream.FlushAsync().ConfigureAwait(false);
 			}
 			catch (OperationCanceledException) { }
-			//catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
-			//{
-			//	errorMessage = "starting afresh";
-			//	await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
-			//}
-			catch (Exception ex)                 //must be tolerant or the app might crash when starting
+			catch (Exception ex) //must be tolerant or the app might crash when starting
 			{
 				errorMessage = "could not restore the data, starting afresh";
 				await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
@@ -588,7 +459,7 @@ namespace UniFiler10.Data.Model
 			Debug.WriteLine("ended method Briefcase.LoadAsync()");
 		}
 
-		private async Task SaveAsync(/*bool updateOneDrive*/)
+		private async Task SaveAsync()
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
@@ -598,21 +469,6 @@ namespace UniFiler10.Data.Model
 			try
 			{
 				await RegistryAccess.TrySetObject(ConstantData.REG_BRIEFCASE, this).ConfigureAwait(false);
-
-				//var memoryStream = new MemoryStream();
-				//var sessionDataSerializer = new DataContractSerializer(typeof(Briefcase));
-				//sessionDataSerializer.WriteObject(memoryStream, this);
-
-				//var file = await GetDirectory()
-				//	.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
-				//	.AsTask().ConfigureAwait(false);
-				//using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-				//{
-				//	memoryStream.Seek(0, SeekOrigin.Begin);
-				//	await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-				//	await memoryStream.FlushAsync().ConfigureAwait(false);
-				//	await fileStream.FlushAsync().ConfigureAwait(false);
-				//}
 				Debug.WriteLine("ended method Briefcase.SaveAsync()");
 			}
 			catch (Exception ex)

@@ -6,10 +6,13 @@ using UniFiler10.Views;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.Background;
+using Windows.Foundation;
 using Windows.Phone.Devices.Notification;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
+using UniFiler10.Data.Metadata;
 
 namespace UniFiler10
 {
@@ -36,12 +39,20 @@ namespace UniFiler10
 			UnhandledException += OnUnhandledException;
 			Suspending += OnSuspending;
 			Resuming += OnResuming;
+			MetaBriefcase.UpdateOneDriveMetaBriefcaseRequested += OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;
 
 			InitializeComponent();
 
 			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
-		private static async Task OpenAsync()
+
+		private async Task OpenAsync()
+		{
+			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
+			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
+		}
+
+		private async Task ReopenAsync()
 		{
 			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
 			var briefcase = Briefcase.GetCreateInstance();
@@ -49,9 +60,10 @@ namespace UniFiler10
 			{
 				await briefcase.OpenAsync().ConfigureAwait(false);
 			}
+			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
 		}
 
-		private static async Task CloseAsync()
+		private async Task CloseAsync()
 		{
 			var briefcase = Briefcase.GetCurrentInstance();
 			if (briefcase != null)
@@ -71,7 +83,7 @@ namespace UniFiler10
 		/// search results, and so forth.
 		/// This is also invoked when the app is resumed after being terminated.
 		/// </summary>
-		protected override void OnLaunched(LaunchActivatedEventArgs e)
+		protected override async void OnLaunched(LaunchActivatedEventArgs e)
 		{
 			Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
 				Logger.AppEventsLogFilename,
@@ -113,6 +125,7 @@ namespace UniFiler10
 				{
 					lastNavigatedType = nameof(BriefcasePage);
 				}
+				await OpenAsync();
 				rootFrame.Navigate(Type.GetType(ConstantData.VIEWS_NAMESPACE + lastNavigatedType + "," + ConstantData.ASSEMBLY_NAME), e.Arguments);
 			}
 			// Ensure the current window is active
@@ -123,7 +136,7 @@ namespace UniFiler10
 		/// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
 		/// You do not need to restore other app state when the app resumes.
 		/// LOLLO NOTE this is the first OnResuming to fire. The other OnResuming() fire later.
-		private static async void OnResuming(object sender, object e)
+		private async void OnResuming(object sender, object e)
 		{
 			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
@@ -131,7 +144,7 @@ namespace UniFiler10
 				//await _resumingActivatingSemaphore.WaitAsync();
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				await OpenAsync().ConfigureAwait(false);
+				await ReopenAsync().ConfigureAwait(false);
 				Logger.Add_TPL("OnResuming ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
@@ -151,7 +164,7 @@ namespace UniFiler10
 		/// of memory still intact.
 		/// LOLLO NOTE this is the first OnSuspending to fire
 		/// </summary>
-		private static async void OnSuspending(object sender, SuspendingEventArgs e)
+		private async void OnSuspending(object sender, SuspendingEventArgs e)
 		{
 			var deferral = e.SuspendingOperation.GetDeferral();
 			Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
@@ -212,5 +225,125 @@ namespace UniFiler10
 			myDevice.Vibrate(TimeSpan.FromSeconds(.12));
 		}
 		#endregion services
+
+
+		#region background tasks
+		private IBackgroundTaskRegistration _oduBkgTaskReg = null;
+		private ApplicationTrigger _updateOneDriveTrigger = null;
+		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
+		{
+			//return (from cur in BackgroundTaskRegistration.AllTasks
+			//		where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
+			//		select cur.Value).FirstOrDefault();
+			foreach (var cur in BackgroundTaskRegistration.AllTasks)
+			{
+				if (cur.Value.Name == ConstantData.ODU_BACKGROUND_TASK_NAME)
+				{
+					return cur.Value;
+				}
+			}
+			return null;
+		}
+
+		//private void CloseGetLocBackgroundTask_All()
+		//{
+		//	if (_oduBkgTaskReg != null)
+		//	{
+		//		_oduBkgTaskReg.Unregister(true);
+		//		_oduBkgTaskReg = null;
+		//	}
+
+		//	var allBkgTasks = BackgroundTaskRegistration.AllTasks.Values.ToList(); // clone
+		//	foreach (var item in allBkgTasks)
+		//	{
+		//		if (item.Name == ConstantData.GET_ODU_BACKGROUND_TASK_NAME)
+		//		{
+		//			item.Unregister(true);
+		//		}
+		//	}
+		//}
+		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
+		{
+			bool isOk = false;
+			string msg = string.Empty;
+
+			string errorMsg = string.Empty;
+			BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
+
+			_oduBkgTaskReg = GetTaskIfAlreadyRegistered();
+			_oduBkgTaskReg?.Unregister(false);
+
+			//if (_oduBkgTaskReg == null) // bkg task not registered yet: register it
+			//{
+				try
+				{
+					//maniman
+					//CloseGetLocBackgroundTask_All();
+
+					// Get permission for a background task from the user. If the user has already answered once,
+					// this does nothing and the user must manually update their preference via PC Settings.
+					backgroundAccessStatus = await BackgroundExecutionManager.RequestAccessAsync().AsTask().ConfigureAwait(false);
+
+					// Regardless of the answer, register the background task. If the user later adds this application
+					// to the lock screen, the background task will be ready to run.
+					// Create a new background task builder
+					BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder()
+					{
+						Name = ConstantData.ODU_BACKGROUND_TASK_NAME,
+						TaskEntryPoint = ConstantData.ODU_BACKGROUND_TASK_ENTRY_POINT
+					};
+
+					//SystemCondition condition = new SystemCondition(SystemConditionType.UserPresent);
+					//var trigger = new SystemTrigger(SystemTriggerType.UserAway, false);
+					_updateOneDriveTrigger = new ApplicationTrigger();
+					bkgTaskBuilder.SetTrigger(_updateOneDriveTrigger);
+
+					// Register the background task
+					_oduBkgTaskReg = bkgTaskBuilder.Register();
+				}
+				catch (Exception ex)
+				{
+					errorMsg = ex.ToString();
+					backgroundAccessStatus = BackgroundAccessStatus.Denied;
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			//}
+			//else // bkg task registered: see if it is ok
+			//{
+			//	try
+			//	{
+			//		backgroundAccessStatus = BackgroundExecutionManager.GetAccessStatus();
+			//		_updateOneDriveTrigger = _oduBkgTaskReg.
+			//	}
+			//	catch (Exception ex)
+			//	{
+			//		errorMsg = ex.ToString();
+			//		backgroundAccessStatus = BackgroundAccessStatus.Denied;
+			//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			//	}
+			//}
+
+			switch (backgroundAccessStatus)
+			{
+				case BackgroundAccessStatus.Unspecified:
+					msg = "Cannot run in background, enable it in the \"Battery Saver\" app";
+					break;
+				case BackgroundAccessStatus.Denied:
+					msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Settings - Privacy - Background apps" : errorMsg;
+					break;
+				default:
+					msg = "Background task on";
+					isOk = true;
+					break;
+			}
+
+			return Tuple.Create(isOk, msg);
+		}
+
+		private void OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested(object sender, EventArgs e)
+		{
+			var req = _updateOneDriveTrigger?.RequestAsync();
+		}
+		#endregion background tasks
 	}
 }
