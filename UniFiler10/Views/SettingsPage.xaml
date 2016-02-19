@@ -15,30 +15,35 @@
     mc:Ignorable="d">
 
 	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
-	<ScrollViewer
+	<Grid>
+		<ProgressRing
+			IsActive="{x:Bind IsEnabled, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
+
+		<ScrollViewer
         VerticalScrollBarVisibility="Auto"
 		VerticalScrollMode="Enabled"
 		HorizontalScrollBarVisibility="Auto"
 		HorizontalScrollMode="Enabled"
 		ZoomMode="Disabled">
-		<RelativePanel x:Name="LayoutRoot" 
+			<RelativePanel x:Name="LayoutRoot" 
 			Background="AntiqueWhite"
 			d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
-			<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
-			<FlyoutBase.AttachedFlyout>
-				<Flyout Placement="Full" x:Name="AboutFlyout">
-					<views:AboutPanel/>
-				</Flyout>
-			</FlyoutBase.AttachedFlyout>
+				<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
+				<FlyoutBase.AttachedFlyout>
+					<Flyout Placement="Full" x:Name="AboutFlyout">
+						<views:AboutPanel/>
+					</Flyout>
+				</FlyoutBase.AttachedFlyout>
 
-			<uctl:UniversalWrapPanel Orientation="Horizontal"
+				<uctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="ActionsUWP">
-				<ctl:LolloButton
+					<ctl:LolloButton
 					Tapped="OnGoBack_Tapped"
 					Symbol="Back"
 					Uid="Back2"/>
 
-				<ctl:LolloToggleButton
+					<ctl:LolloToggleButton
 					IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
 					Tapped="OnToggleElevated_Tapped"
 					CheckedSymbol="Emoji2"
@@ -46,13 +51,13 @@
 					CheckedUid="GotoSafe"
 					UncheckedUid="GotoElevated"/>
 
-				<ctl:LolloButton
+					<ctl:LolloButton
 					Tapped="OnExport_Tapped"
 					IsEnabled="{x:Bind Path=VM.IsExportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
 					Symbol="Save"
 					Uid="Export"/>
 
-				<ctl:LolloButton
+					<ctl:LolloButton
 					Tapped="OnImport_Tapped"
 					IsEnabled="{x:Bind Path=VM.IsImportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
 					Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
@@ -60,95 +65,92 @@
 					Foreground="{StaticResource FlashyForeground}"
 					Uid="Import1"/>
 
-				<ctl:LolloButton
+					<ctl:LolloButton
 					Tapped="OnAbout_Tapped"
 					Symbol="Help"
 					Uid="About"/>
-			</uctl:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 
-			<Border RelativePanel.Below="ActionsUWP"
+				<Border RelativePanel.Below="ActionsUWP"
 				x:Name="ElevatedNotice"
 				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 				BorderBrush="{StaticResource FlashyForeground}"
 				BorderThickness="{StaticResource Thickness2222}"
 				Padding="{StaticResource Thickness8282}">
-				<TextBlock x:Uid="ElevatedMode"
+					<TextBlock x:Uid="ElevatedMode"
 					VerticalAlignment="Stretch"
 					HorizontalAlignment="Stretch"
 					Foreground="{StaticResource FlashyForeground}"
 					TextWrapping="Wrap"/>
-			</Border>
+				</Border>
 
-			<Border RelativePanel.Below="ElevatedNotice"
+				<Border RelativePanel.Below="ElevatedNotice"
 				x:Name="SafeNotice"
 				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
 				BorderThickness="{StaticResource Thickness2222}"
 				Padding="{StaticResource Thickness8282}">
-				<TextBlock x:Uid="SafeMode"
+					<TextBlock x:Uid="SafeMode"
 					VerticalAlignment="Stretch"
 					HorizontalAlignment="Stretch"
 					TextWrapping="Wrap"/>
-			</Border>
+				</Border>
 
-			<Border RelativePanel.Below="SafeNotice"
+				<Border RelativePanel.Below="SafeNotice"
 				x:Name="BackgroundNotice"
 				Visibility="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
 				BorderBrush="{StaticResource FlashyForeground}"
 				BorderThickness="{StaticResource Thickness2222}"
 				Padding="{StaticResource Thickness8282}">
-				<TextBlock x:Uid="BackgroundProblem"
+					<TextBlock x:Uid="BackgroundProblem"
 					VerticalAlignment="Stretch"
 					HorizontalAlignment="Stretch"
 					Foreground="{StaticResource FlashyForeground}"
 					TextWrapping="Wrap"/>
-			</Border>
+				</Border>
 
-			<ProgressRing RelativePanel.Below="BackgroundNotice"
-				IsActive="{x:Bind IsEnabled, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-				Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-
-			<ContentControl RelativePanel.Below="BackgroundNotice" x:Name="MBView"
+				<ContentControl RelativePanel.Below="BackgroundNotice" x:Name="MBView"
 				IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}">
-				<local:MetaBriefcaseView
+					<local:MetaBriefcaseView
 					VM="{x:Bind VM, Mode=OneWay}"
 					HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 					IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
-			</ContentControl>
+				</ContentControl>
 
-			<ctl:AnimationsControl x:Name="AnimationsControl" 
+				<ctl:AnimationsControl x:Name="AnimationsControl" 
 				RelativePanel.Below="SafeNotice" 
 				Canvas.ZIndex="900"/>
 
-			<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBView"/>
-			<!-- camera resolution -->
-			<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader"/>
-			<uctl:UniversalWrapPanel RelativePanel.Below="CameraResHeader" Orientation="Horizontal">
-				<RadioButton x:Uid="CameraResMax"
+				<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBView"/>
+				<!-- camera resolution -->
+				<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader"/>
+				<uctl:UniversalWrapPanel RelativePanel.Below="CameraResHeader" Orientation="Horizontal">
+					<RadioButton x:Uid="CameraResMax"
 					GroupName="CameraRes"
 					Tag="0"
 					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='HighestAvailable', Mode=OneWay}"
 					Checked="OnCameraResChanged"/>
-				<RadioButton x:Uid="CameraRes5MP"
+					<RadioButton x:Uid="CameraRes5MP"
 					GroupName="CameraRes"
 					Tag="5"
 					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='VeryLarge5M', Mode=OneWay}"
 					Checked="OnCameraResChanged"/>
-				<RadioButton x:Uid="CameraResHD"
+					<RadioButton x:Uid="CameraResHD"
 					GroupName="CameraRes"
 					Tag="4"
 					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='Large3M', Mode=OneWay}"
 					Checked="OnCameraResChanged"/>
-				<RadioButton x:Uid="CameraResMedium"
+					<RadioButton x:Uid="CameraResMedium"
 					GroupName="CameraRes"
 					Tag="3"
 					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='MediumXga', Mode=OneWay}"
 					Checked="OnCameraResChanged"/>
-				<RadioButton x:Uid="CameraResSmall"
+					<RadioButton x:Uid="CameraResSmall"
 					GroupName="CameraRes"
 					Tag="2"
 					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='SmallVga', Mode=OneWay}"
 					Checked="OnCameraResChanged"/>
-			</uctl:UniversalWrapPanel>
-		</RelativePanel>
-	</ScrollViewer>
+				</uctl:UniversalWrapPanel>
+			</RelativePanel>
+		</ScrollViewer>
+	</Grid>
 </uctl:OpenableObservablePage>
