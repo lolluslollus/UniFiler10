@@ -22,7 +22,6 @@ namespace UniFiler10
 	{
 		public const string LAST_NAVIGATED_PAGE_REG_KEY = "LastNavigatedPage";
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
-		//private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		#region lifecycle
 		/// <summary>
@@ -116,8 +115,7 @@ namespace UniFiler10
 			if (rootFrame.Content == null)
 			{
 				// When the navigation stack isn't restored navigate to the first page,
-				// configuring the new page by passing required information as a navigation
-				// parameter
+				// configuring the new page by passing required information as a navigation parameter.
 				// rootFrame.Navigate(typeof(BriefcasePage), e.Arguments); // was
 				string lastNavigatedType = RegistryAccess.GetValue(LAST_NAVIGATED_PAGE_REG_KEY);
 				if (string.IsNullOrWhiteSpace(lastNavigatedType))
@@ -140,7 +138,6 @@ namespace UniFiler10
 			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
 			{
-				//await _resumingActivatingSemaphore.WaitAsync();
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await ReopenAsync().ConfigureAwait(false);
@@ -150,11 +147,6 @@ namespace UniFiler10
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
 			}
-			//finally
-			//{
-			//	SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-			//	Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			//}
 		}
 
 		/// <summary>
@@ -178,9 +170,6 @@ namespace UniFiler10
 			deferral.Complete();
 		}
 
-		/// <summary>
-		/// Invoked when Navigation to a certain page fails
-		/// </summary>
 		private static void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
 		{
 			throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
@@ -190,23 +179,6 @@ namespace UniFiler10
 		{
 			await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename);
 		}
-
-		//public async Task RunAfterResumingAsync(Func<Task> funcAsync)
-		//{
-		//	try
-		//	{
-		//		await _resumingActivatingSemaphore.WaitAsync();
-		//		Logger.Add_TPL("RunUnderSemaphoreAsync() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-		//		await funcAsync().ConfigureAwait(false);
-		//		Logger.Add_TPL("RunUnderSemaphoreAsync() ended its task OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-		//	}
-		//	finally
-		//	{
-		//		SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-		//	}
-		//	Logger.Add_TPL("RunUnderSemaphoreAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-		//}
 		#endregion event handlers
 
 
@@ -244,23 +216,6 @@ namespace UniFiler10
 			return null;
 		}
 
-		//private void CloseGetLocBackgroundTask_All()
-		//{
-		//	if (_oduBkgTaskReg != null)
-		//	{
-		//		_oduBkgTaskReg.Unregister(true);
-		//		_oduBkgTaskReg = null;
-		//	}
-
-		//	var allBkgTasks = BackgroundTaskRegistration.AllTasks.Values.ToList(); // clone
-		//	foreach (var item in allBkgTasks)
-		//	{
-		//		if (item.Name == ConstantData.GET_ODU_BACKGROUND_TASK_NAME)
-		//		{
-		//			item.Unregister(true);
-		//		}
-		//	}
-		//}
 		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
 		{
 			bool isOk = false;
@@ -272,55 +227,33 @@ namespace UniFiler10
 			_oduBkgTaskReg = GetTaskIfAlreadyRegistered();
 			_oduBkgTaskReg?.Unregister(false);
 
-			//if (_oduBkgTaskReg == null) // bkg task not registered yet: register it
-			//{
-				try
+			try
+			{
+				// Get permission for a background task from the user. If the user has already answered once,
+				// this does nothing and the user must manually update their preference via PC Settings.
+				backgroundAccessStatus = await BackgroundExecutionManager.RequestAccessAsync().AsTask().ConfigureAwait(false);
+
+				// Regardless of the answer, register the background task. If the user later adds this application
+				// to the lock screen, the background task will be ready to run.
+				// Create a new background task builder
+				BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder
 				{
-					//maniman
-					//CloseGetLocBackgroundTask_All();
+					Name = ConstantData.ODU_BACKGROUND_TASK_NAME,
+					TaskEntryPoint = ConstantData.ODU_BACKGROUND_TASK_ENTRY_POINT
+				};
 
-					// Get permission for a background task from the user. If the user has already answered once,
-					// this does nothing and the user must manually update their preference via PC Settings.
-					backgroundAccessStatus = await BackgroundExecutionManager.RequestAccessAsync().AsTask().ConfigureAwait(false);
+				_updateOneDriveTrigger = new ApplicationTrigger();
+				bkgTaskBuilder.SetTrigger(_updateOneDriveTrigger);
 
-					// Regardless of the answer, register the background task. If the user later adds this application
-					// to the lock screen, the background task will be ready to run.
-					// Create a new background task builder
-					BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder
-					{
-						Name = ConstantData.ODU_BACKGROUND_TASK_NAME,
-						TaskEntryPoint = ConstantData.ODU_BACKGROUND_TASK_ENTRY_POINT
-					};
-
-					//SystemCondition condition = new SystemCondition(SystemConditionType.UserPresent);
-					//var trigger = new SystemTrigger(SystemTriggerType.UserAway, false);
-					_updateOneDriveTrigger = new ApplicationTrigger();
-					bkgTaskBuilder.SetTrigger(_updateOneDriveTrigger);
-
-					// Register the background task
-					_oduBkgTaskReg = bkgTaskBuilder.Register();
-				}
-				catch (Exception ex)
-				{
-					errorMsg = ex.ToString();
-					backgroundAccessStatus = BackgroundAccessStatus.Denied;
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-			//}
-			//else // bkg task registered: see if it is ok
-			//{
-			//	try
-			//	{
-			//		backgroundAccessStatus = BackgroundExecutionManager.GetAccessStatus();
-			//		_updateOneDriveTrigger = _oduBkgTaskReg.
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		errorMsg = ex.ToString();
-			//		backgroundAccessStatus = BackgroundAccessStatus.Denied;
-			//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			//	}
-			//}
+				// Register the background task
+				_oduBkgTaskReg = bkgTaskBuilder.Register();
+			}
+			catch (Exception ex)
+			{
+				errorMsg = ex.ToString();
+				backgroundAccessStatus = BackgroundAccessStatus.Denied;
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
 
 			switch (backgroundAccessStatus)
 			{

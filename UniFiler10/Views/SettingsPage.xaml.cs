@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Windows.Media.Capture;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using UniFiler10.Controlz;
 using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
@@ -39,7 +42,7 @@ namespace UniFiler10.Views
 
 			await AnimationsControl.OpenAsync();
 
-			_vm = new SettingsVM(briefcase.MetaBriefcase, _animationStarter);
+			_vm = new SettingsVM(briefcase, briefcase.MetaBriefcase, _animationStarter);
 			await _vm.OpenAsync();
 			_vm.MetadataChanged += OnVm_MetadataChanged;
 			RaisePropertyChanged_UI(nameof(VM));
@@ -100,6 +103,18 @@ namespace UniFiler10.Views
 		private void OnAbout_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			AboutFlyout.ShowAt(this);
+		}
+
+		private void OnCameraResChanged(object sender, RoutedEventArgs e)
+		{
+			var ss = sender as FrameworkElement;
+			try
+			{
+				if (ss == null) return;
+				var tag = int.Parse(ss.Tag.ToString());
+				VM.Briefcase.CameraCaptureResolution = (CameraCaptureUIMaxPhotoResolution)tag;
+			}
+			catch { }
 		}
 		#endregion user actions
 	}

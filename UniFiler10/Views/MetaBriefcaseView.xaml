@@ -15,12 +15,12 @@
     d:DesignWidth="800"
 	d:DataContext="{d:DesignData Type=metadata:MetaBriefcase, IsDesignTimeCreatable=True}">
 
-	<ScrollViewer
+	<!--<ScrollViewer
         VerticalScrollBarVisibility="Auto"
 		VerticalScrollMode="Enabled"
 		HorizontalScrollBarVisibility="Auto"
 		HorizontalScrollMode="Enabled"
-		ZoomMode="Disabled">
+		ZoomMode="Disabled">-->
 
 		<!-- LOLLO NOTE these triggers must be put in the right place.
 		For example, this does not work outside the ScrollViewer -->
@@ -164,7 +164,7 @@
 
 			<!-- field descriptions-->
 			<StackPanel Orientation="Vertical" Grid.Column="1"
-					Visibility="{Binding CurrentCategory, Converter={StaticResource IsNotNullToVisible}}">
+					Visibility="{Binding CurrentCategory, Converter={StaticResource NotNullToVisible}}">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -353,7 +353,7 @@
 
 			<!-- field values -->
 			<StackPanel Orientation="Vertical" Grid.Column="2"
-				Visibility="{Binding CurrentFieldDescription, Converter={StaticResource IsNotNullToVisible}}">
+				Visibility="{Binding CurrentFieldDescription, Converter={StaticResource NotNullToVisible}}">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
@@ -440,5 +440,5 @@
 				</ListView>
 			</StackPanel>
 		</Grid>
-	</ScrollViewer>
+	<!--</ScrollViewer>-->
 </uctl:ObservableControl>

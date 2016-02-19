@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace UniFiler10.Converters
 {
-	public class IsNotNullToTrue : IValueConverter
+	public class NotNullToTrue : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -18,7 +18,7 @@ namespace UniFiler10.Converters
 			throw new Exception("this is a one-way binding, it should never come here");
 		}
 	}
-	public class IsNotNullToVisible : IValueConverter
+	public class NotNullToVisible : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -114,6 +114,21 @@ namespace UniFiler10.Converters
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
+
+	public class ParameterMatchesToTrue : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			return !string.IsNullOrEmpty(parameter?.ToString()) && value.ToString().Equals(parameter.ToString());
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+			//if (!(value is bool) || string.IsNullOrEmpty(parameter.ToString())) return null;
+			//return (bool)value ? parameter : null;
 		}
 	}
 

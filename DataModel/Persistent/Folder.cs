@@ -486,7 +486,7 @@ namespace UniFiler10.Data.Model
 			return false;
 		}
 
-		public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file, bool copyFile)
+		public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file)
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
@@ -494,7 +494,7 @@ namespace UniFiler10.Data.Model
 				{
 					var newWallet = new Wallet(DBManager, Id);
 					await newWallet.OpenAsync().ConfigureAwait(false); // open the wallet or the following won't run
-					bool isOk = await newWallet.ImportMediaFileAsync(file, copyFile).ConfigureAwait(false)
+					bool isOk = await newWallet.ImportMediaFileAsync(file).ConfigureAwait(false)
 						&& await AddWallet2Async(newWallet).ConfigureAwait(false);
 
 					if (isOk)
@@ -503,7 +503,6 @@ namespace UniFiler10.Data.Model
 					}
 					else
 					{
-						var test = await file.GetFileSizeAsync();
 						await RemoveWallet2Async(newWallet).ConfigureAwait(false);
 					}
 				}

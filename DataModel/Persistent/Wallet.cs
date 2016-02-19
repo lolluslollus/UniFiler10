@@ -159,33 +159,16 @@ namespace UniFiler10.Data.Model
 			return RunFunctionIfOpenAsyncTB(async () => await RemoveDocument2Async(doc).ConfigureAwait(false));
 		}
 
-		public Task<bool> ImportMediaFileAsync(StorageFile file, bool copyFile)
+		public Task<bool> ImportMediaFileAsync(StorageFile file)
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (DBManager != null && file != null && await file.GetFileSizeAsync() > 0)
 				{
 					var newDoc = new Document(DBManager, Id);
+					newDoc.SetUri0(Path.GetFileName(file.Path));
 
-					StorageFile newFile = null;
-					if (copyFile)
-					{
-						newFile = await file.CopyAsync(DBManager.Directory, file.Name, NameCollisionOption.GenerateUniqueName);
-						newDoc.SetUri0(Path.GetFileName(newFile.Path));
-					}
-					else
-					{
-						newDoc.SetUri0(Path.GetFileName(file.Path));
-					}
-
-					if (await AddDocument2Async(newDoc))
-					{
-						return true;
-					}
-					else
-					{
-						if (newFile != null) await newFile.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-					}
+					return await AddDocument2Async(newDoc).ConfigureAwait(false);
 				}
 				return false;
 			});

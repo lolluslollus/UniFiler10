@@ -1216,47 +1216,47 @@ namespace UniFiler10.Data.DB
 			/// </summary>
 			internal void ResetConnection(string connectionString)
 			{
-				return; // LOLLO TODO check this: we only close the connections at the end
-				if (connectionString == null) return;
+				return;
+				//if (connectionString == null) return;
 
-				ConnectionEntry conn = null;
-				try
-				{
-					_connectionsDictSemaphore.Wait();
+				//ConnectionEntry conn = null;
+				//try
+				//{
+				//	_connectionsDictSemaphore.Wait();
 
-					if (_connectionsDict.TryGetValue(connectionString, out conn))
-					{
-						conn.Dispose();
-						_connectionsDict.Remove(connectionString);
-					}
-				}
-				catch (Exception ex0)
-				{
-					Debugger.Break();
-					// LOLLO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
-					// I now use close_v2 instead of close, and it looks better.
-					try
-					{
-						Task.Delay(conn.Connection.BusyTimeout.Milliseconds * 3).Wait();
-						if (_connectionsDict.TryGetValue(connectionString, out conn))
-						{
-							conn.Dispose();
-							_connectionsDict.Remove(connectionString);
-						}
-					}
-					catch (Exception ex1)
-					{
-						if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
-						{
-							Logger.Add_TPL(ex0.ToString(), Logger.ForegroundLogFilename);
-							Logger.Add_TPL(ex1.ToString(), Logger.ForegroundLogFilename);
-						}
-					}
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(_connectionsDictSemaphore);
-				}
+				//	if (_connectionsDict.TryGetValue(connectionString, out conn))
+				//	{
+				//		conn.Dispose();
+				//		_connectionsDict.Remove(connectionString);
+				//	}
+				//}
+				//catch (Exception ex0)
+				//{
+				//	Debugger.Break();
+				//	// LOLLO sometimes, I get "unable to close due to unfinalized statements or unfinished backups"
+				//	// I now use close_v2 instead of close, and it looks better.
+				//	try
+				//	{
+				//		Task.Delay(conn.Connection.BusyTimeout.Milliseconds * 3).Wait();
+				//		if (_connectionsDict.TryGetValue(connectionString, out conn))
+				//		{
+				//			conn.Dispose();
+				//			_connectionsDict.Remove(connectionString);
+				//		}
+				//	}
+				//	catch (Exception ex1)
+				//	{
+				//		if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+				//		{
+				//			Logger.Add_TPL(ex0.ToString(), Logger.ForegroundLogFilename);
+				//			Logger.Add_TPL(ex1.ToString(), Logger.ForegroundLogFilename);
+				//		}
+				//	}
+				//}
+				//finally
+				//{
+				//	SemaphoreSlimSafeRelease.TryRelease(_connectionsDictSemaphore);
+				//}
 			}
 
 			/// <summary>

@@ -109,14 +109,14 @@
   <ItemGroup>
     <Compile Include="Constants\Constants.cs" />
     <Compile Include="DB\DBManager.cs" />
-    <Compile Include="InfoData\Binder.cs" />
-    <Compile Include="InfoData\Briefcase.cs" />
-    <Compile Include="InfoData\Document.cs" />
-    <Compile Include="InfoData\DynamicCategory.cs" />
-    <Compile Include="InfoData\DynamicField.cs" />
-    <Compile Include="InfoData\Folder.cs" />
-    <Compile Include="InfoData\MergingBinder.cs" />
-    <Compile Include="InfoData\Wallet.cs" />
+    <Compile Include="Persistent\Binder.cs" />
+    <Compile Include="Persistent\Briefcase.cs" />
+    <Compile Include="Persistent\Document.cs" />
+    <Compile Include="Persistent\DynamicCategory.cs" />
+    <Compile Include="Persistent\DynamicField.cs" />
+    <Compile Include="Persistent\Folder.cs" />
+    <Compile Include="Persistent\MergingBinder.cs" />
+    <Compile Include="Persistent\Wallet.cs" />
     <Compile Include="Metadata\Category.cs" />
     <Compile Include="Metadata\FieldDescription.cs" />
     <Compile Include="Metadata\FieldValue.cs" />

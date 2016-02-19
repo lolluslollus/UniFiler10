@@ -40,14 +40,6 @@
 
 	<!--Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"-->
 	<Grid Background="Gold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-		<!--Audio preview LOLLO TODO check if we can use this to show the recording level -->
-		<!-- 
-			https://social.msdn.microsoft.com/forums/windowsapps/en-US/70af881f-3823-49b8-9c5a-0062e75f1376/winrt-mediaelement-recording-level 
-			may help.
-		-->
-		<!--<CaptureElement Name="PreviewControl" Stretch="Uniform" 
-			Width="200" Height="200"
-			HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition/>
 			<ColumnDefinition Width="Auto"/>

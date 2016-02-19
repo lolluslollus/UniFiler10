@@ -399,4 +399,22 @@
   <data name="ExportBinderConfirmationRequest.Text" xml:space="preserve">
     <value>This will overwrite previous data. Are you sure?</value>
   </data>
+  <data name="CameraRes5MP.Content" xml:space="preserve">
+    <value>Up to 5 MP</value>
+  </data>
+  <data name="CameraResHD.Content" xml:space="preserve">
+    <value>HD</value>
+  </data>
+  <data name="CameraResHeader.Text" xml:space="preserve">
+    <value>Camera resolution</value>
+  </data>
+  <data name="CameraResMax.Content" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="CameraResMedium.Content" xml:space="preserve">
+    <value>Medium (Xga)</value>
+  </data>
+  <data name="CameraResSmall.Content" xml:space="preserve">
+    <value>Small (Vga)</value>
+  </data>
 </root>

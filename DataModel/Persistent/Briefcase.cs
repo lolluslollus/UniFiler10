@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Windows.Media.Capture;
 using UniFiler10.Data.DB;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Runtime;
@@ -17,14 +18,15 @@ namespace UniFiler10.Data.Model
 	public sealed class Briefcase : OpenableObservableDisposableData
 	{
 		#region lifecycle
+		private readonly bool _isLight = false;
 		private static readonly object _instanceLock = new object();
-		public static Briefcase GetCreateInstance()
+		public static Briefcase GetCreateInstance(bool isLight = false)
 		{
 			lock (_instanceLock)
 			{
 				if (_instance == null || _instance._isDisposed)
 				{
-					_instance = new Briefcase();
+					_instance = new Briefcase(isLight);
 				}
 				return _instance;
 			}
@@ -36,27 +38,24 @@ namespace UniFiler10.Data.Model
 				return _instance;
 			}
 		}
-		private Briefcase() { }
 
-		public async Task OpenLightAsync()
+		private Briefcase(bool isLight = false)
 		{
-			await LoadAsync().ConfigureAwait(false);
-			_runtimeData = RuntimeData.GetInstance(this, true);
-			await _runtimeData.OpenAsync().ConfigureAwait(false);
-			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
+			_isLight = isLight;
 		}
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			await GetCreateBindersDirectoryAsync(); //.ConfigureAwait(false);
-			await LoadAsync(); //.ConfigureAwait(false);
-			await LoadDbNames(); //.ConfigureAwait(false);
+			if (!_isLight) await GetCreateBindersDirectoryAsync().ConfigureAwait(false);
+			await LoadAsync().ConfigureAwait(false);
+			if (!_isLight) await LoadDbNames().ConfigureAwait(false);
 
-			_runtimeData = RuntimeData.GetInstance(this, false);
-			await _runtimeData.OpenAsync(); //.ConfigureAwait(false);
-			RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
+			_runtimeData = RuntimeData.GetInstance(this, _isLight);
+			await _runtimeData.OpenAsync().ConfigureAwait(false);
+			if (!_isLight) RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
+			if (_isLight) return;
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded			
 
@@ -81,7 +80,7 @@ namespace UniFiler10.Data.Model
 				await mb.CloseAsync().ConfigureAwait(false);
 				mb.Dispose();
 				MetaBriefcase = null;
-			}			
+			}
 		}
 		protected override void Dispose(bool isDisposing)
 		{
@@ -114,7 +113,7 @@ namespace UniFiler10.Data.Model
 
 		private volatile string _currentBinderName = string.Empty;
 		/// <summary>
-		/// This property is only for the serialiser! If you set it, call UpdateCurrentBinderAsync() after.
+		/// This property's setter is only for the serialiser! If you set it, call UpdateCurrentBinderAsync() after.
 		/// </summary>
 		[DataMember]
 		public string CurrentBinderName
@@ -122,7 +121,7 @@ namespace UniFiler10.Data.Model
 			get { return _currentBinderName; }
 			private set
 			{
-				if (_currentBinderName != value) // this property is only for the serialiser! If you set it, call UpdateCurrentBinderAsync() after.
+				if (_currentBinderName != value)
 				{
 					_currentBinderName = value;
 					RaisePropertyChanged_UI();
@@ -149,6 +148,13 @@ namespace UniFiler10.Data.Model
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		////private string _fileId = string.Empty;
 		//private string _oneDriveFileUrl = null;
+		private CameraCaptureUIMaxPhotoResolution _cameraCaptureResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
+		[DataMember]
+		public CameraCaptureUIMaxPhotoResolution CameraCaptureResolution
+		{
+			get { return _cameraCaptureResolution; }
+			set { _cameraCaptureResolution = value; RaisePropertyChanged_UI(); }
+		}
 		#endregion properties
 
 
@@ -401,8 +407,7 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(delegate
 			{
-				var mbc = _metaBriefcase; // LOLLO TODO test this: it was GetCreateInstance
-				return mbc.SaveACopyAsync(toFile);
+				return _metaBriefcase?.SaveACopyAsync(toFile);
 			});
 		}
 		public Task<bool> ImportSettingsAsync(StorageFile fromFile)
@@ -492,13 +497,9 @@ namespace UniFiler10.Data.Model
 			IsAllowMeteredConnection = source._isAllowMeteredConnection;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
+			CameraCaptureResolution = source._cameraCaptureResolution;
 			return true;
 		}
-
-		//private static StorageFolder GetDirectory()
-		//{
-		//	return ApplicationData.Current.LocalFolder; //.RoamingFolder;
-		//}
 
 		private static async Task GetCreateBindersDirectoryAsync()
 		{

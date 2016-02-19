@@ -168,7 +168,7 @@ namespace UniFiler10.Views
 				if (fldDsc != null)
 				{
 					// LOLLO TODO the following line was buggy, check it
-					var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
+					var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat?.FieldDescriptionIds != null && !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
 
 					if (catsWhereThisFieldWasAssignedBefore?.Any() == true) AllowIfElevated(sender);
 					else Allow(sender);

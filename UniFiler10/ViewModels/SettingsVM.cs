@@ -16,6 +16,9 @@ namespace UniFiler10.ViewModels
 	public sealed class SettingsVM : OpenableObservableDisposableData
 	{
 		#region properties
+		private readonly Briefcase _briefcase = null;
+		public Briefcase Briefcase { get { return _briefcase; } }
+
 		private readonly MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } /*set { _metaBriefcase = value; RaisePropertyChanged_UI(); }*/ }
 
@@ -116,10 +119,11 @@ namespace UniFiler10.ViewModels
 
 
 		#region lifecycle
-		public SettingsVM(MetaBriefcase metaBriefcase, AnimationStarter animationStarter)
+		public SettingsVM(Briefcase briefcase, MetaBriefcase metaBriefcase, AnimationStarter animationStarter)
 		{
 			lock (_instanceLocker)
 			{
+				_briefcase = briefcase;
 				_metaBriefcase = metaBriefcase;
 				RaisePropertyChanged_UI(nameof(MetaBriefcase));
 				_instance = this;

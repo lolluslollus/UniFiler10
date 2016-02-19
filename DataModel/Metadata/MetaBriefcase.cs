@@ -125,18 +125,35 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-		private volatile bool _isElevated = false; // LOLLO TODO this does not belong here. move it to the briefcase.
-		[DataMember]
-		public bool IsElevated { get { return _isElevated; } set { _isElevated = value; RaisePropertyChanged_UI(); } }
+		private readonly object _isElevatedLocker = new object();
+		private bool _isElevated = false; // this must not be serialised because it does not belong in the metadata xml, so it has its own place in the registry.
+		[IgnoreDataMember]
+		public bool IsElevated
+		{
+			get
+			{
+				lock (_isElevatedLocker)
+				{
+					return _isElevated;
+				}
+			}
+			set
+			{
+				lock (_isElevatedLocker)
+				{
+					if (_isElevated != value)
+					{
+						_isElevated = value;
+						RaisePropertyChanged_UI();
+					}
+				}
+			}
+		}
 
-		//private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//private IOneDriveClient _oneDriveClient = null;
-		//private static AccountSession _oneDriveAccountSession = null;
-
-		public static string OneDriveAccessToken
+		private static string OneDriveAccessToken
 		{
 			get { return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_TKN); }
-			private set { RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_TKN, value); }
+			set { RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_TKN, value); }
 		}
 		private static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access", "wl.skydrive", "wl.skydrive_update" };
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
@@ -179,17 +196,21 @@ namespace UniFiler10.Data.Metadata
 			{
 				try
 				{
-					// LOLLO TODO what if the connection is very slow?
-
-					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
-					var oneDriveAccountSession = await oneDriveClient.AuthenticateAsync();
-
 					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
-					// and here, use the authentication broker with appId = dashboard - settings - app settings - client id
-					// this allows working outside the UI thread, for whatever reason.
-					// However, you still need to be in the UI thread here.
+					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
+					AccountSession oneDriveAccountSession = null;
+					Task<AccountSession> authenticateT = null;
+					await RunInUiThreadAsync(() =>
+					{
+						authenticateT = oneDriveClient.AuthenticateAsync(); // this needs the UI thread
+					}).ConfigureAwait(false);
 
-					OneDriveAccessToken = oneDriveAccountSession.AccessToken;
+					Func<Task> waitMax = async () => await Task.Delay(3000);
+					Func<Task> authenticateF = async () => oneDriveAccountSession = await authenticateT;
+					// if the connection is very slow, we time out. The old token may still work, if present; otherwise, we stick to the local file.
+					await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
+
+					if (!string.IsNullOrEmpty(oneDriveAccountSession?.AccessToken)) OneDriveAccessToken = oneDriveAccountSession.AccessToken;
 					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
@@ -197,6 +218,7 @@ namespace UniFiler10.Data.Metadata
 					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
 				}
 			}
+
 			await LoadAsync().ConfigureAwait(false);
 		}
 
@@ -243,11 +265,12 @@ namespace UniFiler10.Data.Metadata
 
 			string errorMessage = string.Empty;
 			MetaBriefcase newMetaBriefcase = null;
+			bool mustSyncLocal = false;
+			bool mustSyncOneDrive = false;
 
 			try
 			{
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
-				// await _loadSaveSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
 				StorageFile localFile = null;
 				var odLastModifiedWhen = default(DateTime);
@@ -266,10 +289,10 @@ namespace UniFiler10.Data.Metadata
 
 						if (CancToken.IsCancellationRequested) return;
 
-						if (localFile != null)
+						if (localFile != null && await localFile.GetFileSizeAsync().ConfigureAwait(false) > 1)
 						{
 							var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-							lfLastModifiedWhen = localFileProps.DateModified.DateTime;
+							lfLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
 						}
 						else
 						{
@@ -285,16 +308,8 @@ namespace UniFiler10.Data.Metadata
 				}
 				finally
 				{
-					_sourceFile = null; // LOLLO TODO see if you can make this less crappy!
+					_sourceFile = null;
 				}
-				//String ssss = null; //this is useful when you debug and want to see the file as a string
-				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
-				//{
-				//    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
-				//    {
-				//      ssss = streamReader.ReadToEnd();
-				//    }
-				//}
 
 				if (CancToken.IsCancellationRequested) return;
 
@@ -305,7 +320,7 @@ namespace UniFiler10.Data.Metadata
 					try
 					{
 						var odFileProps = JObject.Parse(await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)));
-						odLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>();
+						odLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>().ToUniversalTime();
 					}
 					catch { }
 
@@ -316,16 +331,15 @@ namespace UniFiler10.Data.Metadata
 						{
 							newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 						}
-						// sync local from OneDrive
-						Task syncLocal = Task.Run(() => newMetaBriefcase?.Save2Async(), CancToken);
+						mustSyncLocal = true;
 					}
 					else
 					{
-						var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false);
-						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
-						// sync OneDrive from local
-						UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
-						//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
+						using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
+						{
+							newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
+						}
+						mustSyncOneDrive = true;
 					}
 				}
 			}
@@ -337,16 +351,34 @@ namespace UniFiler10.Data.Metadata
 			finally
 			{
 				_oneDriveMetaBriefcaseSemaphore.TryRelease();
-				//SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
 			}
 
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
-				if (newMetaBriefcase != null) CopyFrom(newMetaBriefcase);
+				if (newMetaBriefcase != null)
+				{
+					CopyXMLPropertiesFrom(newMetaBriefcase);
+					if (mustSyncLocal)
+					{
+						Task syncLocal = Task.Run(() => Save2Async(), CancToken);
+					}
+					if (mustSyncOneDrive)
+					{
+						UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+						// I don't use the following, but it is interesting and it works.
+						//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
+					}
+				}
 			}
+
+			// load non-xml properties
+			bool isElevated = false;
+			bool.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_IS_ELEVATED), out isElevated);
+			IsElevated = isElevated;
 
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
+
 		private async Task<bool> Save2Async(StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
@@ -354,33 +386,67 @@ namespace UniFiler10.Data.Metadata
 			//    String aaa = i.ToString();
 			//}
 			await Logger.AddAsync("MetaBriefcase about to save", Logger.FileErrorLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+			bool result = false;
 
+			// save xml properties
 			try
 			{
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
-				// await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
 
 				if (file == null)
 				{
 					file = await GetDirectory()
-						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
-						.AsTask().ConfigureAwait(false);
+						.TryGetItemAsync(FILENAME).AsTask().ConfigureAwait(false) as StorageFile;
 				}
 
-				var memoryStream = new MemoryStream();
-				var sessionDataSerializer = new DataContractSerializer(typeof(MetaBriefcase));
-				sessionDataSerializer.WriteObject(memoryStream, this);
-
-				using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+				string savedMetaBriefcase = string.Empty;
+				if (file != null)
 				{
-					memoryStream.Seek(0, SeekOrigin.Begin);
-					await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-					await memoryStream.FlushAsync().ConfigureAwait(false);
-					await fileStream.FlushAsync().ConfigureAwait(false);
+					using (var localFileContent = await file.OpenStreamForReadAsync().ConfigureAwait(false))
+					{
+						using (StreamReader streamReader = new StreamReader(localFileContent))
+						{
+							savedMetaBriefcase = streamReader.ReadToEnd();
+						}
+					}
 				}
 
+				string currentMetaBriefcase = string.Empty;
+				using (var memoryStream = new MemoryStream())
+				{
+					var serializer = new DataContractSerializer(typeof(MetaBriefcase));
+					serializer.WriteObject(memoryStream, this);
+
+					memoryStream.Seek(0, SeekOrigin.Begin);
+					using (StreamReader streamReader = new StreamReader(memoryStream))
+					{
+						currentMetaBriefcase = streamReader.ReadToEnd();
+					}
+				}
+
+				if (!currentMetaBriefcase.Trim().Equals(savedMetaBriefcase.Trim()))
+				{
+					if (file == null)
+					{
+						file = await GetDirectory()
+							.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+					}
+					using (var memoryStream = new MemoryStream())
+					{
+						var serializer = new DataContractSerializer(typeof(MetaBriefcase));
+						serializer.WriteObject(memoryStream, this);
+
+						using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+						{
+							memoryStream.Seek(0, SeekOrigin.Begin);
+							await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+							await memoryStream.FlushAsync().ConfigureAwait(false);
+							await fileStream.FlushAsync().ConfigureAwait(false);
+						}
+					}
+				}
 				Debug.WriteLine("ended method MetaBriefcase.SaveAsync()");
-				return true;
+				result = true;
 			}
 			catch (Exception ex)
 			{
@@ -389,13 +455,15 @@ namespace UniFiler10.Data.Metadata
 			finally
 			{
 				_oneDriveMetaBriefcaseSemaphore.TryRelease();
-				//SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
 			}
-			return false;
+
+			// save non-xml properties
+			result = result & RegistryAccess.TrySetValue(ConstantData.REG_MBC_IS_ELEVATED, IsElevated.ToString());
+			return result;
 		}
 
 		private static readonly Semaphore _oneDriveMetaBriefcaseSemaphore = new Semaphore(1, 1, "Unifiler10_OneDriveMetaBriefcaseSemaphore");
-		public async Task SaveToOneDriveAsync(CancellationToken cancToken)
+		public async Task SaveLocalFileToOneDriveAsync(CancellationToken cancToken)
 		{
 			try
 			{
@@ -416,11 +484,9 @@ namespace UniFiler10.Data.Metadata
 
 						if (cancToken.IsCancellationRequested) return;
 
-						//var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME);
 						using (var client = new HttpClient())
 						{
 							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
-							//var json = await client.GetStringAsync(uri);
 
 							var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content");
 							string remoteFilecontentString = string.Empty;
@@ -453,11 +519,11 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private bool CopyFrom(MetaBriefcase source)
+		private bool CopyXMLPropertiesFrom(MetaBriefcase source)
 		{
 			if (source == null) return false;
 
-			IsElevated = source._isElevated;
+			//IsElevated = source._isElevated; // NO!
 			FieldDescription.Copy(source._fieldDescriptions, ref _fieldDescriptions);
 			RaisePropertyChanged_UI(nameof(FieldDescriptions));
 			Category.Copy(source._categories, ref _categories, _fieldDescriptions);
@@ -473,7 +539,7 @@ namespace UniFiler10.Data.Metadata
 		}
 		public static StorageFolder GetDirectory()
 		{
-			return ApplicationData.Current.LocalFolder; // was .RoamingFolder;
+			return ApplicationData.Current.LocalFolder;
 		}
 		#endregion loading methods
 
@@ -501,10 +567,10 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		public Task SetIsElevatedAsync(bool newValue)
-		{
-			return RunFunctionIfOpenAsyncA(delegate { IsElevated = newValue; });
-		}
+		//public Task SetIsElevatedAsync(bool newValue)
+		//{
+		//	return RunFunctionIfOpenAsyncA(delegate { IsElevated = newValue; });
+		//}
 
 		public Task<bool> AddCategoryAsync()
 		{
@@ -525,7 +591,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (cat != null && (cat.IsJustAdded || _isElevated))
+				if (cat != null && (cat.IsJustAdded || IsElevated))
 				{
 					bool isRemoved = false;
 					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
@@ -558,7 +624,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (fldDesc != null && (fldDesc.IsJustAdded || _isElevated))
+				if (fldDesc != null && (fldDesc.IsJustAdded || IsElevated))
 				{
 					bool isRemoved = false;
 					await RunInUiThreadAsync(delegate
@@ -615,7 +681,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (fldVal == null || _currentFieldDescription == null || (!fldVal.IsJustAdded && !_isElevated)) return false;
+				if (fldVal == null || _currentFieldDescription == null || (!fldVal.IsJustAdded && !IsElevated)) return false;
 
 				bool isRemoved = false;
 				await RunInUiThreadAsync(() => isRemoved = _currentFieldDescription.RemovePossibleValue(fldVal)).ConfigureAwait(false);
@@ -639,7 +705,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (fldDsc == null || _currentCategory == null || (!fldDsc.JustAssignedToCats.Contains(_currentCategoryId) && !_isElevated)) return false;
+				if (fldDsc == null || _currentCategory == null || (!fldDsc.JustAssignedToCats.Contains(_currentCategoryId) && !IsElevated)) return false;
 
 				bool isRemoved = false;
 				await RunInUiThreadAsync(() => isRemoved = _currentCategory.RemoveFieldDescription(fldDsc)).ConfigureAwait(false);
@@ -647,9 +713,10 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		public Task<bool> SaveACopyAsync(StorageFile file)
+		public async Task<bool> SaveACopyAsync(StorageFile file)
 		{
-			return RunFunctionIfOpenAsyncTB(() => Save2Async(file));
+			if (file != null) return await RunFunctionIfOpenAsyncTB(() => Save2Async(file)).ConfigureAwait(false);
+			else return false;
 		}
 
 		public async Task<bool> SaveAsync()

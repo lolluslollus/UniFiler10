@@ -20,8 +20,8 @@
 			<conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>
 			<conv:BooleanToVisibleConverter x:Key="BooleanToVisibleConverter"/>
 			<conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
-			<conv:IsNotNullToTrue x:Key="IsNotNullToTrue"/>
-			<conv:IsNotNullToVisible x:Key="IsNotNullToVisible"/>
+			<conv:NotNullToTrue x:Key="NotNullToTrue"/>
+			<conv:NotNullToVisible x:Key="NotNullToVisible"/>
 			<conv:IListNotEmptyToTrue x:Key="IListNotEmptyToTrue"/>
 			<conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>
 			<conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
@@ -29,6 +29,7 @@
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
 			<conv:ReduceWidthForText x:Key="ReduceWidthForText"/>
 			<conv:FalseToFlashyConverter x:Key="FalseToFlashyConverter"/>
+			<conv:ParameterMatchesToTrue x:Key="ParameterMatchesToTrue"/>
 			<vms:BooleanAndElevated x:Key="BooleanAndElevated"/>
 			<vms:BooleanAndElevatedToVisible x:Key="BooleanAndElevatedToVisible"/>
 		</ResourceDictionary>

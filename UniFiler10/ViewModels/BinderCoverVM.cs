@@ -714,8 +714,6 @@ namespace UniFiler10.ViewModels
 		{
 			if (!IsOpen) return;
 			await Logger.AddAsync("StartImportFoldersFromBinder() starting", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			// LOLLO TODO use http://stackoverflow.com/questions/23866325/how-to-avoid-storagefile-copyasync-throw-exception-when-copying-big-file
-			// to copy files, across the app. Alternatively, warn when a file is too large.
 			var binder = _binder;
 			if (binder != null && TrySetIsImportingFolders(true))
 			{

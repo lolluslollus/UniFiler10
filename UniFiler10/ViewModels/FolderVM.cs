@@ -13,7 +13,7 @@ using Utilz.Data;
 using Windows.Media.Capture;
 using Windows.Storage;
 
-// LOLLO TODO Allow taking small, medium and large pics. The are only large at present.
+// LOLLO TODO add OCR
 
 namespace UniFiler10.ViewModels
 {
@@ -240,7 +240,7 @@ namespace UniFiler10.ViewModels
 
 					var captureUI = new CameraCaptureUI();
 					captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
-					captureUI.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
+					captureUI.PhotoSettings.MaxResolution = Briefcase.GetCurrentInstance().CameraCaptureResolution;
 
 					var file = await captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo).AsTask();
 					Pickers.SetLastPickedOpenFile(file); // little race here, hard to avoid and apparently harmless
@@ -271,7 +271,7 @@ namespace UniFiler10.ViewModels
 
 			try
 			{
-				if (directory != null && file != null)
+				if (directory != null && file != null && await file.GetFileSizeAsync().ConfigureAwait(false) <= ConstantData.MAX_IMPORTABLE_MEDIA_FILE_SIZE)
 				{
 					_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
 
@@ -279,12 +279,12 @@ namespace UniFiler10.ViewModels
 
 					if (parentWallet == null)
 					{
-						isImported = await folder.ImportMediaFileIntoNewWalletAsync(newFile, false).ConfigureAwait(false);
+						isImported = await folder.ImportMediaFileIntoNewWalletAsync(newFile).ConfigureAwait(false);
 
 					}
 					else
 					{
-						isImported = await parentWallet.ImportMediaFileAsync(newFile, false).ConfigureAwait(false);
+						isImported = await parentWallet.ImportMediaFileAsync(newFile).ConfigureAwait(false);
 					}
 
 					if (!isImported)
@@ -332,7 +332,7 @@ namespace UniFiler10.ViewModels
 
 								if (hasRecorded)
 								{
-									bool mediaImportedOk = await folder.ImportMediaFileIntoNewWalletAsync(file, false).ConfigureAwait(false);
+									bool mediaImportedOk = await folder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
 									Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
 								}
 								else
