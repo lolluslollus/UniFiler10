@@ -16,6 +16,9 @@
 
 	<Grid x:Name="LayoutRoot"
 		d:DataContext="{d:DesignInstance vm:BriefcaseContentVM, IsDesignTimeCreatable=True}">
+		<ProgressRing
+			IsActive="{x:Bind IsEnabled, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 		<ctl:LolloSplitView
             IsPaneOpen="True"

@@ -285,13 +285,13 @@ namespace UniFiler10.Data.Metadata
 					}
 					else
 					{
+						if (CancToken.IsCancellationRequested) return;
 						localFile = (await GetDirectory().TryGetItemAsync(FILENAME).AsTask().ConfigureAwait(false) as StorageFile);
-
 						if (CancToken.IsCancellationRequested) return;
 
-						var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-						if (localFile != null && localFileProps.Size > 1)
+						if (localFile != null)
 						{
+							var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
 							lfLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
 						}
 						else

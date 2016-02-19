@@ -25,12 +25,14 @@
 
 		<ctl:LolloSplitView.BodyContent>
 			<Grid>
+				<ProgressRing
+					IsActive="{x:Bind IsEnabled, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+					Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 				<!--VM="{x:Bind VM, Mode=OneWay}"-->
 				<local:FolderView
 					x:Name="MyFolderView"
 					HorizontalAlignment="Left"
 					DataContext="{x:Bind Path=VM.Binder.CurrentFolder, Mode=OneWay}"/>
-
 			</Grid>
 		</ctl:LolloSplitView.BodyContent>
 

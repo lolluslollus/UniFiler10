@@ -32,7 +32,7 @@
 			</FlyoutBase.AttachedFlyout>
 
 			<uctl:UniversalWrapPanel Orientation="Horizontal"
-			x:Name="ActionsUWP">
+				x:Name="ActionsUWP">
 				<ctl:LolloButton
 					Tapped="OnGoBack_Tapped"
 					Symbol="Back"
@@ -102,6 +102,10 @@
 					Foreground="{StaticResource FlashyForeground}"
 					TextWrapping="Wrap"/>
 			</Border>
+
+			<ProgressRing RelativePanel.Below="BackgroundNotice"
+				IsActive="{x:Bind IsEnabled, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+				Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 
 			<ContentControl RelativePanel.Below="BackgroundNotice" x:Name="MBView"
 				IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}">

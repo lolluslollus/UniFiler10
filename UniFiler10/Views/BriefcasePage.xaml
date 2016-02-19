@@ -17,7 +17,9 @@
 	<Grid x:Name="LayoutRoot"
 		d:DataContext="{d:DesignInstance vm:BriefcaseVM, IsDesignTimeCreatable=False}">
 		<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
-
+		<ProgressRing
+			IsActive="{x:Bind IsEnabled, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 		<ScrollViewer>
 			<RelativePanel Background="Lavender"
 				DataContext="{x:Bind VM, Mode=OneWay}">

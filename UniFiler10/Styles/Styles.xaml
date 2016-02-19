@@ -1441,4 +1441,17 @@
 		</Setter>
 	</Style>
 
+	<Style TargetType="ProgressRing">
+		<Setter Property="Height" Value="100"/>
+		<Setter Property="Width" Value="100"/>
+		<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+		<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+		<Setter Property="IsEnabled" Value="False"/>
+		<Setter Property="IsTapEnabled" Value="False"/>
+		<Setter Property="IsHitTestVisible" Value="False"/>
+		<Setter Property="IsHoldingEnabled" Value="False"/>
+		<Setter Property="IsRightTapEnabled" Value="False"/>
+		<Setter Property="IsTextScaleFactorEnabled" Value="False"/>
+		<Setter Property="Canvas.ZIndex" Value="999"/>
+	</Style>
 </ResourceDictionary>
