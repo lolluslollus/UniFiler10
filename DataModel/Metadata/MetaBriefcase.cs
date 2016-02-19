@@ -289,9 +289,9 @@ namespace UniFiler10.Data.Metadata
 
 						if (CancToken.IsCancellationRequested) return;
 
-						if (localFile != null && await localFile.GetFileSizeAsync().ConfigureAwait(false) > 1)
+						var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+						if (localFile != null && localFileProps.Size > 1)
 						{
-							var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
 							lfLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
 						}
 						else
@@ -319,7 +319,7 @@ namespace UniFiler10.Data.Metadata
 
 					try
 					{
-						var odFileProps = JObject.Parse(await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)));
+						var odFileProps = JObject.Parse(await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)).ConfigureAwait(false));
 						odLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>().ToUniversalTime();
 					}
 					catch { }
@@ -327,26 +327,38 @@ namespace UniFiler10.Data.Metadata
 					var serializer = new DataContractSerializer(typeof(MetaBriefcase));
 					if (odLastModifiedWhen > lfLastModifiedWhen)
 					{
-						using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")))
-						{
-							newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
-						}
 						mustSyncLocal = true;
+						try
+						{
+							using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
+							{
+								newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
+							}
+						}
+						catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
+						{
+							await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
+							mustSyncOneDrive = true;
+							using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
+							{
+								newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
+							}
+						}
 					}
 					else
 					{
+						mustSyncOneDrive = true;
 						using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
 						{
 							newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
 						}
-						mustSyncOneDrive = true;
 					}
 				}
 			}
 			catch (Exception ex) //must be tolerant or the app might crash when starting
 			{
 				errorMessage = "could not restore the data, starting afresh";
-				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -355,22 +367,18 @@ namespace UniFiler10.Data.Metadata
 
 			if (string.IsNullOrWhiteSpace(errorMessage))
 			{
-				if (newMetaBriefcase != null)
+				CopyXMLPropertiesFrom(newMetaBriefcase);
+				if (mustSyncLocal)
 				{
-					CopyXMLPropertiesFrom(newMetaBriefcase);
-					if (mustSyncLocal)
-					{
-						Task syncLocal = Task.Run(() => Save2Async(), CancToken);
-					}
-					if (mustSyncOneDrive)
-					{
-						UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
-						// I don't use the following, but it is interesting and it works.
-						//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
-					}
+					Task syncLocal = Task.Run(() => Save2Async(), CancToken);
+				}
+				if (mustSyncOneDrive)
+				{
+					UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+					// I don't use the following, but it is interesting and it works.
+					//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
 				}
 			}
-
 			// load non-xml properties
 			bool isElevated = false;
 			bool.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_IS_ELEVATED), out isElevated);
@@ -411,37 +419,33 @@ namespace UniFiler10.Data.Metadata
 					}
 				}
 
-				string currentMetaBriefcase = string.Empty;
 				using (var memoryStream = new MemoryStream())
 				{
 					var serializer = new DataContractSerializer(typeof(MetaBriefcase));
 					serializer.WriteObject(memoryStream, this);
 
+					string currentMetaBriefcase = string.Empty;
 					memoryStream.Seek(0, SeekOrigin.Begin);
 					using (StreamReader streamReader = new StreamReader(memoryStream))
 					{
 						currentMetaBriefcase = streamReader.ReadToEnd();
-					}
-				}
 
-				if (!currentMetaBriefcase.Trim().Equals(savedMetaBriefcase.Trim()))
-				{
-					if (file == null)
-					{
-						file = await GetDirectory()
-							.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-					}
-					using (var memoryStream = new MemoryStream())
-					{
-						var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-						serializer.WriteObject(memoryStream, this);
-
-						using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+						if (!currentMetaBriefcase.Trim().Equals(savedMetaBriefcase.Trim()))
 						{
-							memoryStream.Seek(0, SeekOrigin.Begin);
-							await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-							await memoryStream.FlushAsync().ConfigureAwait(false);
-							await fileStream.FlushAsync().ConfigureAwait(false);
+							if (file == null)
+							{
+								file = await GetDirectory()
+									.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+							}
+
+							using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+							{
+								fileStream.SetLength(memoryStream.Length); // avoid leaving crap at the end if the original file was longer
+								memoryStream.Seek(0, SeekOrigin.Begin);
+								await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+								await memoryStream.FlushAsync().ConfigureAwait(false);
+								await fileStream.FlushAsync().ConfigureAwait(false);
+							}
 						}
 					}
 				}
@@ -488,22 +492,27 @@ namespace UniFiler10.Data.Metadata
 						{
 							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
 
-							var uri = new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content");
+							DateTime odLastModifiedWhen = default(DateTime);
 							string remoteFilecontentString = string.Empty;
 							try
 							{
-								remoteFilecontentString = await client.GetStringAsync(uri).ConfigureAwait(false);
+								var odFileProps = JObject.Parse(await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)).ConfigureAwait(false));
+								odLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>().ToUniversalTime();
+								remoteFilecontentString = await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false);
 							}
 							catch { }
 
 							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal)) return;
+							var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+							var lfLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
+							if (lfLastModifiedWhen <= odLastModifiedWhen) return;
 
 							if (cancToken.IsCancellationRequested) return;
 
 							localFileContent.Position = 0;
 							using (var content = new StreamContent(localFileContent))
 							{
-								await client.PutAsync(uri, content, cancToken).ConfigureAwait(false);
+								await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
 							}
 						}
 					}

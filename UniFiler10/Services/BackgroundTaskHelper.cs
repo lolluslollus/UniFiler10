@@ -17,8 +17,8 @@ namespace UniFiler10.Services
 		private Tuple<bool, string> _uploadToOneDriveStatus = Tuple.Create(false, "");
 		public Tuple<bool, string> UploadToOneDriveStatus { get { return _uploadToOneDriveStatus; } private set { _uploadToOneDriveStatus = value; RaisePropertyChanged_UI(); } }
 
-		private IBackgroundTaskRegistration _oduBkgTaskReg = null;
-		private ApplicationTrigger _updateOneDriveTrigger = null;
+		private IBackgroundTaskRegistration _uploadToOneDriveBkgTaskReg = null;
+		private ApplicationTrigger _uploadToOneDriveTrigger = null;
 		#endregion properties
 
 
@@ -88,7 +88,7 @@ namespace UniFiler10.Services
 			string errorMsg = string.Empty;
 			BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
 
-			_oduBkgTaskReg = null;
+			_uploadToOneDriveBkgTaskReg = null;
 			UnregisterTaskIfAlreadyRegistered(); // I need to unregister and register anew coz I need to obtain the trigger
 
 			try
@@ -108,11 +108,11 @@ namespace UniFiler10.Services
 					TaskEntryPoint = ConstantData.ODU_BACKGROUND_TASK_ENTRY_POINT
 				};
 
-				_updateOneDriveTrigger = new ApplicationTrigger();
-				bkgTaskBuilder.SetTrigger(_updateOneDriveTrigger);
+				_uploadToOneDriveTrigger = new ApplicationTrigger();
+				bkgTaskBuilder.SetTrigger(_uploadToOneDriveTrigger);
 
 				// Register the background task
-				_oduBkgTaskReg = bkgTaskBuilder.Register();
+				_uploadToOneDriveBkgTaskReg = bkgTaskBuilder.Register();
 			}
 			catch (Exception ex)
 			{
@@ -140,7 +140,7 @@ namespace UniFiler10.Services
 
 		private void OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested(object sender, EventArgs e)
 		{
-			var req = _updateOneDriveTrigger?.RequestAsync();
+			var req = _uploadToOneDriveTrigger?.RequestAsync();
 		}
 		#endregion services
 	}
