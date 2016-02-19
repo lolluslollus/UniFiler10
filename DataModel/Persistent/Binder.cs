@@ -334,15 +334,6 @@ namespace UniFiler10.Data.Model
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 
-				//String ssss = null; //this is useful when you debug and want to see the file as a string
-				//using (IInputStream inStream = await file.OpenSequentialReadAsync())
-				//{
-				//    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
-				//    {
-				//      ssss = streamReader.ReadToEnd();
-				//    }
-				//}
-
 				using (var inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
 				{
 					using (var iinStream = inStream.AsStreamForRead())
@@ -392,6 +383,7 @@ namespace UniFiler10.Data.Model
 
 					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{
+						fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
 						memoryStream.Seek(0, SeekOrigin.Begin);
 						await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
 						await memoryStream.FlushAsync().ConfigureAwait(false);

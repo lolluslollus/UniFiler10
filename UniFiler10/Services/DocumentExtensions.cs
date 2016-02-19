@@ -57,13 +57,14 @@ namespace Utilz
 				var file = await ApplicationData.Current.LocalCacheFolder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
 				if (file != null)
 				{
-					using (var stream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+					using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{
-						using (var writer = new StreamWriter(stream))
+						using (var writer = new StreamWriter(fileStream))
 						{
-							stream.Seek(0, SeekOrigin.Begin);
+							fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
+							fileStream.Seek(0, SeekOrigin.Begin);
 							await writer.WriteAsync(text).ConfigureAwait(false);
-							await stream.FlushAsync();
+							await fileStream.FlushAsync();
 							await writer.FlushAsync();
 							return file;
 						}

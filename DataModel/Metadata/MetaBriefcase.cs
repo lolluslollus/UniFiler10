@@ -440,7 +440,7 @@ namespace UniFiler10.Data.Metadata
 
 							using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 							{
-								fileStream.SetLength(memoryStream.Length); // avoid leaving crap at the end if the original file was longer
+								fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
 								memoryStream.Seek(0, SeekOrigin.Begin);
 								await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
 								await memoryStream.FlushAsync().ConfigureAwait(false);
