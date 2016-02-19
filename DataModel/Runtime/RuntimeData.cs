@@ -164,6 +164,7 @@ namespace UniFiler10.Data.Runtime
 			_isLight = isLight;
 			if (isLight) return;
 
+			
 			_videoDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.VideoCapture);
 			_audioDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.AudioCapture);
 		}

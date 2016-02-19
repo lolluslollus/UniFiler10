@@ -5,6 +5,7 @@ using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
+using UniFiler10.Services;
 using Utilz;
 using Utilz.Data;
 using Windows.Storage;
@@ -16,6 +17,9 @@ namespace UniFiler10.ViewModels
 	public sealed class SettingsVM : OpenableObservableDisposableData
 	{
 		#region properties
+		private readonly BackgroundTaskHelper _backgroundTaskHelper = null;
+		public BackgroundTaskHelper BackgroundTaskHelper { get { return _backgroundTaskHelper; } }
+
 		private readonly Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } }
 
@@ -123,11 +127,15 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_instanceLocker)
 			{
+				_instance = this;
+
+				_animationStarter = animationStarter;
+				_backgroundTaskHelper = App.BackgroundTaskHelper;
+				RaisePropertyChanged_UI(nameof(BackgroundTaskHelper));
 				_briefcase = briefcase;
+				RaisePropertyChanged_UI(nameof(Briefcase));
 				_metaBriefcase = metaBriefcase;
 				RaisePropertyChanged_UI(nameof(MetaBriefcase));
-				_instance = this;
-				_animationStarter = animationStarter;
 				UpdateUnassignedFields();
 			}
 		}

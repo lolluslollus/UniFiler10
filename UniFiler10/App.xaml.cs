@@ -12,6 +12,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using UniFiler10.Data.Metadata;
+using System.ComponentModel;
+using UniFiler10.Services;
 
 namespace UniFiler10
 {
@@ -22,6 +24,8 @@ namespace UniFiler10
 	{
 		public const string LAST_NAVIGATED_PAGE_REG_KEY = "LastNavigatedPage";
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+		private static readonly BackgroundTaskHelper _backgroundTaskHelper = BackgroundTaskHelper.GetInstance();
+		public static BackgroundTaskHelper BackgroundTaskHelper => _backgroundTaskHelper;
 
 		#region lifecycle
 		/// <summary>
@@ -37,7 +41,6 @@ namespace UniFiler10
 			UnhandledException += OnUnhandledException;
 			Suspending += OnSuspending;
 			Resuming += OnResuming;
-			MetaBriefcase.UpdateOneDriveMetaBriefcaseRequested += OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;
 
 			InitializeComponent();
 
@@ -47,22 +50,24 @@ namespace UniFiler10
 		private async Task OpenAsync()
 		{
 			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
-			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
+			await _backgroundTaskHelper.OpenAsync().ConfigureAwait(false);
 		}
 
 		private async Task ReopenAsync()
 		{
 			await Licenser.CheckLicensedAsync().ConfigureAwait(false);
+			await _backgroundTaskHelper.OpenAsync().ConfigureAwait(false);
+
 			var briefcase = Briefcase.GetCreateInstance();
 			if (briefcase != null)
 			{
 				await briefcase.OpenAsync().ConfigureAwait(false);
 			}
-			await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
 		}
 
-		private static async Task CloseAsync()
+		private async Task CloseAsync()
 		{
+			await _backgroundTaskHelper.CloseAsync().ConfigureAwait(false);
 			var briefcase = Briefcase.GetCurrentInstance();
 			if (briefcase != null)
 			{
@@ -196,86 +201,5 @@ namespace UniFiler10
 			myDevice.Vibrate(TimeSpan.FromSeconds(.12));
 		}
 		#endregion services
-
-
-		#region background tasks
-		private IBackgroundTaskRegistration _oduBkgTaskReg = null;
-		private ApplicationTrigger _updateOneDriveTrigger = null;
-		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
-		{
-			//return (from cur in BackgroundTaskRegistration.AllTasks
-			//		where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
-			//		select cur.Value).FirstOrDefault();
-			foreach (var cur in BackgroundTaskRegistration.AllTasks)
-			{
-				if (cur.Value.Name == ConstantData.ODU_BACKGROUND_TASK_NAME)
-				{
-					return cur.Value;
-				}
-			}
-			return null;
-		}
-
-		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
-		{
-			bool isOk = false;
-			string msg = string.Empty;
-
-			string errorMsg = string.Empty;
-			BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
-
-			_oduBkgTaskReg = GetTaskIfAlreadyRegistered();
-			_oduBkgTaskReg?.Unregister(false);
-
-			try
-			{
-				// Get permission for a background task from the user. If the user has already answered once,
-				// this does nothing and the user must manually update their preference via PC Settings.
-				backgroundAccessStatus = await BackgroundExecutionManager.RequestAccessAsync().AsTask().ConfigureAwait(false);
-
-				// Regardless of the answer, register the background task. If the user later adds this application
-				// to the lock screen, the background task will be ready to run.
-				// Create a new background task builder
-				BackgroundTaskBuilder bkgTaskBuilder = new BackgroundTaskBuilder
-				{
-					Name = ConstantData.ODU_BACKGROUND_TASK_NAME,
-					TaskEntryPoint = ConstantData.ODU_BACKGROUND_TASK_ENTRY_POINT
-				};
-
-				_updateOneDriveTrigger = new ApplicationTrigger();
-				bkgTaskBuilder.SetTrigger(_updateOneDriveTrigger);
-
-				// Register the background task
-				_oduBkgTaskReg = bkgTaskBuilder.Register();
-			}
-			catch (Exception ex)
-			{
-				errorMsg = ex.ToString();
-				backgroundAccessStatus = BackgroundAccessStatus.Denied;
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-
-			switch (backgroundAccessStatus)
-			{
-				case BackgroundAccessStatus.Unspecified:
-					msg = "Cannot run in background, enable it in the \"Battery Saver\" app";
-					break;
-				case BackgroundAccessStatus.Denied:
-					msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Settings - Privacy - Background apps" : errorMsg;
-					break;
-				default:
-					msg = "Background task on";
-					isOk = true;
-					break;
-			}
-
-			return Tuple.Create(isOk, msg);
-		}
-
-		private void OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested(object sender, EventArgs e)
-		{
-			var req = _updateOneDriveTrigger?.RequestAsync();
-		}
-		#endregion background tasks
 	}
 }

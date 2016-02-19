@@ -417,4 +417,7 @@
   <data name="CameraResSmall.Content" xml:space="preserve">
     <value>Small (Vga)</value>
   </data>
+  <data name="BackgroundProblem.Text" xml:space="preserve">
+    <value>The OneDrive updater is not ready, so data changes are barred.</value>
+  </data>
 </root>
