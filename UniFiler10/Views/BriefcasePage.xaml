@@ -54,7 +54,6 @@
 							<RowDefinition Height="Auto"/>
 						</Grid.RowDefinitions>
 
-						<!--Width="{Binding ElementName=AButton, Path=ActualWidth, Mode=OneWay}"-->
 						<ctl:LolloTextBox
 							Text="{Binding NewDbName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 							Style="{StaticResource LolloTextBoxStyle}"
@@ -116,52 +115,21 @@
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<Grid>
-								<Grid.RowDefinitions>
-									<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
-								</Grid.RowDefinitions>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
-								</Grid.ColumnDefinitions>
-
-								<Border Canvas.ZIndex="200"
-        							VerticalAlignment="Bottom" HorizontalAlignment="Center"
-									Height="{StaticResource MiniatureQuarterHeight}"
-									Width="{StaticResource MiniatureWidth}"
-									Background="{StaticResource VerticalWBrush}">
-									<uctl:TextBlockScaler Canvas.ZIndex="200"
-										VerticalAlignment="Bottom" HorizontalAlignment="Center"
-										Height="{StaticResource MiniatureQuarterHeight}"
-										Width="{StaticResource MiniatureWidth}">
-										<uctl:TextBlockScaler.TextBlock>
-											<TextBlock
-												Text="{Binding}"
-												Foreground="{StaticResource FlashyForeground}"
-												TextAlignment="Center"
-												Padding="{StaticResource Thickness4444}"
-												TextWrapping="Wrap"/>
-										</uctl:TextBlockScaler.TextBlock>
-									</uctl:TextBlockScaler>
-								</Border>
-
-								<AppBarButton Icon="Save"
-									Tapped="OnBackupButton_Tapped"
-									Canvas.ZIndex="150"
-									Style="{StaticResource AppBarButtonRecoloured}"
-									Foreground="{StaticResource FlashyForeground}"
-									IsEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"/>
-
-								<AppBarButton Icon="Delete"
-									Tapped="OnDeleteButton_Tapped"
-									Canvas.ZIndex="150"
-									Style="{StaticResource AppBarButtonRecoloured}"
-									Foreground="{StaticResource FlashyForeground}"
-									HorizontalAlignment="Right"
-									IsEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"/>
-							</Grid>
+							<local:DocumentView
+								Caption="{Binding}"
+								IsClickSensitive="False"
+								IsDeleteButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								IsSaveButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								DeleteClicked="OnDelete_Tapped"
+								SaveClicked="OnSave_Tapped"/>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ListView>
+
+				<TextBlock RelativePanel.Below="NewBinderUWP"
+					x:Uid="AddBinderSuggestion"
+					Style="{StaticResource BaseMessageStyle}"
+					Visibility="{x:Bind VM.Briefcase.DbNames.Count, Mode=OneWay, Converter={StaticResource IntZeroToVisible}, FallbackValue=Collapsed}"/>
 
 				<ctl:AnimationsControl x:Name="AnimationsControl" RelativePanel.Below="NewBinderUWP" Canvas.ZIndex="900"/>
 			</RelativePanel>

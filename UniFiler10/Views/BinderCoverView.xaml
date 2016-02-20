@@ -284,7 +284,7 @@
 				</ItemsControl.ItemsPanel>
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<Grid>
+						<!--<Grid>
 							<Grid.RowDefinitions>
 								<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
 							</Grid.RowDefinitions>
@@ -310,13 +310,14 @@
         								TextWrapping="Wrap"/>
 									</uctl:TextBlockScaler.TextBlock>
 								</uctl:TextBlockScaler>
-							</Border>
+							</Border>-->
 
 							<local:DocumentView Canvas.ZIndex="100"
 								IsClickSensitive="False"
 								DeleteClicked="OnDocumentView_DeleteClicked"
-								Document="{Binding Document, Mode=OneWay}"/>
-						</Grid>
+								Document="{Binding Document, Mode=OneWay}"
+								Caption="{Binding FolderName}"/>
+						<!--</Grid>-->
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ListView>

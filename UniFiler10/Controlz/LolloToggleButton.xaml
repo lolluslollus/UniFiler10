@@ -34,7 +34,8 @@
 		<Grid>
 			<StackPanel x:Name="Small" Orientation="Vertical"
 				Width="{StaticResource LandscapeItemHeight}"
-				Height="{StaticResource LandscapeItemHeight}">
+				Height="{StaticResource LandscapeItemHeight}"
+				Padding="{StaticResource Thickness2222}">
 				<!-- default height of SymbolIcon is 20-->
 				<SymbolIcon x:Name="MySymbolIconSmall"
 					HorizontalAlignment="Center"/>

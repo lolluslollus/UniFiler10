@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 using System.Collections;
@@ -57,6 +58,21 @@ namespace UniFiler10.Converters
 			throw new Exception("this is a one-way binding, it should never come here");
 		}
 	}
+	public class IntZeroToVisible : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return Visibility.Visible;
+			int iint = 1;
+			int.TryParse(value.ToString(), out iint);
+			if (iint > 0) return Visibility.Collapsed;
+			return Visibility.Visible;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
 
 	public class TrueToFalseConverter : IValueConverter
 	{
@@ -99,6 +115,19 @@ namespace UniFiler10.Converters
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
+
+	public class StringEmptyToCollapsedConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || string.IsNullOrEmpty(value.ToString())) return Visibility.Collapsed;
+			else return Visibility.Visible;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
 		}
 	}
 

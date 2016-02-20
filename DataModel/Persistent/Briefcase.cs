@@ -252,8 +252,8 @@ namespace UniFiler10.Data.Model
 			try
 			{
 				var binderDirectory = await BindersDirectory
-					.GetFolderAsync(dbName)
-					.AsTask().ConfigureAwait(false);
+					.TryGetItemAsync(dbName)
+					.AsTask().ConfigureAwait(false) as StorageFolder;
 				if (binderDirectory != null) await binderDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 				return true;
 			}

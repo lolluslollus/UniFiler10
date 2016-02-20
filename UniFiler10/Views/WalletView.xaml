@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:UniFiler10.Views"
     xmlns:ctl="using:UniFiler10.Controlz"
+	xmlns:uctl="using:Utilz.Controlz"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utilz="using:Utilz"
@@ -12,7 +13,8 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid x:Name="LayoutRoot" HorizontalAlignment="Stretch"
+    <Grid x:Name="LayoutRoot" 
+		HorizontalAlignment="Stretch"
         Background="{StaticResource SystemControlBackgroundBaseLowBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,19 +22,23 @@
             <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
         </Grid.RowDefinitions>
 
-		<ContentControl Grid.Row="0" IsEnabled="{x:Bind Path=VM.IsImportingMedia, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}">
-			<StackPanel Orientation="Horizontal">
+		<ContentControl
+			IsEnabled="{x:Bind Path=VM.IsImportingMedia, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}">
+			<uctl:UniversalWrapPanel Orientation="Horizontal">
 				<AppBarButton
 					Icon="Camera"
 					IsEnabled="{x:Bind Path=VM.RuntimeData.IsCameraAvailable, Mode=OneWay, FallbackValue=false}"
+					IsCompact="True"
 					Click="OnShoot_Click"/>
 				<AppBarButton
 					Icon="OpenFile"
+					IsCompact="True"
 					Click="OnOpenFile_Click"/>
 				<AppBarButton
-					Icon="Delete" 
+					Icon="Delete"
+					IsCompact="True"
 					Click="OnItemDelete_Click"/>
-			</StackPanel>
+			</uctl:UniversalWrapPanel>
 		</ContentControl>
 
 		<!--IsMultiSelectCheckBoxEnabled="False" 
@@ -49,8 +55,7 @@
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
-                <DataTemplate>
-					<!--FolderVM="{Binding ElementName=me, Path=VM, Mode=OneWay}"-->
+				<DataTemplate>
 					<local:DocumentView 
                         Document="{Binding}"
 						Wallet="{Binding ElementName=me, Path=Wallet, Mode=OneWay}"

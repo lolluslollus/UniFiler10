@@ -91,20 +91,20 @@ namespace UniFiler10.Views
 			Task add = VM?.AddDbStep1Async();
 		}
 
-		private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			VM?.StartExportBinder((sender as FrameworkElement)?.DataContext as string);
-		}
+		//private void OnBackupButton_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	VM?.StartExportBinder((sender as FrameworkElement)?.DataContext as string);
+		//}
 
 		private void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			VM?.StartImportBinder();
 		}
 
-		private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			Task delete = VM?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
-		}
+		//private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	Task delete = VM?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+		//}
 		private async void OnSettingsButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			var vm = _vm;
@@ -113,6 +113,14 @@ namespace UniFiler10.Views
 				await vm.CloseBinderAsync();
 			}
 			Frame.Navigate(typeof(SettingsPage));
+		}
+		private void OnDelete_Tapped(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			Task delete = VM?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+		}
+		private void OnSave_Tapped(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			VM?.StartExportBinder((sender as FrameworkElement)?.DataContext as string);
 		}
 		#endregion event handlers
 	}

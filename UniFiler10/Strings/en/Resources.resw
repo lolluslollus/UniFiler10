@@ -376,7 +376,7 @@
     <value>Recording interrupted</value>
   </data>
   <data name="AddBinder" xml:space="preserve">
-    <value>Add</value>
+    <value>Add binder</value>
   </data>
   <data name="Back2" xml:space="preserve">
     <value>Back</value>
@@ -419,5 +419,8 @@
   </data>
   <data name="BackgroundProblem.Text" xml:space="preserve">
     <value>The OneDrive updater is not ready, so data changes are barred.</value>
+  </data>
+  <data name="AddBinderSuggestion.Text" xml:space="preserve">
+    <value>You have no binders, add or import one.</value>
   </data>
 </root>

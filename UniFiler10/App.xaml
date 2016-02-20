@@ -26,7 +26,9 @@
 			<conv:TextEmptyToCollapsedConverter x:Key="TextEmptyToCollapsedConverter"/>
 			<conv:TextEmptyToVisibleConverter x:Key="TextEmptyToVisibleConverter"/>
 			<conv:IListNotEmptyToVisible x:Key="IListNotEmptyToVisible"/>
+			<conv:IntZeroToVisible x:Key="IntZeroToVisible"/>
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
+			<conv:StringEmptyToCollapsedConverter x:Key="StringEmptyToCollapsedConverter"/>
 			<conv:ReduceWidthForText x:Key="ReduceWidthForText"/>
 			<conv:FalseToFlashyConverter x:Key="FalseToFlashyConverter"/>
 			<conv:ParameterMatchesToTrue x:Key="ParameterMatchesToTrue"/>

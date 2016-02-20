@@ -20,6 +20,58 @@ namespace UniFiler10.Views
 	public sealed partial class DocumentView : ObservableControl
 	{
 		#region properties
+		private bool IsSmallScreen
+		{
+			get { return (bool)GetValue(IsSmallScreenProperty); }
+			set { SetValue(IsSmallScreenProperty, value); }
+		}
+		private static readonly DependencyProperty IsSmallScreenProperty =
+			DependencyProperty.Register("IsSmallScreen", typeof(bool), typeof(DocumentView), new PropertyMetadata(true, OnIsSmallScreenChanged));
+
+		private static void OnIsSmallScreenChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as DocumentView;
+			if (instance == null || args.NewValue == args.OldValue) return;
+			var isSmallScreen = args.NewValue is bool && (bool)args.NewValue;
+			instance.QuarterHeightAdjusted = isSmallScreen ? (double)(Application.Current.Resources["MiniatureQuarterHeightSmall"]) : (double)(Application.Current.Resources["MiniatureQuarterHeight"]);
+			instance.HeightAdjusted = isSmallScreen ? (double)(Application.Current.Resources["MiniatureHeightSmall"]) : (double)(Application.Current.Resources["MiniatureHeight"]);
+			instance.WidthAdjusted = isSmallScreen ? (double)(Application.Current.Resources["MiniatureWidthSmall"]) : (double)(Application.Current.Resources["MiniatureWidth"]);
+		}
+
+		public double HeightAdjusted
+		{
+			get { return (double)GetValue(HeightAdjustedProperty); }
+			private set { SetValue(HeightAdjustedProperty, value); }
+		}
+		public static readonly DependencyProperty HeightAdjustedProperty =
+			DependencyProperty.Register("HeightAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureHeightSmall"])));
+
+		public double QuarterHeightAdjusted
+		{
+			get { return (double)GetValue(QuarterHeightAdjustedProperty); }
+			private set { SetValue(QuarterHeightAdjustedProperty, value); }
+		}
+		public static readonly DependencyProperty QuarterHeightAdjustedProperty =
+			DependencyProperty.Register("QuarterHeightAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureQuarterHeightSmall"])));
+
+		public double WidthAdjusted
+		{
+			get { return (double)GetValue(WidthAdjustedProperty); }
+			private set { SetValue(WidthAdjustedProperty, value); }
+		}
+		public static readonly DependencyProperty WidthAdjustedProperty =
+			DependencyProperty.Register("WidthAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureWidthSmall"])));
+
+
+		public string Caption
+		{
+			get { return (string)GetValue(CaptionProperty); }
+			set { SetValue(CaptionProperty, value); }
+		}
+		public static readonly DependencyProperty CaptionProperty =
+			DependencyProperty.Register("Caption", typeof(string), typeof(DocumentView), new PropertyMetadata(""));
+
+
 		public bool IsDeleteButtonEnabled
 		{
 			get { return (bool)GetValue(IsDeleteButtonEnabledProperty); }
@@ -38,6 +90,14 @@ namespace UniFiler10.Views
 		}
 		public static readonly DependencyProperty IsViewLargeButtonEnabledProperty =
 			DependencyProperty.Register("IsViewLargeButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
+
+		public bool IsSaveButtonEnabled
+		{
+			get { return (bool)GetValue(IsSaveButtonEnabledProperty); }
+			set { SetValue(IsSaveButtonEnabledProperty, value); }
+		}
+		public static readonly DependencyProperty IsSaveButtonEnabledProperty =
+			DependencyProperty.Register("IsSaveButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
 		public bool IsClickSensitive
 		{
@@ -94,16 +154,16 @@ namespace UniFiler10.Views
 		private volatile bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
 
-		private readonly uint _height = 0;
-		private readonly uint _width = 0;
+		//private readonly uint _height = 0;
+		//private readonly uint _width = 0;
 		#endregion properties
 
 
 		#region ctor
 		public DocumentView()
 		{
-			_height = (uint)(double)Application.Current.Resources["MiniatureHeight"];
-			_width = (uint)(double)Application.Current.Resources["MiniatureWidth"];
+			//_height = (uint)(double)Application.Current.Resources["MiniatureHeight"];
+			//_width = (uint)(double)Application.Current.Resources["MiniatureWidth"];
 			//DataContextChanged += OnDataContextChanged;
 
 			InitializeComponent();
@@ -358,8 +418,8 @@ namespace UniFiler10.Views
 			PdfPageRenderOptions output = null;
 			if (pdfPage == null) return null;
 
-			double xZoomFactor = pdfPage.Size.Height / _height;
-			double yZoomFactor = pdfPage.Size.Width / _width;
+			double xZoomFactor = pdfPage.Size.Height / HeightAdjusted; // _height;
+			double yZoomFactor = pdfPage.Size.Width / WidthAdjusted; // _width;
 			double zoomFactor = Math.Max(xZoomFactor, yZoomFactor);
 			if (zoomFactor > 0)
 			{
@@ -387,7 +447,7 @@ namespace UniFiler10.Views
 				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 				{
 					ShowImageViewer();
-					BitmapImage src = new BitmapImage() { DecodePixelHeight = (int)_height };
+					BitmapImage src = new BitmapImage() { DecodePixelHeight = (int)HeightAdjusted }; // _height };
 					src.SetSource(stream);
 					ImageViewer.Source = src;
 				}).AsTask().ConfigureAwait(false);
@@ -424,6 +484,8 @@ namespace UniFiler10.Views
 		public event EventHandler<DocumentClickedArgs> DeleteClicked;
 
 		public event EventHandler<DocumentClickedArgs> DocumentClicked;
+
+		public event EventHandler<DocumentClickedArgs> SaveClicked;
 		#endregion events
 
 
@@ -443,6 +505,12 @@ namespace UniFiler10.Views
 		private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			if (IsClickSensitive) OnPreview_Tapped(sender, e);
+		}
+
+		private void OnSave_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			e.Handled = true;
+			SaveClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 		#endregion event handlers
 	}
