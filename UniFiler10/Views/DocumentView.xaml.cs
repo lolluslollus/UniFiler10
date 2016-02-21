@@ -206,6 +206,7 @@ namespace UniFiler10.Views
 
 		private async Task RenderPreviewAsync(Document doc, double height, double width)
 		{
+			// LOLLO TODO make sure this is not called too often!
 			IsMultiPage = false;
 
 			string ext = string.Empty;
