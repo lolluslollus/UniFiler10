@@ -425,26 +425,25 @@ namespace UniFiler10.Data.Model
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (!string.IsNullOrWhiteSpace(catId))
-				{
-					var newDynCat = new DynamicCategory(DBManager, Id, catId);
+				if (string.IsNullOrWhiteSpace(catId)) return false;
 
-					//if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
-					if (Check(newDynCat) && _dynamicCategories.All(dc => dc.CategoryId != catId))
+				var newDynCat = new DynamicCategory(DBManager, Id, catId);
+
+				//if (Check(newDynCat) && !_dynamicCategories.Any(dc => dc.CategoryId == catId))
+				if (Check(newDynCat) && _dynamicCategories.All(dc => dc.CategoryId != catId) && await MetaBriefcase.OpenInstance.IsCategoryAvailableAsync(catId).ConfigureAwait(false))
+				{
+					List<DynamicField> newDynFlds = new List<DynamicField>();
+					var dbM = DBManager;
+					if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newDynFlds, true))
 					{
-						List<DynamicField> newDynFlds = new List<DynamicField>();
-						var dbM = DBManager;
-						if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newDynFlds, true))
+						_dynamicCategories.Add(newDynCat);
+						await newDynCat.OpenAsync();
+						foreach (var dynFld in newDynFlds)
 						{
-							_dynamicCategories.Add(newDynCat);
-							await newDynCat.OpenAsync();
-							foreach (var dynFld in newDynFlds)
-							{
-								_dynamicFields.Add(dynFld);
-								await dynFld.OpenAsync();
-							}
-							return true;
+							_dynamicFields.Add(dynFld);
+							await dynFld.OpenAsync();
 						}
+						return true;
 					}
 				}
 				return false;

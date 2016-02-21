@@ -612,6 +612,13 @@ namespace UniFiler10.Data.Metadata
 				}
 			});
 		}
+		public Task<bool> IsCategoryAvailableAsync(string catId)
+		{
+			return RunFunctionIfOpenAsyncB(delegate
+			{
+				return !string.IsNullOrWhiteSpace(catId) && _categories.FirstOrDefault(cat => cat.Id == catId) != null;
+			});
+		}
 
 		public Task<bool> AddFieldDescriptionAsync()
 		{

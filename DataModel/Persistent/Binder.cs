@@ -94,8 +94,6 @@ namespace UniFiler10.Data.Model
 
 
 		protected DBManager _dbManager = null;
-		//[IgnoreDataMember]
-		//internal DBManager DbManager { get { return _dbManager; } }
 
 		private readonly object _dbNameLocker = new object();
 		private string _dbName = string.Empty;
@@ -117,14 +115,10 @@ namespace UniFiler10.Data.Model
 		private void SetDBName(string dbName)
 		{
 			SetPropertyLocking(ref _dbName, dbName, _dbNameLocker);
-			//lock (_dbNameLocker)
-			//{
-			//	DBName = dbName;
-			//}
 		}
 		protected readonly SwitchableObservableDisposableCollection<Folder> _folders = new SwitchableObservableDisposableCollection<Folder>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } /*protected set { if (_folders != value) { _folders = value; RaisePropertyChanged(); } }*/ }
+		public SwitchableObservableDisposableCollection<Folder> Folders { get { return _folders; } }
 
 		private volatile string _currentFolderId = DEFAULT_ID;
 		[DataMember]
@@ -136,7 +130,7 @@ namespace UniFiler10.Data.Model
 				if (_currentFolderId != value) // this property is only for the serialiser! If you set it, call UpdateCurrentFolderAsync() after.
 				{
 					_currentFolderId = value;
-					RaisePropertyChanged_UI();
+					RaisePropertyChanged();
 				}
 			}
 		}
@@ -146,7 +140,21 @@ namespace UniFiler10.Data.Model
 		public Folder CurrentFolder
 		{
 			get { return _currentFolder; }
-			//private set { if (_currentFolder != value) { _currentFolder = value; RaisePropertyChanged_UI(); } }
+		}
+
+		private volatile string _lastAddedFolderId = DEFAULT_ID;
+		[DataMember]
+		public string LastAddedFolderId
+		{
+			get { return _lastAddedFolderId; }
+			private set
+			{
+				if (_lastAddedFolderId != value)
+				{
+					_lastAddedFolderId = value;
+					RaisePropertyChanged();
+				}
+			}
 		}
 
 		[DataMember]
@@ -180,34 +188,16 @@ namespace UniFiler10.Data.Model
 			get
 			{
 				return GetPropertyLocking(ref _catIdForCatFilter, _filterLocker);
-				//lock (_filterLocker)
-				//{
-				//	return _catIdForCatFilter;
-				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
 				_catIdForCatFilter = value ?? DEFAULT_ID;
-				//string newValue = value ?? DEFAULT_ID;
-				//if (_catIdForCatFilter != newValue) { _catIdForCatFilter = newValue; }
 			}
 		}
 		public void SetIdsForCatFilter(string catId)
 		{
 			SetPropertyLocking(ref _catIdForCatFilter, catId, _filterLocker, false);
-			//lock (_filterLocker)
-			//{
-			//	CatIdForCatFilter = catId;
-			//};
 		}
-
-		//public Task SetIdsForCatFilterAsync(string catId)
-		//{
-		//	return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
-		//	{
-		//		CatIdForCatFilter = catId;
-		//	});
-		//}
 
 		private string _catIdForFldFilter = DEFAULT_ID;
 		[DataMember]
@@ -216,16 +206,10 @@ namespace UniFiler10.Data.Model
 			get
 			{
 				return GetPropertyLocking(ref _catIdForFldFilter, _filterLocker);
-				//lock (_filterLocker)
-				//{
-				//	return _catIdForFldFilter;
-				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
 				_catIdForFldFilter = value ?? DEFAULT_ID;
-				//string newValue = value ?? DEFAULT_ID;
-				//if (_catIdForFldFilter != newValue) { _catIdForFldFilter = newValue; }
 			}
 		}
 
@@ -236,16 +220,10 @@ namespace UniFiler10.Data.Model
 			get
 			{
 				return GetPropertyLocking(ref _fldDscIdForFldFilter, _filterLocker);
-				//lock (_filterLocker)
-				//{
-				//	return _fldDscIdForFldFilter;
-				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
 				_fldDscIdForFldFilter = value ?? DEFAULT_ID;
-				//string newValue = value ?? DEFAULT_ID;
-				//if (_fldDscIdForFldFilter != newValue) { _fldDscIdForFldFilter = newValue; }
 			}
 		}
 
@@ -256,16 +234,10 @@ namespace UniFiler10.Data.Model
 			get
 			{
 				return GetPropertyLocking(ref _fldValIdForFldFilter, _filterLocker);
-				//lock (_filterLocker)
-				//{
-				//	return _fldValIdForFldFilter;
-				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
 				_fldValIdForFldFilter = value ?? DEFAULT_ID;
-				//string newValue = value ?? DEFAULT_ID;
-				//if (_fldValIdForFldFilter != newValue) { _fldValIdForFldFilter = newValue; }
 			}
 		}
 		public void SetIdsForFldFilter(string catId, string fldDscId, string fldValId)
@@ -277,15 +249,6 @@ namespace UniFiler10.Data.Model
 				FldValIdForFldFilter = fldValId;
 			}
 		}
-		//public Task SetIdsForFldFilterAsync(string catId, string fldDscId, string fldValId)
-		//{
-		//	return RunFunctionIfOpenAsyncA(delegate // only when it's open, to avoid surprises from the binding when objects are closed and reset
-		//	{
-		//		CatIdForFldFilter = catId;
-		//		FldDscIdForFldFilter = fldDscId;
-		//		FldValIdForFldFilter = fldValId;
-		//	});
-		//}
 
 		private readonly object _filterLocker = new object();
 		private Filters _whichFilter = Filters.All;
@@ -295,27 +258,15 @@ namespace UniFiler10.Data.Model
 			get
 			{
 				return GetPropertyLocking(ref _whichFilter, _filterLocker);
-				//lock (_filterLocker)
-				//{
-				//	return _whichFilter;
-				//}
 			}
 			private set // this lockless set teris only for serialisation
 			{
 				_whichFilter = value;
-				//if (_whichFilter != value)
-				//{
-				//	_whichFilter = value; RaisePropertyChanged_UI();
-				//}
 			}
 		}
 		public void SetFilter(Filters whichFilter)
 		{
 			SetPropertyLocking(ref _whichFilter, whichFilter, _filterLocker);
-			//lock (_filterLocker)
-			//{
-			//	WhichFilter = whichFilter;
-			//}
 		}
 		#endregion filter properties
 
@@ -406,16 +357,11 @@ namespace UniFiler10.Data.Model
 		private void CopyFrom(Binder source)
 		{
 			SetIdsForCatFilter(source._catIdForFldFilter);
-			// CatIdForFldFilter = source._catIdForFldFilter;
 			SetIdsForFldFilter(source._catIdForCatFilter, source._fldDscIdForFldFilter, source._fldValIdForFldFilter);
-			//FldDscIdForFldFilter = source._fldDscIdForFldFilter;
-			//FldValIdForFldFilter = source._fldValIdForFldFilter;
-			//CatIdForCatFilter = source._catIdForCatFilter;
 			SetFilter(source._whichFilter);
-			// WhichFilter = source._whichFilter;
 			SetDBName(source._dbName);
-			//DBName = source._dbName;
 			CurrentFolderId = source._currentFolderId; // CurrentFolder will be updated later
+			LastAddedFolderId = source._lastAddedFolderId;
 		}
 		protected async Task LoadFoldersWithoutContentAsync()
 		{
@@ -469,23 +415,35 @@ namespace UniFiler10.Data.Model
 
 		public async Task<Folder> AddFolderAsync()
 		{
-			Folder folder = null;
+			Folder newFolder = null;
 
 			bool isOk = await RunFunctionIfOpenAsyncTB(async delegate
 			{
-				folder = new Folder(_dbManager, RuntimeData.GetText("NewFolder"), DateTime.Now);
+				newFolder = new Folder(_dbManager, RuntimeData.GetText("NewFolder"), DateTime.Now);
 				// folder.ParentId = Id; // folders may not have ParentId because they can be exported or imported
 
-				if (await _dbManager.InsertIntoFoldersAsync(folder, true))
+				if (await _dbManager.InsertIntoFoldersAsync(newFolder, true))
 				{
-					await RunInUiThreadAsync(() => _folders.Add(folder)).ConfigureAwait(false);
+					// Add the same categories as the last folder, which was added. 
+					// This is an automatism to streamline usage, it has no special reason to be.
+					await newFolder.OpenAsync().ConfigureAwait(false);
+					var lastAddedFolder = _folders.FirstOrDefault(fol => fol.Id == LastAddedFolderId);
+					if (lastAddedFolder != null)
+					{
+						foreach (var cat in lastAddedFolder.DynamicCategories)
+						{
+							await newFolder.AddDynamicCategoryAsync(cat?.CategoryId).ConfigureAwait(false);
+						}
+					}
+					LastAddedFolderId = newFolder.Id;
+
+					await RunInUiThreadAsync(() => _folders.Add(newFolder)).ConfigureAwait(false);
 					return true;
 				}
-
 				return false;
 			});
 
-			return folder;
+			if (isOk) return newFolder; else return null;
 		}
 		public Task<bool> ImportFoldersAsync(StorageFolder fromDirectory)
 		{
