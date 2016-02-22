@@ -63,7 +63,7 @@ namespace UniFiler10.Views
 
 		private void OnBinderCoverView_GoToBinderContentRequested(object sender, EventArgs e)
 		{
-			Frame.Navigate(typeof(BinderContentPage));
+			Task nav = RunInUiThreadAsync(() => Frame.Navigate(typeof(BinderContentPage)));
 		}
 
 		private async void OnBinderCoverView_GoToSettingsRequested(object sender, EventArgs e)
@@ -71,9 +71,9 @@ namespace UniFiler10.Views
 			var vm = _vm;
 			if (vm != null)
 			{
-				await vm.CloseBinderAsync();
+				await vm.CloseBinderAsync().ConfigureAwait(false);
 			}
-			Frame.Navigate(typeof(SettingsPage));
+			Task nav = RunInUiThreadAsync(() => Frame.Navigate(typeof(SettingsPage)));
 		}
 		#endregion user actions
 	}

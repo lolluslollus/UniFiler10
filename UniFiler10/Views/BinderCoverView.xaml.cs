@@ -35,13 +35,12 @@ namespace UniFiler10.Views
 			DataContextChanged += OnDataContextChanged;
 			InitializeComponent();
 			_animationStarter = AnimationsControl.AnimationStarter;
-			//_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}
 
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			await UpdateVMAsync();
+			await UpdateVMAsync().ConfigureAwait(false);
 			await AnimationsControl.OpenAsync().ConfigureAwait(false);
 		}
 
@@ -102,40 +101,29 @@ namespace UniFiler10.Views
 			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement)?.DataContext as Binder.FolderPreview);
 		}
 
-		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+		private async void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			Task upd = RunFunctionIfOpenAsyncT(async delegate
-			{
-				var vm = _vm;
-				if (vm != null)
-				{
-					// LOLLO NOTE await instance?.method crashes if instance is null; await is not that clever yet.
-					if (await vm.SetCurrentFolderAsync((e?.ClickedItem as Binder.FolderPreview)?.FolderId))
-					{
-						GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
-					}
-				}
-			});
+			var vm = _vm;
+			if (vm == null) return;
+			// LOLLO NOTE await instance?.method crashes if instance is null; await is not that clever yet.
+			await vm.SetCurrentFolderAsync((e?.ClickedItem as Binder.FolderPreview)?.FolderId);
+			GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void OnAddFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task del = _vm?.AddFolderAsync();
+			Task add = _vm?.AddFolderAsync();
 		}
 
-		private void OnAddAndOpenFolder_Tapped(object sender, TappedRoutedEventArgs e)
+		private async void OnAddAndOpenFolder_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			Task upd = RunFunctionIfOpenAsyncT(async delegate
+			var vm = _vm;
+			if (vm == null) return;
+
+			if (await vm.AddAndOpenFolderAsync()) //.ConfigureAwait(false);
 			{
-				var vm = _vm;
-				if (vm != null)
-				{
-					if (await vm.AddAndOpenFolderAsync()) //.ConfigureAwait(false);
-					{
-						GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
-					}
-				}
-			});
+				GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
+			}
 		}
 
 		private void OnImportFoldersFromBinder_Tapped(object sender, TappedRoutedEventArgs e)

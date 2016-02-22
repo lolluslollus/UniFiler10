@@ -646,30 +646,32 @@ namespace UniFiler10.ViewModels
 
 
 		#region user actions
-		public async Task<bool> SetCurrentFolderAsync(string folderId)
+		public Task SetCurrentFolderAsync(string folderId)
 		{
-			if (string.IsNullOrWhiteSpace(folderId)) return false;
-
-			var binder = _binder;
-			if (binder == null) return false;
-
-			await binder.SetCurrentFolderIdAsync(folderId);
-			return true;
+			return RunFunctionIfOpenAsyncT(() => SetCurrentFolder2Async(folderId));
 		}
 
-		public Task AddFolderAsync()
+		private Task SetCurrentFolder2Async(string folderId)
 		{
-			return RunFunctionIfOpenAsyncT(async delegate
+			var binder = _binder;
+			if (binder == null) return Task.CompletedTask;
+
+			return binder.SetCurrentFolderIdAsync(folderId);
+		}
+
+		public Task<bool> AddFolderAsync()
+		{
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				var binder = _binder;
-				if (binder == null) return;
+				if (binder == null) return false;
 
-				if (await binder.AddFolderAsync().ConfigureAwait(false) != null)
-				{
-					// if there is a filter in place, remove it to show the new folder 
-					if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
-					else SetIsDirty(true, true, 0);
-				}
+				if (await binder.AddFolderAsync().ConfigureAwait(false) == null) return false;
+
+				// if there is a filter in place, remove it to show the new folder 
+				if (!_isAllFolderPaneOpen && !_isRecentFolderPaneOpen) IsAllFoldersPaneOpen = true;
+				else SetIsDirty(true, true, 0);
+				return true;
 			});
 			// LOLLO NOTE that instance?.Method() and Task ttt = instance?.Method() work, but await instance?.Method() throws a null reference exception if instance is null.
 		}
@@ -679,19 +681,14 @@ namespace UniFiler10.ViewModels
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				var binder = _binder;
-				if (binder != null)
-				{
-					var newFolder = await binder.AddFolderAsync();
-					if (newFolder != null)
-					{
-						if (await SetCurrentFolderAsync(newFolder.Id).ConfigureAwait(false))
-						{
-							SetIsDirty(true, true, 0);
-							return true;
-						}
-					}
-				}
-				return false;
+				if (binder == null) return false;
+
+				var newFolder = await binder.AddFolderAsync().ConfigureAwait(false);
+				if (newFolder == null) return false;
+
+				await SetCurrentFolder2Async(newFolder.Id).ConfigureAwait(false);
+				SetIsDirty(true, true, 0);
+				return true;
 			});
 		}
 

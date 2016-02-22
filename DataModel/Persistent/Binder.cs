@@ -142,21 +142,6 @@ namespace UniFiler10.Data.Model
 			get { return _currentFolder; }
 		}
 
-		private volatile string _lastAddedFolderId = DEFAULT_ID;
-		[DataMember]
-		public string LastAddedFolderId
-		{
-			get { return _lastAddedFolderId; }
-			private set
-			{
-				if (_lastAddedFolderId != value)
-				{
-					_lastAddedFolderId = value;
-					RaisePropertyChanged();
-				}
-			}
-		}
-
 		[DataMember]
 		public override string ParentId { get { return DEFAULT_ID; } set { SetPropertyUpdatingDb(ref _parentId, DEFAULT_ID); } }
 		#endregion main properties
@@ -329,10 +314,10 @@ namespace UniFiler10.Data.Model
 						.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting)
 						.AsTask().ConfigureAwait(false);
 
-					DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(Binder));
+					var sessionDataSerializer = new DataContractSerializer(typeof(Binder));
 					sessionDataSerializer.WriteObject(memoryStream, this);
 
-					using (Stream fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+					using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{
 						fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
 						memoryStream.Seek(0, SeekOrigin.Begin);
@@ -361,7 +346,6 @@ namespace UniFiler10.Data.Model
 			SetFilter(source._whichFilter);
 			SetDBName(source._dbName);
 			CurrentFolderId = source._currentFolderId; // CurrentFolder will be updated later
-			LastAddedFolderId = source._lastAddedFolderId;
 		}
 		protected async Task LoadFoldersWithoutContentAsync()
 		{
@@ -379,22 +363,21 @@ namespace UniFiler10.Data.Model
 		#region while open methods
 		private async Task UpdateCurrentFolder2Async(bool openTheFolder)
 		{
-			if (_folders != null)
+			if (_folders == null) return;
+
+			_currentFolder = string.IsNullOrEmpty(_currentFolderId) ? null : _folders.FirstOrDefault(fo => fo.Id == _currentFolderId);
+			if (_currentFolder != null && openTheFolder)
 			{
-				_currentFolder = _currentFolderId != null ? _folders.FirstOrDefault(fo => fo.Id == _currentFolderId) : null;
-				if (_currentFolder != null && openTheFolder)
-				{
-					await _currentFolder.OpenAsync().ConfigureAwait(false);
-				}
-				RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
+				await _currentFolder.OpenAsync().ConfigureAwait(false);
 			}
+			RaisePropertyChanged_UI(nameof(CurrentFolder)); // notify the UI once the data has been loaded
 		}
 
 		public Task SetCurrentFolderIdAsync(string folderId)
 		{
 			return RunFunctionIfOpenAsyncT(delegate
 			{
-				CurrentFolderId = folderId;
+				CurrentFolderId = folderId ?? DEFAULT_ID;
 				return UpdateCurrentFolder2Async(false);
 			});
 		}
@@ -406,6 +389,8 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> OpenFolderAsync(string folderId)
 		{
+			// LOLLO TODO in general (not only here), opening folders is very slow. Make sure folders are only opened when needed.
+			// It looks like startup is faster when offline. It seems that the One Drive thing may be slow.
 			return RunFunctionIfOpenAsyncT(delegate
 			{
 				CurrentFolderId = folderId;
@@ -427,7 +412,15 @@ namespace UniFiler10.Data.Model
 					// Add the same categories as the last folder, which was added. 
 					// This is an automatism to streamline usage, it has no special reason to be.
 					await newFolder.OpenAsync().ConfigureAwait(false);
-					var lastAddedFolder = _folders.FirstOrDefault(fol => fol.Id == LastAddedFolderId);
+					Folder lastAddedFolder = null;
+					if (_folders.Any())
+					{
+						var maxCreateDate = _folders.Max(fol => fol.DateCreated);
+						if (maxCreateDate != default(DateTime))
+						{
+							lastAddedFolder = _folders.FirstOrDefault(fol => fol.DateCreated == maxCreateDate);
+						}
+					}
 					if (lastAddedFolder != null)
 					{
 						foreach (var cat in lastAddedFolder.DynamicCategories)
@@ -435,7 +428,6 @@ namespace UniFiler10.Data.Model
 							await newFolder.AddDynamicCategoryAsync(cat?.CategoryId).ConfigureAwait(false);
 						}
 					}
-					LastAddedFolderId = newFolder.Id;
 
 					await RunInUiThreadAsync(() => _folders.Add(newFolder)).ConfigureAwait(false);
 					return true;

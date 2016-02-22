@@ -190,28 +190,50 @@ namespace UniFiler10.Data.Metadata
 
 			base.Dispose(isDisposing);
 		}
+
 		protected override async Task OpenMayOverrideAsync()
 		{
 			if (_runtimeData.IsConnectionAvailable)
 			{
 				try
 				{
-					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
-					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
-					AccountSession oneDriveAccountSession = null;
-					Task<AccountSession> authenticateT = null;
-					await RunInUiThreadAsync(() =>
+					bool isAuthenticated = false;
+					if (!string.IsNullOrWhiteSpace(OneDriveAccessToken))
 					{
-						authenticateT = oneDriveClient.AuthenticateAsync(); // this needs the UI thread
-					}).ConfigureAwait(false);
+						using (var client = new HttpClient { Timeout = new TimeSpan(0, 0, 3) })
+						{
+							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
 
-					Func<Task> waitMax = async () => await Task.Delay(3000);
-					Func<Task> authenticateF = async () => oneDriveAccountSession = await authenticateT;
-					// if the connection is very slow, we time out. The old token may still work, if present; otherwise, we stick to the local file.
-					await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
+							try
+							{
+								var teststr = await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)).ConfigureAwait(false);
+								isAuthenticated = true;
+							}
+							catch { }
+						}
+					}
 
-					if (!string.IsNullOrEmpty(oneDriveAccountSession?.AccessToken)) OneDriveAccessToken = oneDriveAccountSession.AccessToken;
-					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
+					if (!isAuthenticated)
+					{
+						// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
+						var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
+						AccountSession oneDriveAccountSession = null;
+						Task<AccountSession> authenticateT = null;
+						await RunInUiThreadAsync(() =>
+						{
+							authenticateT = oneDriveClient.AuthenticateAsync(); // this needs the UI thread
+						}).ConfigureAwait(false);
+
+						// LOLLO no timeout like in the following: if the user must sign in and it takes time, this timeout will be too short and the one drive data won't be read.
+						//Func<Task> waitMax = async () => await Task.Delay(3000);
+						//Func<Task> authenticateF = async () => oneDriveAccountSession = await authenticateT;
+						// if the connection is very slow, we time out. The old token may still work, if present; otherwise, we stick to the local file.
+						//await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
+						oneDriveAccountSession = await authenticateT.ConfigureAwait(false);
+
+						if (!string.IsNullOrEmpty(oneDriveAccountSession?.AccessToken)) OneDriveAccessToken = oneDriveAccountSession.AccessToken;
+						// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
+					}
 				}
 				catch (Exception ex)
 				{
