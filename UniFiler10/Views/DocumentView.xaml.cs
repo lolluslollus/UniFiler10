@@ -206,7 +206,7 @@ namespace UniFiler10.Views
 			try
 			{
 				await _renderSemaphore.WaitAsync().ConfigureAwait(false);
-				//if (!IsDocAlreadyChanged) return;
+
 				if ((height == _previousHeight || width == _previousWidth) && docUri == _previousUri) return;
 				if (height == _heightSmall && width != _widthSmall) return; // avoid rendering once when height changes and again when width changes
 				if (height == _heightLarge && width != _widthLarge) return; // avoid rendering once when height changes and again when width changes
