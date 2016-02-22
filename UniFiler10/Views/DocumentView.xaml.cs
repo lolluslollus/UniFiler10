@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Utilz.Controlz;
 using Windows.Data.Pdf;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
@@ -27,23 +29,18 @@ namespace UniFiler10.Views
 		private static readonly double _quarterHeightSmall = (double)(Application.Current.Resources["MiniatureQuarterHeightSmall"]);
 		private static readonly double _quarterHeightLarge = (double)(Application.Current.Resources["MiniatureQuarterHeight"]);
 
-		private bool IsSmallScreen
-		{
-			get { return (bool)GetValue(IsSmallScreenProperty); }
-			set { SetValue(IsSmallScreenProperty, value); }
-		}
-		private static readonly DependencyProperty IsSmallScreenProperty =
-			DependencyProperty.Register("IsSmallScreen", typeof(bool), typeof(DocumentView), new PropertyMetadata(true, OnIsSmallScreenChanged));
+		private const double MAX_WIDTH_4_SMALL_RENDERS = 800.0;
+		private string _previousUri = string.Empty;
+		private double _previousWidth = _widthSmall;
+		private double _previousHeight = _heightSmall;
 
-		private static void OnIsSmallScreenChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			var instance = obj as DocumentView;
-			if (instance == null || args.NewValue == args.OldValue) return;
-			var isSmallScreen = args.NewValue is bool && (bool)args.NewValue;
-			instance.QuarterHeightAdjusted = isSmallScreen ? _quarterHeightSmall : _quarterHeightLarge;
-			instance.HeightAdjusted = isSmallScreen ? _heightSmall : _heightLarge;
-			instance.WidthAdjusted = isSmallScreen ? _widthSmall : _widthLarge;
-		}
+		private bool IsCurrentAdjustedSizesTooSmall { get { return _appView.VisibleBounds.Width > MAX_WIDTH_4_SMALL_RENDERS && _previousWidth == _widthSmall; } }
+		private bool IsCurrentAdjustedSizesTooLarge { get { return _appView.VisibleBounds.Width <= MAX_WIDTH_4_SMALL_RENDERS && _previousWidth == _widthLarge; } }
+
+		private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
+		private bool _isLoaded = false;
+		private readonly ApplicationView _appView = null;
+		private readonly SemaphoreSlimSafeRelease _renderSemaphore = null;
 
 		public double HeightAdjusted
 		{
@@ -51,7 +48,7 @@ namespace UniFiler10.Views
 			private set { SetValue(HeightAdjustedProperty, value); }
 		}
 		public static readonly DependencyProperty HeightAdjustedProperty =
-			DependencyProperty.Register("HeightAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureHeightSmall"]), OnWidthOrHeightChanged));
+			DependencyProperty.Register("HeightAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureHeightSmall"])));
 
 		public double QuarterHeightAdjusted
 		{
@@ -67,31 +64,8 @@ namespace UniFiler10.Views
 			private set { SetValue(WidthAdjustedProperty, value); }
 		}
 		public static readonly DependencyProperty WidthAdjustedProperty =
-			DependencyProperty.Register("WidthAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureWidthSmall"]), OnWidthOrHeightChanged));
-		private static void OnWidthOrHeightChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			var instance = obj as DocumentView;
-			if (instance == null || args.NewValue == args.OldValue) return;
+			DependencyProperty.Register("WidthAdjusted", typeof(double), typeof(DocumentView), new PropertyMetadata((double)(Application.Current.Resources["MiniatureWidthSmall"])));
 
-			try
-			{
-				var doc = instance.Document;
-				if (doc == null) return;
-				double height = instance.HeightAdjusted;
-				double width = instance.WidthAdjusted;
-				if (height == _heightSmall && width != _widthSmall) return; // avoid rendering once when height changes and again when width changes
-				if (height == _heightLarge && width != _widthLarge) return; // avoid rendering once when height changes and again when width changes
-
-				if (Path.GetExtension(doc.Uri0).ToLower() == DocumentExtensions.PDF_EXTENSION)
-				{
-					Task render = Task.Run(() => instance.RenderPreviewAsync(doc, height, width));
-				}
-			}
-			catch (ArgumentException ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-		}
 
 		public string Caption
 		{
@@ -156,101 +130,146 @@ namespace UniFiler10.Views
 		{
 			try
 			{
-				//await _previousUriSemaphore.WaitAsync(); //.ConfigureAwait(false); // LOLLO NOTE we need accesses to DataContext and other UIControl properties to run in the UI thread, across the app!
 				var instance = obj as DocumentView;
-				if (instance == null) return;
-				var doc = instance.Document;
+				if (instance == null || (args.NewValue == null && args.OldValue == null) || args.NewValue == args.OldValue) return;
+
+				// We skip here coz OnDocumentChanged fires before OnLoaded, and OnLoaded will take care of it.
+				// Aim is not to render twice when loading on large screens. In any case, rendering when the document is null is cheap.
+				if ((instance.IsCurrentAdjustedSizesTooLarge || instance.IsCurrentAdjustedSizesTooSmall) && !instance._isLoaded) return;
+
+				string docUri = instance.Document?.GetFullUri0() ?? string.Empty;
 				double height = instance.HeightAdjusted;
 				double width = instance.WidthAdjusted;
 
-				if (doc == null && instance._previousUri != null)
-				{
-					instance._previousUri = null;
-					Task render = Task.Run(() => instance.RenderPreviewAsync(doc, height, width));
-				}
-				else if (doc.GetFullUri0() != instance._previousUri)
-				{
-					instance._previousUri = doc.GetFullUri0();
-					Task render = Task.Run(() => instance.RenderPreviewAsync(doc, height, width));
-				}
+				Task render = Task.Run(() => instance.RenderPreviewAsync(docUri, height, width));
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			//finally
-			//{
-			//	SemaphoreSlimSafeRelease.TryRelease(_previousUriSemaphore);
-			//}
 		}
-
-		private static readonly BitmapImage _voiceNoteImage = new BitmapImage() { UriSource = new Uri("ms-appx:///Assets/voice-200.png", UriKind.Absolute) };
 
 		private volatile bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 
-		#region ctor
+		#region lifecycle
 		public DocumentView()
 		{
+			_appView = ApplicationView.GetForCurrentView(); _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
+			_renderSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+			Loaded += OnLoaded;
+			Unloaded += OnUnloaded;
 			InitializeComponent();
 		}
-		#endregion ctor
+
+		private void OnLoaded(object sender, RoutedEventArgs e)
+		{
+			_isLoaded = true;
+			UpdateAdjustedSizes();
+		}
+		private void OnUnloaded(object sender, RoutedEventArgs e)
+		{
+			_isLoaded = false;
+		}
+
+		private void OnVisibleBoundsChanged(ApplicationView sender, object args)
+		{
+			UpdateAdjustedSizes();
+		}
+		private void UpdateAdjustedSizes()
+		{
+			if (IsCurrentAdjustedSizesTooSmall)
+			{
+				QuarterHeightAdjusted = _quarterHeightLarge;
+				HeightAdjusted = _heightLarge;
+				WidthAdjusted = _widthLarge;
+				string docUri = Document?.GetFullUri0() ?? string.Empty;
+				Task render = Task.Run(() => RenderPreviewAsync(docUri, _heightLarge, _widthLarge));
+			}
+			else if (IsCurrentAdjustedSizesTooLarge)
+			{
+				QuarterHeightAdjusted = _quarterHeightSmall;
+				HeightAdjusted = _heightSmall;
+				WidthAdjusted = _widthSmall;
+				string docUri = Document?.GetFullUri0() ?? string.Empty;
+				Task render = Task.Run(() => RenderPreviewAsync(docUri, _heightSmall, _widthSmall));
+			}
+		}
+		#endregion lifecycle
 
 
 		#region render
-		private string _previousUri = null;
-
-		//private readonly SemaphoreSlimSafeRelease _previousUriSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-
-		private async Task RenderPreviewAsync(Document doc, double height, double width)
+		private async Task RenderPreviewAsync(string docUri, double height, double width)
 		{
-			// LOLLO TODO make sure this is not called too often!
-			IsMultiPage = false;
-
-			string ext = string.Empty;
-			if (doc != null)
+			try
 			{
-				try
+				await _renderSemaphore.WaitAsync().ConfigureAwait(false);
+				//if (!IsDocAlreadyChanged) return;
+				if ((height == _previousHeight || width == _previousWidth) && docUri == _previousUri) return;
+				if (height == _heightSmall && width != _widthSmall) return; // avoid rendering once when height changes and again when width changes
+				if (height == _heightLarge && width != _widthLarge) return; // avoid rendering once when height changes and again when width changes
+
+				Debug.WriteLine("rendering a document; docUri = " + docUri);
+
+				_previousHeight = height;
+				_previousWidth = width;
+				_previousUri = docUri;
+
+				IsMultiPage = false;
+
+				if (string.IsNullOrEmpty(docUri))
 				{
-					ext = Path.GetExtension(doc.Uri0).ToLower();
+					await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+					{
+						ShowImageViewer();
+						ImageViewer.Source = null;
+					}).AsTask().ConfigureAwait(false);
 				}
-				catch (ArgumentException ex)
+				else
 				{
+					string ext = string.Empty;
+					try
+					{
+						ext = Path.GetExtension(docUri).ToLower();
+					}
+					catch (ArgumentException ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
+
+					if (ext == DocumentExtensions.PDF_EXTENSION)
+					{
+						await RenderFirstPDFPageAsync(docUri, height, width).ConfigureAwait(false);
+					}
+					//else if (ext == DocumentExtensions.TXT_EXTENSION) // LOLLO TODO allow  text documents, maybe through a shrunk text block that can become full screen when tapping it
+					//{
+					//	await RenderFirstTxtPageAsync().ConfigureAwait(false);
+					//}
+					else if (DocumentExtensions.IMAGE_EXTENSIONS.Contains(ext))
+					{
+						await RenderImageMiniatureAsync(docUri).ConfigureAwait(false);
+					}
+					else if (DocumentExtensions.HTML_EXTENSIONS.Contains(ext))
+					{
+						await RenderHtmlMiniatureAsync(docUri).ConfigureAwait(false);
+					}
+					else if (DocumentExtensions.AUDIO_EXTENSIONS.Contains(ext))
+					{
+						await RenderAudioMiniatureAsync().ConfigureAwait(false);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (SemaphoreSlimSafeRelease.IsAlive(_renderSemaphore))
 					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-
-				if (ext == DocumentExtensions.PDF_EXTENSION)
-				{
-					await RenderFirstPDFPageAsync(doc, height, width).ConfigureAwait(false);
-				}
-				//else if (ext == DocumentExtensions.TXT_EXTENSION)
-				//{
-				//	await RenderFirstTxtPageAsync().ConfigureAwait(false);
-				//}
-				else if (DocumentExtensions.IMAGE_EXTENSIONS.Contains(ext))
-				{
-					await RenderImageMiniatureAsync(doc).ConfigureAwait(false);
-				}
-				else if (DocumentExtensions.HTML_EXTENSIONS.Contains(ext))
-				{
-					await RenderHtmlMiniatureAsync(doc).ConfigureAwait(false);
-				}
-				else if (DocumentExtensions.AUDIO_EXTENSIONS.Contains(ext))
-				{
-					await RenderAudioMiniatureAsync().ConfigureAwait(false);
-				}
 			}
-			else
+			finally
 			{
-				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
-				{
-					ShowImageViewer();
-					ImageViewer.Source = null;
-				}).AsTask().ConfigureAwait(false);
+				SemaphoreSlimSafeRelease.TryRelease(_renderSemaphore);
 			}
-
 			//await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 			//{
 			//    Debug.WriteLine("RenderPreviewImageAsync() ended");
@@ -262,13 +281,11 @@ namespace UniFiler10.Views
 			//});
 		}
 
-		private async Task RenderHtmlMiniatureAsync(Document doc)
+		private async Task RenderHtmlMiniatureAsync(string docUri)
 		{
 			try
 			{
-				string uri = doc?.GetFullUri0();
-
-				string ssss = await DocumentExtensions.GetTextFromFileAsync(uri).ConfigureAwait(false);
+				string ssss = await DocumentExtensions.GetTextFromFileAsync(docUri).ConfigureAwait(false);
 				await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
 				{
 					ShowWebViewer();
@@ -326,12 +343,11 @@ namespace UniFiler10.Views
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
 		}
-		private async Task RenderImageMiniatureAsync(Document doc)
+		private async Task RenderImageMiniatureAsync(string docUri)
 		{
 			try
 			{
-				string uri = doc?.GetFullUri0();
-				var imgFile = await StorageFile.GetFileFromPathAsync(uri).AsTask().ConfigureAwait(false);
+				var imgFile = await StorageFile.GetFileFromPathAsync(docUri).AsTask().ConfigureAwait(false);
 				if (imgFile != null)
 				{
 					using (IRandomAccessStream stream = await imgFile.OpenAsync(FileAccessMode.Read).AsTask().ConfigureAwait(false))
@@ -345,13 +361,11 @@ namespace UniFiler10.Views
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
 		}
-		private async Task RenderFirstPDFPageAsync(Document doc, double height, double width)
+		private async Task RenderFirstPDFPageAsync(string docUri, double height, double width)
 		{
 			try
 			{
-				string uri = doc?.GetFullUri0();
-
-				var pdfFile = await StorageFile.GetFileFromPathAsync(uri).AsTask().ConfigureAwait(false);
+				var pdfFile = await StorageFile.GetFileFromPathAsync(docUri).AsTask().ConfigureAwait(false);
 				var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile).AsTask().ConfigureAwait(false);
 				if (pdfDocument?.PageCount > 0)
 				{

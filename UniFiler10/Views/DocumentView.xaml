@@ -28,7 +28,7 @@
             </LinearGradientBrush>
         </Border.Background>-->
 
-		<VisualStateManager.VisualStateGroups>
+		<!--<VisualStateManager.VisualStateGroups>
 			<VisualStateGroup>
 				<VisualState>
 					<VisualState.StateTriggers>
@@ -36,12 +36,12 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="me.IsSmallScreen" Value="False"/>
-						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
-						<!--<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>-->
+						--><!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+						<!--<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>--><!--
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>
+		</VisualStateManager.VisualStateGroups>-->
 
 		<Grid>
 			<AppBarButton Icon="Save"
