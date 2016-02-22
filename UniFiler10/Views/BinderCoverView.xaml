@@ -22,10 +22,10 @@
 			<!-- actions for all folders -->
 			<uctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="ActionsUWP">
-				<ctl:LolloButton
+				<!--<ctl:LolloButton
 					Tapped="OnAddFolder_Tapped"
 					Symbol="Add"
-					Uid="AddFolderT"/>
+					Uid="AddFolderT"/>-->
 
 				<ctl:LolloButton
 					Tapped="OnAddAndOpenFolder_Tapped"
