@@ -13,38 +13,13 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class Wallet : DbBoundObservableData
 	{
+		#region lifecycle
 		public Wallet() { }
 		public Wallet(DBManager dbManager, string parentId) : base()
 		{
 			DBManager = dbManager;
 			ParentId = parentId;
 		}
-
-		#region properties
-		private readonly object _dbManagerLocker = new object();
-		private DBManager _dbManager = null;
-		[IgnoreDataMember]
-		[Ignore]
-		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
-
-		private string _name = string.Empty;
-		[DataMember]
-		public string Name { get { return _name; } set { SetPropertyUpdatingDb(ref _name, value); } }
-
-		private string _descr0 = string.Empty;
-		[DataMember]
-		public string Descr0 { get { return _descr0; } set { SetPropertyUpdatingDb(ref _descr0, value); } }
-
-		private DateTime _date0 = default(DateTime);
-		[DataMember]
-		public DateTime Date0 { get { return _date0; } set { SetPropertyUpdatingDb(ref _date0, value); } }
-
-		private readonly SwitchableObservableDisposableCollection<Document> _documents = new SwitchableObservableDisposableCollection<Document>();
-		[IgnoreDataMember]
-		[Ignore]
-		public SwitchableObservableDisposableCollection<Document> Documents { get { return _documents; } /*private set { if (_documents != value) { _documents = value; RaisePropertyChanged_UI(); } } */}
-		#endregion properties
-
 		protected override async Task OpenMayOverrideAsync()
 		{
 			var docs = _documents;
@@ -82,6 +57,35 @@ namespace UniFiler10.Data.Model
 
 			_dbManager = null;
 		}
+		#endregion lifecycle
+
+
+		#region properties
+		private readonly object _dbManagerLocker = new object();
+		private DBManager _dbManager = null;
+		[IgnoreDataMember]
+		[Ignore]
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
+
+		private string _name = string.Empty;
+		[DataMember]
+		public string Name { get { return _name; } set { SetPropertyUpdatingDb(ref _name, value); } }
+
+		private string _descr0 = string.Empty;
+		[DataMember]
+		public string Descr0 { get { return _descr0; } set { SetPropertyUpdatingDb(ref _descr0, value); } }
+
+		private DateTime _date0 = default(DateTime);
+		[DataMember]
+		public DateTime Date0 { get { return _date0; } set { SetPropertyUpdatingDb(ref _date0, value); } }
+
+		private readonly SwitchableObservableDisposableCollection<Document> _documents = new SwitchableObservableDisposableCollection<Document>();
+		[IgnoreDataMember]
+		[Ignore]
+		public SwitchableObservableDisposableCollection<Document> Documents { get { return _documents; } }
+		#endregion properties
+
+
 		protected override bool UpdateDbMustOverride()
 		{
 			return DBManager?.UpdateWallets(this) == true;

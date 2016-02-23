@@ -18,7 +18,7 @@ namespace UniFiler10.Views
 	{
 		#region properties
 		private BriefcaseVM _vm = null;
-        public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged(); } }
+        public BriefcaseVM VM { get { return _vm; } set { _vm = value; RaisePropertyChanged_UI(); } }
 
 		private readonly AnimationStarter _animationStarter = null;
 		#endregion properties
@@ -40,7 +40,7 @@ namespace UniFiler10.Views
 
 			if (_vm == null) _vm = new BriefcaseVM(_animationStarter);
 			await _vm.OpenAsync().ConfigureAwait(true);
-			RaisePropertyChanged(nameof(VM));
+			RaisePropertyChanged_UI(nameof(VM));
 
 			//await BriefcaseCoverView.OpenAsync().ConfigureAwait(false);
 

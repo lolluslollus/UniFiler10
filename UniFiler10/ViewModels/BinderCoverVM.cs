@@ -106,7 +106,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (_isAllFoldersDirty != value)
 				{
-					_isAllFoldersDirty = value; RaisePropertyChanged_UI();
+					_isAllFoldersDirty = value;
 				}
 			}
 		}
@@ -119,7 +119,7 @@ namespace UniFiler10.ViewModels
 			{
 				if (_isRecentFoldersDirty != value)
 				{
-					_isRecentFoldersDirty = value; RaisePropertyChanged_UI();
+					_isRecentFoldersDirty = value;
 				}
 			}
 		}
@@ -214,10 +214,10 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		private SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = null; // new SwitchableObservableDisposableCollection<FieldDescription>();
+		private SwitchableObservableDisposableCollection<FieldDescription> _fldDscsInCat = null;
 		public SwitchableObservableDisposableCollection<FieldDescription> FldDscsInCat { get { return _fldDscsInCat; } private set { _fldDscsInCat = value; RaisePropertyChanged_UI(); } }
 
-		private SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = null; // new SwitchableObservableDisposableCollection<FieldValue>();
+		private SwitchableObservableDisposableCollection<FieldValue> _fldValsInFldDscs = null;
 		public SwitchableObservableDisposableCollection<FieldValue> FldValsInFldDscs { get { return _fldValsInFldDscs; } private set { _fldValsInFldDscs = value; RaisePropertyChanged_UI(); } }
 
 		private static readonly object _isImportingLocker = new object();

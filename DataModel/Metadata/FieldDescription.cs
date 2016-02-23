@@ -15,7 +15,7 @@ namespace UniFiler10.Data.Metadata
 		#region properties
 		private string _id = DEFAULT_ID;
 		[DataMember]
-		public string Id { get { return _id; } set { _id = value; RaisePropertyChanged_UI(); } }
+		public string Id { get { return _id; } set { _id = value; } }
 
 		private bool _isCustom = false;
 		[DataMember]
@@ -27,7 +27,7 @@ namespace UniFiler10.Data.Metadata
 
 		private readonly List<string> _justAssignedToCats = new List<string>();
 		[IgnoreDataMember]
-		public List<string> JustAssignedToCats { get { return _justAssignedToCats; } /*private set { _justAssignedToCats = value; RaisePropertyChanged_UI(); }*/ }
+		public List<string> JustAssignedToCats { get { return _justAssignedToCats; } }
 
 		private bool _isAnyValueAllowed = false;
 		/// <summary>
@@ -57,7 +57,7 @@ namespace UniFiler10.Data.Metadata
 				if (_typez != value && value != FieldTypez.nil)
 				{
 					_typez = value;
-					RaisePropertyChanged_UI();
+					// RaisePropertyChanged_UI();
 				}
 			}
 		}

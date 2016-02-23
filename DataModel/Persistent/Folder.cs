@@ -16,6 +16,7 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public sealed class Folder : DbBoundObservableData
 	{
+		#region lifecycle
 		public Folder() { }
 		public Folder(DBManager dbManager, string name, DateTime dateCreated) : base()
 		{
@@ -23,109 +24,6 @@ namespace UniFiler10.Data.Model
 			Name = name;
 			DateCreated = dateCreated;
 		}
-
-		#region properties
-		private readonly object _dbManagerLocker = new object();
-		private DBManager _dbManager = null;
-		[IgnoreDataMember]
-		[Ignore]
-		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
-
-		private readonly SwitchableObservableDisposableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableDisposableCollection<DynamicCategory>();
-		[IgnoreDataMember]
-		[Ignore]
-		public SwitchableObservableDisposableCollection<DynamicCategory> DynamicCategories { get { return _dynamicCategories; } }
-
-		private readonly SwitchableObservableDisposableCollection<DynamicField> _dynamicFields = new SwitchableObservableDisposableCollection<DynamicField>();
-		[IgnoreDataMember]
-		[Ignore]
-		public SwitchableObservableDisposableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } }
-
-		private string _name = string.Empty;
-		[DataMember]
-		public string Name { get { return _name; } set { SetPropertyUpdatingDb(ref _name, value); } }
-
-		private string _descr0 = string.Empty;
-		[DataMember]
-		public string Descr0 { get { return _descr0; } set { SetPropertyUpdatingDb(ref _descr0, value); } }
-
-		private string _descr1 = string.Empty;
-		[DataMember]
-		public string Descr1 { get { return _descr1; } set { SetPropertyUpdatingDb(ref _descr1, value); } }
-
-		private string _descr2 = string.Empty;
-		[DataMember]
-		public string Descr2 { get { return _descr2; } set { SetPropertyUpdatingDb(ref _descr2, value); } }
-
-		private string _descr3 = string.Empty;
-		[DataMember]
-		public string Descr3 { get { return _descr3; } set { SetPropertyUpdatingDb(ref _descr3, value); } }
-
-		private DateTime _dateCreated = default(DateTime);
-		[DataMember]
-		public DateTime DateCreated { get { return _dateCreated; } set { SetPropertyUpdatingDb(ref _dateCreated, value); } }
-
-		private DateTime _date0 = default(DateTime);
-		[DataMember]
-		public DateTime Date0 { get { return _date0; } set { SetPropertyUpdatingDb(ref _date0, value); } }
-
-		private DateTime _date1 = default(DateTime);
-		[DataMember]
-		public DateTime Date1 { get { return _date1; } set { SetPropertyUpdatingDb(ref _date1, value); } }
-
-		private DateTime _date2 = default(DateTime);
-		[DataMember]
-		public DateTime Date2 { get { return _date2; } set { SetPropertyUpdatingDb(ref _date2, value); } }
-
-		private DateTime _date3 = default(DateTime);
-		[DataMember]
-		public DateTime Date3 { get { return _date3; } set { SetPropertyUpdatingDb(ref _date3, value); } }
-
-		private readonly SwitchableObservableDisposableCollection<Wallet> _wallets = new SwitchableObservableDisposableCollection<Wallet>();
-		[IgnoreDataMember]
-		[Ignore]
-		public SwitchableObservableDisposableCollection<Wallet> Wallets { get { return _wallets; } }
-
-		private bool _isEditingCategories = true;
-		[DataMember]
-		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetPropertyUpdatingDb(ref _isEditingCategories, value); } }
-
-		[DataMember]
-		public override string ParentId { get { return DEFAULT_ID; } set { SetPropertyUpdatingDb(ref _parentId, DEFAULT_ID); } }
-		#endregion properties
-
-		protected override bool UpdateDbMustOverride()
-		{
-			return DBManager?.UpdateFolders(this) == true;
-		}
-
-		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
-		//{
-		//	var target = that as Folder;
-
-		//	return
-		//		DateCreated == target.DateCreated &&
-		//		Date0 == target.Date0 &&
-		//		Date1 == target.Date1 &&
-		//		Date2 == target.Date2 &&
-		//		Date3 == target.Date3 &&
-		//		Descr0 == target.Descr0 &&
-		//		Descr1 == target.Descr1 &&
-		//		Descr2 == target.Descr2 &&
-		//		Descr3 == target.Descr3 &&
-		//		Name == target.Name &&
-		//		Wallet.AreEqual(Wallets, target.Wallets) &&
-		//		DynamicCategory.AreEqual(DynamicCategories, target.DynamicCategories) &&
-		//		DynamicField.AreEqual(DynamicFields, target.DynamicFields);
-		//}
-
-		protected override bool CheckMeMustOverride()
-		{
-			bool result = _id != DEFAULT_ID && Check(_wallets) && Check(_dynamicCategories) && Check(_dynamicFields);
-			return result;
-		}
-
-		#region loading methods
 		protected override async Task OpenMayOverrideAsync()
 		{
 			if (DBManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
@@ -222,7 +120,111 @@ namespace UniFiler10.Data.Model
 			// do not touch _dbManager, it was imported in the ctor and it it does not belong here
 			_dbManager = null;
 		}
+		#endregion lifecycle
 
+
+		#region properties
+		private readonly object _dbManagerLocker = new object();
+		private DBManager _dbManager = null;
+		[IgnoreDataMember]
+		[Ignore]
+		public DBManager DBManager { get { lock (_dbManagerLocker) { return _dbManager; } } set { lock (_dbManagerLocker) { _dbManager = value; } } }
+
+		private readonly SwitchableObservableDisposableCollection<DynamicCategory> _dynamicCategories = new SwitchableObservableDisposableCollection<DynamicCategory>();
+		[IgnoreDataMember]
+		[Ignore]
+		public SwitchableObservableDisposableCollection<DynamicCategory> DynamicCategories { get { return _dynamicCategories; } }
+
+		private readonly SwitchableObservableDisposableCollection<DynamicField> _dynamicFields = new SwitchableObservableDisposableCollection<DynamicField>();
+		[IgnoreDataMember]
+		[Ignore]
+		public SwitchableObservableDisposableCollection<DynamicField> DynamicFields { get { return _dynamicFields; } }
+
+		private string _name = string.Empty;
+		[DataMember]
+		public string Name { get { return _name; } set { SetPropertyUpdatingDb(ref _name, value); } }
+
+		private string _descr0 = string.Empty;
+		[DataMember]
+		public string Descr0 { get { return _descr0; } set { SetPropertyUpdatingDb(ref _descr0, value); } }
+
+		private string _descr1 = string.Empty;
+		[DataMember]
+		public string Descr1 { get { return _descr1; } set { SetPropertyUpdatingDb(ref _descr1, value); } }
+
+		private string _descr2 = string.Empty;
+		[DataMember]
+		public string Descr2 { get { return _descr2; } set { SetPropertyUpdatingDb(ref _descr2, value); } }
+
+		private string _descr3 = string.Empty;
+		[DataMember]
+		public string Descr3 { get { return _descr3; } set { SetPropertyUpdatingDb(ref _descr3, value); } }
+
+		private DateTime _dateCreated = default(DateTime);
+		[DataMember]
+		public DateTime DateCreated { get { return _dateCreated; } set { SetPropertyUpdatingDb(ref _dateCreated, value); } }
+
+		private DateTime _date0 = default(DateTime);
+		[DataMember]
+		public DateTime Date0 { get { return _date0; } set { SetPropertyUpdatingDb(ref _date0, value); } }
+
+		private DateTime _date1 = default(DateTime);
+		[DataMember]
+		public DateTime Date1 { get { return _date1; } set { SetPropertyUpdatingDb(ref _date1, value); } }
+
+		private DateTime _date2 = default(DateTime);
+		[DataMember]
+		public DateTime Date2 { get { return _date2; } set { SetPropertyUpdatingDb(ref _date2, value); } }
+
+		private DateTime _date3 = default(DateTime);
+		[DataMember]
+		public DateTime Date3 { get { return _date3; } set { SetPropertyUpdatingDb(ref _date3, value); } }
+
+		private readonly SwitchableObservableDisposableCollection<Wallet> _wallets = new SwitchableObservableDisposableCollection<Wallet>();
+		[IgnoreDataMember]
+		[Ignore]
+		public SwitchableObservableDisposableCollection<Wallet> Wallets { get { return _wallets; } }
+
+		private bool _isEditingCategories = true;
+		[DataMember]
+		public bool IsEditingCategories { get { return _isEditingCategories; } set { SetPropertyUpdatingDb(ref _isEditingCategories, value); } }
+
+		[DataMember]
+		public override string ParentId { get { return DEFAULT_ID; } set { SetPropertyUpdatingDb(ref _parentId, DEFAULT_ID, false); } }
+		#endregion properties
+
+		protected override bool UpdateDbMustOverride()
+		{
+			return DBManager?.UpdateFolders(this) == true;
+		}
+
+		//protected override bool IsEqualToMustOverride(DbBoundObservableData that)
+		//{
+		//	var target = that as Folder;
+
+		//	return
+		//		DateCreated == target.DateCreated &&
+		//		Date0 == target.Date0 &&
+		//		Date1 == target.Date1 &&
+		//		Date2 == target.Date2 &&
+		//		Date3 == target.Date3 &&
+		//		Descr0 == target.Descr0 &&
+		//		Descr1 == target.Descr1 &&
+		//		Descr2 == target.Descr2 &&
+		//		Descr3 == target.Descr3 &&
+		//		Name == target.Name &&
+		//		Wallet.AreEqual(Wallets, target.Wallets) &&
+		//		DynamicCategory.AreEqual(DynamicCategories, target.DynamicCategories) &&
+		//		DynamicField.AreEqual(DynamicFields, target.DynamicFields);
+		//}
+
+		protected override bool CheckMeMustOverride()
+		{
+			bool result = _id != DEFAULT_ID && Check(_wallets) && Check(_dynamicCategories) && Check(_dynamicFields);
+			return result;
+		}
+
+		#region loading methods
 		private async Task RefreshDynamicPropertiesAsync()
 		{
 			// update DynamicCategories if metadata has changed since last db save

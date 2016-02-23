@@ -12,6 +12,7 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class DynamicField : DbBoundObservableData
 	{
+		#region lifecycle
 		public DynamicField() { }
 		public DynamicField(DBManager dbManager, string parentId, string fieldDescriptionId) : base()
 		{
@@ -25,6 +26,7 @@ namespace UniFiler10.Data.Model
 
 			_dbManager = null;
 		}
+		#endregion lifecycle
 
 
 		#region properties
@@ -52,7 +54,6 @@ namespace UniFiler10.Data.Model
 				{
 					_fieldValueId = newValue;
 					UpdateDynamicValues2();
-					RaisePropertyChanged_UI();
 
 					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{
@@ -90,7 +91,6 @@ namespace UniFiler10.Data.Model
 				{
 					_fieldDescriptionId = newValue;
 					UpdateDynamicValues2();
-					RaisePropertyChanged_UI();
 
 					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{

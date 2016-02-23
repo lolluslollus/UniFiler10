@@ -109,7 +109,7 @@ namespace UniFiler10.Data.Model
 			}
 			private set // this lockless setter is only for serialisation
 			{
-				if (_dbName != value) { _dbName = value; RaisePropertyChanged_UI(); }
+				if (_dbName != value) { _dbName = value; }
 			}
 		}
 		private void SetDBName(string dbName)
@@ -130,7 +130,6 @@ namespace UniFiler10.Data.Model
 				if (_currentFolderId != value) // this property is only for the serialiser! If you set it, call UpdateCurrentFolderAsync() after.
 				{
 					_currentFolderId = value;
-					RaisePropertyChanged();
 				}
 			}
 		}
@@ -143,7 +142,7 @@ namespace UniFiler10.Data.Model
 		}
 
 		[DataMember]
-		public override string ParentId { get { return DEFAULT_ID; } set { SetPropertyUpdatingDb(ref _parentId, DEFAULT_ID); } }
+		public override string ParentId { get { return DEFAULT_ID; } set { SetPropertyUpdatingDb(ref _parentId, DEFAULT_ID, false); } }
 		#endregion main properties
 
 
@@ -154,7 +153,7 @@ namespace UniFiler10.Data.Model
 		public class FolderPreview : ObservableData
 		{
 			protected string _folderId = string.Empty;
-			public string FolderId { get { return _folderId; } set { if (_folderId != value) { _folderId = value; RaisePropertyChanged_UI(); } } }
+			public string FolderId { get { return _folderId; } set { if (_folderId != value) { _folderId = value; } } }
 
 			private string _folderName = string.Empty;
 			public string FolderName { get { return _folderName; } set { if (_folderName != value) { _folderName = value; RaisePropertyChanged_UI(); } } }

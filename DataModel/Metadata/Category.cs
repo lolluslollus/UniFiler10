@@ -15,7 +15,7 @@ namespace UniFiler10.Data.Metadata
 		#region properties
 		private string _id = DEFAULT_ID;
 		[DataMember]
-		public string Id { get { return _id; } set { _id = value; RaisePropertyChanged_UI(); } }
+		public string Id { get { return _id; } set { _id = value; } }
 
 		private string _name = string.Empty;
 		[DataMember]
@@ -31,12 +31,12 @@ namespace UniFiler10.Data.Metadata
 
 		private readonly SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } /*set { _fieldDescriptions = value; RaisePropertyChanged_UI(); }*/ }
+		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } }
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableDisposableCollection<string> _fieldDescriptionIds = new SwitchableObservableDisposableCollection<string>();
 		[DataMember]
-		public SwitchableObservableDisposableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableDisposableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; } }
 		#endregion properties
 
 		public static void Copy(Category source, ref Category target, IList<FieldDescription> allFldDscs)

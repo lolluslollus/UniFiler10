@@ -24,9 +24,9 @@ namespace UniFiler10.ViewModels
 		public Briefcase Briefcase { get { return _briefcase; } }
 
 		private readonly MetaBriefcase _metaBriefcase = null;
-		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } /*set { _metaBriefcase = value; RaisePropertyChanged_UI(); }*/ }
+		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } }
 
-		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null; // new SwitchableObservableDisposableCollection<FieldDescription>();
+		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null;
 		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
 		private void UpdateUnassignedFields()
 		{

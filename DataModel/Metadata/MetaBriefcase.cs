@@ -53,13 +53,10 @@ namespace UniFiler10.Data.Metadata
 				{
 					_currentCategoryId = value;
 					UpdateCurrentCategory2();
-					//UpdateCurrentFieldDescription2();
-					RaisePropertyChanged_UI();
 				}
 				else if (_currentCategory == null)
 				{
 					UpdateCurrentCategory2();
-					//UpdateCurrentFieldDescription2();
 				}
 			}
 		}
@@ -90,7 +87,6 @@ namespace UniFiler10.Data.Metadata
 				{
 					_currentFieldDescriptionId = value;
 					UpdateCurrentFieldDescription2();
-					RaisePropertyChanged_UI();
 				}
 				else if (_currentFieldDescription == null)
 				{

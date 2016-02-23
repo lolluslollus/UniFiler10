@@ -14,7 +14,7 @@ namespace UniFiler10.Data.Metadata
 
 		private string _id = DEFAULT_ID;
 		[DataMember]
-		public string Id { get { return _id; } set { _id = value; RaisePropertyChanged_UI(); } }
+		public string Id { get { return _id; } set { _id = value; } }
 
 		private string _vaalue = string.Empty;
 		[DataMember]

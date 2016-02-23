@@ -12,6 +12,7 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class DynamicCategory : DbBoundObservableData
 	{
+		#region lifecycle
 		public DynamicCategory() { }
 		public DynamicCategory(DBManager dbManager, string parentId, string categoryId) : base()
 		{
@@ -25,6 +26,7 @@ namespace UniFiler10.Data.Model
 
 			_dbManager = null;
 		}
+		#endregion lifecycle
 
 
 		#region properties
@@ -52,7 +54,6 @@ namespace UniFiler10.Data.Model
 				{
 					_categoryId = newValue;
 					UpdateCategory2();
-					RaisePropertyChanged_UI();
 
 					Task upd = RunFunctionIfOpenAsyncA_MT(delegate
 					{

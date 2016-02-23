@@ -13,6 +13,7 @@ namespace UniFiler10.Data.Model
 	[DataContract]
 	public class Document : DbBoundObservableData
 	{
+		#region lifecycle
 		public Document() { }
 		public Document(DBManager dbManager, string parentId) : base()
 		{
@@ -25,6 +26,8 @@ namespace UniFiler10.Data.Model
 
 			_dbManager = null;
 		}
+		#endregion lifecycle
+
 
 		#region properties
 		private readonly object _dbManagerLocker = new object();
@@ -41,15 +44,11 @@ namespace UniFiler10.Data.Model
 			get
 			{
 				return GetPropertyLocking(ref _uri0, _uri0Locker);
-				//lock (_uri0Locker)
-				//{
-				//	return _uri0;
-				//}
 			}
 			set // this lockless setter is only for the serialiser and the db
 			{
 				string newValue = value == null ? string.Empty : Path.GetFileName(value);
-				SetPropertyUpdatingDb(ref _uri0, newValue);
+				SetPropertyUpdatingDb(ref _uri0, newValue, false);
 			}
 		}
 		public void SetUri0(string newValue)
