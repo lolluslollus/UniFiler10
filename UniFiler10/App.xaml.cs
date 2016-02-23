@@ -72,8 +72,8 @@ namespace UniFiler10
 			if (briefcase != null)
 			{
 				await briefcase.CloseAsync().ConfigureAwait(false);
-				briefcase.Dispose();
-				briefcase = null;
+				//briefcase.Dispose();
+				//briefcase = null;
 			}
 		}
 		#endregion lifecycle

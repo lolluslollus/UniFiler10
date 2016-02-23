@@ -8,7 +8,7 @@ using Utilz.Data;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class Category : ObservableData, IDisposable
+	public sealed class Category : ObservableData //, IDisposable
 	{
 		private static readonly string DEFAULT_ID = string.Empty;
 
@@ -29,14 +29,14 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
-		private readonly SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
+		private readonly SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } }
+		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } }
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
-		private SwitchableObservableDisposableCollection<string> _fieldDescriptionIds = new SwitchableObservableDisposableCollection<string>();
+		private SwitchableObservableCollection<string> _fieldDescriptionIds = new SwitchableObservableCollection<string>();
 		[DataMember]
-		public SwitchableObservableDisposableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; } }
+		public SwitchableObservableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; } }
 		#endregion properties
 
 		public static void Copy(Category source, ref Category target, IList<FieldDescription> allFldDscs)
@@ -59,7 +59,7 @@ namespace UniFiler10.Data.Metadata
 				target.Name = source.Name;
 			}
 		}
-		public static void Copy(SwitchableObservableDisposableCollection<Category> source, ref SwitchableObservableDisposableCollection<Category> target, IList<FieldDescription> allFldDscs)
+		public static void Copy(SwitchableObservableCollection<Category> source, ref SwitchableObservableCollection<Category> target, IList<FieldDescription> allFldDscs)
 		{
 			if (source != null && target != null)
 			{
@@ -81,18 +81,19 @@ namespace UniFiler10.Data.Metadata
 		{
 			Id = Guid.NewGuid().ToString();
 		}
-		public void Dispose()
-		{
-			if (_isDisposed) return;
-			_isDisposed = true;
 
-			_fieldDescriptions?.Dispose();
-			_fieldDescriptionIds?.Dispose();
-		}
+		//public void Dispose()
+		//{
+		//	if (_isDisposed) return;
+		//	_isDisposed = true;
 
-		private volatile bool _isDisposed = false;
-		[IgnoreDataMember]
-		public bool IsDisposed { get { return _isDisposed; } }
+		//	_fieldDescriptions?.Dispose();
+		//	_fieldDescriptionIds?.Dispose();
+		//}
+
+		//private volatile bool _isDisposed = false;
+		//[IgnoreDataMember]
+		//public bool IsDisposed { get { return _isDisposed; } }
 		#endregion ctor and dispose
 
 

@@ -8,7 +8,7 @@ using Utilz.Data;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class FieldDescription : ObservableData, IDisposable //, IEqualityComparer<FieldDescription>
+	public sealed class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
 	{
 		private static readonly string DEFAULT_ID = string.Empty;
 
@@ -42,9 +42,9 @@ namespace UniFiler10.Data.Metadata
 		public string Caption { get { return _caption; } set { _caption = value; RaisePropertyChanged_UI(); } }
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
-		private SwitchableObservableDisposableCollection<FieldValue> _possibleValues = new SwitchableObservableDisposableCollection<FieldValue>();
+		private SwitchableObservableCollection<FieldValue> _possibleValues = new SwitchableObservableCollection<FieldValue>();
 		[DataMember]
-		public SwitchableObservableDisposableCollection<FieldValue> PossibleValues { get { return _possibleValues; } private set { _possibleValues = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableCollection<FieldValue> PossibleValues { get { return _possibleValues; } private set { _possibleValues = value; RaisePropertyChanged_UI(); } }
 
 		public enum FieldTypez { str, dat, dec, boo, nil }
 		private FieldTypez _typez = FieldTypez.str;
@@ -75,18 +75,18 @@ namespace UniFiler10.Data.Metadata
 			IsCustom = isCustom;
 			IsJustAdded = isJustAdded;
 		}
-		public void Dispose()
-		{
-			if (_isDisposed) return;
-			_isDisposed = true;
+		//public void Dispose()
+		//{
+		//	if (_isDisposed) return;
+		//	_isDisposed = true;
 
-			_possibleValues?.Dispose();
-			_possibleValues = null;
-		}
+		//	_possibleValues?.Dispose();
+		//	_possibleValues = null;
+		//}
 
-		private volatile bool _isDisposed = false;
-		[IgnoreDataMember]
-		public bool IsDisposed { get { return _isDisposed; } }
+		// private volatile bool _isDisposed = false;
+		//[IgnoreDataMember]
+		//public bool IsDisposed { get { return _isDisposed; } }
 		#endregion ctor and dispose
 
 
@@ -104,7 +104,7 @@ namespace UniFiler10.Data.Metadata
 				target.Typez = source._typez;
 			}
 		}
-		public static void Copy(SwitchableObservableDisposableCollection<FieldDescription> source, ref SwitchableObservableDisposableCollection<FieldDescription> target)
+		public static void Copy(SwitchableObservableCollection<FieldDescription> source, ref SwitchableObservableCollection<FieldDescription> target)
 		{
 			if (source != null && target != null)
 			{

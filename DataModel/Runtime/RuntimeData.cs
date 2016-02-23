@@ -9,7 +9,7 @@ using Windows.Networking.Connectivity;
 
 namespace UniFiler10.Data.Runtime
 {
-	public sealed class RuntimeData : OpenableObservableDisposableData
+	public sealed class RuntimeData : OpenableObservableData
 	{
 		#region properties
 		private volatile bool _isTrial = true;
@@ -45,14 +45,14 @@ namespace UniFiler10.Data.Runtime
 				{
 					//if (_briefcase.IsOpen)
 					//{
-						if (
-							_briefcase.IsAllowMeteredConnection
-							||
-							NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
-							)
-						{
-							IsConnectionAvailable = true;
-						}
+					if (
+						_briefcase.IsAllowMeteredConnection
+						||
+						NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
+						)
+					{
+						IsConnectionAvailable = true;
+					}
 					//}
 					//else
 					//{
@@ -129,7 +129,7 @@ namespace UniFiler10.Data.Runtime
 		}
 		#endregion properties
 
-		#region construct dispose open close
+		#region construct lifecycle
 		private static RuntimeData _instance = null;
 		public static RuntimeData Instance
 		{
@@ -147,7 +147,7 @@ namespace UniFiler10.Data.Runtime
 		{
 			lock (_instanceLocker)
 			{
-				if (_instance == null || _instance._isDisposed)
+				if (_instance == null /*|| _instance._isDisposed*/ || _instance._isLight != isLight)
 				{
 					_instance = new RuntimeData(briefcase, isLight);
 				}
@@ -164,7 +164,7 @@ namespace UniFiler10.Data.Runtime
 			_isLight = isLight;
 			if (isLight) return;
 
-			
+
 			_videoDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.VideoCapture);
 			_audioDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.AudioCapture);
 		}
@@ -186,7 +186,7 @@ namespace UniFiler10.Data.Runtime
 			_audioDeviceWatcher.Stop();
 			return Task.CompletedTask;
 		}
-		#endregion construct dispose open close
+		#endregion lifecycle
 
 		#region event handlers
 		private volatile bool _isHandlersActive = false;

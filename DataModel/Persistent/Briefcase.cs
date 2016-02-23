@@ -15,7 +15,7 @@ using UniFiler10.Data.Constants;
 namespace UniFiler10.Data.Model
 {
 	[DataContract]
-	public sealed class Briefcase : OpenableObservableDisposableData
+	public sealed class Briefcase : OpenableObservableData
 	{
 		#region lifecycle
 		private readonly bool _isLight = false;
@@ -24,7 +24,7 @@ namespace UniFiler10.Data.Model
 		{
 			lock (_instanceLock)
 			{
-				if (_instance == null || _instance._isDisposed)
+				if (_instance == null /*|| _instance._isDisposed*/ || _instance._isLight != isLight)
 				{
 					_instance = new Briefcase(isLight);
 				}
@@ -63,30 +63,22 @@ namespace UniFiler10.Data.Model
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
-			await SaveAsync(/*true*/).ConfigureAwait(false);
+			await SaveAsync().ConfigureAwait(false);
 			await CloseCurrentBinder2Async().ConfigureAwait(false);
 
 			var rd = _runtimeData;
 			if (rd != null)
 			{
-				await rd.CloseAsync();
-				rd.Dispose();
-				RuntimeData = null;
+				await rd.CloseAsync().ConfigureAwait(false);
+				//rd.Dispose();
 			}
 
 			var mb = _metaBriefcase;
 			if (mb != null)
 			{
 				await mb.CloseAsync().ConfigureAwait(false);
-				mb.Dispose();
-				MetaBriefcase = null;
+				//mb.Dispose();
 			}
-		}
-		protected override void Dispose(bool isDisposing)
-		{
-			_dbNames?.Dispose();
-			//_dbNames = null;
-			base.Dispose(isDisposing);
 		}
 		#endregion lifecycle
 
@@ -133,9 +125,9 @@ namespace UniFiler10.Data.Model
 		[IgnoreDataMember]
 		public Binder CurrentBinder { get { return _currentBinder; } }
 
-		private readonly SwitchableObservableDisposableCollection<string> _dbNames = new SwitchableObservableDisposableCollection<string>();
+		private readonly SwitchableObservableCollection<string> _dbNames = new SwitchableObservableCollection<string>();
 		[IgnoreDataMember]
-		public SwitchableObservableDisposableCollection<string> DbNames { get { return _dbNames; } }
+		public SwitchableObservableCollection<string> DbNames { get { return _dbNames; } }
 
 		private string _newDbName = string.Empty;
 		[DataMember]

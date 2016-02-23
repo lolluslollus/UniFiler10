@@ -20,7 +20,7 @@ using System.Threading;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class MetaBriefcase : OpenableObservableDisposableData
+	public sealed class MetaBriefcase : OpenableObservableData
 	{
 		#region events
 		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
@@ -112,14 +112,14 @@ namespace UniFiler10.Data.Metadata
 		}
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
-		private SwitchableObservableDisposableCollection<Category> _categories = new SwitchableObservableDisposableCollection<Category>();
+		private SwitchableObservableCollection<Category> _categories = new SwitchableObservableCollection<Category>();
 		[DataMember]
-		public SwitchableObservableDisposableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableCollection<Category> Categories { get { return _categories; } private set { _categories = value; RaisePropertyChanged_UI(); } }
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
-		private SwitchableObservableDisposableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableDisposableCollection<FieldDescription>();
+		private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
 		[DataMember]
-		public SwitchableObservableDisposableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
+		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
 		private readonly object _isElevatedLocker = new object();
 		private bool _isElevated = false; // this must not be serialised because it does not belong in the metadata xml, so it has its own place in the registry.
@@ -164,7 +164,7 @@ namespace UniFiler10.Data.Metadata
 		{
 			lock (_instanceLocker)
 			{
-				if (_instance == null || _instance._isDisposed)
+				if (_instance == null/* || _instance._isDisposed*/)
 				{
 					_instance = new MetaBriefcase(runtimeData);
 				}
@@ -177,15 +177,15 @@ namespace UniFiler10.Data.Metadata
 			_runtimeData = runtimeData;
 		}
 
-		protected override void Dispose(bool isDisposing)
-		{
-			_fieldDescriptions?.Dispose();
-			_fieldDescriptions = null;
-			_categories?.Dispose();
-			_categories = null;
+		//protected override void Dispose(bool isDisposing)
+		//{
+		//	_fieldDescriptions?.Dispose();
+		//	_fieldDescriptions = null;
+		//	_categories?.Dispose();
+		//	_categories = null;
 
-			base.Dispose(isDisposing);
-		}
+		//	base.Dispose(isDisposing);
+		//}
 
 		protected override async Task OpenMayOverrideAsync()
 		{
@@ -233,23 +233,23 @@ namespace UniFiler10.Data.Metadata
 			await Save2Async().ConfigureAwait(false);
 			UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 
-			var fldDscs = _fieldDescriptions;
-			if (fldDscs != null)
-			{
-				foreach (var fldDsc in fldDscs)
-				{
-					fldDsc.Dispose();
-				}
-			}
+			//var fldDscs = _fieldDescriptions;
+			//if (fldDscs != null)
+			//{
+			//	foreach (var fldDsc in fldDscs)
+			//	{
+			//		fldDsc.Dispose();
+			//	}
+			//}
 
-			var cats = _categories;
-			if (cats != null)
-			{
-				foreach (var cat in cats)
-				{
-					cat.Dispose();
-				}
-			}
+			//var cats = _categories;
+			//if (cats != null)
+			//{
+			//	foreach (var cat in cats)
+			//	{
+			//		cat.Dispose();
+			//	}
+			//}
 		}
 		#endregion lifecycle
 
@@ -611,7 +611,7 @@ namespace UniFiler10.Data.Metadata
 				{
 					bool isRemoved = false;
 					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
-					if (isRemoved) cat?.Dispose();
+					//if (isRemoved) cat?.Dispose();
 					return isRemoved;
 				}
 				else
@@ -659,7 +659,7 @@ namespace UniFiler10.Data.Metadata
 						}
 						isRemoved = _fieldDescriptions.Remove(fldDesc);
 					}).ConfigureAwait(false);
-					if (isRemoved) fldDesc?.Dispose();
+					//if (isRemoved) fldDesc?.Dispose();
 					return isRemoved;
 				}
 				return false;
