@@ -438,7 +438,6 @@ namespace UniFiler10.Data.Model
 
 		private async Task LoadAsync()
 		{
-			string errorMessage = string.Empty;
 			Briefcase newBriefcase = null;
 
 			try
@@ -449,11 +448,10 @@ namespace UniFiler10.Data.Model
 			catch (OperationCanceledException) { }
 			catch (Exception ex) //must be tolerant or the app might crash when starting
 			{
-				errorMessage = "could not restore the data, starting afresh";
-				await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
-			if (string.IsNullOrWhiteSpace(errorMessage))
+			if (newBriefcase != null)
 			{
 				CopyFrom(newBriefcase);
 			}

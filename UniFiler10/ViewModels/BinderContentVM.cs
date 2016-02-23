@@ -12,7 +12,7 @@ namespace UniFiler10.ViewModels
 		public Binder Binder { get { return _binder; } }
 
 		private RuntimeData _runtimeData = null;
-		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
+		public RuntimeData RuntimeData { get { return _runtimeData; } }
 		#endregion properties
 
 
@@ -21,26 +21,18 @@ namespace UniFiler10.ViewModels
 		protected override async Task OpenMayOverrideAsync()
 		{
 			var briefcase = Briefcase.GetCreateInstance();
-			await briefcase.OpenAsync();
-			await briefcase.OpenCurrentBinderAsync();
+			await briefcase.OpenAsync().ConfigureAwait(false);
+			await briefcase.OpenCurrentBinderAsync().ConfigureAwait(false);
 
 			_binder = briefcase.CurrentBinder;
 			if (_binder != null)
 			{
-				await _binder.OpenAsync();
 				await _binder.OpenCurrentFolderAsync();
 			}
 			RaisePropertyChanged_UI(nameof(Binder));
 
-			RuntimeData = RuntimeData.Instance;
-		}
-
-		protected override Task CloseMayOverrideAsync()
-		{
-			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
-			_binder = null;
-
-			return Task.CompletedTask;
+			_runtimeData = RuntimeData.Instance;
+			RaisePropertyChanged_UI(nameof(RuntimeData));
 		}
 		#endregion lifecycle
 

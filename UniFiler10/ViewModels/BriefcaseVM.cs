@@ -15,13 +15,13 @@ namespace UniFiler10.ViewModels
 		public Briefcase Briefcase { get { return _briefcase; } }
 
 		private bool _isNewDbNameVisible = false;
-		public bool IsNewDbNameVisible { get { return _isNewDbNameVisible; } set { _isNewDbNameVisible = value; RaisePropertyChanged_UI(); if (_isNewDbNameVisible) { Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } } }
+		public bool IsNewDbNameVisible { get { return _isNewDbNameVisible; } set { if (_isNewDbNameVisible != value) { _isNewDbNameVisible = value; RaisePropertyChanged_UI(); if (_isNewDbNameVisible) { Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } } } }
 
 		private bool _isNewDbNameErrorMessageVisible = false;
-		public bool IsNewDbNameErrorMessageVisible { get { return _isNewDbNameErrorMessageVisible; } set { _isNewDbNameErrorMessageVisible = value; RaisePropertyChanged_UI(); } }
+		public bool IsNewDbNameErrorMessageVisible { get { return _isNewDbNameErrorMessageVisible; } set { if (_isNewDbNameErrorMessageVisible != value) { _isNewDbNameErrorMessageVisible = value; RaisePropertyChanged_UI(); } } }
 
 		private string _newDbName = string.Empty;
-		public string NewDbName { get { return _newDbName; } set { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } }
+		public string NewDbName { get { return _newDbName; } set { if (_newDbName != value) { _newDbName = value; RaisePropertyChanged_UI(); Task upd = UpdateIsNewDbNameErrorMessageVisibleAsync(); } } }
 
 		private bool _isCanImportExport = false;
 		public bool IsCanImportExport
@@ -117,8 +117,8 @@ namespace UniFiler10.ViewModels
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			if (_briefcase == null) _briefcase = Briefcase.GetCreateInstance();
-			await _briefcase.OpenAsync().ConfigureAwait(false);
+			_briefcase = Briefcase.GetCreateInstance();
+			await _briefcase.OpenAsync();
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
 
 			UpdateIsCanImportExport();
@@ -155,12 +155,6 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		protected override Task CloseMayOverrideAsync()
-		{
-			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
-			_briefcase = null;
-			return Task.CompletedTask;
-		}
 		public Task<bool> AddDbStep0Async()
 		{
 			return RunFunctionIfOpenAsyncB(delegate

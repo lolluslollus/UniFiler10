@@ -53,6 +53,7 @@ namespace UniFiler10.Data.Model
 
 			await UpdateCurrentFolder2Async(false).ConfigureAwait(false);
 		}
+
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var dbM = _dbManager;
@@ -67,8 +68,7 @@ namespace UniFiler10.Data.Model
 			{
 				Parallel.ForEach(_folders, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, folder =>
 				   {
-					   // await folder.CloseAsync().ConfigureAwait(false); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
-					   folder?.Dispose();
+					   folder?.Dispose(); // LOLLO NOTE avoid async calls within a Parallel.ForEach coz they are not awaited
 				   });
 			});
 			Task save = SaveNonDbPropertiesAsync();
@@ -79,7 +79,6 @@ namespace UniFiler10.Data.Model
 			await RunInUiThreadAsync(delegate
 			{
 				_folders.Clear();
-				_currentFolder = null; // don't set CurrentFolder, it triggers stuff
 			}).ConfigureAwait(false);
 		}
 		#endregion lifecycle
@@ -260,7 +259,6 @@ namespace UniFiler10.Data.Model
 
 		protected async Task LoadNonDbPropertiesAsync()
 		{
-			string errorMessage = string.Empty;
 			Binder newBinder = null;
 
 			try
@@ -282,18 +280,16 @@ namespace UniFiler10.Data.Model
 			}
 			catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
 			{
-				errorMessage = "starting afresh";
-				await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
-			catch (Exception ex)                 //must be tolerant or the app might crash when starting
+			catch (Exception ex) //must be tolerant or the app might crash when starting
 			{
-				// Debugger.Break();
-				errorMessage = "could not restore the data, starting afresh";
-				await Logger.AddAsync(errorMessage + ex.ToString(), Logger.FileErrorLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
-			if (string.IsNullOrWhiteSpace(errorMessage))
+
+			if (newBinder != null)
 			{
-				if (newBinder != null) CopyFrom(newBinder);
+				CopyFrom(newBinder);
 			}
 
 			Debug.WriteLine("ended method Binder.LoadAsync()");
@@ -349,7 +345,6 @@ namespace UniFiler10.Data.Model
 		protected async Task LoadFoldersWithoutContentAsync()
 		{
 			var folders = await _dbManager.GetFoldersAsync();
-
 			await RunInUiThreadAsync(delegate
 			{
 				_folders.ReplaceAll(folders);

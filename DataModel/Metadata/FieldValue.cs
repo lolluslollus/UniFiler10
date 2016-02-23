@@ -63,6 +63,5 @@ namespace UniFiler10.Data.Metadata
 				target.IsObserving = true;
 			}
 		}
-
 	}
 }

@@ -260,10 +260,14 @@ namespace UniFiler10.Data.Metadata
 		public void SetSourceFileJustOnce(StorageFile sourceFile)
 		{
 			_sourceFile = sourceFile;
+			_isPropsLoaded = false;
 		}
+		private bool _isPropsLoaded = false;
 
 		private async Task LoadAsync()
 		{
+			if (_isPropsLoaded) return;
+
 			// LOLLO NOTE on the onedrive sdk
 			// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
 			// https://msdn.microsoft.com/en-us/magazine/mt632271.aspx
@@ -365,6 +369,7 @@ namespace UniFiler10.Data.Metadata
 
 			if (newMetaBriefcase != null) // if I could pick up some data, use it and sync whatever needs syncing
 			{
+				_isPropsLoaded = true;
 				CopyXMLPropertiesFrom(newMetaBriefcase);
 				if (mustSyncLocal)
 				{
@@ -606,6 +611,7 @@ namespace UniFiler10.Data.Metadata
 				{
 					bool isRemoved = false;
 					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
+					if (isRemoved) cat?.Dispose();
 					return isRemoved;
 				}
 				else
@@ -653,6 +659,7 @@ namespace UniFiler10.Data.Metadata
 						}
 						isRemoved = _fieldDescriptions.Remove(fldDesc);
 					}).ConfigureAwait(false);
+					if (isRemoved) fldDesc?.Dispose();
 					return isRemoved;
 				}
 				return false;

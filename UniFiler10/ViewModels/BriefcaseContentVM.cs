@@ -15,23 +15,14 @@ namespace UniFiler10.ViewModels
 			_briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync();
 			await _briefcase.OpenCurrentBinderAsync();
-
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
-		}
-		protected override Task CloseMayOverrideAsync()
-		{
-			// briefcase and other data model classes cannot be destroyed by view models. Only app.xaml may do so.
-			_briefcase = null;
-			return Task.CompletedTask;
 		}
 
 		public async Task OpenBinderAsync(string dbName)
 		{
 			var bf = _briefcase;
-			if (bf != null)
-			{
-				await bf.OpenBinderAsync(dbName).ConfigureAwait(false);
-			}
+			if (bf == null) return;
+			await bf.OpenBinderAsync(dbName).ConfigureAwait(false);
 		}
 		public Task CloseBinderAsync()
 		{

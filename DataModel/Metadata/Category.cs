@@ -75,6 +75,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
+
 		#region ctor and dispose
 		public Category()
 		{
@@ -86,10 +87,7 @@ namespace UniFiler10.Data.Metadata
 			_isDisposed = true;
 
 			_fieldDescriptions?.Dispose();
-			//_fieldDescriptions = null;
-
 			_fieldDescriptionIds?.Dispose();
-			_fieldDescriptionIds = null;
 		}
 
 		private volatile bool _isDisposed = false;

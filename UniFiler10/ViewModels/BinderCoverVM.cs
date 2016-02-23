@@ -31,7 +31,7 @@ namespace UniFiler10.ViewModels
 		private readonly MetaBriefcase _metaBriefcase = null;
 		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } }
 
-		private SwitchableObservableDisposableCollection<Binder.FolderPreview> _folderPreviews = null; // new SwitchableObservableDisposableCollection<Binder.FolderPreview>();
+		private SwitchableObservableDisposableCollection<Binder.FolderPreview> _folderPreviews = null;
 		public SwitchableObservableDisposableCollection<Binder.FolderPreview> FolderPreviews { get { return _folderPreviews; } private set { _folderPreviews = value; RaisePropertyChanged_UI(); } }
 
 		private volatile bool _isAllFolderPaneOpen = false;
@@ -420,6 +420,7 @@ namespace UniFiler10.ViewModels
 			RaisePropertyChanged_UI(nameof(Binder));
 			_metaBriefcase = MetaBriefcase.OpenInstance;
 			if (_metaBriefcase == null) throw new ArgumentNullException("BinderCoverVM ctor: MetaBriefcase may not be null");
+			RaisePropertyChanged_UI(nameof(MetaBriefcase));
 			_animationStarter = animationStarter;
 		}
 
@@ -433,7 +434,6 @@ namespace UniFiler10.ViewModels
 
 				UpdateCatFilterFromIds();
 				UpdateFldFilterFromIds();
-
 				UpdateIsPaneOpen();
 			}).ConfigureAwait(false);
 
