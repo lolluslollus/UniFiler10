@@ -153,7 +153,7 @@ namespace UniFiler10.Controlz
 			_isHasUserAnswered = true;
 		}
 
-		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, string>> GetUserChoiceBeforeImportingBinderAsync()
+		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, string>> GetUserChoiceBeforeImportingBinderAsync(string targetBinderName)
 		{
 			var result = new Tuple<BriefcaseVM.ImportBinderOperations, string>(BriefcaseVM.ImportBinderOperations.Cancel, string.Empty);
 			Flyout dialog = null;
@@ -162,7 +162,7 @@ namespace UniFiler10.Controlz
 			await RunInUiThreadAsync(delegate
 			{
 				dialog = new Flyout();
-				dialogContent = new ChoiceBeforeImportingBinder();
+				dialogContent = new ChoiceBeforeImportingBinder(targetBinderName);
 
 				dialog.Closed += OnThreeBtnDialog_Closed;
 

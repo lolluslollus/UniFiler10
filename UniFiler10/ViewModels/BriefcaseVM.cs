@@ -229,15 +229,38 @@ namespace UniFiler10.ViewModels
 
 		public enum ImportBinderOperations { Cancel, Import, Merge }
 
-		public async void StartImportBinder()
+		public async void StartImportBinderIntoBriefcase()
+		{
+			if (!IsOpen) return;
+			var bc = _briefcase;
+			if (bc != null && TrySetIsImportingBinder(true))
+			{
+				var	dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
+				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingBinder will stay true.
+				// In OpenMayOverrideAsync, we check IsImportingBinder and, if true, we try again.
+				// ContinueAfterPickAsync sets IsImportingBinder to false, so there won't be redundant attempts.
+				await RunFunctionIfOpenThreeStateAsyncT(() => ContinueImportBinderStep1Async(bc, dir)).ConfigureAwait(false);
+			}
+			else
+			{
+				_animationStarter.EndAllAnimations();
+				_animationStarter.StartAnimation(AnimationStarter.Animations.Failure);
+			}
+		}
+
+		public async void StartImportBinderIntoBinder(string targetBinderName)
 		{
 			if (!IsOpen) return;
 			var bc = _briefcase;
 			if (bc != null && TrySetIsImportingBinder(true))
 			{
 				// LOLLO TODO check importing choice, it's new. Also add it to the binder cover vm.
-				var sss = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync();
-				if (sss.Item1 == ImportBinderOperations.Cancel) return;
+				var sss = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync(targetBinderName);
+				if (sss.Item1 == ImportBinderOperations.Cancel)
+				{
+					IsImportingBinder = false; return;
+				}
 
 				StorageFolder dir = null;
 				if (string.IsNullOrWhiteSpace(sss.Item2))
@@ -318,6 +341,10 @@ namespace UniFiler10.ViewModels
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
+			}
+			finally
+			{
+				IsImportingBinder = false;
 			}
 		}
 

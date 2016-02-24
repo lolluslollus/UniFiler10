@@ -11,23 +11,28 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
+	<!--IsItemClickEnabled="True"
+			ItemClick="OnDb_ItemClick"-->
 	<uctl:UniversalWrapPanel Orientation="Vertical">
-		<ListView ItemsSource="{x:Bind Briefcase.DbNames}"
-			IsItemClickEnabled="True"
+		<ListView ItemsSource="{x:Bind DbNames}"
 			IsMultiSelectCheckBoxEnabled="False"
-			ItemClick="OnDb_ItemClick"
 			ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
 			<ItemsControl.ItemsPanel>
 				<ItemsPanelTemplate>
-					<ItemsWrapGrid Orientation="Vertical"/>
+					<ItemsWrapGrid Orientation="Vertical" HorizontalAlignment="Center"/>
 				</ItemsPanelTemplate>
 			</ItemsControl.ItemsPanel>
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
-					<TextBlock Text="{Binding}"
-						Margin="{StaticResource Thickness8282}"
-						MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
-						TextWrapping="Wrap"/>
+					<Button
+						Style="{StaticResource ButtonLolloStyle}"
+						Click="OnPickBinder_Click"
+						Width="{StaticResource LandscapeItemWidth}"
+						Margin="{StaticResource Thickness8282}">
+						<TextBlock Text="{Binding}"
+							MaxWidth="{StaticResource LandscapeItemWidthMinusPanelPadding}"
+							TextWrapping="Wrap"/>
+					</Button>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ListView>

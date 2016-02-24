@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using UniFiler10.Controlz;
+using UniFiler10.Data.Model;
 using UniFiler10.ViewModels;
 using Utilz.Controlz;
 using Windows.UI.Xaml;
@@ -98,7 +99,7 @@ namespace UniFiler10.Views
 
 		private void OnImportButton_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			VM?.StartImportBinder();
+			VM?.StartImportBinderIntoBriefcase();
 		}
 
 		//private void OnDeleteButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -117,6 +118,10 @@ namespace UniFiler10.Views
 		private void OnDelete_Tapped(object sender, DocumentView.DocumentClickedArgs e)
 		{
 			Task delete = VM?.DeleteDbAsync((sender as FrameworkElement)?.DataContext as string);
+		}
+		private void OnImport_Tapped(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			VM?.StartImportBinderIntoBinder((sender as FrameworkElement)?.DataContext as string);
 		}
 		private void OnSave_Tapped(object sender, DocumentView.DocumentClickedArgs e)
 		{

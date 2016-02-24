@@ -44,35 +44,38 @@
 		</VisualStateManager.VisualStateGroups>-->
 
 		<Grid>
-			<AppBarButton Icon="Save"
-				Visibility="{x:Bind IsSaveButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-				Tapped="OnSave_Tapped"
-				Canvas.ZIndex="150"
-				Style="{StaticResource AppBarButtonRecoloured}"
-				Foreground="{StaticResource FlashyForeground}"/>
+			<!--<VariableSizedWrapGrid Orientation="Horizontal" Canvas.ZIndex="150">-->
+			<uctl:UniversalWrapPanel Orientation="Horizontal" Canvas.ZIndex="150" HorizontalAlignment="Stretch">
+				<AppBarButton Icon="Save"
+					Visibility="{x:Bind IsSaveButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Tapped="OnSave_Tapped"
+					Style="{StaticResource AppBarButtonRecoloured}"
+					IsCompact="True"
+					Foreground="{StaticResource FlashyForeground}"/>
 
-			<AppBarButton Icon="FullScreen"
-				Visibility="{x:Bind IsViewLargeButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-                Tapped="OnPreview_Tapped"
-                Canvas.ZIndex="150"
-                Style="{StaticResource AppBarButtonRecoloured}"
-                Foreground="{StaticResource FlashyForeground}"/>
+				<!--<AppBarButton Icon="FullScreen"-->
+				<AppBarButton Icon="View"
+					Visibility="{x:Bind IsViewLargeButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Tapped="OnPreview_Tapped"
+					Style="{StaticResource AppBarButtonRecoloured}"
+					IsCompact="True"
+					Foreground="{StaticResource FlashyForeground}"/>
 
-			<AppBarButton Icon="Delete"
-                Visibility="{x:Bind IsDeleteButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-                Tapped="OnItemDelete_Tapped"
-                Canvas.ZIndex="150"
-                Style="{StaticResource AppBarButtonRecoloured}"
-                Foreground="{StaticResource FlashyForeground}"
-                HorizontalAlignment="Right"/>
+				<AppBarButton Icon="Delete"
+					Visibility="{x:Bind IsDeleteButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Tapped="OnItemDelete_Tapped"
+					Style="{StaticResource AppBarButtonRecoloured}"
+					IsCompact="True"
+					Foreground="{StaticResource FlashyForeground}"/>
 
-			<!--<PathIcon Data="M 0,19 V18 H19 V19 M19,19 V0 H18 V19 M4,16 V15 H16 V16 M16,16 V4 H15 V16 Z"
-                    Foreground="{StaticResource FlashyForeground}"
-                    Visibility="{x:Bind IsMultiPage, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-                    Canvas.ZIndex="150"
-                    Opacity="1"
-                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
-            </PathIcon>-->
+				<AppBarButton Icon="Import"
+					Visibility="{x:Bind IsImportButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Tapped="OnItemImport_Tapped"
+					Style="{StaticResource AppBarButtonRecoloured}"
+					IsCompact="True"
+					Foreground="{StaticResource FlashyForeground}"/>
+			</uctl:UniversalWrapPanel>
+			<!--</VariableSizedWrapGrid>-->
 
 			<!--<PathIcon Data="M 0,99 V98 H99 V99 M99,99 V0 H98 V99 M80,95 V94 H95 V95 M95,95 V80 H94 V95 Z"
                     Foreground="{StaticResource FlashyForeground}"
@@ -91,22 +94,6 @@
                 HorizontalAlignment="Right" VerticalAlignment="Bottom">
 			</Path>
 
-			<!--<PathIcon Data="M 0,29 V28 H29 V29 M29,29 V0 H28 V29 M10,25 V24 H25 V25 M25,25 V10 H24 V25 Z"
-                    Foreground="{StaticResource FlashyForeground}"
-                    Visibility="{x:Bind IsMultiPage, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-                    Canvas.ZIndex="150"
-                    Opacity="1"
-                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
-            </PathIcon>-->
-
-			<!--<Border x:Name="Placeholder"
-                Canvas.ZIndex="40"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Width="{x:Bind WidthAdjusted, Mode=OneWay}" Height="{x:Bind HeightAdjusted, Mode=OneWay}"
-				BorderThickness="0"					
-				Background="{StaticResource DiagonalNWSEBrush}"/>-->
-
 			<Image x:Name="ImageViewer"
                 Canvas.ZIndex="50"
                 HorizontalAlignment="Center"
@@ -115,14 +102,6 @@
                 Stretch="Uniform"
 				Visibility="Collapsed"/>
 
-			<!--<Viewbox x:Name="WebViewBox" Stretch="UniformToFill" LOLLO Viewbox does not work with WebView
-                    Canvas.ZIndex="60"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Width="{x:Bind WidthAdjusted, Mode=OneWay}" Height="{x:Bind HeightAdjusted, Mode=OneWay}">-->
-
-			<!--NavigationCompleted="WebView_NavigationCompleted"
-                    NavigationFailed="WebView_NavigationFailed">-->
 			<WebView
                 x:Name="WebViewer"				
                 Canvas.ZIndex="60"
@@ -134,15 +113,14 @@
                     <RectangleGeometry Rect="0 0 200 200"/>
                 </WebView.Clip>-->
 			</WebView>
-			<!--</Viewbox>-->
 
-			<Border Canvas.ZIndex="200"
+			<Border Canvas.ZIndex="140"
 				Visibility="{x:Bind Caption, Converter={StaticResource StringEmptyToCollapsedConverter}, Mode=OneWay}"
         		VerticalAlignment="Bottom" HorizontalAlignment="Center"
 				Height="{x:Bind QuarterHeightAdjusted, Mode=OneWay}"
 				Width="{x:Bind WidthAdjusted, Mode=OneWay}"
 				Background="{StaticResource VerticalWBrush}">
-				<uctl:TextBlockScaler Canvas.ZIndex="200"
+				<uctl:TextBlockScaler
         			VerticalAlignment="Bottom" HorizontalAlignment="Center"
 					Height="{x:Bind QuarterHeightAdjusted, Mode=OneWay}"
 					Width="{x:Bind WidthAdjusted, Mode=OneWay}">

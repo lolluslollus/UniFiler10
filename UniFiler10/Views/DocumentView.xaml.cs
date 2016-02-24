@@ -84,6 +84,14 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty IsDeleteButtonEnabledProperty =
 			DependencyProperty.Register("IsDeleteButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
+		public bool IsImportButtonEnabled
+		{
+			get { return (bool)GetValue(IsImportButtonEnabledProperty); }
+			set { SetValue(IsImportButtonEnabledProperty, value); }
+		}
+		public static readonly DependencyProperty IsImportButtonEnabledProperty =
+			DependencyProperty.Register("IsImportButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
+
 		/// <summary>
 		/// This button is useful if I have web content coz the WebView does not relay the clicks
 		/// </summary>
@@ -93,7 +101,7 @@ namespace UniFiler10.Views
 			set { SetValue(IsViewLargeButtonEnabledProperty, value); }
 		}
 		public static readonly DependencyProperty IsViewLargeButtonEnabledProperty =
-			DependencyProperty.Register("IsViewLargeButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
+			DependencyProperty.Register("IsViewLargeButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
 		public bool IsSaveButtonEnabled
 		{
@@ -528,10 +536,10 @@ namespace UniFiler10.Views
 				_document = document;
 			}
 		}
+
+		public event EventHandler<DocumentClickedArgs> ImportClicked;
 		public event EventHandler<DocumentClickedArgs> DeleteClicked;
-
 		public event EventHandler<DocumentClickedArgs> DocumentClicked;
-
 		public event EventHandler<DocumentClickedArgs> SaveClicked;
 		#endregion events
 
@@ -541,6 +549,12 @@ namespace UniFiler10.Views
 		{
 			e.Handled = true;
 			if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+		}
+
+		private void OnItemImport_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			e.Handled = true;
+			if (IsImportButtonEnabled) ImportClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
 		private void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
