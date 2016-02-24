@@ -235,10 +235,20 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (bc != null && TrySetIsImportingBinder(true))
 			{
-				//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
+				// LOLLO TODO check importing choice, it's new. Also add it to the binder cover vm.
+				var sss = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync();
+				if (sss.Item1 == ImportBinderOperations.Cancel) return;
 
-				var dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
-
+				StorageFolder dir = null;
+				if (string.IsNullOrWhiteSpace(sss.Item2))
+				{
+					//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
+					dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				}
+				else
+				{
+					dir = await Briefcase.BindersDirectory.TryGetItemAsync(sss.Item2).AsTask().ConfigureAwait(false) as StorageFolder;
+				}
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingBinder will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingBinder and, if true, we try again.

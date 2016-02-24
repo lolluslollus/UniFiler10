@@ -423,4 +423,7 @@
   <data name="AddBinderSuggestion.Text" xml:space="preserve">
     <value>You have no binders, add or import one.</value>
   </data>
+  <data name="ImportBinderChooseDirectory.Text" xml:space="preserve">
+    <value>Import from directory</value>
+  </data>
 </root>

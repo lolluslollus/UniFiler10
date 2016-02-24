@@ -148,6 +148,9 @@
     <Compile Include="Views\ConfirmationBeforeDeletingBinder.xaml.cs">
       <DependentUpon>ConfirmationBeforeDeletingBinder.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ChoiceBeforeImportingBinder.xaml.cs">
+      <DependentUpon>ChoiceBeforeImportingBinder.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ConfirmationBeforeImportingBinder.xaml.cs">
       <DependentUpon>ConfirmationBeforeImportingBinder.xaml</DependentUpon>
     </Compile>
@@ -263,6 +266,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\ConfirmationBeforeDeletingBinder.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ChoiceBeforeImportingBinder.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

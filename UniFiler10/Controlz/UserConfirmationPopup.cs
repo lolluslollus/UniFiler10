@@ -153,5 +153,40 @@ namespace UniFiler10.Controlz
 			_isHasUserAnswered = true;
 		}
 
+		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, string>> GetUserChoiceBeforeImportingBinderAsync()
+		{
+			var result = new Tuple<BriefcaseVM.ImportBinderOperations, string>(BriefcaseVM.ImportBinderOperations.Cancel, string.Empty);
+			Flyout dialog = null;
+			ChoiceBeforeImportingBinder dialogContent = null;
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog = new Flyout();
+				dialogContent = new ChoiceBeforeImportingBinder();
+
+				dialog.Closed += OnThreeBtnDialog_Closed;
+
+				dialog.Content = dialogContent;
+				dialogContent.UserAnswered += OnThreeBtnDialogContent_UserAnswered;
+
+				_isHasUserAnswered = false;
+				dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			}).ConfigureAwait(false);
+
+			while (!_isHasUserAnswered)
+			{
+				await Task.Delay(DELAY).ConfigureAwait(false);
+			}
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog.Closed -= OnThreeBtnDialog_Closed;
+				dialogContent.UserAnswered -= OnThreeBtnDialogContent_UserAnswered;
+				dialog.Hide();
+				result = new Tuple<BriefcaseVM.ImportBinderOperations, string>(dialogContent.Operation, dialogContent.DBName);
+			}).ConfigureAwait(false);
+
+			return result;
+		}
 	}
 }
