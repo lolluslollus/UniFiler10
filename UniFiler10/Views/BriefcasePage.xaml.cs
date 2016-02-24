@@ -71,18 +71,6 @@ namespace UniFiler10.Views
 
 
 		#region event handlers
-		private async void OnBinderPreviews_ItemClick(object sender, ItemClickEventArgs e)
-		{
-			var vm = VM;
-			if (vm != null)
-			{
-				if (await vm.TryOpenCurrentBinderAsync(e?.ClickedItem?.ToString()))
-				{
-					Frame.Navigate(typeof(BriefcaseContentPage));
-				}
-			}
-		}
-
 		private void OnAddBinderStep0_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			Task add = VM?.AddDbStep0Async();
@@ -126,6 +114,25 @@ namespace UniFiler10.Views
 		private void OnSave_Tapped(object sender, DocumentView.DocumentClickedArgs e)
 		{
 			VM?.StartExportBinder((sender as FrameworkElement)?.DataContext as string);
+		}
+		private void OnBinderPreview_Tapped(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			Task open = OpenBinder((sender as FrameworkElement)?.DataContext?.ToString());
+		}
+		private void OnBinderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			Task open = OpenBinder(e?.ClickedItem?.ToString());
+		}
+		private async Task OpenBinder(string dbName)
+		{
+			var vm = VM;
+			if (vm != null && !string.IsNullOrWhiteSpace(dbName))
+			{
+				if (await vm.TryOpenCurrentBinderAsync(dbName))
+				{
+					Frame.Navigate(typeof(BriefcaseContentPage));
+				}
+			}
 		}
 		#endregion event handlers
 	}

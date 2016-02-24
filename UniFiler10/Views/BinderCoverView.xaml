@@ -284,40 +284,12 @@
 				</ItemsControl.ItemsPanel>
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<!--<Grid>
-							<Grid.RowDefinitions>
-								<RowDefinition Height="{StaticResource MiniatureHeight_ForGrid}"/>
-							</Grid.RowDefinitions>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="{StaticResource MiniatureWidth_ForGrid}"/>
-							</Grid.ColumnDefinitions>
-
-							<Border Canvas.ZIndex="200"
-        						VerticalAlignment="Bottom" HorizontalAlignment="Center"
-								Height="{StaticResource MiniatureQuarterHeight}"
-								Width="{StaticResource MiniatureWidth}"
-								Background="{StaticResource VerticalWBrush}">
-								<uctl:TextBlockScaler Canvas.ZIndex="200"
-        							VerticalAlignment="Bottom" HorizontalAlignment="Center"
-									Height="{StaticResource MiniatureQuarterHeight}"
-									Width="{StaticResource MiniatureWidth}">
-									<uctl:TextBlockScaler.TextBlock>
-										<TextBlock
-        								Text="{Binding FolderName}"
-        								Foreground="{StaticResource FlashyForeground}"
-										TextAlignment="Center"
-										Padding="{StaticResource Thickness4444}"
-        								TextWrapping="Wrap"/>
-									</uctl:TextBlockScaler.TextBlock>
-								</uctl:TextBlockScaler>
-							</Border>-->
-
-							<local:DocumentView Canvas.ZIndex="100"
-								IsClickSensitive="False"
-								DeleteClicked="OnDocumentView_DeleteClicked"
-								Document="{Binding Document, Mode=OneWay}"
-								Caption="{Binding FolderName}"/>
-						<!--</Grid>-->
+						<!--IsClickSensitive="False"-->
+						<local:DocumentView Canvas.ZIndex="100"
+							DeleteClicked="OnFolderDelete_Tapped"
+							DocumentClicked="OnFolderPreview_Tapped"
+							Document="{Binding Document, Mode=OneWay}"
+							Caption="{Binding FolderName}"/>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ListView>

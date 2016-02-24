@@ -96,17 +96,27 @@ namespace UniFiler10.Views
 			Task upd = RunFunctionIfOpenAsyncT(UpdateVMAsync);
 		}
 
-		private void OnDocumentView_DeleteClicked(object sender, DocumentView.DocumentClickedArgs e)
+		private void OnFolderDelete_Tapped(object sender, DocumentView.DocumentClickedArgs e)
 		{
 			Task del = _vm?.DeleteFolderAsync((sender as FrameworkElement)?.DataContext as Binder.FolderPreview);
 		}
 
-		private async void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+		private void OnFolderPreview_Tapped(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			Task open = OpenFolder(((sender as FrameworkElement)?.DataContext as Binder.FolderPreview)?.FolderId);
+		}
+
+		private void OnFolderPreviews_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			Task open = OpenFolder((e?.ClickedItem as Binder.FolderPreview)?.FolderId);
+		}
+
+		private async Task OpenFolder(string folderId)
 		{
 			var vm = _vm;
 			if (vm == null) return;
 			// LOLLO NOTE await instance?.method crashes if instance is null; await is not that clever yet.
-			await vm.SetCurrentFolderAsync((e?.ClickedItem as Binder.FolderPreview)?.FolderId);
+			await vm.SetCurrentFolderAsync(folderId);
 			GoToBinderContentRequested?.Invoke(this, EventArgs.Empty);
 		}
 

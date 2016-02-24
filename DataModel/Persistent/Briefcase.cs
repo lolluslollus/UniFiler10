@@ -323,6 +323,7 @@ namespace UniFiler10.Data.Model
 		}
 		public Task<bool> MergeBinderAsync(StorageFolder fromDirectory)
 		{
+			// LOLLO TODO what if I attempt to merge a binder into itself?
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				if (string.IsNullOrWhiteSpace(fromDirectory?.Name) || !_dbNames.Contains(fromDirectory.Name)) return false;

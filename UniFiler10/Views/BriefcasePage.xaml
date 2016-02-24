@@ -115,14 +115,16 @@
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
+							<!--IsClickSensitive="False"-->
 							<local:DocumentView
 								Caption="{Binding}"
-								IsClickSensitive="False"								
 								IsDeleteButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
 								IsImportButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								IsViewLargeButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
 								IsSaveButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
 								DeleteClicked="OnDelete_Tapped"
 								ImportClicked="OnImport_Tapped"
+								DocumentClicked="OnBinderPreview_Tapped"
 								SaveClicked="OnSave_Tapped"/>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>

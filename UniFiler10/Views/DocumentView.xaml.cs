@@ -111,13 +111,13 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty IsSaveButtonEnabledProperty =
 			DependencyProperty.Register("IsSaveButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
-		public bool IsClickSensitive
-		{
-			get { return (bool)GetValue(IsClickSensitiveProperty); }
-			set { SetValue(IsClickSensitiveProperty, value); }
-		}
-		public static readonly DependencyProperty IsClickSensitiveProperty =
-			DependencyProperty.Register("IsClickSensitive", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
+		//public bool IsClickSensitive
+		//{
+		//	get { return (bool)GetValue(IsClickSensitiveProperty); }
+		//	set { SetValue(IsClickSensitiveProperty, value); }
+		//}
+		//public static readonly DependencyProperty IsClickSensitiveProperty =
+		//	DependencyProperty.Register("IsClickSensitive", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
 		public Wallet Wallet
 		{
@@ -565,18 +565,19 @@ namespace UniFiler10.Views
 		private void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			if (IsViewLargeButtonEnabled) DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
-		private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)
-		{
-			if (IsClickSensitive) OnPreview_Tapped(sender, e);
-		}
+		//private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	e.Handled = true;
+		//	if (IsClickSensitive) DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+		//}
 
 		private void OnSave_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			SaveClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			if (IsSaveButtonEnabled) SaveClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 		#endregion event handlers
 	}

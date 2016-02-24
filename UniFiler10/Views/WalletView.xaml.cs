@@ -51,9 +51,18 @@ namespace UniFiler10.Views
 			VM?.StartLoadMediaFile(Wallet);
 		}
 
-		private async void OnDocumentView_DocumentClicked(object sender, DocumentView.DocumentClickedArgs e)
+		private void OnDocumentView_DocumentClicked(object sender, DocumentView.DocumentClickedArgs e)
 		{
-			var doc = e?.Document;
+			Task open = OpenDocument(e?.Document);
+		}
+
+		private void OnDocuments_ItemClick(object sender, ItemClickEventArgs e)
+		{
+			Task open = OpenDocument(e?.ClickedItem as Document);
+		}
+
+		private async Task OpenDocument(Document doc)
+		{
 			if (string.IsNullOrWhiteSpace(doc?.Uri0)) return;
 
 			var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask(); //.ConfigureAwait(false);

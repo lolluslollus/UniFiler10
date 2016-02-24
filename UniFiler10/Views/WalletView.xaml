@@ -13,14 +13,14 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid x:Name="LayoutRoot" 
+	<Grid x:Name="LayoutRoot" 
 		HorizontalAlignment="Stretch"
         Background="{StaticResource SystemControlBackgroundBaseLowBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition />
-            <RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
-        </Grid.RowDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition />
+			<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+		</Grid.RowDefinitions>
 
 		<ContentControl
 			IsEnabled="{x:Bind Path=VM.IsImportingMedia, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}">
@@ -43,27 +43,29 @@
 
 		<!--IsMultiSelectCheckBoxEnabled="False" 
             IsItemClickEnabled="True"-->
-        <!-- LOLLO no need for a ListView here, the scrolling is already in the parent ListView-->
-        <ItemsControl Grid.Row="1"
+		<!-- LOLLO no need for a ListView here, the scrolling is already in the parent ListView-->
+		<ListView Grid.Row="1"
             ItemsSource="{x:Bind Wallet.Documents, Mode=OneWay}"
+			IsItemClickEnabled="True"
+			ItemClick="OnDocuments_ItemClick"
             IsHoldingEnabled="False" 
             IsDoubleTapEnabled="False"
             IsRightTapEnabled="False">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsWrapGrid Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
+			<ItemsControl.ItemsPanel>
+				<ItemsPanelTemplate>
+					<ItemsWrapGrid Orientation="Horizontal"/>
+				</ItemsPanelTemplate>
+			</ItemsControl.ItemsPanel>
+			<ItemsControl.ItemTemplate>
 				<DataTemplate>
+					<!--IsClickSensitive="True"-->
 					<local:DocumentView 
                         Document="{Binding}"
 						Wallet="{Binding ElementName=me, Path=Wallet, Mode=OneWay}"
-						IsClickSensitive="True"
 						DocumentClicked="OnDocumentView_DocumentClicked"
 						DeleteClicked="OnDocumentView_DeleteClicked"/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </Grid>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ListView>
+	</Grid>
 </UserControl>

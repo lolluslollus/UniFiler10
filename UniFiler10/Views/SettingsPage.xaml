@@ -39,36 +39,40 @@
 				<uctl:UniversalWrapPanel Orientation="Horizontal"
 				x:Name="ActionsUWP">
 					<ctl:LolloButton
-					Tapped="OnGoBack_Tapped"
-					Symbol="Back"
-					Uid="Back2"/>
+						Tapped="OnGoBack_Tapped"
+						Symbol="Back"
+						Uid="Back2"/>
 
 					<ctl:LolloToggleButton
-					IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
-					Tapped="OnToggleElevated_Tapped"
-					CheckedSymbol="Emoji2"
-					UncheckedSymbol="Important"
-					CheckedUid="GotoSafe"
-					UncheckedUid="GotoElevated"/>
+						IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
+						Tapped="OnToggleElevated_Tapped"
+						CheckedSymbol="Emoji2"
+						UncheckedSymbol="Important"
+						CheckedUid="GotoSafe"
+						UncheckedUid="GotoElevated"/>
 
-					<ctl:LolloButton
-					Tapped="OnExport_Tapped"
-					IsEnabled="{x:Bind Path=VM.IsExportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
-					Symbol="Save"
-					Uid="Export"/>
+					<ContentControl IsEnabled="{x:Bind Path=VM.IsImportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}">
+						<ctl:LolloButton
+							Tapped="OnExport_Tapped"
+							IsEnabled="{x:Bind Path=VM.IsExportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
+							Symbol="Save"
+							Uid="Export"/>
+					</ContentControl>
 
+					<ContentControl IsEnabled="{x:Bind Path=VM.IsExportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}">
+						<ctl:LolloButton
+							Tapped="OnImport_Tapped"
+							IsEnabled="{x:Bind Path=VM.IsImportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
+							Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
+							Symbol="Import"
+							Foreground="{StaticResource FlashyForeground}"
+							Uid="Import1"/>
+					</ContentControl>
+					
 					<ctl:LolloButton
-					Tapped="OnImport_Tapped"
-					IsEnabled="{x:Bind Path=VM.IsImportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
-					Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
-					Symbol="Import"
-					Foreground="{StaticResource FlashyForeground}"
-					Uid="Import1"/>
-
-					<ctl:LolloButton
-					Tapped="OnAbout_Tapped"
-					Symbol="Help"
-					Uid="About"/>
+						Tapped="OnAbout_Tapped"
+						Symbol="Help"
+						Uid="About"/>
 				</uctl:UniversalWrapPanel>
 
 				<Border RelativePanel.Below="ActionsUWP"

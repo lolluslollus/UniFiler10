@@ -34,14 +34,15 @@ namespace UniFiler10.ViewModels
 					return _isCanImportExport;
 				}
 			}
-			private set { _isCanImportExport = value; RaisePropertyChanged_UI(); }
 		}
-		private void UpdateIsCanImportExport()
+		private Task UpdateIsCanImportExportAsync()
 		{
-			lock (_isImportingExportingLocker)
+			// run it in the UI thread to avoid deadlocks between the locker in the getter and the locker in the setter
+			return RunInUiThreadAsync(() =>
 			{
-				IsCanImportExport = !IsExportingBinder && !IsImportingBinder;
-			}
+				_isCanImportExport = !IsExportingBinder && !IsImportingBinder;
+				RaisePropertyChanged(nameof(IsCanImportExport));
+			});
 		}
 
 		private static readonly object _isImportingExportingLocker = new object();
@@ -60,9 +61,8 @@ namespace UniFiler10.ViewModels
 				lock (_isImportingExportingLocker)
 				{
 					RegistryAccess.TrySetValue(ConstantData.REG_EXPORT_BINDER_IS_EXPORTING, value.ToString());
-					RaisePropertyChanged_UI();
-					IsCanImportExport = !value && !IsExportingBinder;
 				}
+				UpdateIsCanImportExportAsync();
 			}
 		}
 		private bool TrySetIsImportingBinder(bool newValue)
@@ -91,9 +91,8 @@ namespace UniFiler10.ViewModels
 				lock (_isImportingExportingLocker)
 				{
 					RegistryAccess.TrySetValue(ConstantData.REG_IMPORT_BINDER_IS_IMPORTING, value.ToString());
-					RaisePropertyChanged_UI();
-					IsCanImportExport = !value && !IsImportingBinder;
 				}
+				UpdateIsCanImportExportAsync();
 			}
 		}
 		private bool TrySetIsExportingBinder(bool newValue)
@@ -121,7 +120,7 @@ namespace UniFiler10.ViewModels
 			await _briefcase.OpenAsync();
 			RaisePropertyChanged_UI(nameof(Briefcase)); // notify UI once briefcase is open
 
-			UpdateIsCanImportExport();
+			await UpdateIsCanImportExportAsync().ConfigureAwait(false);
 
 			if (IsExportingBinder)
 			{
@@ -235,7 +234,7 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (bc != null && TrySetIsImportingBinder(true))
 			{
-				var	dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				var dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingBinder will stay true.
 				// In OpenMayOverrideAsync, we check IsImportingBinder and, if true, we try again.
