@@ -714,7 +714,21 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null && TrySetIsImportingFolders(true))
 			{
-				var dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				var userChoice = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync(binder.DBName);
+				if (userChoice.Item1 == BriefcaseVM.ImportBinderOperations.Cancel)
+				{
+					IsImportingFolders = false; return;
+				}
+
+				StorageFolder dir = null;
+				if (string.IsNullOrWhiteSpace(userChoice.Item2))
+				{
+					dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
+				}
+				else
+				{
+					dir = await Briefcase.BindersDirectory.TryGetItemAsync(userChoice.Item2).AsTask().ConfigureAwait(false) as StorageFolder;
+				}
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingFolders will stay true.
