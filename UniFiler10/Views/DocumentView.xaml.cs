@@ -251,10 +251,10 @@ namespace UniFiler10.Views
 					{
 						await RenderFirstPDFPageAsync(docUri, height, width).ConfigureAwait(false);
 					}
-					//else if (ext == DocumentExtensions.TXT_EXTENSION) // LOLLO TODO allow  text documents, maybe through a shrunk text block that can become full screen when tapping it
-					//{
-					//	await RenderFirstTxtPageAsync().ConfigureAwait(false);
-					//}
+					else if (ext == DocumentExtensions.TXT_EXTENSION) // LOLLO TODO allow  text documents, maybe through a shrunk text block that can become full screen when tapping it
+					{
+						await RenderFirstTxtPageAsync(docUri).ConfigureAwait(false);
+					}
 					else if (DocumentExtensions.IMAGE_EXTENSIONS.Contains(ext))
 					{
 						await RenderImageMiniatureAsync(docUri).ConfigureAwait(false);
@@ -398,38 +398,35 @@ namespace UniFiler10.Views
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
 		}
-		//private async Task RenderFirstTxtPageAsync()
-		//{
-		//	try
-		//	{
-		//		var txtFile = await StorageFile.GetFileFromPathAsync(Document?.Uri0).AsTask().ConfigureAwait(false);
+		private async Task RenderFirstTxtPageAsync(string docUri)
+		{
+			try
+			{
+				//var txtFile = await StorageFile.GetFileFromPathAsync(docUri).AsTask().ConfigureAwait(false);
 
-		//		string txt = await DocumentExtensions.GetTextFromFileAsync(Document?.Uri0).ConfigureAwait(false);
+				string fullTxt = await DocumentExtensions.GetTextFromFileAsync(docUri).ConfigureAwait(false);
 
-		//		var pdfDocument = await PdfDocument.LoadFromFileAsync(txtFile).AsTask().ConfigureAwait(false);
-		//		if (pdfDocument?.PageCount > 0)
-		//		{
-		//			using (var pdfPage = pdfDocument.GetPage(0))
-		//			{
-		//				var renderOptions = GetPdfRenderOptions(pdfPage);
-		//				if (renderOptions != null)
-		//				{
-		//					IsMultiPage = pdfDocument.PageCount > 1;
-		//					using (var stream = new InMemoryRandomAccessStream())
-		//					{
-		//						await pdfPage.RenderToStreamAsync(stream, renderOptions).AsTask().ConfigureAwait(false);
-		//						await stream.FlushAsync().AsTask().ConfigureAwait(false);
-		//						await DisplayImageFileAsync(stream).ConfigureAwait(false);
-		//					}
-		//				}
-		//			}
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-		//	}
-		//}
+				await RunInUiThreadAsync(() =>
+				{
+					if (fullTxt.Length <= 200)
+					{
+						TextViewer.Text = fullTxt;
+						IsMultiPage = false;
+					}
+					else
+					{
+						TextViewer.Text = fullTxt.Substring(0, 200);
+						IsMultiPage = true;
+					}
+
+					ShowTextViewer();
+				});
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+			}
+		}
 
 		//private async Task RenderFirstPDFPageWithFileCacheAsync()
 		//{
@@ -511,12 +508,20 @@ namespace UniFiler10.Views
 		private void ShowWebViewer()
 		{
 			ImageViewer.Visibility = Visibility.Collapsed;
+			TextViewer.Visibility = Visibility.Collapsed;
 			WebViewer.Visibility = Visibility.Visible;
 		}
 		private void ShowImageViewer()
 		{
-			ImageViewer.Visibility = Visibility.Visible;
+			TextViewer.Visibility = Visibility.Collapsed;
 			WebViewer.Visibility = Visibility.Collapsed;
+			ImageViewer.Visibility = Visibility.Visible;
+		}
+		private void ShowTextViewer()
+		{
+			ImageViewer.Visibility = Visibility.Collapsed;
+			WebViewer.Visibility = Visibility.Collapsed;
+			TextViewer.Visibility = Visibility.Visible;
 		}
 		#endregion render
 

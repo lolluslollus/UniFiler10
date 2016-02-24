@@ -13,7 +13,7 @@ namespace Utilz
 		public static readonly string[] HTML_EXTENSIONS = { ".htm", ".html", ".mht" };
 		public static readonly string PDF_EXTENSION = ".pdf";
 		public static readonly string[] IMAGE_EXTENSIONS = { ".bmp", ".gif", ".giff", ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
-		//public static readonly string TXT_EXTENSION = ".txt";
+		public static readonly string TXT_EXTENSION = ".txt";
 
 		internal static Task<StorageFile> PickMediaFileAsync()
 		{
@@ -21,6 +21,7 @@ namespace Utilz
 			exts.Add(PDF_EXTENSION);
 			exts.AddRange(IMAGE_EXTENSIONS);
 			exts.AddRange(AUDIO_EXTENSIONS);
+			exts.Add(TXT_EXTENSION);
 
 			return Pickers.PickOpenFileAsync(exts.ToArray());
 		}

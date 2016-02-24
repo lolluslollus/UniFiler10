@@ -102,6 +102,20 @@
                 Stretch="Uniform"
 				Visibility="Collapsed"/>
 
+			<uctl:TextBlockScaler
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+				Width="{x:Bind WidthAdjusted, Mode=OneWay}" Height="{x:Bind HeightAdjusted, Mode=OneWay}"
+				Canvas.ZIndex="55"
+				Visibility="Collapsed">
+				<uctl:TextBlockScaler.TextBlock>
+					<TextBlock x:Name="TextViewer"
+						TextAlignment="Center"
+						Padding="{StaticResource Thickness4444}"
+						TextWrapping="Wrap"/>
+				</uctl:TextBlockScaler.TextBlock>
+			</uctl:TextBlockScaler>
+
 			<WebView
                 x:Name="WebViewer"				
                 Canvas.ZIndex="60"
