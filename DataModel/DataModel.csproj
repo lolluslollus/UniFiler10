@@ -108,19 +108,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants\Constants.cs" />
-    <Compile Include="DB\DBManager.cs" />
-    <Compile Include="Persistent\Binder.cs" />
-    <Compile Include="Persistent\Briefcase.cs" />
-    <Compile Include="Persistent\Document.cs" />
-    <Compile Include="Persistent\DynamicCategory.cs" />
-    <Compile Include="Persistent\DynamicField.cs" />
-    <Compile Include="Persistent\Folder.cs" />
-    <Compile Include="Persistent\MergingBinder.cs" />
-    <Compile Include="Persistent\Wallet.cs" />
-    <Compile Include="Metadata\Category.cs" />
-    <Compile Include="Metadata\FieldDescription.cs" />
-    <Compile Include="Metadata\FieldValue.cs" />
-    <Compile Include="Metadata\MetaBriefcase.cs" />
+    <Compile Include="Persistent\DB\DBManager.cs" />
+    <Compile Include="Persistent\Infodata\Binder.cs" />
+    <Compile Include="Persistent\Infodata\Briefcase.cs" />
+    <Compile Include="Persistent\Infodata\Document.cs" />
+    <Compile Include="Persistent\Infodata\DynamicCategory.cs" />
+    <Compile Include="Persistent\Infodata\DynamicField.cs" />
+    <Compile Include="Persistent\Infodata\Folder.cs" />
+    <Compile Include="Persistent\Infodata\MergingBinder.cs" />
+    <Compile Include="Persistent\Infodata\Wallet.cs" />
+    <Compile Include="Persistent\Metadata\Category.cs" />
+    <Compile Include="Persistent\Metadata\FieldDescription.cs" />
+    <Compile Include="Persistent\Metadata\FieldValue.cs" />
+    <Compile Include="Persistent\Metadata\MetaBriefcase.cs" />
     <Compile Include="Runtime\RuntimeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\DataModel.rd.xml" />

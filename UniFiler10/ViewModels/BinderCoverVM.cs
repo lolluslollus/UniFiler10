@@ -728,6 +728,7 @@ namespace UniFiler10.ViewModels
 				else
 				{
 					dir = await Briefcase.BindersDirectory.TryGetItemAsync(userChoice.Item2).AsTask().ConfigureAwait(false) as StorageFolder;
+					Pickers.SetLastPickedFolder(dir);
 				}
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.

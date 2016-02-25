@@ -251,7 +251,7 @@ namespace UniFiler10.Views
 					{
 						await RenderFirstPDFPageAsync(docUri, height, width).ConfigureAwait(false);
 					}
-					else if (ext == DocumentExtensions.TXT_EXTENSION) // LOLLO TODO allow  text documents, maybe through a shrunk text block that can become full screen when tapping it
+					else if (ext == DocumentExtensions.TXT_EXTENSION)
 					{
 						await RenderFirstTxtPageAsync(docUri).ConfigureAwait(false);
 					}
@@ -410,12 +410,12 @@ namespace UniFiler10.Views
 				{
 					if (fullTxt.Length <= 200)
 					{
-						TextViewer.Text = fullTxt;
+						TextViewerTB.Text = fullTxt;
 						IsMultiPage = false;
 					}
 					else
 					{
-						TextViewer.Text = fullTxt.Substring(0, 200);
+						TextViewerTB.Text = fullTxt.Substring(0, 200);
 						IsMultiPage = true;
 					}
 
@@ -428,43 +428,6 @@ namespace UniFiler10.Views
 			}
 		}
 
-		//private async Task RenderFirstPDFPageWithFileCacheAsync()
-		//{
-		//	// LOLLO TODO MAYBE we could reuse this method across different documents, on condition we reference the file somehow, to check if it already exists
-		//	try
-		//	{
-		//		var pdfFile = await StorageFile.GetFileFromPathAsync(Document?.GetFullUri0()).AsTask().ConfigureAwait(false);
-
-		//		var pdfDocument = await PdfDocument.LoadFromFileAsync(pdfFile);
-
-		//		if (pdfDocument != null && pdfDocument.PageCount > 0)
-		//		{
-		//			using (var pdfPage = pdfDocument.GetPage(0))
-		//			{
-		//				var renderOptions = GetPdfRenderOptions(pdfPage);
-		//				if (renderOptions != null)
-		//				{
-		//					StorageFolder tempFolder = ApplicationData.Current.LocalCacheFolder;
-		//					StorageFile jpgFile = await tempFolder.CreateFileAsync(Guid.NewGuid().ToString() + ".png", CreationCollisionOption.ReplaceExisting);
-		//					if (jpgFile != null)
-		//					{
-		//						IsMultiPage = pdfDocument.PageCount > 1;
-		//						using (IRandomAccessStream randomStream = await jpgFile.OpenAsync(FileAccessMode.ReadWrite))
-		//						{
-		//							await pdfPage.RenderToStreamAsync(randomStream, renderOptions).AsTask().ConfigureAwait(false);
-		//							await randomStream.FlushAsync();
-		//						}
-		//						await DisplayImageFileAsync(jpgFile);
-		//					}
-		//				}
-		//			}
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-		//	}
-		//}
 		private PdfPageRenderOptions GetPdfRenderOptions(PdfPage pdfPage, double height, double width)
 		{
 			PdfPageRenderOptions output = null;

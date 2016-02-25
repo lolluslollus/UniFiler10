@@ -263,12 +263,12 @@ namespace UniFiler10.ViewModels
 				StorageFolder dir = null;
 				if (string.IsNullOrWhiteSpace(userChoice.Item2))
 				{
-					//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "1");
 					dir = await Pickers.PickDirectoryAsync(new[] { ConstantData.DB_EXTENSION, ConstantData.XML_EXTENSION }).ConfigureAwait(false);
 				}
 				else
 				{
 					dir = await Briefcase.BindersDirectory.TryGetItemAsync(userChoice.Item2).AsTask().ConfigureAwait(false) as StorageFolder;
+					Pickers.SetLastPickedFolder(dir);
 				}
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
 				// To avoid surprises, we try the following here under _isOpenSemaphore. If it does not run through, IsImportingBinder will stay true.
@@ -294,36 +294,12 @@ namespace UniFiler10.ViewModels
 					{
 						Logger.Add_TPL("ContinueImportBinderStep1Async(): db name is available", Logger.AppEventsLogFilename, Logger.Severity.Info);
 
-						//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP, "2");
-
 						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
-						//RegistryAccess.SetValue(ConstantData.REG_IMPORT_BINDER_STEP2_ACTION, nextAction.Item1.ToString()); // small race here, hard to avoid
-
-						// LOLLO there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
-
-						// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. We cannot even know if we are open.
-						// To avoid surprises, we try the following here under _isOpenSemaphore. 
-						// note that this method is always called under _isOpenSemaphore.
-						// If it does not run through, IsImportingFolders will stay true.
-						// In OpenMayOverrideAsync, we check IsImportingFolders and, if true, we try again.
-						// ContinueAfterPickAsync sets IsImportingFolders to false, so there won't be redundant attempts.
-						//if (_isOpen) // this will be false when called from OpenMayOverrideAsync()
-						//{
-						//if (_isOpenOrOpening) // this will be false when running on a phone with low memory - No it won't!
-						//{
 						Logger.Add_TPL("ContinueImportBinderStep1Async(): user choice = " + nextAction.Item1.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
 						Logger.Add_TPL("ContinueImportBinderStep1Async(): user has interacted = " + nextAction.Item2.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
 						if (nextAction.Item1 == ImportBinderOperations.Merge) await ContinueImportBinderStep2_Merge_Async(bc, dir).ConfigureAwait(false);
 						else if (nextAction.Item1 == ImportBinderOperations.Import) await ContinueImportBinderStep2_Import_Async(bc, dir).ConfigureAwait(false);
 						else ContinueImportBinderStep2_Cancel();
-						//}
-						//else
-						//{
-						//	// LOLLO there is no suspend here, so we don't need the extra complexity for step 2 and _isOpenOrOpening.
-						//	// This line will never hit then, check it.
-						//	Logger.Add_TPL("ContinueImportBinderStep1Async(): _isOpenOrOpening = false", Logger.AppEventsLogFilename, Logger.Severity.Info);
-						//}
-						//}
 					}
 					else if (isDbNameAvailable == BoolWhenOpen.No)
 					{

@@ -384,7 +384,7 @@ namespace UniFiler10.Data.Model
 		public Task<bool> OpenFolderAsync(string folderId)
 		{
 			// LOLLO TODO in general (not only here), opening folders is very slow. Make sure folders are only opened when needed.
-			// It looks like startup is faster when offline. It seems that the One Drive thing may be slow.
+			// It looks like startup is faster when offline. One Drive adds overtime, I fixed it when reruming but ti stays slow when launching.
 			return RunFunctionIfOpenAsyncT(delegate
 			{
 				CurrentFolderId = folderId;
@@ -463,40 +463,24 @@ namespace UniFiler10.Data.Model
 					mergingBinder = MergingBinder.CreateInstance(DBName, tempDirectory);
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
 
-					// parallelisation here seems ideal, but it screws with SQLite. LOLLO TODO the following works but it does not preserve the folder sequence.
-					var tasks = new List<Task>();
-					foreach (var fol in mergingBinder.Folders)
-					{
-						tasks.Add(Task.Run(() => Import1FolderAsync(fol, fromDirectory), CancToken));
-					}
-					await Task.WhenAll(tasks).ConfigureAwait(false);
-
+					var sw0 = new Stopwatch(); sw0.Start();
+					//// parallelisation here seems ideal, but it screws with SQLite. 
+					// LOLLO TODO The following works but:
+					// 1 it does not preserve the folder sequence and I think it causes dumps.
+					// 2 it may be the cause of a dump
+					//var tasks = new List<Task>();
 					//foreach (var fol in mergingBinder.Folders)
 					//{
-					//	if (fol == null) continue;
-					//	await fol.OpenAsync().ConfigureAwait(false);
-					//	if (!await _dbManager.InsertIntoFoldersAsync(fol, true).ConfigureAwait(false)) continue;
-					//	await fol.SetDbManager(_dbManager).ConfigureAwait(false);
-
-					//	await _dbManager.InsertIntoWalletsAsync(fol.Wallets, true).ConfigureAwait(false);
-					//	foreach (var wal in fol.Wallets)
-					//	{
-					//		foreach (var doc in wal.Documents)
-					//		{
-					//			var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0(fromDirectory)).AsTask().ConfigureAwait(false);
-					//			if (file == null) continue;
-					//			// the file name might change to avoid name collisions
-					//			var copiedFile = await file.CopyAsync(_directory, file.Name, NameCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(false);
-					//			doc.Uri0 = copiedFile.Name;
-					//		}
-					//		await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
-					//	}
-
-					//	await _dbManager.InsertIntoDynamicFieldsAsync(fol.DynamicFields, true).ConfigureAwait(false);
-					//	await _dbManager.InsertIntoDynamicCategoriesAsync(fol.DynamicCategories, true).ConfigureAwait(false);
-
-					//	await RunInUiThreadAsync(() => _folders.Add(fol)).ConfigureAwait(false);
+					//	tasks.Add(Task.Run(() => Import1FolderAsync(fol, fromDirectory), CancToken));
 					//}
+					//await Task.WhenAll(tasks).ConfigureAwait(false);
+					foreach (var fol in mergingBinder.Folders)
+					{
+						await Import1FolderAsync(fol, fromDirectory).ConfigureAwait(false);
+					}
+
+					sw0.Stop();
+					Debug.WriteLine("Binder merge took " + sw0.ElapsedMilliseconds + " msec");
 					isOk = true;
 				}
 				catch (OperationCanceledException) { }
@@ -514,7 +498,8 @@ namespace UniFiler10.Data.Model
 
 				if (isDeleteTempDir && tempDirectory != null) await tempDirectory.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
 
-				return isOk;
+				return isOk; // LOLLO sometimes it dumps after this,
+							 // it looks like http://stackoverflow.com/questions/4532457/program-and-debugger-quit-without-indication-of-problem
 			});
 		}
 		private async Task Import1FolderAsync(Folder fol, StorageFolder fromDirectory)

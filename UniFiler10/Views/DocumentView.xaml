@@ -21,12 +21,6 @@
 		Background="{StaticResource DiagonalNWSEBrush}"
 		Canvas.ZIndex="100"
         BorderThickness="0">
-		<!--<Border.Background>
-            <LinearGradientBrush EndPoint="0.5,.5" StartPoint="0.5,0">
-                <GradientStop Color="DarkGray" Offset="0"/>
-                <GradientStop Color="Transparent" Offset="1"/>
-            </LinearGradientBrush>
-        </Border.Background>-->
 
 		<!--<VisualStateManager.VisualStateGroups>
 			<VisualStateGroup>
@@ -36,8 +30,10 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="me.IsSmallScreen" Value="False"/>
-						--><!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
-						<!--<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>--><!--
+						-->
+		<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+		<!--<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>-->
+		<!--
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -102,19 +98,23 @@
                 Stretch="Uniform"
 				Visibility="Collapsed"/>
 
-			<uctl:TextBlockScaler
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-				Width="{x:Bind WidthAdjusted, Mode=OneWay}" Height="{x:Bind HeightAdjusted, Mode=OneWay}"
+			<ContentControl x:Name="TextViewer"
 				Canvas.ZIndex="55"
 				Visibility="Collapsed">
-				<uctl:TextBlockScaler.TextBlock>
-					<TextBlock x:Name="TextViewer"
-						TextAlignment="Center"
-						Padding="{StaticResource Thickness4444}"
-						TextWrapping="Wrap"/>
-				</uctl:TextBlockScaler.TextBlock>
-			</uctl:TextBlockScaler>
+				<Border BorderThickness="2" Background="{StaticResource LolloSystemChromeWhiteBrush}">
+					<uctl:TextBlockScaler
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Width="{x:Bind WidthAdjusted, Mode=OneWay}" Height="{x:Bind HeightAdjusted, Mode=OneWay}">
+						<uctl:TextBlockScaler.TextBlock>
+							<TextBlock x:Name="TextViewerTB"
+								TextAlignment="Center"
+								Padding="{StaticResource Thickness4444}"
+								TextWrapping="Wrap"/>
+						</uctl:TextBlockScaler.TextBlock>
+					</uctl:TextBlockScaler>
+				</Border>
+			</ContentControl>
 
 			<WebView
                 x:Name="WebViewer"				
