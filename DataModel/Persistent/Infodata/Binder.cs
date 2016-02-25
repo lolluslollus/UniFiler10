@@ -464,10 +464,10 @@ namespace UniFiler10.Data.Model
 					await mergingBinder.OpenAsync().ConfigureAwait(false);
 
 					var sw0 = new Stopwatch(); sw0.Start();
-					//// parallelisation here seems ideal, but it screws with SQLite. 
-					// LOLLO TODO The following works but:
+					// parallelisation here seems ideal, but it screws with SQLite. 
+					// The following works but:
 					// 1 it does not preserve the folder sequence and I think it causes dumps.
-					// 2 it may be the cause of a dump
+					// 2 it dumps sometimes
 					//var tasks = new List<Task>();
 					//foreach (var fol in mergingBinder.Folders)
 					//{
