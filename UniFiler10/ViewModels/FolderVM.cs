@@ -241,6 +241,7 @@ namespace UniFiler10.ViewModels
 					var captureUI = new CameraCaptureUI();
 					captureUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
 					captureUI.PhotoSettings.MaxResolution = Briefcase.GetCurrentInstance().CameraCaptureResolution;
+					captureUI.PhotoSettings.AllowCropping = false;
 
 					var file = await captureUI.CaptureFileAsync(CameraCaptureUIMode.Photo).AsTask();
 					Pickers.SetLastPickedOpenFile(file); // little race here, hard to avoid and apparently harmless
