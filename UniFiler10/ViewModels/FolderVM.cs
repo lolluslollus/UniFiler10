@@ -12,6 +12,7 @@ using Utilz;
 using Utilz.Data;
 using Windows.Media.Capture;
 using Windows.Storage;
+using Windows.System;
 
 // LOLLO TODO add OCR
 
@@ -169,6 +170,26 @@ namespace UniFiler10.ViewModels
 				return isOk;
 			});
 		}
+
+		public async Task OpenDocument(Document doc)
+		{
+			if (doc == null) return;
+			try
+			{
+				var file = await StorageFile.GetFileFromPathAsync(doc?.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
+				if (file == null) return;
+
+				bool isOk = false;
+				isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
+				//isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Debugger.Break();
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+			}
+		}
+
 		#endregion user actions
 
 
@@ -311,7 +332,7 @@ namespace UniFiler10.ViewModels
 			IsImportingMedia = false;
 		}
 
-		public async Task RecordAudioAsync()
+		public async Task RecordAudioAsync(Wallet wallet)
 		{
 			if (!_isAudioRecorderOverlayOpen && RuntimeData.Instance?.IsMicrophoneAvailable == true)
 			{
@@ -333,8 +354,16 @@ namespace UniFiler10.ViewModels
 
 								if (hasRecorded)
 								{
-									bool mediaImportedOk = await folder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
-									Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
+									if (wallet == null)
+									{
+										bool mediaImportedOk = await folder.ImportMediaFileIntoNewWalletAsync(file).ConfigureAwait(false);
+										Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
+									}
+									else
+									{
+										bool mediaImportedOk = await wallet.ImportMediaFileAsync(file).ConfigureAwait(false);
+										Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
+									}
 								}
 								else
 								{

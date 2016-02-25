@@ -34,7 +34,7 @@ namespace UniFiler10.Views
 
 		private void OnRecordSound_Click(object sender, RoutedEventArgs e)
 		{
-			Task record = VM?.RecordAudioAsync();
+			Task record = VM?.RecordAudioAsync(null);
 		}
 	}
 }

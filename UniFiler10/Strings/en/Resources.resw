@@ -426,4 +426,10 @@
   <data name="ImportBinderChooseDirectory.Text" xml:space="preserve">
     <value>Import from directory</value>
   </data>
+  <data name="SettingsAllowMeteredConnection.Text" xml:space="preserve">
+    <value>Allow metered connection</value>
+  </data>
+  <data name="SettingsUseOneDrive.Text" xml:space="preserve">
+    <value>Use One Drive for metadata</value>
+  </data>
 </root>

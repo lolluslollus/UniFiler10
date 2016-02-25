@@ -118,10 +118,10 @@
 							<!--IsClickSensitive="False"-->
 							<local:DocumentView
 								Caption="{Binding}"
-								IsDeleteButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
-								IsImportButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
-								IsViewLargeButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
-								IsSaveButtonEnabled="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								IsDeleteButtonVisible="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								IsImportButtonVisible="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								IsViewLargeButtonVisible="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
+								IsSaveButtonVisible="{Binding ElementName=me, Path=VM.IsCanImportExport, Mode=OneWay}"
 								DeleteClicked="OnDelete_Tapped"
 								ImportClicked="OnImport_Tapped"
 								DocumentClicked="OnBinderPreview_Tapped"

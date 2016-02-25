@@ -31,6 +31,11 @@
 					IsCompact="True"
 					Click="OnShoot_Click"/>
 				<AppBarButton
+					Icon="Microphone"
+					IsEnabled="{x:Bind Path=VM.RuntimeData.IsMicrophoneAvailable, Mode=OneWay, FallbackValue=false}"
+					IsCompact="True"
+					Click="OnRecordSound_Click"/>
+				<AppBarButton
 					Icon="OpenFile"
 					IsCompact="True"
 					Click="OnOpenFile_Click"/>
@@ -62,6 +67,7 @@
 					<local:DocumentView 
                         Document="{Binding}"
 						Wallet="{Binding ElementName=me, Path=Wallet, Mode=OneWay}"
+						IsDeleteButtonVisible="True"
 						DocumentClicked="OnDocumentView_DocumentClicked"
 						DeleteClicked="OnDocumentView_DeleteClicked"/>
 				</DataTemplate>

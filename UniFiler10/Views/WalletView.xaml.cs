@@ -46,6 +46,11 @@ namespace UniFiler10.Views
 			VM?.StartShoot(Wallet);
 		}
 
+		private void OnRecordSound_Click(object sender, RoutedEventArgs e)
+		{
+			Task record = VM?.RecordAudioAsync(Wallet);
+		}
+
 		private void OnOpenFile_Click(object sender, RoutedEventArgs e)
 		{
 			VM?.StartLoadMediaFile(Wallet);
@@ -53,32 +58,12 @@ namespace UniFiler10.Views
 
 		private void OnDocumentView_DocumentClicked(object sender, DocumentView.DocumentClickedArgs e)
 		{
-			Task open = OpenDocument(e?.Document);
+			Task open = VM?.OpenDocument(e?.Document);
 		}
 
 		private void OnDocuments_ItemClick(object sender, ItemClickEventArgs e)
 		{
-			Task open = OpenDocument(e?.ClickedItem as Document);
-		}
-
-		private async Task OpenDocument(Document doc)
-		{
-			if (string.IsNullOrWhiteSpace(doc?.Uri0)) return;
-
-			var file = await StorageFile.GetFileFromPathAsync(doc.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
-			if (file == null) return;
-
-			bool isOk = false;
-			try
-			{
-				//isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
-				isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Debugger.Break();
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-			}
+			Task open = VM?.OpenDocument(e?.ClickedItem as Document);
 		}
 
 		private void OnDocumentView_DeleteClicked(object sender, DocumentView.DocumentClickedArgs e)

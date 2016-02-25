@@ -54,7 +54,7 @@ namespace UniFiler10.Data.Model
 			await _runtimeData.OpenAsync().ConfigureAwait(false);
 			if (!_isLight) RaisePropertyChanged_UI(nameof(RuntimeData)); // notify the UI once the data has been loaded
 
-			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData);
+			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData, this);
 			if (_isLight) return;
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded			
@@ -103,6 +103,32 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { if (_isAllowMeteredConnection != value) { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } } }
 
+		private bool _isUseOneDrive = true;
+		[DataMember]
+		public bool IsUseOneDrive
+		{
+			get { return _isUseOneDrive; }
+			// the setter is only for the serialiser
+			set { if (_isUseOneDrive != value) { if (_isUseOneDrive != value) { _isUseOneDrive = value; } } }
+		}
+
+		public Task SetOneDriveAsync(bool newValue)
+		{
+			if (newValue == _isUseOneDrive) return Task.CompletedTask;
+			return RunFunctionIfOpenAsyncT(async () =>
+			{
+				if (newValue == _isUseOneDrive) return;
+				if (newValue)
+				{
+					_isUseOneDrive = await ImportSettingsFromOneDrive2Async().ConfigureAwait(false);
+				}
+				else
+				{
+					_isUseOneDrive = false;
+				}
+				RaisePropertyChanged_UI(nameof(IsUseOneDrive));
+			});
+		}
 		private volatile string _currentBinderName = string.Empty;
 		/// <summary>
 		/// This property's setter is only for the serialiser! If you set it, call UpdateCurrentBinderAsync() after.
@@ -424,6 +450,20 @@ namespace UniFiler10.Data.Model
 				return true;
 			});
 		}
+		private async Task<bool> ImportSettingsFromOneDrive2Async()
+		{
+			bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
+
+			await _metaBriefcase.CloseAsync().ConfigureAwait(false);
+			_metaBriefcase.SetReloadJustOnce();
+			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
+			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
+
+			// update the current binder, whichever it is, and open it if it was open before
+			await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
+
+			return _metaBriefcase.IsSynced;
+		}
 		#endregion while open methods
 
 
@@ -487,6 +527,7 @@ namespace UniFiler10.Data.Model
 			if (source == null) return false;
 
 			IsAllowMeteredConnection = source._isAllowMeteredConnection;
+			_isUseOneDrive = source._isUseOneDrive;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
 			CameraCaptureResolution = source._cameraCaptureResolution;

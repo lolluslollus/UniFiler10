@@ -76,40 +76,40 @@ namespace UniFiler10.Views
 			DependencyProperty.Register("Caption", typeof(string), typeof(DocumentView), new PropertyMetadata(""));
 
 
-		public bool IsDeleteButtonEnabled
+		public bool IsDeleteButtonVisible
 		{
-			get { return (bool)GetValue(IsDeleteButtonEnabledProperty); }
-			set { SetValue(IsDeleteButtonEnabledProperty, value); }
+			get { return (bool)GetValue(IsDeleteButtonVisibleProperty); }
+			set { SetValue(IsDeleteButtonVisibleProperty, value); }
 		}
-		public static readonly DependencyProperty IsDeleteButtonEnabledProperty =
-			DependencyProperty.Register("IsDeleteButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
+		public static readonly DependencyProperty IsDeleteButtonVisibleProperty =
+			DependencyProperty.Register("IsDeleteButtonVisible", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
-		public bool IsImportButtonEnabled
+		public bool IsImportButtonVisible
 		{
-			get { return (bool)GetValue(IsImportButtonEnabledProperty); }
-			set { SetValue(IsImportButtonEnabledProperty, value); }
+			get { return (bool)GetValue(IsImportButtonVisibleProperty); }
+			set { SetValue(IsImportButtonVisibleProperty, value); }
 		}
-		public static readonly DependencyProperty IsImportButtonEnabledProperty =
-			DependencyProperty.Register("IsImportButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
+		public static readonly DependencyProperty IsImportButtonVisibleProperty =
+			DependencyProperty.Register("IsImportButtonVisible", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
 		/// <summary>
-		/// This button is useful if I have web content coz the WebView does not relay the clicks
+		/// This button is particularly useful if I have web content, coz the WebView does not relay the clicks
 		/// </summary>
-		public bool IsViewLargeButtonEnabled
+		public bool IsViewLargeButtonVisible
 		{
-			get { return (bool)GetValue(IsViewLargeButtonEnabledProperty); }
-			set { SetValue(IsViewLargeButtonEnabledProperty, value); }
+			get { return (bool)GetValue(IsViewLargeButtonVisibleProperty); }
+			set { SetValue(IsViewLargeButtonVisibleProperty, value); }
 		}
-		public static readonly DependencyProperty IsViewLargeButtonEnabledProperty =
-			DependencyProperty.Register("IsViewLargeButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
+		public static readonly DependencyProperty IsViewLargeButtonVisibleProperty =
+			DependencyProperty.Register("IsViewLargeButtonVisible", typeof(bool), typeof(DocumentView), new PropertyMetadata(true));
 
-		public bool IsSaveButtonEnabled
+		public bool IsSaveButtonVisible
 		{
-			get { return (bool)GetValue(IsSaveButtonEnabledProperty); }
-			set { SetValue(IsSaveButtonEnabledProperty, value); }
+			get { return (bool)GetValue(IsSaveButtonVisibleProperty); }
+			set { SetValue(IsSaveButtonVisibleProperty, value); }
 		}
-		public static readonly DependencyProperty IsSaveButtonEnabledProperty =
-			DependencyProperty.Register("IsSaveButtonEnabled", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
+		public static readonly DependencyProperty IsSaveButtonVisibleProperty =
+			DependencyProperty.Register("IsSaveButtonVisible", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
 		//public bool IsClickSensitive
 		//{
@@ -516,19 +516,19 @@ namespace UniFiler10.Views
 		private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			if (IsDeleteButtonEnabled) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			if (IsDeleteButtonVisible) DeleteClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
 		private void OnItemImport_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			if (IsImportButtonEnabled) ImportClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			if (IsImportButtonVisible) ImportClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
 		private void OnPreview_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			if (IsViewLargeButtonEnabled) DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			if (IsViewLargeButtonVisible) DocumentClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 
 		//private void OnMainBorder_Tapped(object sender, TappedRoutedEventArgs e)
@@ -540,7 +540,7 @@ namespace UniFiler10.Views
 		private void OnSave_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;
-			if (IsSaveButtonEnabled) SaveClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+			if (IsSaveButtonVisible) SaveClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
 		}
 		#endregion event handlers
 	}

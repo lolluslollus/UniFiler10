@@ -40,18 +40,16 @@ namespace UniFiler10.Data.Model
 
 			var dynamicCategories = await DBManager.GetDynamicCategoriesByParentIdAsync(Id).ConfigureAwait(false);
 
-			// populate my collections
+			// refresh dynamic categories and fields if something changed in the metadata since the last save
+			await RefreshDynamicPropertiesAsync(DBManager, dynamicCategories, dynamicFields, Id).ConfigureAwait(false);
+
+			// populate collections
 			await RunInUiThreadAsync(delegate
 			{
 				_wallets.ReplaceAll(wallets);
-
 				_dynamicFields.ReplaceAll(dynamicFields);
-
 				_dynamicCategories.ReplaceAll(dynamicCategories);
 			}).ConfigureAwait(false);
-
-			// refresh dynamic categories and fields if something changed in the metadata since the last save
-			await RefreshDynamicPropertiesAsync().ConfigureAwait(false);
 
 			// open all children
 			foreach (var wallet in _wallets)
@@ -225,28 +223,33 @@ namespace UniFiler10.Data.Model
 		}
 
 		#region loading methods
-		private async Task RefreshDynamicPropertiesAsync()
+		/// <summary>
+		/// Refreshes dynamic categories and fields if something changed in the metadata since the last save
+		/// </summary>
+		/// <param name="dbM"></param>
+		/// <param name="dynamicCategories"></param>
+		/// <param name="dynamicFields"></param>
+		/// <param name="folderId"></param>
+		/// <returns></returns>
+		private static async Task RefreshDynamicPropertiesAsync(DBManager dbM, ICollection<DynamicCategory> dynamicCategories, ICollection<DynamicField> dynamicFields, string folderId)
 		{
-			// update DynamicCategories if metadata has changed since last db save
-			await RefreshDynamicCategoriesAsync().ConfigureAwait(false);
-			// update DynamicFields if metadata has changed since last db save
-			await RefreshDynamicFieldsAsync().ConfigureAwait(false);
+			await RefreshDynamicCategoriesAsync(dbM, dynamicCategories, dynamicFields).ConfigureAwait(false);
+			await RefreshDynamicFieldsAsync(dbM, dynamicCategories, dynamicFields, folderId).ConfigureAwait(false);
 		}
 		/// <summary>
 		/// Removes those categories that have been removed since the last save, and their fields.
 		/// To be sure, we assume the metadata has been changed since the folder was last saved.
 		/// </summary>
 		/// <returns></returns>
-		private async Task RefreshDynamicCategoriesAsync()
+		private static async Task RefreshDynamicCategoriesAsync(DBManager dbM, ICollection<DynamicCategory> dynamicCategories, ICollection<DynamicField> dynamicFields)
 		{
 			var availableCats = MetaBriefcase.OpenInstance?.Categories;
 			if (availableCats == null) return;
 
-			//var obsoleteDynCats = _dynamicCategories.Where(dynCat => !availableCats.Any(cat => cat.Id == dynCat.CategoryId)).ToList();
-			var obsoleteDynCats = _dynamicCategories.Where(dynCat => availableCats.All(cat => cat.Id != dynCat.CategoryId)).ToList();
+			var obsoleteDynCats = dynamicCategories.Where(dynCat => availableCats.All(cat => cat.Id != dynCat.CategoryId)).ToList();
 			foreach (var obsoleteDynCat in obsoleteDynCats)
 			{
-				await RemoveDynamicCategoryAndItsDynFields2Async(obsoleteDynCat.CategoryId).ConfigureAwait(false);
+				await RemoveDynamicCategoryAndItsDynFields2Async(obsoleteDynCat.CategoryId, dbM, dynamicCategories, dynamicFields).ConfigureAwait(false);
 			}
 		}
 		/// <summary>
@@ -255,21 +258,19 @@ namespace UniFiler10.Data.Model
 		/// To be sure, we assume the metadata has been changed since the folder was last saved.
 		/// </summary>
 		/// <returns></returns>
-		private async Task RefreshDynamicFieldsAsync()
+		private static async Task RefreshDynamicFieldsAsync(DBManager dbM, ICollection<DynamicCategory> dynamicCategories, ICollection<DynamicField> dynamicFields, string folderId)
 		{
-			var dbM = DBManager;
 			if (dbM == null) return;
 
 			try
 			{
 				var shouldBeFldDscs = new List<FieldDescription>(); // HashSet may be tricky, a List is easier
-				foreach (var dynCat in _dynamicCategories)
+				foreach (var dynCat in dynamicCategories)
 				{
 					if (dynCat.Category != null)
 					{
 						foreach (var fldDsc in dynCat.Category.FieldDescriptions)
 						{
-							//if (!shouldBeFldDscs.Any(fd => fd.Id == fldDsc.Id)) shouldBeFldDscs.Add(fldDsc);
 							if (shouldBeFldDscs.All(fd => fd.Id != fldDsc.Id)) shouldBeFldDscs.Add(fldDsc);
 						}
 					}
@@ -281,46 +282,24 @@ namespace UniFiler10.Data.Model
 				}
 				// remove obsolete fields
 				// LOLLO I create a List, instead of using the IEnumerable, otherwise the following Remove will break the ienumerable and dump!
-				//var obsoleteDynFlds = _dynamicFields.Where(dynFld => !shouldBeFldDscs.Any(fldDsc => fldDsc.Id == dynFld.FieldDescriptionId)).ToList();
-				var obsoleteDynFlds = _dynamicFields.Where(dynFld => shouldBeFldDscs.All(fldDsc => fldDsc.Id != dynFld.FieldDescriptionId)).ToList();
+				var obsoleteDynFlds = dynamicFields.Where(dynFld => shouldBeFldDscs.All(fldDsc => fldDsc.Id != dynFld.FieldDescriptionId)).ToList();
 				foreach (var obsoleteDynFld in obsoleteDynFlds)
 				{
-					if (await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false))
+					if (await dbM.DeleteFromDynamicFieldsAsync(obsoleteDynFld).ConfigureAwait(false) && obsoleteDynFld != null)
 					{
-						await RunInUiThreadAsync(delegate
-						{
-							_dynamicFields.Remove(obsoleteDynFld);
-						}).ConfigureAwait(false);
+						dynamicFields.Remove(obsoleteDynFld);
+						await obsoleteDynFld.CloseAsync().ConfigureAwait(false);
 					}
 				}
 
-				//// LOLLO this is a test coz the linq dumps.
-				//List<FieldDescription> newFldDscs = new List<FieldDescription>();
-				//if (shouldBeFldDscs != null)
-				//{
-				//	foreach (var fldDsc in shouldBeFldDscs)
-				//	{
-				//		if (!_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id))
-				//		{
-				//			newFldDscs.Add(fldDsc);
-				//		}
-				//	}
-				//}
-
-				// add new fields // LOLLO this dumps after removing an obsolete field. the kludgy loop above, instead, works. find out why. 
-				// maybe because it was a hashset, and i did not set it properly? it seems so.
-				//var newFldDscs = shouldBeFldDscs.Where(fldDsc => !_dynamicFields.Any(dynFld => dynFld.FieldDescriptionId == fldDsc.Id));
-				var newFldDscs = shouldBeFldDscs.Where(fldDsc => _dynamicFields.All(dynFld => dynFld.FieldDescriptionId != fldDsc.Id));
+				var newFldDscs = shouldBeFldDscs.Where(fldDsc => dynamicFields.All(dynFld => dynFld.FieldDescriptionId != fldDsc.Id));
 				foreach (var newFldDsc in newFldDscs)
 				{
-					var dynFld = new DynamicField(DBManager, Id, newFldDsc.Id);
-					if (await dbM.InsertIntoDynamicFieldsAsync(dynFld).ConfigureAwait(false))
+					var dynFld = new DynamicField(dbM, folderId, newFldDsc.Id);
+					if (await dbM.InsertIntoDynamicFieldsAsync(dynFld).ConfigureAwait(false) && dynFld != null)
 					{
-						await RunInUiThreadAsync(delegate
-						{
-							_dynamicFields.Add(dynFld);
-						}).ConfigureAwait(false);
-						await dynFld.OpenAsync();
+						dynamicFields.Add(dynFld);
+						await dynFld.OpenAsync().ConfigureAwait(false);
 					}
 				}
 			}
@@ -454,37 +433,41 @@ namespace UniFiler10.Data.Model
 
 		public Task<bool> RemoveDynamicCategoryAndItsFieldsAsync(string catId)
 		{
-			return RunFunctionIfOpenAsyncTB(
-				async () => await RemoveDynamicCategoryAndItsDynFields2Async(catId).ConfigureAwait(false));
-		}
-		private async Task<bool> RemoveDynamicCategoryAndItsDynFields2Async(string catId)
-		{
-			if (!string.IsNullOrWhiteSpace(catId))
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				var dynCat = _dynamicCategories.FirstOrDefault(a => a.CategoryId == catId);
+				Task remove = null;
+				await RunInUiThreadAsync(() =>
+				{
+					remove = RemoveDynamicCategoryAndItsDynFields2Async(catId, DBManager, _dynamicCategories, _dynamicFields);
+				}).ConfigureAwait(false);
+				await remove.ConfigureAwait(false);
+			});
+		}
+		private static async Task RemoveDynamicCategoryAndItsDynFields2Async(string catId, DBManager dbM, ICollection<DynamicCategory> dynamicCategories, ICollection<DynamicField> dynamicFields)
+		{
+			if (!string.IsNullOrWhiteSpace(catId) && dbM != null)
+			{
+				var dynCat = dynamicCategories.FirstOrDefault(a => a.CategoryId == catId);
 				if (dynCat != null)
 				{
 					var descriptionIdsOfFieldsToBeRemoved = new List<string>();
-					var dbM = DBManager;
-					if (dbM != null && await dbM.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
+					if (await dbM.DeleteFromDynamicCategoriesAsync(dynCat, descriptionIdsOfFieldsToBeRemoved))
 					{
-						_dynamicCategories.Remove(dynCat);
+						dynamicCategories.Remove(dynCat);
 						await dynCat.CloseAsync(); // no need to open dynCats
 
 						foreach (var fieldDescriptionId in descriptionIdsOfFieldsToBeRemoved)
 						{
-							var fieldToBeRemoved = _dynamicFields.FirstOrDefault(dynFld => dynFld.FieldDescriptionId == fieldDescriptionId);
+							var fieldToBeRemoved = dynamicFields.FirstOrDefault(dynFld => dynFld.FieldDescriptionId == fieldDescriptionId);
 							if (fieldToBeRemoved != null)
 							{
-								_dynamicFields.Remove(fieldToBeRemoved);
-								await fieldToBeRemoved.CloseAsync().ConfigureAwait(false); // no need to open dynFlds
+								dynamicFields.Remove(fieldToBeRemoved);
+								await fieldToBeRemoved.CloseAsync(); // no need to open dynFlds
 							}
 						}
-						return true;
 					}
 				}
 			}
-			return false;
 		}
 
 		public Task<bool> ImportMediaFileIntoNewWalletAsync(StorageFile file)

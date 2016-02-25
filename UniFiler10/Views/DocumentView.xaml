@@ -43,7 +43,7 @@
 			<!--<VariableSizedWrapGrid Orientation="Horizontal" Canvas.ZIndex="150">-->
 			<uctl:UniversalWrapPanel Orientation="Horizontal" Canvas.ZIndex="150" HorizontalAlignment="Stretch">
 				<AppBarButton Icon="Save"
-					Visibility="{x:Bind IsSaveButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Visibility="{x:Bind IsSaveButtonVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					Tapped="OnSave_Tapped"
 					Style="{StaticResource AppBarButtonRecoloured}"
 					IsCompact="True"
@@ -51,21 +51,21 @@
 
 				<!--<AppBarButton Icon="FullScreen"-->
 				<AppBarButton Icon="View"
-					Visibility="{x:Bind IsViewLargeButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Visibility="{x:Bind IsViewLargeButtonVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					Tapped="OnPreview_Tapped"
 					Style="{StaticResource AppBarButtonRecoloured}"
 					IsCompact="True"
 					Foreground="{StaticResource FlashyForeground}"/>
 
 				<AppBarButton Icon="Delete"
-					Visibility="{x:Bind IsDeleteButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Visibility="{x:Bind IsDeleteButtonVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					Tapped="OnItemDelete_Tapped"
 					Style="{StaticResource AppBarButtonRecoloured}"
 					IsCompact="True"
 					Foreground="{StaticResource FlashyForeground}"/>
 
 				<AppBarButton Icon="Import"
-					Visibility="{x:Bind IsImportButtonEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Visibility="{x:Bind IsImportButtonVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					Tapped="OnItemImport_Tapped"
 					Style="{StaticResource AppBarButtonRecoloured}"
 					IsCompact="True"
@@ -108,7 +108,7 @@
 						Width="{x:Bind WidthAdjusted, Mode=OneWay}" Height="{x:Bind HeightAdjusted, Mode=OneWay}">
 						<uctl:TextBlockScaler.TextBlock>
 							<TextBlock x:Name="TextViewerTB"
-								TextAlignment="Center"
+								TextAlignment="DetectFromContent"
 								Padding="{StaticResource Thickness4444}"
 								TextWrapping="Wrap"/>
 						</uctl:TextBlockScaler.TextBlock>

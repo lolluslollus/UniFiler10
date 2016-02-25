@@ -116,6 +116,13 @@ namespace UniFiler10.Views
 			}
 			catch { }
 		}
+
+		private void OnIsUseOneDrive_Toggled(object sender, RoutedEventArgs e)
+		{
+			var ts = sender as ToggleSwitch;
+			if (ts == null) return;
+			VM?.SetUseOneDriveAsync(ts.IsOn);
+		}
 		#endregion user actions
 	}
 }

@@ -286,6 +286,8 @@
 					<DataTemplate>
 						<!--IsClickSensitive="False"-->
 						<local:DocumentView Canvas.ZIndex="100"
+							IsViewLargeButtonVisible="{Binding ElementName=me, Path=VM.IsImportingFolders, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}"
+							IsDeleteButtonVisible="{Binding ElementName=me, Path=VM.IsImportingFolders, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}"
 							DeleteClicked="OnFolderDelete_Tapped"
 							DocumentClicked="OnFolderPreview_Tapped"
 							Document="{Binding Document, Mode=OneWay}"

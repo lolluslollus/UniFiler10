@@ -363,6 +363,11 @@ namespace UniFiler10.ViewModels
 		}
 
 		public event EventHandler MetadataChanged;
+
+		public Task SetUseOneDriveAsync(bool newValue)
+		{
+			return _briefcase?.SetOneDriveAsync(newValue);
+		}
 		#endregion user actions
 	}
 

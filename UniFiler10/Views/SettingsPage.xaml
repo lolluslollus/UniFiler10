@@ -26,9 +26,9 @@
 		HorizontalScrollBarVisibility="Auto"
 		HorizontalScrollMode="Enabled"
 		ZoomMode="Disabled">
-			<RelativePanel x:Name="LayoutRoot" 
-			Background="AntiqueWhite"
-			d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
+			<RelativePanel x:Name="LayoutRoot"
+				Background="AntiqueWhite"
+				d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
 				<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 				<FlyoutBase.AttachedFlyout>
 					<Flyout Placement="Full" x:Name="AboutFlyout">
@@ -37,7 +37,7 @@
 				</FlyoutBase.AttachedFlyout>
 
 				<uctl:UniversalWrapPanel Orientation="Horizontal"
-				x:Name="ActionsUWP">
+					x:Name="ActionsUWP">
 					<ctl:LolloButton
 						Tapped="OnGoBack_Tapped"
 						Symbol="Back"
@@ -68,7 +68,7 @@
 							Foreground="{StaticResource FlashyForeground}"
 							Uid="Import1"/>
 					</ContentControl>
-					
+
 					<ctl:LolloButton
 						Tapped="OnAbout_Tapped"
 						Symbol="Help"
@@ -127,32 +127,40 @@
 				<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBView"/>
 				<!-- camera resolution -->
 				<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader"/>
-				<uctl:UniversalWrapPanel RelativePanel.Below="CameraResHeader" Orientation="Horizontal">
+				<uctl:UniversalWrapPanel RelativePanel.Below="CameraResHeader" Orientation="Horizontal" x:Name="CameraRes">
 					<RadioButton x:Uid="CameraResMax"
-					GroupName="CameraRes"
-					Tag="0"
-					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='HighestAvailable', Mode=OneWay}"
-					Checked="OnCameraResChanged"/>
+						GroupName="CameraRes"
+						Tag="0"
+						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='HighestAvailable', Mode=OneWay}"
+						Checked="OnCameraResChanged"/>
 					<RadioButton x:Uid="CameraRes5MP"
-					GroupName="CameraRes"
-					Tag="5"
-					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='VeryLarge5M', Mode=OneWay}"
-					Checked="OnCameraResChanged"/>
+						GroupName="CameraRes"
+						Tag="5"
+						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='VeryLarge5M', Mode=OneWay}"
+						Checked="OnCameraResChanged"/>
 					<RadioButton x:Uid="CameraResHD"
-					GroupName="CameraRes"
-					Tag="4"
-					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='Large3M', Mode=OneWay}"
-					Checked="OnCameraResChanged"/>
+						GroupName="CameraRes"
+						Tag="4"
+						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='Large3M', Mode=OneWay}"
+						Checked="OnCameraResChanged"/>
 					<RadioButton x:Uid="CameraResMedium"
-					GroupName="CameraRes"
-					Tag="3"
-					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='MediumXga', Mode=OneWay}"
-					Checked="OnCameraResChanged"/>
+						GroupName="CameraRes"
+						Tag="3"
+						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='MediumXga', Mode=OneWay}"
+						Checked="OnCameraResChanged"/>
 					<RadioButton x:Uid="CameraResSmall"
-					GroupName="CameraRes"
-					Tag="2"
-					IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='SmallVga', Mode=OneWay}"
-					Checked="OnCameraResChanged"/>
+						GroupName="CameraRes"
+						Tag="2"
+						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='SmallVga', Mode=OneWay}"
+						Checked="OnCameraResChanged"/>
+				</uctl:UniversalWrapPanel>
+				<!-- other settings-->
+				<uctl:UniversalWrapPanel RelativePanel.Below="CameraRes" Orientation="Horizontal">
+					<TextBlock x:Uid="SettingsAllowMeteredConnection"/>
+					<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"/>
+					<TextBlock x:Uid="SettingsUseOneDrive"/>
+					<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsUseOneDrive, Mode=OneWay}"
+						Toggled="OnIsUseOneDrive_Toggled"/>
 				</uctl:UniversalWrapPanel>
 			</RelativePanel>
 		</ScrollViewer>
