@@ -57,7 +57,10 @@ namespace UniFiler10.Data.Model
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData, this);
 			if (_isLight) return;
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
-			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded			
+			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
+
+			_isWantUseOneDrive = _isWantUseOneDrive && _metaBriefcase.IsSynced;
+			RaisePropertyChanged_UI(nameof(IsWantUseOneDrive));
 
 			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
@@ -103,31 +106,46 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { if (_isAllowMeteredConnection != value) { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } } }
 
-		private bool _isUseOneDrive = true;
+		private volatile bool _isWantUseOneDrive = true;
 		[DataMember]
-		public bool IsUseOneDrive
+		public bool IsWantUseOneDrive
 		{
-			get { return _isUseOneDrive; }
+			get { return _isWantUseOneDrive; }
 			// the setter is only for the serialiser
-			set { if (_isUseOneDrive != value) { if (_isUseOneDrive != value) { _isUseOneDrive = value; } } }
+			private set { if (_isWantUseOneDrive != value) { _isWantUseOneDrive = value; RaisePropertyChanged_UI(); } }
 		}
 
-		public Task SetOneDriveAsync(bool newValue)
+		public async Task<bool> TrySetIsWantUseOneDriveAsync(bool newValue)
 		{
-			if (newValue == _isUseOneDrive) return Task.CompletedTask;
-			return RunFunctionIfOpenAsyncT(async () =>
+			if (newValue == _isWantUseOneDrive) return false;
+			bool result = false;
+
+			await RunFunctionIfOpenAsyncT(async () =>
 			{
-				if (newValue == _isUseOneDrive) return;
+				if (newValue == _isWantUseOneDrive) return;
 				if (newValue)
 				{
-					_isUseOneDrive = await ImportSettingsFromOneDrive2Async().ConfigureAwait(false);
+					_isWantUseOneDrive = true;
+
+					bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
+					await _metaBriefcase.CloseAsync().ConfigureAwait(false);
+					_metaBriefcase.SetReloadJustOnce();
+					await _metaBriefcase.OpenAsync().ConfigureAwait(false);
+					RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
+					// update the current binder, whichever it is, and open it if it was open before
+					await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
+
+					_isWantUseOneDrive = _metaBriefcase.IsSynced;
 				}
 				else
 				{
-					_isUseOneDrive = false;
+					_isWantUseOneDrive = false;
 				}
-				RaisePropertyChanged_UI(nameof(IsUseOneDrive));
-			});
+				RaisePropertyChanged_UI(nameof(IsWantUseOneDrive));
+				result = _isWantUseOneDrive == newValue;
+			}).ConfigureAwait(false);
+
+			return result;
 		}
 		private volatile string _currentBinderName = string.Empty;
 		/// <summary>
@@ -450,20 +468,6 @@ namespace UniFiler10.Data.Model
 				return true;
 			});
 		}
-		private async Task<bool> ImportSettingsFromOneDrive2Async()
-		{
-			bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
-
-			await _metaBriefcase.CloseAsync().ConfigureAwait(false);
-			_metaBriefcase.SetReloadJustOnce();
-			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
-			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
-
-			// update the current binder, whichever it is, and open it if it was open before
-			await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
-
-			return _metaBriefcase.IsSynced;
-		}
 		#endregion while open methods
 
 
@@ -527,7 +531,7 @@ namespace UniFiler10.Data.Model
 			if (source == null) return false;
 
 			IsAllowMeteredConnection = source._isAllowMeteredConnection;
-			_isUseOneDrive = source._isUseOneDrive;
+			IsWantUseOneDrive = source._isWantUseOneDrive;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
 			CameraCaptureResolution = source._cameraCaptureResolution;

@@ -432,4 +432,7 @@
   <data name="SettingsUseOneDrive.Text" xml:space="preserve">
     <value>Use One Drive for metadata</value>
   </data>
+  <data name="OneDrive_ThisNotSynced.Text" xml:space="preserve">
+    <value>Must sync with OneDrive</value>
+  </data>
 </root>

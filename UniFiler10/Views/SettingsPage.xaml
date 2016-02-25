@@ -76,92 +76,109 @@
 				</uctl:UniversalWrapPanel>
 
 				<Border RelativePanel.Below="ActionsUWP"
-				x:Name="ElevatedNotice"
-				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
-				BorderBrush="{StaticResource FlashyForeground}"
-				BorderThickness="{StaticResource Thickness2222}"
-				Padding="{StaticResource Thickness8282}">
+					x:Name="ElevatedNotice"
+					Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
+					BorderBrush="{StaticResource FlashyForeground}"
+					BorderThickness="{StaticResource Thickness2222}"
+					Padding="{StaticResource Thickness8282}">
 					<TextBlock x:Uid="ElevatedMode"
-					VerticalAlignment="Stretch"
-					HorizontalAlignment="Stretch"
-					Foreground="{StaticResource FlashyForeground}"
-					TextWrapping="Wrap"/>
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						Foreground="{StaticResource FlashyForeground}"
+						TextWrapping="Wrap"/>
 				</Border>
 
 				<Border RelativePanel.Below="ElevatedNotice"
-				x:Name="SafeNotice"
-				Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
-				BorderThickness="{StaticResource Thickness2222}"
-				Padding="{StaticResource Thickness8282}">
+					x:Name="SafeNotice"
+					Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
+					BorderThickness="{StaticResource Thickness2222}"
+					Padding="{StaticResource Thickness8282}">
 					<TextBlock x:Uid="SafeMode"
-					VerticalAlignment="Stretch"
-					HorizontalAlignment="Stretch"
-					TextWrapping="Wrap"/>
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						TextWrapping="Wrap"/>
 				</Border>
 
 				<Border RelativePanel.Below="SafeNotice"
-				x:Name="BackgroundNotice"
-				Visibility="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
-				BorderBrush="{StaticResource FlashyForeground}"
-				BorderThickness="{StaticResource Thickness2222}"
-				Padding="{StaticResource Thickness8282}">
+					x:Name="BackgroundNotice"
+					Visibility="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
+					BorderBrush="{StaticResource FlashyForeground}"
+					BorderThickness="{StaticResource Thickness2222}"
+					Padding="{StaticResource Thickness8282}">
 					<TextBlock x:Uid="BackgroundProblem"
-					VerticalAlignment="Stretch"
-					HorizontalAlignment="Stretch"
-					Foreground="{StaticResource FlashyForeground}"
-					TextWrapping="Wrap"/>
+						VerticalAlignment="Stretch"
+						HorizontalAlignment="Stretch"
+						Foreground="{StaticResource FlashyForeground}"
+						TextWrapping="Wrap"/>
 				</Border>
 
 				<ContentControl RelativePanel.Below="BackgroundNotice" x:Name="MBView"
-				IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}">
+					IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}">
 					<local:MetaBriefcaseView
-					VM="{x:Bind VM, Mode=OneWay}"
-					HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-					IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
+						VM="{x:Bind VM, Mode=OneWay}"
+						HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+						IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
 				</ContentControl>
 
-				<ctl:AnimationsControl x:Name="AnimationsControl" 
-				RelativePanel.Below="SafeNotice" 
-				Canvas.ZIndex="900"/>
+				<ctl:AnimationsControl x:Name="AnimationsControl"
+					RelativePanel.Below="SafeNotice" 
+					Canvas.ZIndex="900"/>
 
 				<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBView"/>
 				<!-- camera resolution -->
-				<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader"/>
+				<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader" 
+					VerticalAlignment="Center"/>
 				<uctl:UniversalWrapPanel RelativePanel.Below="CameraResHeader" Orientation="Horizontal" x:Name="CameraRes">
 					<RadioButton x:Uid="CameraResMax"
 						GroupName="CameraRes"
 						Tag="0"
 						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='HighestAvailable', Mode=OneWay}"
-						Checked="OnCameraResChanged"/>
+						Checked="OnCameraResChanged"
+						VerticalAlignment="Center"/>
 					<RadioButton x:Uid="CameraRes5MP"
 						GroupName="CameraRes"
 						Tag="5"
 						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='VeryLarge5M', Mode=OneWay}"
-						Checked="OnCameraResChanged"/>
+						Checked="OnCameraResChanged"
+						VerticalAlignment="Center"/>
 					<RadioButton x:Uid="CameraResHD"
 						GroupName="CameraRes"
 						Tag="4"
 						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='Large3M', Mode=OneWay}"
-						Checked="OnCameraResChanged"/>
+						Checked="OnCameraResChanged"
+						VerticalAlignment="Center"/>
 					<RadioButton x:Uid="CameraResMedium"
 						GroupName="CameraRes"
 						Tag="3"
 						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='MediumXga', Mode=OneWay}"
-						Checked="OnCameraResChanged"/>
+						Checked="OnCameraResChanged"
+						VerticalAlignment="Center"/>
 					<RadioButton x:Uid="CameraResSmall"
 						GroupName="CameraRes"
 						Tag="2"
 						IsChecked="{x:Bind VM.Briefcase.CameraCaptureResolution, Converter={StaticResource ParameterMatchesToTrue}, ConverterParameter='SmallVga', Mode=OneWay}"
-						Checked="OnCameraResChanged"/>
+						Checked="OnCameraResChanged"
+						VerticalAlignment="Center"/>
 				</uctl:UniversalWrapPanel>
 				<!-- other settings-->
-				<uctl:UniversalWrapPanel RelativePanel.Below="CameraRes" Orientation="Horizontal">
-					<TextBlock x:Uid="SettingsAllowMeteredConnection"/>
-					<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"/>
-					<TextBlock x:Uid="SettingsUseOneDrive"/>
-					<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsUseOneDrive, Mode=OneWay}"
-						Toggled="OnIsUseOneDrive_Toggled"/>
-				</uctl:UniversalWrapPanel>
+				<StackPanel Orientation="Vertical" RelativePanel.Below="CameraRes" x:Name="MeteredConnection">
+					<TextBlock x:Uid="SettingsAllowMeteredConnection"
+						VerticalAlignment="Center"/>
+					<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"
+						VerticalAlignment="Center"/>
+				</StackPanel>
+				<StackPanel Orientation="Vertical" RelativePanel.Below="MeteredConnection">
+					<TextBlock x:Uid="SettingsUseOneDrive"
+						VerticalAlignment="Center"/>
+					<StackPanel Orientation="Horizontal">
+						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsWantUseOneDrive, Mode=OneWay}"
+							Toggled="OnIsUseOneDrive_Toggled"
+							VerticalAlignment="Center"/>
+						<TextBlock x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
+							Visibility="{x:Bind VM.Briefcase.MetaBriefcase.IsSynced, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
+							VerticalAlignment="Center"/>
+					</StackPanel>
+				</StackPanel>
 			</RelativePanel>
 		</ScrollViewer>
 	</Grid>

@@ -364,9 +364,15 @@ namespace UniFiler10.ViewModels
 
 		public event EventHandler MetadataChanged;
 
-		public Task SetUseOneDriveAsync(bool newValue)
+		public async Task SetUseOneDriveAsync(bool newValue)
 		{
-			return _briefcase?.SetOneDriveAsync(newValue);
+			var bc = _briefcase;
+			if (bc == null) return;
+
+			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
+			bool isOk = await bc.TrySetIsWantUseOneDriveAsync(newValue);
+			_animationStarter.EndAllAnimations();
+			_animationStarter.StartAnimation(isOk ? AnimationStarter.Animations.Success : AnimationStarter.Animations.Failure);
 		}
 		#endregion user actions
 	}

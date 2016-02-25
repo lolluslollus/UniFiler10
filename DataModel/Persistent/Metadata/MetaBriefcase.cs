@@ -147,10 +147,9 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private readonly object _isSyncedLocker = new object();
-		private bool _isSynced = false;
+		private volatile bool _isSynced = false;
 		[IgnoreDataMember]
-		public bool IsSynced { get { lock (_isSyncedLocker) { return _isSynced; } } private set { lock (_isSyncedLocker) { _isSynced = value; } } }
+		public bool IsSynced { get { { return _isSynced; } } private set { { _isSynced = value; } } }
 
 		private static string OneDriveAccessToken
 		{
@@ -197,52 +196,50 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			if (_runtimeData.IsConnectionAvailable)
+			bool wantToUseOneDrive = _briefcase.IsWantUseOneDrive;
+			try
 			{
-				try
+				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+				// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
+				OneDriveAccessToken = string.Empty;
+				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
-					_oneDriveMetaBriefcaseSemaphore.WaitOne();
-					// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
-					OneDriveAccessToken = string.Empty;
-					if (_briefcase.IsUseOneDrive)
+					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
+					AccountSession oneDriveAccountSession = null;
+					Task<AccountSession> authenticateT = null;
+					await RunInUiThreadAsync(() =>
 					{
-						var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
-						AccountSession oneDriveAccountSession = null;
-						Task<AccountSession> authenticateT = null;
-						await RunInUiThreadAsync(() =>
-						{
-							authenticateT = oneDriveClient.AuthenticateAsync(); // this needs the UI thread
-						}).ConfigureAwait(false);
+						authenticateT = oneDriveClient.AuthenticateAsync(); // this needs the UI thread
+					}).ConfigureAwait(false);
 
-						// LOLLO no timeout like in the following: if the user must sign in and it takes time, this timeout will be too short and the one drive data won't be read.
-						//Func<Task> waitMax = async () => await Task.Delay(3000);
-						//Func<Task> authenticateF = async () => oneDriveAccountSession = await authenticateT;
-						// if the connection is very slow, we time out. The old token may still work, if present; otherwise, we stick to the local file.
-						//await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
-						oneDriveAccountSession = await authenticateT.ConfigureAwait(false);
+					// LOLLO no timeout like in the following: if the user must sign in and it takes time, this timeout will be too short and the one drive data won't be read.
+					//Func<Task> waitMax = async () => await Task.Delay(3000);
+					//Func<Task> authenticateF = async () => oneDriveAccountSession = await authenticateT;
+					// if the connection is very slow, we time out. The old token may still work, if present; otherwise, we stick to the local file.
+					//await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
+					oneDriveAccountSession = await authenticateT.ConfigureAwait(false);
 
-						// if (!string.IsNullOrEmpty(oneDriveAccountSession?.AccessToken)) OneDriveAccessToken = oneDriveAccountSession.AccessToken;
-						OneDriveAccessToken = oneDriveAccountSession?.AccessToken ?? string.Empty;
-						// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
-						//}
-					}
+					// if (!string.IsNullOrEmpty(oneDriveAccountSession?.AccessToken)) OneDriveAccessToken = oneDriveAccountSession.AccessToken;
+					OneDriveAccessToken = oneDriveAccountSession?.AccessToken ?? string.Empty;
+					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
+					//}
 				}
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-				}
-				finally
-				{
-					await LoadAsync().ConfigureAwait(false);
-					SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
-				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+			finally
+			{
+				await LoadAsync(wantToUseOneDrive).ConfigureAwait(false);
+				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await Save2Async().ConfigureAwait(false);
-			if (IsSynced && _briefcase.IsUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			if (_briefcase.IsWantUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 
 			//var fldDscs = _fieldDescriptions;
 			//if (fldDscs != null)
@@ -418,9 +415,9 @@ namespace UniFiler10.Data.Metadata
 		//	Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		//}
 
-		private async Task LoadAsync()
+		private async Task LoadAsync(bool wantToUseOneDrive)
 		{
-			if (IsPropsLoaded) return;
+			if (IsPropsLoaded && IsSynced) return;
 
 			// LOLLO NOTE on the onedrive sdk
 			// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
@@ -430,7 +427,6 @@ namespace UniFiler10.Data.Metadata
 			MetaBriefcase newMetaBriefcase = null;
 			bool mustSyncLocal = false;
 			bool mustSyncOneDrive = false;
-			bool mustConnectToOneDrive = false;
 
 			StorageFile localFile = null;
 
@@ -458,7 +454,7 @@ namespace UniFiler10.Data.Metadata
 			if (CancToken.IsCancellationRequested) return;
 
 			var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-			if (_briefcase.IsUseOneDrive)
+			if (wantToUseOneDrive)
 			{
 				using (var client = new HttpClient())
 				{
@@ -469,13 +465,13 @@ namespace UniFiler10.Data.Metadata
 						using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
 						{
 							newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
-							mustSyncLocal = true;
 						}
+						mustSyncLocal = true;
+						IsSynced = true;
 					}
 					catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
 					{
 						await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
-						mustSyncOneDrive = true;
 						try
 						{
 							using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
@@ -484,10 +480,11 @@ namespace UniFiler10.Data.Metadata
 							}
 						}
 						catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+						mustSyncOneDrive = true;
+						IsSynced = true;
 					}
 					catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
 					{
-						mustConnectToOneDrive = true;
 						try
 						{
 							using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
@@ -496,6 +493,7 @@ namespace UniFiler10.Data.Metadata
 							}
 						}
 						catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+						IsSynced = false;
 					}
 				}
 			}
@@ -509,21 +507,13 @@ namespace UniFiler10.Data.Metadata
 					}
 				}
 				catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+				IsSynced = false;
 			}
 
 			if (newMetaBriefcase != null) // if I could pick up some data, use it and sync whatever needs syncing
 			{
 				IsPropsLoaded = true;
 				CopyXMLPropertiesFrom(newMetaBriefcase);
-				if (mustConnectToOneDrive)
-				{
-					IsSynced = false;
-					// LOLLO TODO what now? Shall I quit?
-				}
-				else
-				{
-					IsSynced = true;
-				}
 				if (mustSyncLocal)
 				{
 					Task syncLocal = Task.Run(() => Save2Async(), CancToken);
@@ -615,11 +605,11 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
+				// save non-xml properties
+				result = result & RegistryAccess.TrySetValue(ConstantData.REG_MBC_IS_ELEVATED, IsElevated.ToString());
 				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 
-			// save non-xml properties
-			result = result & RegistryAccess.TrySetValue(ConstantData.REG_MBC_IS_ELEVATED, IsElevated.ToString());
 			return result;
 		}
 
@@ -633,11 +623,10 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (!_runtimeData.IsConnectionAvailable) return;
 
-				var localFile =
-					await GetDirectory().TryGetItemAsync(FILENAME).AsTask(cancToken).ConfigureAwait(false) as StorageFile;
-				if (localFile == null) return;
-
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+
+				var localFile = await GetDirectory().TryGetItemAsync(FILENAME).AsTask(cancToken).ConfigureAwait(false) as StorageFile;
+				if (localFile == null) return;
 
 				using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
 				{
@@ -853,7 +842,7 @@ namespace UniFiler10.Data.Metadata
 				if (isAdded && save)
 				{
 					isAdded = await Save2Async().ConfigureAwait(false);
-					if (IsSynced && _briefcase.IsUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+					if (_briefcase.IsWantUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 				}
 				return isAdded;
 			});
@@ -904,7 +893,7 @@ namespace UniFiler10.Data.Metadata
 		public async Task<bool> SaveAsync()
 		{
 			var result = await RunFunctionIfOpenAsyncTB(() => Save2Async());
-			if (IsSynced && _briefcase.IsUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			if (_briefcase.IsWantUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 			return result;
 		}
 		#endregion while open methods
