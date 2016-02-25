@@ -105,7 +105,7 @@ namespace UniFiler10.Data.Model
 				if (Document.Check(doc))
 				{
 					var dbM = DBManager;
-					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc, true))
+					if (dbM != null && await dbM.InsertIntoDocumentsAsync(doc))
 					{
 						await RunInUiThreadAsync(delegate { _documents.Add(doc); }).ConfigureAwait(false);
 						await doc.OpenAsync().ConfigureAwait(false);

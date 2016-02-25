@@ -314,7 +314,7 @@ namespace UniFiler10.Data.Model
 				foreach (var newFldDsc in newFldDscs)
 				{
 					var dynFld = new DynamicField(DBManager, Id, newFldDsc.Id);
-					if (await dbM.InsertIntoDynamicFieldsAsync(dynFld, true).ConfigureAwait(false))
+					if (await dbM.InsertIntoDynamicFieldsAsync(dynFld).ConfigureAwait(false))
 					{
 						await RunInUiThreadAsync(delegate
 						{
@@ -373,7 +373,7 @@ namespace UniFiler10.Data.Model
 				if (Wallet.Check(wallet))
 				{
 					var dbM = DBManager;
-					if (dbM != null && await dbM.InsertIntoWalletsAsync(wallet, true))
+					if (dbM != null && await dbM.InsertIntoWalletsAsync(wallet))
 					{
 						await RunInUiThreadAsync(delegate { _wallets.Add(wallet); }).ConfigureAwait(false);
 
@@ -436,7 +436,7 @@ namespace UniFiler10.Data.Model
 				{
 					List<DynamicField> newDynFlds = new List<DynamicField>();
 					var dbM = DBManager;
-					if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newDynFlds, true))
+					if (dbM != null && await dbM.InsertIntoDynamicCategoriesAsync(newDynCat, newDynFlds))
 					{
 						_dynamicCategories.Add(newDynCat);
 						await newDynCat.OpenAsync();

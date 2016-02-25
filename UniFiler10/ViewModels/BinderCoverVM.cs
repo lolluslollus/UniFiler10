@@ -12,6 +12,7 @@ using UniFiler10.Data.Model;
 using Utilz;
 using Utilz.Data;
 using Windows.Storage;
+using Windows.System.Profile;
 
 namespace UniFiler10.ViewModels
 {
@@ -750,15 +751,19 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
-		// and AnalyticsVersionInfo.DeviceFamily
-		// for picker details
+		private static void ReadAnalyticsInfo()
+		{
+			// LOLLO TODO this can be interesting...
+			var form = AnalyticsInfo.DeviceForm;
+			var avi = AnalyticsInfo.VersionInfo;
+			var family = avi.DeviceFamily;
+			var familyVersion = avi.DeviceFamilyVersion;
+		}
 
 		private async Task ContinueAfterPickAsync(StorageFolder fromDir, Binder binder)
 		{
 			Logger.Add_TPL("ContinueAfterPickAsync() starting", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			bool isImported = false;
-
 			try
 			{
 				if (binder != null && fromDir != null)

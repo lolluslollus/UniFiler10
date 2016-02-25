@@ -401,7 +401,7 @@ namespace UniFiler10.Data.Model
 				newFolder = new Folder(_dbManager, RuntimeData.GetText("NewFolder"), DateTime.Now);
 				// folder.ParentId = Id; // folders may not have ParentId because they can be exported or imported
 
-				if (await _dbManager.InsertIntoFoldersAsync(newFolder, true))
+				if (await _dbManager.InsertIntoFoldersAsync(newFolder))
 				{
 					// Add the same categories as the last folder, which was added. 
 					// This is an automatism to streamline usage, it has no special reason to be.
@@ -509,12 +509,12 @@ namespace UniFiler10.Data.Model
 				if (fol == null) return;
 				var folder = fol;
 				await folder.OpenAsync().ConfigureAwait(false);
-				if (await _dbManager.InsertIntoFoldersAsync(folder, true).ConfigureAwait(false))
+				if (await _dbManager.InsertIntoFoldersAsync(folder).ConfigureAwait(false))
 				{
 					if (CancToken.IsCancellationRequested) return;
 					await folder.SetDbManager(_dbManager).ConfigureAwait(false);
 
-					await _dbManager.InsertIntoWalletsAsync(folder.Wallets, true).ConfigureAwait(false);
+					await _dbManager.InsertIntoWalletsAsync(folder.Wallets).ConfigureAwait(false);
 					foreach (var wal in folder.Wallets)
 					{
 						foreach (var doc in wal.Documents)
@@ -528,12 +528,12 @@ namespace UniFiler10.Data.Model
 								doc.SetUri0(copiedFile?.Name);
 							}
 						}
-						await _dbManager.InsertIntoDocumentsAsync(wal.Documents, true).ConfigureAwait(false);
+						await _dbManager.InsertIntoDocumentsAsync(wal.Documents).ConfigureAwait(false);
 					}
 
 					if (CancToken.IsCancellationRequested) return;
-					await _dbManager.InsertIntoDynamicFieldsAsync(folder.DynamicFields, true).ConfigureAwait(false);
-					await _dbManager.InsertIntoDynamicCategoriesAsync(folder.DynamicCategories, true).ConfigureAwait(false);
+					await _dbManager.InsertIntoDynamicFieldsAsync(folder.DynamicFields).ConfigureAwait(false);
+					await _dbManager.InsertIntoDynamicCategoriesAsync(folder.DynamicCategories).ConfigureAwait(false);
 
 					if (CancToken.IsCancellationRequested) return;
 					await RunInUiThreadAsync(() => _folders.Add(folder)).ConfigureAwait(false);

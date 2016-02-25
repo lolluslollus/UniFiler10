@@ -197,7 +197,7 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<bool> InsertIntoDynamicFieldsAsync(DynamicField newDynFld, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicFieldsAsync(DynamicField newDynFld)
 		{
 			bool result = false;
 			try
@@ -207,7 +207,7 @@ namespace UniFiler10.Data.DB
 					var dynFldsAlreadyInFolder = await ReadRecordsWithParentIdAsync<DynamicField>(_dynamicFieldsSemaphore, nameof(DynamicField), newDynFld.ParentId).ConfigureAwait(false);
 					if (dynFldsAlreadyInFolder.All(dynFld => dynFld.FieldDescriptionId != newDynFld.FieldDescriptionId))
 					{
-						var dbResult = await InsertAsync(newDynFld, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+						var dbResult = await InsertAsync(newDynFld, _dynamicFieldsSemaphore).ConfigureAwait(false);
 						if (dbResult == InsertResult.Added) result = true;
 					}
 				}
@@ -218,14 +218,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDynamicFieldsAsync(IEnumerable<DynamicField> dynFlds, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicFieldsAsync(IEnumerable<DynamicField> dynFlds)
 		{
 			bool result = false;
 			try
 			{
 				if (dynFlds.Any() && DynamicField.Check(dynFlds)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync(dynFlds, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(dynFlds, _dynamicFieldsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -235,7 +235,7 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDynamicCategoriesAsync(DynamicCategory newCat, List<DynamicField> newDynFlds, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicCategoriesAsync(DynamicCategory newCat, List<DynamicField> newDynFlds)
 		{
 			bool result = false;
 			try
@@ -247,7 +247,7 @@ namespace UniFiler10.Data.DB
 					//if (!catsAlreadyInFolder.Any(ca => ca.CategoryId == newCat.CategoryId))
 					if (catsAlreadyInFolder.All(ca => ca.CategoryId != newCat.CategoryId))
 					{
-						var dbResult = await InsertAsync(newCat, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+						var dbResult = await InsertAsync(newCat, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 						if (dbResult == InsertResult.Added) result = true;
 						if (result)
 						{
@@ -268,7 +268,7 @@ namespace UniFiler10.Data.DB
 									&& !fieldDescriptionIdsAlreadyInFolder.Contains(fieldDescriptionId)) // do not duplicate existing fields, since different categories may have fields in common
 								{
 									var dynamicField = new DynamicField(this, newCat.ParentId, fieldDescriptionId);
-									var dbResult2 = await InsertAsync(dynamicField, checkMaxEntries, _dynamicFieldsSemaphore).ConfigureAwait(false);
+									var dbResult2 = await InsertAsync(dynamicField, _dynamicFieldsSemaphore).ConfigureAwait(false);
 									if (dbResult2 == InsertResult.Added)
 									{
 										newDynFlds.Add(dynamicField);
@@ -285,14 +285,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDynamicCategoriesAsync(IEnumerable<DynamicCategory> dynCats, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDynamicCategoriesAsync(IEnumerable<DynamicCategory> dynCats)
 		{
 			bool result = false;
 			try
 			{
 				if (dynCats.Any() && DynamicCategory.Check(dynCats)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync(dynCats, checkMaxEntries, _dynamicCategoriesSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(dynCats, _dynamicCategoriesSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -364,14 +364,14 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<bool> InsertIntoDocumentsAsync(Document doc, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDocumentsAsync(Document doc)
 		{
 			bool result = false;
 			try
 			{
 				if (Document.Check(doc)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertAsync(doc, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertAsync(doc, _documentsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -381,14 +381,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoDocumentsAsync(IEnumerable<Document> docs, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoDocumentsAsync(IEnumerable<Document> docs)
 		{
 			bool result = false;
 			try
 			{
 				if (docs.Any() && Document.Check(docs)) //  && await CheckUniqueKeyInDocumentsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync(docs, checkMaxEntries, _documentsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(docs, _documentsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -398,14 +398,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoWalletsAsync(Wallet wallet, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoWalletsAsync(Wallet wallet)
 		{
 			bool result = false;
 			try
 			{
 				if (Wallet.Check(wallet)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertAsync(wallet, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertAsync(wallet, _walletsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -415,14 +415,14 @@ namespace UniFiler10.Data.DB
 			}
 			return result;
 		}
-		internal async Task<bool> InsertIntoWalletsAsync(IEnumerable<Wallet> wallets, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoWalletsAsync(IEnumerable<Wallet> wallets)
 		{
 			bool result = false;
 			try
 			{
 				if (wallets.Any() && Wallet.Check(wallets)) // && await CheckUniqueKeyInWalletsAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertManyAsync(wallets, checkMaxEntries, _walletsSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertManyAsync(wallets, _walletsSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -433,14 +433,14 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		internal async Task<bool> InsertIntoFoldersAsync(Folder folder, bool checkMaxEntries)
+		internal async Task<bool> InsertIntoFoldersAsync(Folder folder)
 		{
 			bool result = false;
 			try
 			{
 				if (Folder.Check(folder)) // && await CheckForeignKey_TagsInFolderAsync(record).ConfigureAwait(false)) // && await CheckUniqueKeyInEntriesAsync(record).ConfigureAwait(false))
 				{
-					var dbResult = await InsertAsync(folder, checkMaxEntries, _foldersSemaphore).ConfigureAwait(false);
+					var dbResult = await InsertAsync(folder, _foldersSemaphore).ConfigureAwait(false);
 					if (dbResult == InsertResult.Added) result = true;
 				}
 			}
@@ -754,7 +754,7 @@ namespace UniFiler10.Data.DB
 		private Task<bool> DeleteRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
-			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 				DeleteRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName));
 		}
 		private bool DeleteRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
@@ -849,7 +849,7 @@ namespace UniFiler10.Data.DB
 		private Task<List<T>> ReadTableAsync<T>(SemaphoreSlimSafeRelease SemaphoreSlimSafeRelease) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
-			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 				ReadTable<T>(SemaphoreSlimSafeRelease));
 		}
 		private List<T> ReadTable<T>(SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
@@ -903,7 +903,7 @@ namespace UniFiler10.Data.DB
 		private Task<List<T>> ReadRecordsWithParentIdAsync<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
-			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 				ReadRecordsWithParentId<T>(semaphore, tableName, parentId, parentIdFieldName));
 		}
 		private List<T> ReadRecordsWithParentId<T>(SemaphoreSlimSafeRelease semaphore, string tableName, string parentId, string parentIdFieldName = nameof(DbBoundObservableData.ParentId)) where T : DbBoundObservableData, new()
@@ -949,7 +949,7 @@ namespace UniFiler10.Data.DB
 		private Task<T> ReadRecordByIdAsync<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
 		{
 			return Task.Run(() =>
-			//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
+				//                return Task.Factory.StartNew<List<T>>(() => // Task.Run is newer and shorter than Task.Factory.StartNew . It also has some different default settings in certain overloads.
 				ReadRecordById<T>(semaphore, primaryKey));
 		}
 		private T ReadRecordById<T>(SemaphoreSlimSafeRelease semaphore, object primaryKey) where T : DbBoundObservableData, new()
@@ -992,12 +992,11 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		private Task<InsertResult> InsertAsync<T>(T item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
+		private Task<InsertResult> InsertAsync<T>(T item, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() => Insert(item, checkMaxEntries, semaphore));
+			return Task.Run(() => Insert(item, semaphore));
 		}
-		// LOLLO TODO if you want to use checkMaxEntries, do so; otherwise, kill it.
-		private InsertResult Insert<T>(T item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
+		private InsertResult Insert<T>(T item, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			InsertResult result = InsertResult.NothingDone;
 			if (!_isOpen) return result;
@@ -1043,12 +1042,11 @@ namespace UniFiler10.Data.DB
 			return result;
 		}
 
-		private Task<InsertResult> InsertManyAsync<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
+		private Task<InsertResult> InsertManyAsync<T>(IEnumerable<T> items, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
-			return Task.Run(() => InsertMany(items, checkMaxEntries, semaphore));
+			return Task.Run(() => InsertMany(items, semaphore));
 		}
-		// LOLLO TODO if you want to use checkMaxEntries, do so; otherwise, kill it.
-		private InsertResult InsertMany<T>(IEnumerable<T> items, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
+		private InsertResult InsertMany<T>(IEnumerable<T> items, SemaphoreSlimSafeRelease semaphore) where T : DbBoundObservableData, new()
 		{
 			var result = InsertResult.NothingDone;
 			if (!_isOpen) return result;
@@ -1289,11 +1287,11 @@ namespace UniFiler10.Data.DB
 					//}
 					//catch (Exception ex1)
 					//{
-						if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
-						{
-							Logger.Add_TPL(ex0.ToString(), Logger.ForegroundLogFilename);
-							//Logger.Add_TPL(ex1.ToString(), Logger.ForegroundLogFilename);
-						}
+					if (SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore))
+					{
+						Logger.Add_TPL(ex0.ToString(), Logger.ForegroundLogFilename);
+						//Logger.Add_TPL(ex1.ToString(), Logger.ForegroundLogFilename);
+					}
 					//}
 				}
 				finally
