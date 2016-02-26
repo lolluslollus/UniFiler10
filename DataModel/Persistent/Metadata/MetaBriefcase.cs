@@ -15,6 +15,7 @@ using UniFiler10.Data.Constants;
 using System.Net.Http.Headers;
 using System.Threading;
 using UniFiler10.Data.Model;
+using System.Globalization;
 
 // LOLLO TODO Metabriefcase newly saves when adding a possible  value. Make sure I save not too often and not too rarely. And safely, too.
 
@@ -25,6 +26,14 @@ namespace UniFiler10.Data.Metadata
 	{
 		#region events
 		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
+		private void RaiseUpdateOneDriveMetaBriefcaseRequested()
+		{
+			if (_briefcase?.IsWantAndCanUseOneDrive == true)
+			{
+				LastTimeUpdateOneDriveCalled = DateTime.Now;
+				UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			}
+		}
 		#endregion events
 
 
@@ -151,6 +160,7 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		public bool IsSyncedOnceSinceLastOpen { get { { return _isSyncedOnceSinceLastOpen; } } private set { { _isSyncedOnceSinceLastOpen = value; } } }
 
+		[IgnoreDataMember]
 		private static string OneDriveAccessToken
 		{
 			get { return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_TKN); }
@@ -159,6 +169,39 @@ namespace UniFiler10.Data.Metadata
 		private static readonly string[] _oneDriveScopes = { "onedrive.readwrite", "onedrive.appfolder", "wl.signin", "wl.offline_access", "wl.skydrive", "wl.skydrive_update" };
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		private const string _oneDriveAppRootUri4Path = "https://api.onedrive.com/v1.0/drive/special/approot:/"; // this is useful if you don't know the file ids but you know the paths
+
+		[IgnoreDataMember]
+		private static DateTime LastTimeUpdateOneDriveCalled
+		{
+			get
+			{
+				DateTime result = default(DateTime);
+				DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result);
+				return result;
+			}
+			set
+			{
+				string newValue = value.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+				RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED, newValue);
+			}
+		}
+
+		[IgnoreDataMember]
+		private static DateTime LastTimeUpdateOneDriveRan
+		{
+			get
+			{
+				DateTime result = default(DateTime);
+				DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result);
+				return result;
+			}
+			set
+			{
+				string newValue = value.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+				RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN, newValue);
+			}
+		}
+
 		private readonly RuntimeData _runtimeData = null;
 		private readonly Briefcase _briefcase = null;
 		#endregion properties
@@ -241,7 +284,7 @@ namespace UniFiler10.Data.Metadata
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await Save2Async().ConfigureAwait(false);
-			if (_briefcase.IsWantAndCanUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			RaiseUpdateOneDriveMetaBriefcaseRequested();
 
 			//var fldDscs = _fieldDescriptions;
 			//if (fldDscs != null)
@@ -419,8 +462,6 @@ namespace UniFiler10.Data.Metadata
 
 		private async Task LoadAsync(bool wantToUseOneDrive)
 		{
-			// LOLLO TODO if, for any reason, the bkg task failed, I will load the old metadata here:
-			// no good.
 			if (IsPropsLoaded && IsSyncedOnceSinceLastOpen) return;
 
 			// LOLLO NOTE on the onedrive sdk
@@ -458,50 +499,7 @@ namespace UniFiler10.Data.Metadata
 			if (CancToken.IsCancellationRequested) return;
 
 			var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-			if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
-			{
-				using (var client = new HttpClient())
-				{
-					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
-
-					try
-					{
-						using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
-						{
-							newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
-						}
-						mustSyncLocal = true;
-						IsSyncedOnceSinceLastOpen = true;
-					}
-					catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
-					{
-						await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
-						try
-						{
-							using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
-							{
-								newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
-							}
-						}
-						catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
-						mustSyncOneDrive = true;
-						IsSyncedOnceSinceLastOpen = true;
-					}
-					catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
-					{
-						try
-						{
-							using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
-							{
-								newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
-							}
-						}
-						catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
-						IsSyncedOnceSinceLastOpen = false;
-					}
-				}
-			}
-			else
+			Func<Task> loadLocalFile = async () =>
 			{
 				try
 				{
@@ -511,6 +509,51 @@ namespace UniFiler10.Data.Metadata
 					}
 				}
 				catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+			};
+
+			if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
+			{
+				if (LastTimeUpdateOneDriveRan > LastTimeUpdateOneDriveCalled)
+				{
+					using (var client = new HttpClient())
+					{
+						client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
+
+						try
+						{
+							using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
+							{
+								newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
+							}
+							mustSyncLocal = true;
+							IsSyncedOnceSinceLastOpen = true;
+						}
+						catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
+						{
+							await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
+							await loadLocalFile().ConfigureAwait(false);
+							mustSyncOneDrive = true;
+							IsSyncedOnceSinceLastOpen = true;
+						}
+						catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
+						{
+							await Logger.AddAsync(ex0.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+							await loadLocalFile().ConfigureAwait(false);
+							IsSyncedOnceSinceLastOpen = false;
+						}
+					}
+				}
+				// if, for any reason, the bkg task failed, I will load the local file
+				else
+				{
+					await loadLocalFile().ConfigureAwait(false);
+					mustSyncOneDrive = true;
+					IsSyncedOnceSinceLastOpen = true;
+				}
+			}
+			else
+			{
+				await loadLocalFile().ConfigureAwait(false);
 				IsSyncedOnceSinceLastOpen = false;
 			}
 
@@ -524,7 +567,7 @@ namespace UniFiler10.Data.Metadata
 				}
 				if (mustSyncOneDrive)
 				{
-					UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+					RaiseUpdateOneDriveMetaBriefcaseRequested();
 					// I don't use the following, but it is interesting and it works.
 					//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
 				}
@@ -645,28 +688,38 @@ namespace UniFiler10.Data.Metadata
 						{
 							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
 
-							DateTime odLastModifiedWhen = default(DateTime);
+							DateTime oneDriveFileLastModifiedWhen = default(DateTime);
 							string remoteFilecontentString = string.Empty;
 							try
 							{
 								var odFileProps = JObject.Parse(await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)).ConfigureAwait(false));
-								odLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>().ToUniversalTime();
+								oneDriveFileLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>().ToUniversalTime();
 								remoteFilecontentString = await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false);
 							}
 							catch { }
 
-							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal)) return;
-							var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-							var lfLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
-							if (lfLastModifiedWhen <= odLastModifiedWhen) return;
+							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal))
+							{
+								LastTimeUpdateOneDriveRan = DateTime.Now;
+								return;
+							}
 
 							if (cancToken.IsCancellationRequested) return;
+
+							//var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+							//var localFileLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
+							//if (localFileLastModifiedWhen <= oneDriveFileLastModifiedWhen) // LOLLO TODO check this, I think it's wrong
+							//{
+							//	LastTimeUpdateOneDriveRan = DateTime.Now;
+							//	return;
+							//}
 
 							localFileContent.Position = 0;
 							using (var content = new StreamContent(localFileContent))
 							{
 								await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
 							}
+							LastTimeUpdateOneDriveRan = DateTime.Now;
 						}
 					}
 				}
@@ -846,7 +899,7 @@ namespace UniFiler10.Data.Metadata
 				if (isAdded && save)
 				{
 					isAdded = await Save2Async().ConfigureAwait(false);
-					if (_briefcase.IsWantAndCanUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+					RaiseUpdateOneDriveMetaBriefcaseRequested();
 				}
 				return isAdded;
 			});
@@ -896,8 +949,12 @@ namespace UniFiler10.Data.Metadata
 
 		public async Task<bool> SaveAsync()
 		{
-			var result = await RunFunctionIfOpenAsyncTB(() => Save2Async());
-			if (_briefcase.IsWantAndCanUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			bool result = false;
+			await RunFunctionIfOpenAsyncT(async () =>
+			{
+				result = await Save2Async().ConfigureAwait(false);
+				if (result) RaiseUpdateOneDriveMetaBriefcaseRequested();
+			});
 			return result;
 		}
 		#endregion while open methods

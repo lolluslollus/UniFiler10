@@ -47,6 +47,8 @@ namespace UniFiler10.Data.Constants
 		public const string ODU_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.BackgroundOneDriveUploader";
 		public const string REG_MBC_ODU_TKN = "MetaBriefcase.OneDriveAccessToken";
 		public const string REG_MBC_IS_ELEVATED = "MetaBriefcase.IsElevated";
+		public const string REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED = "MetaBriefcase.LastTimeUpdateOneDriveCalled";
+		public const string REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN = "MetaBriefcase.LastTimeUpdateOneDriveRan";
 
 		public static string AppName { get { return APPNAME; } }
 		private static readonly string _version = Package.Current.Id.Version.Major.ToString()
