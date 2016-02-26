@@ -435,4 +435,10 @@
   <data name="OneDrive_ThisNotSynced.Text" xml:space="preserve">
     <value>Must sync with OneDrive</value>
   </data>
+  <data name="RuntimeIsConnectionAvailableFalse.Text" xml:space="preserve">
+    <value>Connection not available</value>
+  </data>
+  <data name="Retry.Label" xml:space="preserve">
+    <value>Retry</value>
+  </data>
 </root>

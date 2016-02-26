@@ -59,11 +59,23 @@ namespace UniFiler10.Data.Model
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
-			_isWantUseOneDrive = _isWantUseOneDrive && _metaBriefcase.IsSynced;
-			RaisePropertyChanged_UI(nameof(IsWantUseOneDrive));
+			_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
+			_isWantAndCanUseOneDrive = IsWantToUseOneDrive && _metaBriefcase.IsSyncedOnceSinceLastOpen && _runtimeData.IsConnectionAvailable;
+			RaisePropertyChanged_UI(nameof(IsWantAndCanUseOneDrive));
+			_isWantAndCannotUseOneDrive = _isWantToUseOneDrive && !_isWantAndCanUseOneDrive;
+			RaisePropertyChanged_UI(nameof(IsWantAndCannotUseOneDrive));
 
 			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
+
+		private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
+			{
+				Task upd = RunFunctionIfOpenAsyncT(UpdateIsWantAndCanUseOneDriveAsync);
+			}
+		}
+
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await SaveAsync().ConfigureAwait(false);
@@ -72,6 +84,7 @@ namespace UniFiler10.Data.Model
 			var rd = _runtimeData;
 			if (rd != null)
 			{
+				rd.PropertyChanged -= OnRuntimeData_PropertyChanged;
 				await rd.CloseAsync().ConfigureAwait(false);
 				//rd.Dispose();
 			}
@@ -106,46 +119,68 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { if (_isAllowMeteredConnection != value) { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } } }
 
-		private volatile bool _isWantUseOneDrive = true;
+		private volatile bool _isWantToUseOneDrive = true;
 		[DataMember]
-		public bool IsWantUseOneDrive
+		public bool IsWantToUseOneDrive
 		{
-			get { return _isWantUseOneDrive; }
-			// the setter is only for the serialiser
-			private set { if (_isWantUseOneDrive != value) { _isWantUseOneDrive = value; RaisePropertyChanged_UI(); } }
+			get { return _isWantToUseOneDrive; }
+			private set { if (_isWantToUseOneDrive != value) { if (_isWantToUseOneDrive != value) { _isWantToUseOneDrive = value; RaisePropertyChanged_UI(); } } }
 		}
 
-		public async Task<bool> TrySetIsWantUseOneDriveAsync(bool newValue)
+		private volatile bool _isWantAndCanUseOneDrive = true;
+		[IgnoreDataMember]
+		public bool IsWantAndCanUseOneDrive
 		{
-			if (newValue == _isWantUseOneDrive) return false;
-			bool result = false;
+			get { return _isWantAndCanUseOneDrive; }
+		}
+		// LOLLO TODO use this to bar certain operations: if true, disable editing metadata and disable adding values to possible values
+		// - or maybe add some sort of merging for the new values
+		private volatile bool _isWantAndCannotUseOneDrive = false;
+		[IgnoreDataMember]
+		public bool IsWantAndCannotUseOneDrive
+		{
+			get { return _isWantAndCannotUseOneDrive; }
+		}
 
-			await RunFunctionIfOpenAsyncT(async () =>
+		public Task SetIsWantUseOneDriveAsync(bool newValue)
+		{
+			return RunFunctionIfOpenAsyncT(async () =>
 			{
-				if (newValue == _isWantUseOneDrive) return;
-				if (newValue)
-				{
-					_isWantUseOneDrive = true;
+				IsWantToUseOneDrive = newValue;
+				await UpdateIsWantAndCanUseOneDriveAsync().ConfigureAwait(false);
+			});
+		}
+		private async Task UpdateIsWantAndCanUseOneDriveAsync()
+		{
+			if (_isWantToUseOneDrive == _isWantAndCanUseOneDrive) return;
 
+			if (_isWantToUseOneDrive)
+			{
+				if (_runtimeData.IsConnectionAvailable)
+				{
 					bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 					await _metaBriefcase.CloseAsync().ConfigureAwait(false);
 					_metaBriefcase.SetReloadJustOnce();
 					await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
-					// update the current binder, whichever it is, and open it if it was open before
+																	// update the current binder, whichever it is, and open it if it was open before
 					await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
 
-					_isWantUseOneDrive = _metaBriefcase.IsSynced;
+					_isWantAndCanUseOneDrive = _metaBriefcase.IsSyncedOnceSinceLastOpen;
 				}
 				else
 				{
-					_isWantUseOneDrive = false;
+					_isWantAndCanUseOneDrive = false;
 				}
-				RaisePropertyChanged_UI(nameof(IsWantUseOneDrive));
-				result = _isWantUseOneDrive == newValue;
-			}).ConfigureAwait(false);
+			}
+			else
+			{
+				_isWantAndCanUseOneDrive = false;
+			}
+			RaisePropertyChanged_UI(nameof(IsWantAndCanUseOneDrive));
 
-			return result;
+			_isWantAndCannotUseOneDrive = _isWantToUseOneDrive && !_isWantAndCanUseOneDrive;
+			RaisePropertyChanged_UI(nameof(IsWantAndCannotUseOneDrive));
 		}
 		private volatile string _currentBinderName = string.Empty;
 		/// <summary>
@@ -531,7 +566,7 @@ namespace UniFiler10.Data.Model
 			if (source == null) return false;
 
 			IsAllowMeteredConnection = source._isAllowMeteredConnection;
-			IsWantUseOneDrive = source._isWantUseOneDrive;
+			IsWantToUseOneDrive = source._isWantToUseOneDrive;
 			NewDbName = source._newDbName;
 			CurrentBinderName = source._currentBinderName; // CurrentBinder is set later
 			CameraCaptureResolution = source._cameraCaptureResolution;

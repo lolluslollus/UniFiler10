@@ -5,6 +5,7 @@ using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
+using UniFiler10.Data.Runtime;
 using UniFiler10.Services;
 using Utilz;
 using Utilz.Data;
@@ -23,14 +24,11 @@ namespace UniFiler10.ViewModels
 		private readonly Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } }
 
-		private readonly MetaBriefcase _metaBriefcase = null;
-		public MetaBriefcase MetaBriefcase { get { return _metaBriefcase; } }
-
 		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null;
 		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
 		private void UpdateUnassignedFields()
 		{
-			var mbc = _metaBriefcase;
+			var mbc = _briefcase.MetaBriefcase;
 			var unaFlds = _unassignedFields;
 			if (unaFlds == null) return;
 
@@ -52,7 +50,7 @@ namespace UniFiler10.ViewModels
 		{
 			lock (_instanceLocker)
 			{
-				return _instance?._metaBriefcase?.IsElevated == true;
+				return _instance?._briefcase?.MetaBriefcase?.IsElevated == true;
 			}
 		}
 
@@ -123,7 +121,7 @@ namespace UniFiler10.ViewModels
 
 
 		#region lifecycle
-		public SettingsVM(Briefcase briefcase, MetaBriefcase metaBriefcase, AnimationStarter animationStarter)
+		public SettingsVM(Briefcase briefcase, AnimationStarter animationStarter)
 		{
 			lock (_instanceLocker)
 			{
@@ -134,8 +132,6 @@ namespace UniFiler10.ViewModels
 				RaisePropertyChanged_UI(nameof(BackgroundTaskHelper));
 				_briefcase = briefcase;
 				RaisePropertyChanged_UI(nameof(Briefcase));
-				_metaBriefcase = metaBriefcase;
-				RaisePropertyChanged_UI(nameof(MetaBriefcase));
 				UpdateUnassignedFields();
 			}
 		}
@@ -161,7 +157,7 @@ namespace UniFiler10.ViewModels
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			var mbc = _metaBriefcase;
+			var mbc = _briefcase?.MetaBriefcase;
 			if (mbc != null) await mbc.SaveAsync().ConfigureAwait(false);
 
 			_unassignedFields?.Dispose();
@@ -170,21 +166,29 @@ namespace UniFiler10.ViewModels
 
 
 		#region user actions
-		public Task<bool> AddCategoryAsync()
+		public async Task<bool> AddCategoryAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(_metaBriefcase.AddCategoryAsync);
+			var mbc = _briefcase?.MetaBriefcase;
+			if (mbc == null) return false;
+			return await RunFunctionIfOpenAsyncTB(mbc.AddCategoryAsync).ConfigureAwait(false);
 		}
 
-		public Task<bool> RemoveCategoryAsync(Category cat)
+		public async Task<bool> RemoveCategoryAsync(Category cat)
 		{
-			return RunFunctionIfOpenAsyncTB(() => _metaBriefcase.RemoveCategoryAsync(cat));
+			var mbc = _briefcase?.MetaBriefcase;
+			if (mbc == null) return false;
+
+			return await RunFunctionIfOpenAsyncTB(() => mbc.RemoveCategoryAsync(cat)).ConfigureAwait(false);
 		}
 
 		public Task<bool> AddFieldDescriptionAsync()
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await _metaBriefcase.AddFieldDescriptionAsync())
+				var mbc = _briefcase?.MetaBriefcase;
+				if (mbc == null) return false;
+
+				if (await mbc.AddFieldDescriptionAsync())
 				{
 					UpdateUnassignedFields();
 					return true;
@@ -197,7 +201,10 @@ namespace UniFiler10.ViewModels
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await _metaBriefcase.RemoveFieldDescriptionAsync(fldDesc))
+				var mbc = _briefcase?.MetaBriefcase;
+				if (mbc == null) return false;
+
+				if (await mbc.RemoveFieldDescriptionAsync(fldDesc))
 				{
 					UpdateUnassignedFields();
 					return true;
@@ -209,7 +216,10 @@ namespace UniFiler10.ViewModels
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await _metaBriefcase.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
+				var mbc = _briefcase?.MetaBriefcase;
+				if (mbc == null) return false;
+
+				if (await mbc.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
 				{
 					UpdateUnassignedFields();
 					return true;
@@ -222,7 +232,10 @@ namespace UniFiler10.ViewModels
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				if (await _metaBriefcase.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
+				var mbc = _briefcase?.MetaBriefcase;
+				if (mbc == null) return false;
+
+				if (await mbc.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
 				{
 					UpdateUnassignedFields();
 					return true;
@@ -231,20 +244,29 @@ namespace UniFiler10.ViewModels
 			});
 		}
 
-		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
+		public async Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(_metaBriefcase.AddPossibleValueToCurrentFieldDescriptionAsync);
+			var mbc = _briefcase?.MetaBriefcase;
+			if (mbc == null) return false;
+
+			return await RunFunctionIfOpenAsyncTB(mbc.AddPossibleValueToCurrentFieldDescriptionAsync).ConfigureAwait(false);
 		}
 
-		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
+		public async Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
 		{
-			return RunFunctionIfOpenAsyncTB(() => _metaBriefcase.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal));
+			var mbc = _briefcase?.MetaBriefcase;
+			if (mbc == null) return false;
+
+			return await RunFunctionIfOpenAsyncTB(() => mbc.RemovePossibleValueFromCurrentFieldDescriptionAsync(fldVal)).ConfigureAwait(false);
 		}
 		public Task SetCurrentCategoryAsync(Category newItem)
 		{
 			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				await _metaBriefcase.SetCurrentCategoryAsync(newItem);
+				var mbc = _briefcase?.MetaBriefcase;
+				if (mbc == null) return;
+
+				await mbc.SetCurrentCategoryAsync(newItem);
 				UpdateUnassignedFields();
 			});
 		}
@@ -252,7 +274,10 @@ namespace UniFiler10.ViewModels
 		{
 			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				await _metaBriefcase.SetCurrentFieldDescriptionAsync(newItem);
+				var mbc = _briefcase?.MetaBriefcase;
+				if (mbc == null) return;
+
+				await mbc.SetCurrentFieldDescriptionAsync(newItem);
 			});
 		}
 
@@ -364,15 +389,22 @@ namespace UniFiler10.ViewModels
 
 		public event EventHandler MetadataChanged;
 
-		public async Task SetUseOneDriveAsync(bool newValue)
+		public Task RetrySyncFromOneDriveAsync()
+		{
+			var bc = _briefcase;
+			if (bc == null || !bc.IsWantAndCannotUseOneDrive) return Task.CompletedTask;
+
+			return SetIsWantUseOneDriveAsync(true);
+		}
+		public async Task SetIsWantUseOneDriveAsync(bool newValue)
 		{
 			var bc = _briefcase;
 			if (bc == null) return;
 
 			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			bool isOk = await bc.TrySetIsWantUseOneDriveAsync(newValue);
+			await bc.SetIsWantUseOneDriveAsync(newValue);
 			_animationStarter.EndAllAnimations();
-			_animationStarter.StartAnimation(isOk ? AnimationStarter.Animations.Success : AnimationStarter.Animations.Failure);
+			_animationStarter.StartAnimation(bc.IsWantAndCannotUseOneDrive ? AnimationStarter.Animations.Failure : AnimationStarter.Animations.Success);
 		}
 		#endregion user actions
 	}

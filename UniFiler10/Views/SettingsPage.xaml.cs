@@ -42,13 +42,13 @@ namespace UniFiler10.Views
 
 			await AnimationsControl.OpenAsync();
 
-			_vm = new SettingsVM(briefcase, briefcase.MetaBriefcase, _animationStarter);
+			_vm = new SettingsVM(briefcase, _animationStarter);
 			await _vm.OpenAsync();
 			_vm.MetadataChanged += OnVm_MetadataChanged;
 			RaisePropertyChanged_UI(nameof(VM));
 
 			//LayoutRoot.DataContext = VM;
-			Task ccc = RunInUiThreadAsync(() => MBView.DataContext = VM.MetaBriefcase);
+			Task ccc = RunInUiThreadAsync(() => MBView.DataContext = VM.Briefcase.MetaBriefcase);
 		}
 
 
@@ -78,7 +78,7 @@ namespace UniFiler10.Views
 		private void OnToggleElevated_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			MBView.DataContext = null;
-			MBView.DataContext = VM.MetaBriefcase;
+			MBView.DataContext = VM.Briefcase.MetaBriefcase;
 		}
 
 		private void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
@@ -96,7 +96,7 @@ namespace UniFiler10.Views
 			Task upd = RunInUiThreadAsync(delegate
 			{
 				MBView.DataContext = null;
-				MBView.DataContext = VM.MetaBriefcase;
+				MBView.DataContext = VM.Briefcase.MetaBriefcase;
 			});
 		}
 
@@ -117,11 +117,16 @@ namespace UniFiler10.Views
 			catch { }
 		}
 
-		private void OnIsUseOneDrive_Toggled(object sender, RoutedEventArgs e)
+		private void OnIsWantUseOneDrive_Toggled(object sender, RoutedEventArgs e)
 		{
 			var ts = sender as ToggleSwitch;
 			if (ts == null) return;
-			VM?.SetUseOneDriveAsync(ts.IsOn);
+			VM?.SetIsWantUseOneDriveAsync(ts.IsOn);
+		}
+
+		private void OnRetry_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			VM?.RetrySyncFromOneDriveAsync();
 		}
 		#endregion user actions
 	}

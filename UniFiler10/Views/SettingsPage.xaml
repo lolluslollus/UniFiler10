@@ -21,11 +21,11 @@
 			Visibility="{x:Bind IsEnabled, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 
 		<ScrollViewer
-        VerticalScrollBarVisibility="Auto"
-		VerticalScrollMode="Enabled"
-		HorizontalScrollBarVisibility="Auto"
-		HorizontalScrollMode="Enabled"
-		ZoomMode="Disabled">
+			VerticalScrollBarVisibility="Auto"
+			VerticalScrollMode="Enabled"
+			HorizontalScrollBarVisibility="Auto"
+			HorizontalScrollMode="Enabled"
+			ZoomMode="Disabled">
 			<RelativePanel x:Name="LayoutRoot"
 				Background="AntiqueWhite"
 				d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
@@ -44,7 +44,7 @@
 						Uid="Back2"/>
 
 					<ctl:LolloToggleButton
-						IsChecked="{Binding ElementName=me, Path=VM.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
+						IsChecked="{Binding ElementName=me, Path=VM.Briefcase.MetaBriefcase.IsElevated, Mode=TwoWay, FallbackValue=false}"
 						Tapped="OnToggleElevated_Tapped"
 						CheckedSymbol="Emoji2"
 						UncheckedSymbol="Important"
@@ -63,7 +63,7 @@
 						<ctl:LolloButton
 							Tapped="OnImport_Tapped"
 							IsEnabled="{x:Bind Path=VM.IsImportingSettings, Mode=OneWay, FallbackValue=false, Converter={StaticResource TrueToFalseConverter}}"
-							Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
+							Visibility="{x:Bind VM.Briefcase.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 							Symbol="Import"
 							Foreground="{StaticResource FlashyForeground}"
 							Uid="Import1"/>
@@ -77,7 +77,7 @@
 
 				<Border RelativePanel.Below="ActionsUWP"
 					x:Name="ElevatedNotice"
-					Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
+					Visibility="{x:Bind VM.Briefcase.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}, FallbackValue=Collapsed}"
 					BorderBrush="{StaticResource FlashyForeground}"
 					BorderThickness="{StaticResource Thickness2222}"
 					Padding="{StaticResource Thickness8282}">
@@ -90,7 +90,7 @@
 
 				<Border RelativePanel.Below="ElevatedNotice"
 					x:Name="SafeNotice"
-					Visibility="{x:Bind VM.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
+					Visibility="{x:Bind VM.Briefcase.MetaBriefcase.IsElevated, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
 					BorderThickness="{StaticResource Thickness2222}"
 					Padding="{StaticResource Thickness8282}">
 					<TextBlock x:Uid="SafeMode"
@@ -112,7 +112,38 @@
 						TextWrapping="Wrap"/>
 				</Border>
 
-				<ContentControl RelativePanel.Below="BackgroundNotice" x:Name="MBView"
+				<!-- connection settings -->
+				<StackPanel Orientation="Vertical" RelativePanel.Below="BackgroundNotice" x:Name="MeteredConnection">
+					<TextBlock x:Uid="SettingsAllowMeteredConnection"
+						VerticalAlignment="Center"/>
+					<StackPanel Orientation="Horizontal">
+						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"
+							VerticalAlignment="Center"/>
+						<TextBlock x:Uid="RuntimeIsConnectionAvailableFalse" Foreground="{StaticResource FlashyForeground}"
+							Visibility="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
+							VerticalAlignment="Center"/>
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Orientation="Vertical" RelativePanel.Below="MeteredConnection" x:Name="IsWantToUseOneDrive">
+					<TextBlock x:Uid="SettingsUseOneDrive"
+						VerticalAlignment="Center"/>
+					<StackPanel Orientation="Horizontal">
+						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsWantToUseOneDrive, Mode=OneWay}"
+							Toggled="OnIsWantUseOneDrive_Toggled"
+							VerticalAlignment="Center"/>
+						<TextBlock x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
+							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
+							VerticalAlignment="Center"/>
+						<AppBarButton Icon="Refresh" x:Uid="Retry"
+							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
+							IsEnabled="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay}"
+							VerticalAlignment="Center"
+							Tapped="OnRetry_Tapped"/>
+					</StackPanel>
+				</StackPanel>
+
+				<!-- edit metadata -->
+				<ContentControl RelativePanel.Below="IsWantToUseOneDrive" x:Name="MBView"
 					IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}">
 					<local:MetaBriefcaseView
 						VM="{x:Bind VM, Mode=OneWay}"
@@ -124,7 +155,9 @@
 					RelativePanel.Below="SafeNotice" 
 					Canvas.ZIndex="900"/>
 
+				<!-- spacer -->
 				<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBView"/>
+
 				<!-- camera resolution -->
 				<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader" 
 					VerticalAlignment="Center"/>
@@ -160,25 +193,6 @@
 						Checked="OnCameraResChanged"
 						VerticalAlignment="Center"/>
 				</uctl:UniversalWrapPanel>
-				<!-- other settings-->
-				<StackPanel Orientation="Vertical" RelativePanel.Below="CameraRes" x:Name="MeteredConnection">
-					<TextBlock x:Uid="SettingsAllowMeteredConnection"
-						VerticalAlignment="Center"/>
-					<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"
-						VerticalAlignment="Center"/>
-				</StackPanel>
-				<StackPanel Orientation="Vertical" RelativePanel.Below="MeteredConnection">
-					<TextBlock x:Uid="SettingsUseOneDrive"
-						VerticalAlignment="Center"/>
-					<StackPanel Orientation="Horizontal">
-						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsWantUseOneDrive, Mode=OneWay}"
-							Toggled="OnIsUseOneDrive_Toggled"
-							VerticalAlignment="Center"/>
-						<TextBlock x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
-							Visibility="{x:Bind VM.Briefcase.MetaBriefcase.IsSynced, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
-							VerticalAlignment="Center"/>
-					</StackPanel>
-				</StackPanel>
 			</RelativePanel>
 		</ScrollViewer>
 	</Grid>

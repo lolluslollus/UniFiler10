@@ -147,9 +147,9 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private volatile bool _isSynced = false;
+		private volatile bool _isSyncedOnceSinceLastOpen = false;
 		[IgnoreDataMember]
-		public bool IsSynced { get { { return _isSynced; } } private set { { _isSynced = value; } } }
+		public bool IsSyncedOnceSinceLastOpen { get { { return _isSyncedOnceSinceLastOpen; } } private set { { _isSyncedOnceSinceLastOpen = value; } } }
 
 		private static string OneDriveAccessToken
 		{
@@ -196,7 +196,7 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task OpenMayOverrideAsync()
 		{
-			bool wantToUseOneDrive = _briefcase.IsWantUseOneDrive;
+			bool wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 			try
 			{
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
@@ -239,7 +239,7 @@ namespace UniFiler10.Data.Metadata
 		protected override async Task CloseMayOverrideAsync()
 		{
 			await Save2Async().ConfigureAwait(false);
-			if (_briefcase.IsWantUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			if (_briefcase.IsWantAndCanUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 
 			//var fldDscs = _fieldDescriptions;
 			//if (fldDscs != null)
@@ -417,7 +417,7 @@ namespace UniFiler10.Data.Metadata
 
 		private async Task LoadAsync(bool wantToUseOneDrive)
 		{
-			if (IsPropsLoaded && IsSynced) return;
+			if (IsPropsLoaded && IsSyncedOnceSinceLastOpen) return;
 
 			// LOLLO NOTE on the onedrive sdk
 			// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
@@ -454,7 +454,7 @@ namespace UniFiler10.Data.Metadata
 			if (CancToken.IsCancellationRequested) return;
 
 			var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-			if (wantToUseOneDrive)
+			if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 			{
 				using (var client = new HttpClient())
 				{
@@ -467,7 +467,7 @@ namespace UniFiler10.Data.Metadata
 							newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 						}
 						mustSyncLocal = true;
-						IsSynced = true;
+						IsSyncedOnceSinceLastOpen = true;
 					}
 					catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
 					{
@@ -481,7 +481,7 @@ namespace UniFiler10.Data.Metadata
 						}
 						catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
 						mustSyncOneDrive = true;
-						IsSynced = true;
+						IsSyncedOnceSinceLastOpen = true;
 					}
 					catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
 					{
@@ -493,7 +493,7 @@ namespace UniFiler10.Data.Metadata
 							}
 						}
 						catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
-						IsSynced = false;
+						IsSyncedOnceSinceLastOpen = false;
 					}
 				}
 			}
@@ -507,7 +507,7 @@ namespace UniFiler10.Data.Metadata
 					}
 				}
 				catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
-				IsSynced = false;
+				IsSyncedOnceSinceLastOpen = false;
 			}
 
 			if (newMetaBriefcase != null) // if I could pick up some data, use it and sync whatever needs syncing
@@ -842,7 +842,7 @@ namespace UniFiler10.Data.Metadata
 				if (isAdded && save)
 				{
 					isAdded = await Save2Async().ConfigureAwait(false);
-					if (_briefcase.IsWantUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+					if (_briefcase.IsWantAndCanUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 				}
 				return isAdded;
 			});
@@ -893,7 +893,7 @@ namespace UniFiler10.Data.Metadata
 		public async Task<bool> SaveAsync()
 		{
 			var result = await RunFunctionIfOpenAsyncTB(() => Save2Async());
-			if (_briefcase.IsWantUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+			if (_briefcase.IsWantAndCanUseOneDrive) UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 			return result;
 		}
 		#endregion while open methods
