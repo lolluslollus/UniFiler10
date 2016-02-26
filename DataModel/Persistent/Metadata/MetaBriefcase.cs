@@ -417,6 +417,8 @@ namespace UniFiler10.Data.Metadata
 
 		private async Task LoadAsync(bool wantToUseOneDrive)
 		{
+			// LOLLO TODO if, for any reason, the bkg task failed, I will load the old metadata here:
+			// no good.
 			if (IsPropsLoaded && IsSyncedOnceSinceLastOpen) return;
 
 			// LOLLO NOTE on the onedrive sdk
