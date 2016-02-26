@@ -200,6 +200,8 @@ namespace UniFiler10.Data.Metadata
 			try
 			{
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+
+				wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 				// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
 				OneDriveAccessToken = string.Empty;
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
