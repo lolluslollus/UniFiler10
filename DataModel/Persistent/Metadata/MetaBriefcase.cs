@@ -333,133 +333,6 @@ namespace UniFiler10.Data.Metadata
 			IsPropsLoaded = false;
 		}
 
-		//private async Task LoadAsync()
-		//{
-		//	if (_isPropsLoaded) return;
-
-		//	// LOLLO NOTE on the onedrive sdk
-		//	// http://blogs.u2u.net/diederik/post/2015/04/06/Using-the-OneDrive-SDK-in-universal-apps.aspx
-		//	// https://msdn.microsoft.com/en-us/magazine/mt632271.aspx
-		//	// https://onedrive.live.com/?authkey=%21ADtqHIG1cV7g5EI&cid=40CFFDE85F1AB56A&id=40CFFDE85F1AB56A%212187&parId=40CFFDE85F1AB56A%212186&action=locate
-
-		//	MetaBriefcase newMetaBriefcase = null;
-		//	bool mustSyncLocal = false;
-		//	bool mustSyncOneDrive = false;
-
-		//	StorageFile localFile = null;
-		//	var localFileLastModifiedWhen = default(DateTime);
-		//	var oneDriveFileLastModifiedWhen = default(DateTime);
-
-		//	// set localFile and localFileLastModifiedWhen
-		//	try
-		//	{
-		//		if (_sourceFile != null)
-		//		{
-		//			localFile = _sourceFile;
-		//			localFileLastModifiedWhen = new DateTime(9999, 12, 31);
-		//		}
-		//		else
-		//		{
-		//			if (CancToken.IsCancellationRequested) return;
-		//			localFile = (await GetDirectory().TryGetItemAsync(FILENAME).AsTask().ConfigureAwait(false) as StorageFile);
-		//			if (CancToken.IsCancellationRequested) return;
-
-		//			if (localFile != null)
-		//			{
-		//				var localFileProps = await localFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-		//				localFileLastModifiedWhen = localFileProps.DateModified.DateTime.ToUniversalTime();
-		//			}
-		//			else
-		//			{
-		//				localFile = await GetDirectory()
-		//					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-		//					.AsTask().ConfigureAwait(false);
-		//			}
-		//		}
-		//	}
-		//	catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
-		//	finally
-		//	{
-		//		_sourceFile = null;
-		//	}
-
-		//	if (CancToken.IsCancellationRequested) return;
-
-		//	using (var client = new HttpClient())
-		//	{
-		//		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
-
-		//		// set oneDriveFileLastModifiedWhen
-		//		try
-		//		{
-		//			var odFileProps = JObject.Parse(await client.GetStringAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME)).ConfigureAwait(false));
-		//			oneDriveFileLastModifiedWhen = odFileProps.GetValue("lastModifiedDateTime").ToObject<DateTime>().ToUniversalTime();
-		//		}
-		//		catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
-
-		//		var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-		//		if (oneDriveFileLastModifiedWhen > localFileLastModifiedWhen) // pick up data from one drive
-		//		{
-		//			mustSyncLocal = true;
-		//			try
-		//			{
-		//				using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
-		//				{
-		//					newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
-		//				}
-		//			}
-		//			catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
-		//			{
-		//				await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
-		//				mustSyncOneDrive = true;
-		//				try
-		//				{
-		//					using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
-		//					{
-		//						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
-		//					}
-		//				}
-		//				catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
-		//			}
-		//		}
-		//		else // pick up date from local file
-		//		{
-		//			mustSyncOneDrive = true;
-		//			try
-		//			{
-		//				using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
-		//				{
-		//					newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
-		//				}
-		//			}
-		//			catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
-		//		}
-		//	}
-
-		//	if (newMetaBriefcase != null) // if I could pick up some data, use it and sync whatever needs syncing
-		//	{
-		//		_isPropsLoaded = true;
-		//		CopyXMLPropertiesFrom(newMetaBriefcase);
-		//		if (mustSyncLocal)
-		//		{
-		//			Task syncLocal = Task.Run(() => Save2Async(), CancToken);
-		//		}
-		//		if (mustSyncOneDrive)
-		//		{
-		//			UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
-		//			// I don't use the following, but it is interesting and it works.
-		//			//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
-		//		}
-		//	}
-
-		//	// load non-xml properties
-		//	bool isElevated = false;
-		//	bool.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_IS_ELEVATED), out isElevated);
-		//	IsElevated = isElevated;
-
-		//	Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
-		//}
-
 		private async Task LoadAsync(bool wantToUseOneDrive)
 		{
 			if (IsPropsLoaded && IsSyncedOnceSinceLastOpen) return;
@@ -474,21 +347,11 @@ namespace UniFiler10.Data.Metadata
 			bool mustSyncOneDrive = false;
 
 			StorageFile localFile = null;
-
-			// set localFile and localFileLastModifiedWhen
 			try
 			{
-				var sourceFile = SourceFile;
-				if (sourceFile != null)
-				{
-					localFile = sourceFile;
-				}
-				else
-				{
-					localFile = await GetDirectory()
-						.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-						.AsTask().ConfigureAwait(false);
-				}
+				localFile = SourceFile ?? await GetDirectory()
+					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
+					.AsTask().ConfigureAwait(false);
 			}
 			catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
 			finally
@@ -568,7 +431,7 @@ namespace UniFiler10.Data.Metadata
 				if (mustSyncOneDrive)
 				{
 					RaiseUpdateOneDriveMetaBriefcaseRequested();
-					// I don't use the following, but it is interesting and it works.
+					// I don't use the following, but it is interesting and it works:
 					//Task saveToOneDrive = Task.Run(() => SaveToOneDrive(localFileContent, _oneDriveAccountSession.AccessToken), CancToken).ContinueWith(state => localFileContent?.Dispose());
 				}
 			}
