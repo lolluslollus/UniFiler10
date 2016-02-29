@@ -5,13 +5,15 @@
 
 	<x:Double x:Key="LTBDecorationsSize">34</x:Double>
 
+	<SolidColorBrush x:Key="DefaultBorderBrush" Color="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
+
 	<Style x:Key="LolloTextBoxStyle" TargetType="ctl:LolloTextBox">
 		<Setter Property="MinWidth" Value="{ThemeResource TextControlThemeMinWidth}"/>
 		<Setter Property="MinHeight" Value="{ThemeResource TextControlThemeMinHeight}"/>
 		<Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
 		<Setter Property="Background" Value="{ThemeResource SystemControlBackgroundAltHighBrush}"/>
 		<!--<Setter Property="BorderBrush" Value="{ThemeResource SystemControlForegroundChromeDisabledLowBrush}"/>-->
-		<Setter Property="BorderBrush" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
+		<Setter Property="BorderBrush" Value="{StaticResource DefaultBorderBrush}"/>
 		<Setter Property="BorderThickness" Value="{ThemeResource TextControlBorderThemeThickness}"/>
 		<!--<Setter Property="BorderThickness" Value="{StaticResource EThickness}"/>-->
 		<Setter Property="SelectionHighlightColor" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>

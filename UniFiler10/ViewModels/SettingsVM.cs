@@ -394,15 +394,15 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (bc == null || !bc.IsWantAndCannotUseOneDrive) return Task.CompletedTask;
 
-			return SetIsWantUseOneDriveAsync(true);
+			return SetIsWantToUseOneDriveAsync(true);
 		}
-		public async Task SetIsWantUseOneDriveAsync(bool newValue)
+		public async Task SetIsWantToUseOneDriveAsync(bool newValue)
 		{
 			var bc = _briefcase;
 			if (bc == null) return;
 
 			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			await bc.SetIsWantUseOneDriveAsync(newValue);
+			await bc.SetIsWantToUseOneDriveAsync(newValue);
 			_animationStarter.EndAllAnimations();
 			_animationStarter.StartAnimation(bc.IsWantAndCannotUseOneDrive ? AnimationStarter.Animations.Failure : AnimationStarter.Animations.Success);
 		}

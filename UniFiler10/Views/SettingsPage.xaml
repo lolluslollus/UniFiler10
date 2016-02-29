@@ -128,8 +128,11 @@
 					<TextBlock x:Uid="SettingsUseOneDrive"
 						VerticalAlignment="Center"/>
 					<StackPanel Orientation="Horizontal">
+						<!--Toggled="OnIsWantToUseOneDrive_Toggled"-->
+						<!--Tapped="OnIsWantToUseOneDrive_Tapped"-->
+						<!--PointerReleased="OnIsWantToUseOneDrive_PointerReleased"-->
 						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsWantToUseOneDrive, Mode=OneWay}"
-							Toggled="OnIsWantUseOneDrive_Toggled"
+							LostFocus="OnIsWantToUseOneDrive_LostFocus"
 							VerticalAlignment="Center"/>
 						<TextBlock x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
 							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"

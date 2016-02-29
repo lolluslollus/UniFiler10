@@ -117,11 +117,32 @@ namespace UniFiler10.Views
 			catch { }
 		}
 
-		private void OnIsWantUseOneDrive_Toggled(object sender, RoutedEventArgs e)
+		//private void OnIsWantToUseOneDrive_Tapped(object sender, TappedRoutedEventArgs e)
+		//{
+		//	var ts = sender as ToggleSwitch;
+		//	if (ts == null) return;
+		//	VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
+		//}
+
+		//private void OnIsWantToUseOneDrive_Toggled(object sender, RoutedEventArgs e)
+		//{
+		//	var ts = sender as ToggleSwitch;
+		//	if (ts == null) return;
+		//	VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
+		//}
+
+		//private void OnIsWantToUseOneDrive_PointerReleased(object sender, PointerRoutedEventArgs e)
+		//{
+		//	var ts = sender as ToggleSwitch;
+		//	if (ts == null) return;
+		//	VM?.SetIsWantToUseOneDriveAsync(!ts.IsOn);
+		//}
+
+		private void OnIsWantToUseOneDrive_LostFocus(object sender, RoutedEventArgs e)
 		{
 			var ts = sender as ToggleSwitch;
 			if (ts == null) return;
-			VM?.SetIsWantUseOneDriveAsync(ts.IsOn);
+			VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
 		}
 
 		private void OnRetry_Tapped(object sender, TappedRoutedEventArgs e)

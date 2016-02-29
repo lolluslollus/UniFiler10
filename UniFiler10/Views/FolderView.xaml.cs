@@ -87,16 +87,17 @@ namespace UniFiler10.Views
 			var vm = VM;
 			if (textBox == null || vm == null) return;
 
-			// LOLLO TODO make this nicer, maybe output an error message
+			string oldText = textBox.Text;
+			// LOLLO TODO make this nicer, maybe output an error message and add an animation
 			bool isValueSet = await vm.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
 			if (isValueSet)
 			{
-				textBox.BorderThickness = new Thickness(0.0);
+				textBox.BorderBrush = (SolidColorBrush)Application.Current.Resources["DefaultBorderBrush"];
 			}
 			else
 			{
-				textBox.BorderThickness = new Thickness(2.0);
-				textBox.BorderBrush = (SolidColorBrush)Resources["FlashyForeground"];
+				textBox.Text = oldText;
+				textBox.BorderBrush = (SolidColorBrush)Application.Current.Resources["FlashyForeground"];
 			}
 		}
 	}

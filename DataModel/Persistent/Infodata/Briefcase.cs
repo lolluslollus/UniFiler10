@@ -142,17 +142,18 @@ namespace UniFiler10.Data.Model
 			get { return _isWantAndCannotUseOneDrive; }
 		}
 
-		public Task SetIsWantUseOneDriveAsync(bool newValue)
+		public Task SetIsWantToUseOneDriveAsync(bool newValue)
 		{
 			return RunFunctionIfOpenAsyncT(async () =>
 			{
 				IsWantToUseOneDrive = newValue;
+				RaisePropertyChanged_UI(nameof(IsWantToUseOneDrive));
 				await UpdateIsWantAndCanUseOneDriveAsync().ConfigureAwait(false);
 			});
 		}
 		private async Task UpdateIsWantAndCanUseOneDriveAsync()
 		{
-			if (_isWantToUseOneDrive == _isWantAndCanUseOneDrive) return;
+			if (_isWantToUseOneDrive && _isWantAndCanUseOneDrive) return;
 
 			if (_isWantToUseOneDrive)
 			{
