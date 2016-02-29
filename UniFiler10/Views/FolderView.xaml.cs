@@ -5,6 +5,7 @@ using UniFiler10.ViewModels;
 using Utilz.Controlz;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -80,12 +81,22 @@ namespace UniFiler10.Views
 			_vm = null;
 		}
 
-		private void OnVaalue_LostFocus(object sender, RoutedEventArgs e)
+		private async void OnVaalue_LostFocus(object sender, RoutedEventArgs e)
 		{
 			var textBox = sender as TextBox;
-			if (textBox != null)
+			var vm = VM;
+			if (textBox == null || vm == null) return;
+
+			// LOLLO TODO make this nicer, maybe output an error message
+			bool isValueSet = await vm.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
+			if (isValueSet)
 			{
-				Task setVal = VM?.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
+				textBox.BorderThickness = new Thickness(0.0);
+			}
+			else
+			{
+				textBox.BorderThickness = new Thickness(2.0);
+				textBox.BorderBrush = (SolidColorBrush)Resources["FlashyForeground"];
 			}
 		}
 	}

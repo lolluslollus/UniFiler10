@@ -186,6 +186,7 @@ namespace UniFiler10.Data.Model
 		private async Task<bool> TrySetFieldValueId(FieldDescription fd, string newValue)
 		{
 			if (fd == null) return false;
+			var bc = Briefcase.GetCurrentInstance();
 
 			var availableFldVal = fd.GetValueFromPossibleValues(newValue);
 			if (availableFldVal != null)
@@ -193,7 +194,7 @@ namespace UniFiler10.Data.Model
 				FieldValueId = availableFldVal.Id;
 				return true;
 			}
-			if (fd.IsAnyValueAllowed)
+			if (fd.IsAnyValueAllowed && bc != null && !bc.IsWantAndCannotUseOneDrive)
 			{
 				var mb = MetaBriefcase.OpenInstance;
 				if (mb != null)

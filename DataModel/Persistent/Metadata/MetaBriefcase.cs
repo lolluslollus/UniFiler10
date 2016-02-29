@@ -264,7 +264,6 @@ namespace UniFiler10.Data.Metadata
 					//await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
 					oneDriveAccountSession = await authenticateT.ConfigureAwait(false);
 
-					// if (!string.IsNullOrEmpty(oneDriveAccountSession?.AccessToken)) OneDriveAccessToken = oneDriveAccountSession.AccessToken;
 					OneDriveAccessToken = oneDriveAccountSession?.AccessToken ?? string.Empty;
 					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
 					//}

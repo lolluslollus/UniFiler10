@@ -143,8 +143,9 @@
 				</StackPanel>
 
 				<!-- edit metadata -->
+				<!--IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}"-->
 				<ContentControl RelativePanel.Below="IsWantToUseOneDrive" x:Name="MBView"
-					IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}">
+					IsEnabled="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}">
 					<local:MetaBriefcaseView
 						VM="{x:Bind VM, Mode=OneWay}"
 						HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
