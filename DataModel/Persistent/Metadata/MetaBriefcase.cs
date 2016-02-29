@@ -375,7 +375,7 @@ namespace UniFiler10.Data.Metadata
 
 			if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 			{
-				if (LastTimeUpdateOneDriveRan > LastTimeUpdateOneDriveCalled)
+				if (LastTimeUpdateOneDriveRan >= LastTimeUpdateOneDriveCalled)
 				{
 					using (var client = new HttpClient())
 					{
