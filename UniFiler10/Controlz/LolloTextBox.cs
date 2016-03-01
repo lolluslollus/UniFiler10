@@ -33,6 +33,14 @@ namespace UniFiler10.Controlz
 
 
 		#region properties
+		public bool IsReadonly2
+		{
+			get { return (bool)GetValue(IsReadonly2Property); }
+			set { SetValue(IsReadonly2Property, value); }
+		}
+		public static readonly DependencyProperty IsReadonly2Property =
+			DependencyProperty.Register("IsReadonly2", typeof(bool), typeof(LolloTextBox), new PropertyMetadata(false, OnIsReadonly2Changed));
+
 		public DataTemplate ListItemTemplate
 		{
 			get { return (DataTemplate)GetValue(ListItemTemplateProperty); }
@@ -106,6 +114,12 @@ namespace UniFiler10.Controlz
 
 
 		#region on property changed
+		private static void OnIsReadonly2Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			if (args == null || args.NewValue == args.OldValue) return;
+			(obj as LolloTextBox)?.UpdateEDV();
+		}
+
 		private static void OnIsEmptyValueAllowedEvenIfNotInListChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
 			if (args == null || args.NewValue == args.OldValue) return;
@@ -164,7 +178,7 @@ namespace UniFiler10.Controlz
 		#region property update methods
 		private void UpdateEDV()
 		{
-			if (!IsReadOnly && IsEnabled && IsEditableDecoratorVisible) EditableDecoratorVisibility = Visibility.Visible;
+			if (!IsReadOnly && !IsReadonly2 && IsEnabled && IsEditableDecoratorVisible) EditableDecoratorVisibility = Visibility.Visible;
 			else EditableDecoratorVisibility = Visibility.Collapsed;
 		}
 		private void UpdateDropDownButtonVisibility()
@@ -174,7 +188,7 @@ namespace UniFiler10.Controlz
 		}
 		private void UpdateDeleteButtonVisibility()
 		{
-			if (IsEnabled && (!IsReadOnly || (IsDropDownButtonVisible && (ItemsSource as IList)?.Count > 0 && IsEmptyValueAllowedEvenIfNotInList))) DeleteButtonVisibility = Visibility.Visible;
+			if (IsEnabled && ((!IsReadOnly && !IsReadonly2) || (IsDropDownButtonVisible && (ItemsSource as IList)?.Count > 0 && IsEmptyValueAllowedEvenIfNotInList))) DeleteButtonVisibility = Visibility.Visible;
 			else DeleteButtonVisibility = Visibility.Collapsed;
 		}
 		#endregion property update methods

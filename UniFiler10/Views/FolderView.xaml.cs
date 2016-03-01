@@ -88,17 +88,9 @@ namespace UniFiler10.Views
 			if (textBox == null || vm == null) return;
 
 			string oldText = textBox.Text;
-			// LOLLO TODO make this nicer, maybe output an error message and add an animation
+			// LOLLO TODO check if I need to reset the value, it's new
 			bool isValueSet = await vm.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
-			if (isValueSet)
-			{
-				textBox.BorderBrush = (SolidColorBrush)Application.Current.Resources["DefaultBorderBrush"];
-			}
-			else
-			{
-				textBox.Text = oldText;
-				textBox.BorderBrush = (SolidColorBrush)Application.Current.Resources["FlashyForeground"];
-			}
+			if (!isValueSet) textBox.Text = oldText;
 		}
 	}
 }

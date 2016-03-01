@@ -28,6 +28,9 @@ namespace UniFiler10.ViewModels
 		private RuntimeData _runtimeData = null;
 		public RuntimeData RuntimeData { get { return _runtimeData; } private set { _runtimeData = value; RaisePropertyChanged_UI(); } }
 
+		private Briefcase _briefcase = null;
+		public Briefcase Briefcase { get { return _briefcase; } private set { _briefcase = value; RaisePropertyChanged_UI(); } }
+
 		private bool _isAudioRecorderOverlayOpen = false;
 		public bool IsAudioRecorderOverlayOpen
 		{
@@ -90,6 +93,7 @@ namespace UniFiler10.ViewModels
 		{
 			await RunInUiThreadAsync(delegate
 			{
+				Briefcase = Briefcase.GetCurrentInstance();
 				RuntimeData = RuntimeData.Instance;
 				FolderCategorySelector = new SwitchableObservableDisposableCollection<FolderCategorySelectorRow>();
 				UpdateCurrentFolderCategories();
