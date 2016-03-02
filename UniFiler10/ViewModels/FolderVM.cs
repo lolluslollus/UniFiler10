@@ -202,6 +202,7 @@ namespace UniFiler10.ViewModels
 				if (file == null) return;
 
 				bool isOk = false;
+				// LOLLO TODO maybe open a big textBlock to see text files?
 				isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
 				//isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
 			}
