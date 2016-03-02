@@ -272,8 +272,8 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
-			var openParams = args as OpenParameters;
-			if (openParams?.IsReloadProps == true) IsPropsLoaded = false;
+			var openParams = args as OpenParameters ?? new OpenParameters();
+			if (openParams.IsReloadProps) IsPropsLoaded = false;
 
 			bool wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 			try
@@ -312,7 +312,7 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
-				await LoadAsync(wantToUseOneDrive, openParams?.SourceFile, openParams == null ? OpenParameters.DefaultIsLoadFromOneDrive : openParams.IsLoadFromOneDrive).ConfigureAwait(false);
+				await LoadAsync(wantToUseOneDrive, openParams.SourceFile, openParams.IsLoadFromOneDrive).ConfigureAwait(false);
 				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 		}
