@@ -227,6 +227,14 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
+		private static void SetIsOneDriveUpdateOverdue()
+		{
+			lock (_lastUpdateLocker)
+			{
+				LastTimeUpdateOneDriveRan = default(DateTime);
+			}
+		}
+
 		private readonly RuntimeData _runtimeData = null;
 		private readonly Briefcase _briefcase = null;
 		#endregion properties
@@ -420,6 +428,12 @@ namespace UniFiler10.Data.Metadata
 				{
 					if (IsOneDriveUpdateOverdue)
 					{
+						newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+						mustSyncOneDrive = true;
+						IsSyncedOnceSinceLastOpen = true;
+					}
+					else
+					{
 						using (var client = new HttpClient())
 						{
 							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
@@ -437,6 +451,7 @@ namespace UniFiler10.Data.Metadata
 							{
 								await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
 								newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+								SetIsOneDriveUpdateOverdue();
 								mustSyncOneDrive = true;
 								IsSyncedOnceSinceLastOpen = true;
 							}
@@ -448,21 +463,14 @@ namespace UniFiler10.Data.Metadata
 							}
 						}
 					}
-					// if, for any reason, the bkg task failed, I will load the local file
-					else
-					{
-						newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
-						mustSyncOneDrive = true;
-						IsSyncedOnceSinceLastOpen = true;
-					}
 				}
-				else
+				else // do not want or cannot use OneDive
 				{
 					newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 					IsSyncedOnceSinceLastOpen = false;
 				}
 			}
-			else
+			else // push the data from here into OneDrive
 			{
 				newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 				mustSyncOneDrive = true;
