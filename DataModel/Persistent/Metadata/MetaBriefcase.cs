@@ -171,19 +171,26 @@ namespace UniFiler10.Data.Metadata
 		//private const string _oneDriveAppRootUri = "https://api.onedrive.com/v1.0/drive/special/approot/";
 		private const string _oneDriveAppRootUri4Path = "https://api.onedrive.com/v1.0/drive/special/approot:/"; // this is useful if you don't know the file ids but you know the paths
 
+		private static object _lastUpdateLocker = new object();
 		[IgnoreDataMember]
 		private static DateTime LastTimeUpdateOneDriveCalled
 		{
 			get
 			{
-				DateTime result = default(DateTime);
-				DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result);
-				return result;
+				lock (_lastUpdateLocker)
+				{
+					DateTime result = default(DateTime);
+					DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result);
+					return result;
+				}
 			}
 			set
 			{
-				string newValue = value.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
-				RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED, newValue);
+				lock (_lastUpdateLocker)
+				{
+					string newValue = value.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+					RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED, newValue);
+				}
 			}
 		}
 
@@ -192,14 +199,31 @@ namespace UniFiler10.Data.Metadata
 		{
 			get
 			{
-				DateTime result = default(DateTime);
-				DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result);
-				return result;
+				lock (_lastUpdateLocker)
+				{
+					DateTime result = default(DateTime);
+					DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result);
+					return result;
+				}
 			}
 			set
 			{
-				string newValue = value.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
-				RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN, newValue);
+				lock (_lastUpdateLocker)
+				{
+					string newValue = value.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+					RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN, newValue);
+				}
+			}
+		}
+		[IgnoreDataMember]
+		private static bool IsOneDriveUpdateOverdue
+		{
+			get
+			{
+				lock (_lastUpdateLocker)
+				{
+					return LastTimeUpdateOneDriveCalled >= LastTimeUpdateOneDriveRan;
+				}
 			}
 		}
 
@@ -246,6 +270,7 @@ namespace UniFiler10.Data.Metadata
 			bool wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 			try
 			{
+				_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
 
 				wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
@@ -286,8 +311,10 @@ namespace UniFiler10.Data.Metadata
 
 		protected override async Task CloseMayOverrideAsync()
 		{
+			var rd = _runtimeData;
+			if (rd != null) rd.PropertyChanged -= OnRuntimeData_PropertyChanged;
 			await Save2Async().ConfigureAwait(false);
-			RaiseUpdateOneDriveMetaBriefcaseRequested();
+			// RaiseUpdateOneDriveMetaBriefcaseRequested();
 
 			//var fldDscs = _fieldDescriptions;
 			//if (fldDscs != null)
@@ -306,6 +333,13 @@ namespace UniFiler10.Data.Metadata
 			//		cat.Dispose();
 			//	}
 			//}
+		}
+		private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable) && _runtimeData.IsConnectionAvailable)
+			{
+				if (IsOneDriveUpdateOverdue) RaiseUpdateOneDriveMetaBriefcaseRequested();
+			}
 		}
 		#endregion lifecycle
 
@@ -384,7 +418,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
-					if (LastTimeUpdateOneDriveRan >= LastTimeUpdateOneDriveCalled)
+					if (IsOneDriveUpdateOverdue)
 					{
 						using (var client = new HttpClient())
 						{
@@ -591,7 +625,7 @@ namespace UniFiler10.Data.Metadata
 
 							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal))
 							{
-								LastTimeUpdateOneDriveRan = DateTime.Now;
+								LastTimeUpdateOneDriveRan = DateTime.Now.AddMilliseconds(1.0);
 								return;
 							}
 
@@ -610,7 +644,7 @@ namespace UniFiler10.Data.Metadata
 							{
 								await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
 							}
-							LastTimeUpdateOneDriveRan = DateTime.Now;
+							LastTimeUpdateOneDriveRan = DateTime.Now.AddMilliseconds(1.0);
 						}
 					}
 				}
