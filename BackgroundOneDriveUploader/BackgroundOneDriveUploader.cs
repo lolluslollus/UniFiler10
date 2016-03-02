@@ -55,12 +55,12 @@ namespace BackgroundTasks
 				_taskInstance.Progress = 1;
 				// we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
 
-				var bc = Briefcase.GetCreateInstance(true);
-				await bc.OpenAsync().ConfigureAwait(false);
-				if (bc.RuntimeData?.IsConnectionAvailable == true)
+				var briefcase = Briefcase.GetCreateInstance(true);
+				await briefcase.OpenAsync().ConfigureAwait(false);
+				if (briefcase.RuntimeData?.IsConnectionAvailable == true)
 				{
 					if (cancToken.IsCancellationRequested) return;
-					await bc.MetaBriefcase.SaveLocalFileToOneDriveAsync(cancToken).ConfigureAwait(false);
+					await briefcase.MetaBriefcase.SaveLocalFileToOneDriveAsync(cancToken).ConfigureAwait(false);
 				}
 			}
 			catch (ObjectDisposedException) // comes from the cts
