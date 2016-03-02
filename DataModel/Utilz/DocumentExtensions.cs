@@ -15,7 +15,7 @@ namespace Utilz
 		public static readonly string[] IMAGE_EXTENSIONS = { ".bmp", ".gif", ".giff", ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
 		public static readonly string TXT_EXTENSION = ".txt";
 
-		internal static Task<StorageFile> PickMediaFileAsync()
+		public static Task<StorageFile> PickMediaFileAsync()
 		{
 			var exts = HTML_EXTENSIONS.ToList();
 			exts.Add(PDF_EXTENSION);
@@ -51,11 +51,23 @@ namespace Utilz
 			return null;
 		}
 
-		public static async Task<StorageFile> WriteTextIntoFileAsync(string text, string fileName)
+		public static async Task<bool> WriteTextIntoFileAsync(string text, string fileName)
 		{
 			try
 			{
 				var file = await ApplicationData.Current.LocalCacheFolder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
+				return await WriteTextIntoFileAsync(text, file).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+			}
+			return false;
+		}
+		public static async Task<bool> WriteTextIntoFileAsync(string text, StorageFile file)
+		{
+			try
+			{
 				if (file != null)
 				{
 					using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
@@ -67,7 +79,7 @@ namespace Utilz
 							await writer.WriteAsync(text).ConfigureAwait(false);
 							await fileStream.FlushAsync();
 							await writer.FlushAsync();
-							return file;
+							return true;
 						}
 					}
 				}
@@ -76,7 +88,7 @@ namespace Utilz
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 			}
-			return null;
+			return false;
 		}
 
 	}

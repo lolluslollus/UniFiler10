@@ -115,13 +115,21 @@ namespace UniFiler10.Data.Model
 			}
 			return false;
 		}
-		public Task<bool> AddDocumentAsync()
+		public async Task<Document> AddDocumentAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
+			Document newDoc = null;
+			if (await RunFunctionIfOpenAsyncTB(delegate
 			{
-				var doc = new Document(DBManager, Id);
-				return await AddDocument2Async(doc).ConfigureAwait(false);
-			});
+				newDoc = new Document(DBManager, Id);
+				return AddDocument2Async(newDoc);
+			}).ConfigureAwait(false))
+			{
+				return newDoc;
+			}
+			else
+			{
+				return null;
+			}
 		}
 		private async Task<bool> RemoveDocument2Async(Document doc)
 		{
@@ -163,7 +171,7 @@ namespace UniFiler10.Data.Model
 			return RunFunctionIfOpenAsyncTB(async () => await RemoveDocument2Async(doc).ConfigureAwait(false));
 		}
 
-		public Task<bool> ImportMediaFileAsync(StorageFile file)
+		public Task<bool> ImportFileAsync(StorageFile file)
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{

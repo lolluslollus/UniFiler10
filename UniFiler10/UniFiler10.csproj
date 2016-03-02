@@ -119,7 +119,6 @@
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Services\AudioRecorder.cs" />
     <Compile Include="Services\BackgroundTaskHelper.cs" />
-    <Compile Include="Services\DocumentExtensions.cs" />
     <Compile Include="Services\Licenser.cs" />
     <Compile Include="Controlz\TolerantListView.cs" />
     <Compile Include="Controlz\UserConfirmationPopup.cs" />

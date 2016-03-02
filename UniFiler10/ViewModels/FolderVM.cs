@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
@@ -13,8 +14,6 @@ using Utilz.Data;
 using Windows.Media.Capture;
 using Windows.Storage;
 using Windows.System;
-
-// LOLLO TODO add OCR
 
 namespace UniFiler10.ViewModels
 {
@@ -147,6 +146,25 @@ namespace UniFiler10.ViewModels
 		public Task<bool> RemoveWalletFromFolderAsync(Wallet wallet)
 		{
 			return RunFunctionIfOpenAsyncTB(() => _folder?.RemoveWalletAsync(wallet));
+		}
+		public async Task<bool> OcrDocumentAsync(Wallet wallet, Document doc)
+		{
+			if (wallet == null || doc == null) return false;
+
+			var textLines = await doc.GetTextFromPictureAsync().ConfigureAwait(false);
+			if (textLines == null || !textLines.Any()) return false;
+
+			var directory = wallet.DBManager?.Directory;
+			if (directory == null) return false;
+
+			var newFile = await directory.CreateFileAsync(Guid.NewGuid().ToString() + DocumentExtensions.TXT_EXTENSION).AsTask().ConfigureAwait(false);
+			if (newFile == null) return false;
+
+			var sb = new StringBuilder();
+			foreach (var textLine in textLines) { sb.AppendLine(textLine); }
+			await DocumentExtensions.WriteTextIntoFileAsync(sb.ToString(), newFile).ConfigureAwait(false);
+
+			return await wallet.ImportFileAsync(newFile).ConfigureAwait(false);
 		}
 		public Task<bool> RemoveDocumentFromWalletAsync(Wallet wallet, Document doc)
 		{
@@ -310,7 +328,7 @@ namespace UniFiler10.ViewModels
 					}
 					else
 					{
-						isImported = await parentWallet.ImportMediaFileAsync(newFile).ConfigureAwait(false);
+						isImported = await parentWallet.ImportFileAsync(newFile).ConfigureAwait(false);
 					}
 
 					if (!isImported)
@@ -365,7 +383,7 @@ namespace UniFiler10.ViewModels
 									}
 									else
 									{
-										bool mediaImportedOk = await wallet.ImportMediaFileAsync(file).ConfigureAwait(false);
+										bool mediaImportedOk = await wallet.ImportFileAsync(file).ConfigureAwait(false);
 										Debug.WriteLine("RecordAudioAsync(): mediaImportedOk = " + mediaImportedOk);
 									}
 								}

@@ -70,5 +70,10 @@ namespace UniFiler10.Views
 		{
 			Task del = VM?.RemoveDocumentFromWalletAsync(e?.Wallet, e?.Document);
 		}
+
+		private void OnDocumentView_OcrClicked(object sender, DocumentView.DocumentClickedArgs e)
+		{
+			Task del = VM?.OcrDocumentAsync(e?.Wallet, e?.Document);
+		}
 	}
 }

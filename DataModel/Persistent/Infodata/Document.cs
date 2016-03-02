@@ -1,12 +1,17 @@
 ﻿using SQLite;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using UniFiler10.Data.DB;
 using Utilz;
 using Utilz.Data;
+using Windows.Graphics.Imaging;
+using Windows.Media.Ocr;
 using Windows.Storage;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace UniFiler10.Data.Model
 {
@@ -119,6 +124,33 @@ namespace UniFiler10.Data.Model
 				}
 				return false;
 			});
+		}
+		public async Task<List<string>> GetTextFromPictureAsync()
+		{
+			string uri = GetFullUri0();
+			if (string.IsNullOrWhiteSpace(uri) || !DocumentExtensions.IMAGE_EXTENSIONS.Contains(Path.GetExtension(uri).ToLower())) return null;
+
+			var file = await StorageFile.GetFileFromPathAsync(uri).AsTask().ConfigureAwait(false);
+			SoftwareBitmap bitmap = null;
+			using (var stream = await file.OpenAsync(FileAccessMode.Read))
+			{
+				var decoder = await BitmapDecoder.CreateAsync(stream);
+				bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+			}
+			if (bitmap.PixelWidth > OcrEngine.MaxImageDimension || bitmap.PixelHeight > OcrEngine.MaxImageDimension) return null;
+
+			var ocrEngine = OcrEngine.TryCreateFromUserProfileLanguages();
+			if (ocrEngine == null) return null;
+
+			var ocrResult = await ocrEngine.RecognizeAsync(bitmap).AsTask().ConfigureAwait(false);
+			if (ocrResult == null) return null;
+
+			var result = new List<string>();
+			foreach (var line in ocrResult.Lines)
+			{
+				result.Add(line.Text);
+			}
+			return result;
 		}
 		#endregion while open methods
 	}

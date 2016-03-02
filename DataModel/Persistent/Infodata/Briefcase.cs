@@ -133,8 +133,6 @@ namespace UniFiler10.Data.Model
 		{
 			get { return _isWantAndCanUseOneDrive; }
 		}
-		// LOLLO TODO use this to bar certain operations: if true, disable editing metadata and disable adding values to possible values
-		// - or maybe add some sort of merging for the new values
 		private volatile bool _isWantAndCannotUseOneDrive = false;
 		[IgnoreDataMember]
 		public bool IsWantAndCannotUseOneDrive

@@ -69,7 +69,9 @@
 						Wallet="{Binding ElementName=me, Path=Wallet, Mode=OneWay}"
 						IsDeleteButtonVisible="True"
 						DocumentClicked="OnDocumentView_DocumentClicked"
-						DeleteClicked="OnDocumentView_DeleteClicked"/>
+						DeleteClicked="OnDocumentView_DeleteClicked"
+						OcrClicked="OnDocumentView_OcrClicked"
+						IsOcrAble="True"/>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ListView>

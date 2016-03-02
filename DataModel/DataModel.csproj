@@ -123,6 +123,7 @@
     <Compile Include="Persistent\Metadata\MetaBriefcase.cs" />
     <Compile Include="Runtime\RuntimeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilz\DocumentExtensions.cs" />
     <EmbeddedResource Include="Properties\DataModel.rd.xml" />
   </ItemGroup>
   <ItemGroup>

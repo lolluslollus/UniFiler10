@@ -70,6 +70,13 @@
 					Style="{StaticResource AppBarButtonRecoloured}"
 					IsCompact="True"
 					Foreground="{StaticResource FlashyForeground}"/>
+
+				<AppBarButton Icon="Character"
+					Visibility="{x:Bind IsOCRButtonVisible, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+					Tapped="OnItemOcr_Tapped"
+					Style="{StaticResource AppBarButtonRecoloured}"
+					IsCompact="True"
+					Foreground="{StaticResource FlashyForeground}"/>
 			</uctl:UniversalWrapPanel>
 			<!--</VariableSizedWrapGrid>-->
 

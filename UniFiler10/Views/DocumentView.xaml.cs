@@ -92,6 +92,14 @@ namespace UniFiler10.Views
 		public static readonly DependencyProperty IsImportButtonVisibleProperty =
 			DependencyProperty.Register("IsImportButtonVisible", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
 
+		public bool IsOcrAble
+		{
+			get { return (bool)GetValue(IsOcrAbleProperty); }
+			set { SetValue(IsOcrAbleProperty, value); }
+		}
+		public static readonly DependencyProperty IsOcrAbleProperty =
+			DependencyProperty.Register("IsOcrAble", typeof(bool), typeof(DocumentView), new PropertyMetadata(false));
+
 		/// <summary>
 		/// This button is particularly useful if I have web content, coz the WebView does not relay the clicks
 		/// </summary>
@@ -159,6 +167,8 @@ namespace UniFiler10.Views
 
 		private volatile bool _isMultiPage = false;
 		public bool IsMultiPage { get { return _isMultiPage; } set { _isMultiPage = value; RaisePropertyChanged_UI(); } }
+		private volatile bool _isOCRButtonVisible = false;
+		public bool IsOCRButtonVisible { get { return _isOCRButtonVisible; } set { _isOCRButtonVisible = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 
@@ -226,6 +236,7 @@ namespace UniFiler10.Views
 				_previousUri = docUri;
 
 				IsMultiPage = false;
+				IsOCRButtonVisible = false;
 
 				if (string.IsNullOrEmpty(docUri))
 				{
@@ -362,6 +373,10 @@ namespace UniFiler10.Views
 					{
 						await DisplayImageFileAsync(stream).ConfigureAwait(false);
 					}
+					await RunInUiThreadAsync(() =>
+					{
+						if (IsOcrAble) IsOCRButtonVisible = true;
+					}).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -505,6 +520,7 @@ namespace UniFiler10.Views
 			}
 		}
 
+		public event EventHandler<DocumentClickedArgs> OcrClicked;
 		public event EventHandler<DocumentClickedArgs> ImportClicked;
 		public event EventHandler<DocumentClickedArgs> DeleteClicked;
 		public event EventHandler<DocumentClickedArgs> DocumentClicked;
@@ -513,6 +529,12 @@ namespace UniFiler10.Views
 
 
 		#region event handlers
+		private void OnItemOcr_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			e.Handled = true;
+			if (IsOCRButtonVisible && IsOcrAble) OcrClicked?.Invoke(this, new DocumentClickedArgs(Wallet, Document));
+		}
+
 		private void OnItemDelete_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			e.Handled = true;

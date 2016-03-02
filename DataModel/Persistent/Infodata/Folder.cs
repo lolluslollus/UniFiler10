@@ -478,7 +478,7 @@ namespace UniFiler10.Data.Model
 				{
 					var newWallet = new Wallet(DBManager, Id);
 					await newWallet.OpenAsync().ConfigureAwait(false); // open the wallet or the following won't run
-					bool isOk = await newWallet.ImportMediaFileAsync(file).ConfigureAwait(false)
+					bool isOk = await newWallet.ImportFileAsync(file).ConfigureAwait(false)
 						&& await AddWallet2Async(newWallet).ConfigureAwait(false);
 
 					if (isOk)
