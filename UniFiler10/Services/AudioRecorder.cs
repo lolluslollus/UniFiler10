@@ -36,7 +36,7 @@ namespace Utilz
 			_file = file;
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			_messageWriter.LastMessage = await CreateAudioGraphAsync().ConfigureAwait(false);
 			if (string.IsNullOrWhiteSpace(_messageWriter.LastMessage))

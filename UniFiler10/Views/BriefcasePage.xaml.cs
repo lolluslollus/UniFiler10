@@ -35,7 +35,7 @@ namespace UniFiler10.Views
 			//_animationStarter = new AnimationStarter(new Storyboard[] { UpdatingStoryboard, SuccessStoryboard, FailureStoryboard });
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await AnimationsControl.OpenAsync();
 

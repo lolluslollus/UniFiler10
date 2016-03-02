@@ -168,7 +168,7 @@ namespace UniFiler10.Data.Runtime
 			_videoDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.VideoCapture);
 			_audioDeviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.AudioCapture);
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			AddHandlers();
 			UpdateIsConnectionAvailable();

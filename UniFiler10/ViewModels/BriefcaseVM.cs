@@ -114,7 +114,7 @@ namespace UniFiler10.ViewModels
 			_animationStarter = animationStarter;
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			_briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync();
@@ -220,7 +220,8 @@ namespace UniFiler10.ViewModels
 			var briefcase = _briefcase;
 			if (briefcase == null) return false;
 
-			var userWantsDelete = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeDeletingBinderAsync();
+			var userWantsDelete = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeDeletingBinderAsync(CancToken);
+			if (CancToken.IsCancellationRequested) { return false; }
 			var isDeleted = userWantsDelete.Item1 && await briefcase.DeleteBinderAsync(dbName);
 
 			return isDeleted;
@@ -254,11 +255,9 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (bc != null && TrySetIsImportingBinder(true))
 			{
-				var userChoice = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync(targetBinderName);
-				if (userChoice.Item1 == ImportBinderOperations.Cancel)
-				{
-					IsImportingBinder = false; return;
-				}
+				var userChoice = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync(targetBinderName, CancToken);
+				if (CancToken.IsCancellationRequested) { IsImportingBinder = false; return; }
+				if (userChoice.Item1 == ImportBinderOperations.Cancel) { IsImportingBinder = false; return; }
 
 				StorageFolder dir = null;
 				if (string.IsNullOrWhiteSpace(userChoice.Item2))
@@ -294,7 +293,8 @@ namespace UniFiler10.ViewModels
 					{
 						Logger.Add_TPL("ContinueImportBinderStep1Async(): db name is available", Logger.AppEventsLogFilename, Logger.Severity.Info);
 
-						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync().ConfigureAwait(false);
+						var nextAction = await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeImportingBinderAsync(CancToken).ConfigureAwait(false);
+						if (CancToken.IsCancellationRequested) ContinueImportBinderStep2_Cancel();
 						Logger.Add_TPL("ContinueImportBinderStep1Async(): user choice = " + nextAction.Item1.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
 						Logger.Add_TPL("ContinueImportBinderStep1Async(): user has interacted = " + nextAction.Item2.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info);
 						if (nextAction.Item1 == ImportBinderOperations.Merge) await ContinueImportBinderStep2_Merge_Async(bc, dir).ConfigureAwait(false);
@@ -421,10 +421,10 @@ namespace UniFiler10.ViewModels
 					if (toDirectoryTest != null)
 					{
 						var confirmation =
-							await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeExportingBinderAsync().ConfigureAwait(false);
+							await UserConfirmationPopup.GetInstance().GetUserConfirmationBeforeExportingBinderAsync(CancToken).ConfigureAwait(false);
+						if (CancToken.IsCancellationRequested) return;
 						if (confirmation == null || confirmation.Item1 == false || confirmation.Item2 == false) return;
 					}
-
 
 					isExported = await bc.ExportBinderAsync(dbName, fromDirectory, toDir).ConfigureAwait(false);
 				}
@@ -436,9 +436,10 @@ namespace UniFiler10.ViewModels
 			finally
 			{
 				_animationStarter.EndAllAnimations();
-				_animationStarter.StartAnimation(isExported
-					? AnimationStarter.Animations.Success
-					: AnimationStarter.Animations.Failure);
+				if (!CancToken.IsCancellationRequested)
+					_animationStarter.StartAnimation(isExported
+						? AnimationStarter.Animations.Success
+						: AnimationStarter.Animations.Failure);
 
 				IsExportingBinder = false;
 			}

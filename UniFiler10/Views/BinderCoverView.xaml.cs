@@ -38,7 +38,7 @@ namespace UniFiler10.Views
 		}
 
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await UpdateVMAsync().ConfigureAwait(false);
 			await AnimationsControl.OpenAsync().ConfigureAwait(false);

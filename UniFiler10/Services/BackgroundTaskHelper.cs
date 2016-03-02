@@ -50,7 +50,7 @@ namespace UniFiler10.Services
 
 		private BackgroundTaskHelper() { }
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			UploadToOneDriveStatus = await TryRegisterUploadToOneDriveBackgroundTaskAsync().ConfigureAwait(false);
 			MetaBriefcase.UpdateOneDriveMetaBriefcaseRequested += OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;

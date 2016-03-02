@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using UniFiler10.ViewModels;
 using UniFiler10.Views;
@@ -24,7 +25,7 @@ namespace UniFiler10.Controlz
 
 		private bool _isHasUserAnswered = false;
 
-		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeDeletingBinderAsync()
+		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeDeletingBinderAsync(CancellationToken cancToken)
 		{
 			var result = new Tuple<bool, bool>(false, false);
 			Flyout dialog = null;
@@ -44,9 +45,9 @@ namespace UniFiler10.Controlz
 				dialog.ShowAt(Window.Current.Content as FrameworkElement);
 			}).ConfigureAwait(false);
 
-			while (!_isHasUserAnswered)
+			while (!_isHasUserAnswered && !cancToken.IsCancellationRequested)
 			{
-				await Task.Delay(DELAY).ConfigureAwait(false);
+				await Task.Delay(DELAY, cancToken).ConfigureAwait(false);
 			}
 
 			await RunInUiThreadAsync(delegate
@@ -60,7 +61,7 @@ namespace UniFiler10.Controlz
 			return result;
 		}
 
-		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeExportingBinderAsync()
+		public async Task<Tuple<bool, bool>> GetUserConfirmationBeforeExportingBinderAsync(CancellationToken cancToken)
 		{
 			var result = new Tuple<bool, bool>(false, false);
 			Flyout dialog = null;
@@ -80,9 +81,9 @@ namespace UniFiler10.Controlz
 				dialog.ShowAt(Window.Current.Content as FrameworkElement);
 			}).ConfigureAwait(false);
 
-			while (!_isHasUserAnswered)
+			while (!_isHasUserAnswered && !cancToken.IsCancellationRequested)
 			{
-				await Task.Delay(DELAY).ConfigureAwait(false);
+				await Task.Delay(DELAY, cancToken).ConfigureAwait(false);
 			}
 
 			await RunInUiThreadAsync(delegate
@@ -107,7 +108,7 @@ namespace UniFiler10.Controlz
 		}
 
 
-		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, bool>> GetUserConfirmationBeforeImportingBinderAsync()
+		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, bool>> GetUserConfirmationBeforeImportingBinderAsync(CancellationToken cancToken)
 		{
 			var result = new Tuple<BriefcaseVM.ImportBinderOperations, bool>(BriefcaseVM.ImportBinderOperations.Cancel, false);
 			Flyout dialog = null;
@@ -127,9 +128,9 @@ namespace UniFiler10.Controlz
 				dialog.ShowAt(Window.Current.Content as FrameworkElement);
 			}).ConfigureAwait(false);
 
-			while (!_isHasUserAnswered)
+			while (!_isHasUserAnswered && !cancToken.IsCancellationRequested)
 			{
-				await Task.Delay(DELAY).ConfigureAwait(false);
+				await Task.Delay(DELAY, cancToken).ConfigureAwait(false);
 			}
 
 			await RunInUiThreadAsync(delegate
@@ -153,7 +154,43 @@ namespace UniFiler10.Controlz
 			_isHasUserAnswered = true;
 		}
 
-		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, string>> GetUserChoiceBeforeImportingBinderAsync(string targetBinderName)
+		public async Task<Tuple<bool, bool>> GetUserChoiceBeforeChangingMetadataSourceAsync(CancellationToken cancToken)
+		{
+			var result = new Tuple<bool, bool>(false, false);
+			Flyout dialog = null;
+			ChoiceBeforeChangingMetadataSource dialogContent = null;
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog = new Flyout();
+				dialogContent = new ChoiceBeforeChangingMetadataSource();
+
+				dialog.Closed += OnYesNoDialog_Closed;
+
+				dialog.Content = dialogContent;
+				dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
+
+				_isHasUserAnswered = false;
+				dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			}).ConfigureAwait(false);
+
+			while (!_isHasUserAnswered && !cancToken.IsCancellationRequested)
+			{
+				await Task.Delay(DELAY, cancToken).ConfigureAwait(false);
+			}
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog.Closed -= OnYesNoDialog_Closed;
+				dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
+				dialog.Hide();
+				result = new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted);
+			}).ConfigureAwait(false);
+
+			return result;
+		}
+
+		public async Task<Tuple<BriefcaseVM.ImportBinderOperations, string>> GetUserChoiceBeforeImportingBinderAsync(string targetBinderName, CancellationToken cancToken)
 		{
 			var result = new Tuple<BriefcaseVM.ImportBinderOperations, string>(BriefcaseVM.ImportBinderOperations.Cancel, string.Empty);
 			Flyout dialog = null;
@@ -173,9 +210,9 @@ namespace UniFiler10.Controlz
 				dialog.ShowAt(Window.Current.Content as FrameworkElement);
 			}).ConfigureAwait(false);
 
-			while (!_isHasUserAnswered)
+			while (!_isHasUserAnswered && !cancToken.IsCancellationRequested)
 			{
-				await Task.Delay(DELAY).ConfigureAwait(false);
+				await Task.Delay(DELAY, cancToken).ConfigureAwait(false);
 			}
 
 			await RunInUiThreadAsync(delegate

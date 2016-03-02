@@ -41,7 +41,7 @@ namespace UniFiler10.Data.Model
 			base.Dispose(isDisposing);
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await GetCreateDirectoryAsync().ConfigureAwait(false);
 

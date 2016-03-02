@@ -64,7 +64,7 @@ namespace UniFiler10.Data.DB
 		#endregion construct and dispose
 
 		#region open and close
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			if (!SemaphoreSlimSafeRelease.IsAlive(_foldersSemaphore)) _foldersSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 			if (!SemaphoreSlimSafeRelease.IsAlive(_walletsSemaphore)) _walletsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -1299,7 +1299,7 @@ namespace UniFiler10.Data.DB
 					SemaphoreSlimSafeRelease.TryRelease(_connectionsDictSemaphore);
 				}
 			}
-			protected override Task OpenMayOverrideAsync()
+			protected override Task OpenMayOverrideAsync(object args = null)
 			{
 				if (!SemaphoreSlimSafeRelease.IsAlive(_connectionsDictSemaphore)) _connectionsDictSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 				return Task.CompletedTask;

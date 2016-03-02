@@ -142,6 +142,9 @@
     <Compile Include="Views\CameraView.xaml.cs">
       <DependentUpon>CameraView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ChoiceBeforeChangingMetadataSource.xaml.cs">
+      <DependentUpon>ChoiceBeforeChangingMetadataSource.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ConfirmationBeforeExportingBinder.xaml.cs">
       <DependentUpon>ConfirmationBeforeExportingBinder.xaml</DependentUpon>
     </Compile>
@@ -258,6 +261,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\CameraView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ChoiceBeforeChangingMetadataSource.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

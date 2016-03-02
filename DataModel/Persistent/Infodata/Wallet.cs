@@ -20,7 +20,7 @@ namespace UniFiler10.Data.Model
 			DBManager = dbManager;
 			ParentId = parentId;
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			var docs = _documents;
 			if (docs != null)

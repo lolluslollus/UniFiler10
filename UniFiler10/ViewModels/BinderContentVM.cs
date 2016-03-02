@@ -18,7 +18,7 @@ namespace UniFiler10.ViewModels
 
 		#region lifecycle
 		public BinderContentVM() { }
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			var briefcase = Briefcase.GetCreateInstance();
 			await briefcase.OpenAsync().ConfigureAwait(false);

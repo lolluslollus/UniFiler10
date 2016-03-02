@@ -136,7 +136,7 @@ namespace UniFiler10.ViewModels
 			}
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await RunInUiThreadAsync(delegate
 			{
@@ -401,8 +401,16 @@ namespace UniFiler10.ViewModels
 			var bc = _briefcase;
 			if (bc == null) return;
 
+			bool isLoadFromOneDrive = MetaBriefcase.OpenParameters.DefaultIsLoadFromOneDrive;
+			if (newValue)
+			{
+				var loadFromOneDrive = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeChangingMetadataSourceAsync(CancToken).ConfigureAwait(false);
+				if (CancToken.IsCancellationRequested) return;
+				isLoadFromOneDrive = !loadFromOneDrive.Item2 || !loadFromOneDrive.Item1;
+			}
+
 			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			await bc.SetIsWantToUseOneDriveAsync(newValue);
+			await bc.SetIsWantToUseOneDriveAsync(newValue, isLoadFromOneDrive);
 			_animationStarter.EndAllAnimations();
 			_animationStarter.StartAnimation(bc.IsWantAndCannotUseOneDrive ? AnimationStarter.Animations.Failure : AnimationStarter.Animations.Success);
 		}

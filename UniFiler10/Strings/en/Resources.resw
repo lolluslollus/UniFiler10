@@ -441,4 +441,13 @@
   <data name="Retry.Label" xml:space="preserve">
     <value>Retry</value>
   </data>
+  <data name="MetadataPullLocalFromOneDrive.Text" xml:space="preserve">
+    <value>Overwrite local with One Drive data</value>
+  </data>
+  <data name="MetadataPushLocalIntoOneDrive.Text" xml:space="preserve">
+    <value>Overwrite One Drive with local data</value>
+  </data>
+  <data name="MetadataChoiceExplanation.Text" xml:space="preserve">
+    <value>In future, your data will be synced with One Drive. This one time, you have a choice:</value>
+  </data>
 </root>

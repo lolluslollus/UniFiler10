@@ -28,7 +28,8 @@ namespace UniFiler10.Data.Metadata
 		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
 		private void RaiseUpdateOneDriveMetaBriefcaseRequested()
 		{
-			if (_briefcase?.IsWantAndCanUseOneDrive == true)
+			//if (_briefcase?.IsWantAndCanUseOneDrive == true)
+			if (_briefcase?.IsWantToUseOneDrive == true)
 			{
 				LastTimeUpdateOneDriveCalled = DateTime.Now;
 				UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
@@ -237,8 +238,11 @@ namespace UniFiler10.Data.Metadata
 		//	base.Dispose(isDisposing);
 		//}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
+			var openParams = args as OpenParameters;
+			if (openParams?.IsReloadProps == true) IsPropsLoaded = false;
+
 			bool wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 			try
 			{
@@ -275,7 +279,7 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
-				await LoadAsync(wantToUseOneDrive).ConfigureAwait(false);
+				await LoadAsync(wantToUseOneDrive, openParams?.SourceFile, openParams == null ? OpenParameters.DefaultIsLoadFromOneDrive : openParams.IsLoadFromOneDrive).ConfigureAwait(false);
 				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 		}
@@ -310,11 +314,11 @@ namespace UniFiler10.Data.Metadata
 		public const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
 		private readonly object _reloadLocker = new object();
 		private StorageFile _sourceFile = null;
-		private StorageFile SourceFile
-		{
-			get { lock (_reloadLocker) { return _sourceFile; } }
-			set { lock (_reloadLocker) { _sourceFile = value; } }
-		}
+		//private StorageFile SourceFile
+		//{
+		//	get { lock (_reloadLocker) { return _sourceFile; } }
+		//	set { lock (_reloadLocker) { _sourceFile = value; } }
+		//}
 		private bool _isPropsLoaded = false;
 		private bool IsPropsLoaded
 		{
@@ -322,17 +326,32 @@ namespace UniFiler10.Data.Metadata
 			set { lock (_reloadLocker) { _isPropsLoaded = value; } }
 		}
 
-		public void SetSourceFileJustOnce(StorageFile sourceFile)
+		public class OpenParameters
 		{
-			SourceFile = sourceFile;
-			IsPropsLoaded = false;
+			public const StorageFile DefaultSourceFile = null;
+			public const bool DefaultIsReloadProps = false;
+			public const bool DefaultIsLoadFromOneDrive = true;
+			public StorageFile SourceFile { get; } = DefaultSourceFile;
+			public bool IsReloadProps { get; } = DefaultIsReloadProps;
+			public bool IsLoadFromOneDrive { get; } = DefaultIsLoadFromOneDrive;
+			public OpenParameters(StorageFile sourceFile = DefaultSourceFile, bool isReloadProps = DefaultIsReloadProps, bool isLoadFromOneDrive = DefaultIsLoadFromOneDrive)
+			{
+				SourceFile = sourceFile;
+				IsReloadProps = isReloadProps;
+				IsLoadFromOneDrive = isLoadFromOneDrive;
+			}
 		}
-		public void SetReloadJustOnce()
-		{
-			IsPropsLoaded = false;
-		}
+		//public void SetSourceFileJustOnce(StorageFile sourceFile)
+		//{
+		//	SourceFile = sourceFile;
+		//	IsPropsLoaded = false;
+		//}
+		//public void SetReloadJustOnce()
+		//{
+		//	IsPropsLoaded = false;
+		//}
 
-		private async Task LoadAsync(bool wantToUseOneDrive)
+		private async Task LoadAsync(bool wantToUseOneDrive, StorageFile sourceFile, bool loadFromOneDrive)
 		{
 			if (IsPropsLoaded && IsSyncedOnceSinceLastOpen) return;
 
@@ -348,75 +367,72 @@ namespace UniFiler10.Data.Metadata
 			StorageFile localFile = null;
 			try
 			{
-				localFile = SourceFile ?? await GetDirectory()
+				localFile = sourceFile ?? await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 			}
 			catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
-			finally
-			{
-				SourceFile = null;
-			}
+			//finally
+			//{
+			//	SourceFile = null;
+			//}
 
 			if (CancToken.IsCancellationRequested) return;
 
 			var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-			Func<Task> loadLocalFile = async () =>
+			if (loadFromOneDrive)
 			{
-				try
+				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
-					using (var localFileContent = await localFile.OpenStreamForReadAsync().ConfigureAwait(false))
+					if (LastTimeUpdateOneDriveRan >= LastTimeUpdateOneDriveCalled)
 					{
-						newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
-					}
-				}
-				catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
-			};
-
-			if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
-			{
-				if (LastTimeUpdateOneDriveRan >= LastTimeUpdateOneDriveCalled)
-				{
-					using (var client = new HttpClient())
-					{
-						client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
-
-						try
+						using (var client = new HttpClient())
 						{
-							using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
+							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
+
+							try
 							{
-								newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
+								using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
+								{
+									newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
+								}
+								mustSyncLocal = true;
+								IsSyncedOnceSinceLastOpen = true;
 							}
-							mustSyncLocal = true;
-							IsSyncedOnceSinceLastOpen = true;
-						}
-						catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
-						{
-							await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
-							await loadLocalFile().ConfigureAwait(false);
-							mustSyncOneDrive = true;
-							IsSyncedOnceSinceLastOpen = true;
-						}
-						catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
-						{
-							await Logger.AddAsync(ex0.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
-							await loadLocalFile().ConfigureAwait(false);
-							IsSyncedOnceSinceLastOpen = false;
+							catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
+							{
+								await Logger.AddAsync("SerializationException reading from OneDrive", Logger.FileErrorLogFilename).ConfigureAwait(false);
+								newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+								mustSyncOneDrive = true;
+								IsSyncedOnceSinceLastOpen = true;
+							}
+							catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
+							{
+								await Logger.AddAsync(ex0.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+								newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+								IsSyncedOnceSinceLastOpen = false;
+							}
 						}
 					}
+					// if, for any reason, the bkg task failed, I will load the local file
+					else
+					{
+						newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+						mustSyncOneDrive = true;
+						IsSyncedOnceSinceLastOpen = true;
+					}
 				}
-				// if, for any reason, the bkg task failed, I will load the local file
 				else
 				{
-					await loadLocalFile().ConfigureAwait(false);
-					mustSyncOneDrive = true;
-					IsSyncedOnceSinceLastOpen = true;
+					newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+					IsSyncedOnceSinceLastOpen = false;
 				}
 			}
 			else
 			{
-				await loadLocalFile().ConfigureAwait(false);
-				IsSyncedOnceSinceLastOpen = false;
+				newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+				mustSyncOneDrive = true;
+				IsSyncedOnceSinceLastOpen = true;
 			}
 
 			if (newMetaBriefcase != null) // if I could pick up some data, use it and sync whatever needs syncing
@@ -443,6 +459,19 @@ namespace UniFiler10.Data.Metadata
 			Debug.WriteLine("ended method MetaBriefcase.LoadAsync()");
 		}
 
+		private async Task<MetaBriefcase> LoadFromFile(StorageFile file, DataContractSerializer serializer)
+		{
+			MetaBriefcase newMetaBriefcase = null;
+			try
+			{
+				using (var localFileContent = await file.OpenStreamForReadAsync().ConfigureAwait(false))
+				{
+					newMetaBriefcase = (MetaBriefcase)(serializer.ReadObject(localFileContent));
+				}
+			}
+			catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+			return newMetaBriefcase;
+		}
 		private async Task<bool> Save2Async(StorageFile file = null)
 		{
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing

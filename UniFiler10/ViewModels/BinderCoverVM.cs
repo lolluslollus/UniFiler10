@@ -425,7 +425,7 @@ namespace UniFiler10.ViewModels
 			_animationStarter = animationStarter;
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await RunInUiThreadAsync(delegate
 			{
@@ -715,11 +715,9 @@ namespace UniFiler10.ViewModels
 			var binder = _binder;
 			if (binder != null && TrySetIsImportingFolders(true))
 			{
-				var userChoice = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync(binder.DBName);
-				if (userChoice.Item1 == BriefcaseVM.ImportBinderOperations.Cancel)
-				{
-					IsImportingFolders = false; return;
-				}
+				var userChoice = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeImportingBinderAsync(binder.DBName, CancToken);
+				if (CancToken.IsCancellationRequested) { IsImportingFolders = false; return; }
+				if (userChoice.Item1 == BriefcaseVM.ImportBinderOperations.Cancel) { IsImportingFolders = false; return; }
 
 				StorageFolder dir = null;
 				if (string.IsNullOrWhiteSpace(userChoice.Item2))

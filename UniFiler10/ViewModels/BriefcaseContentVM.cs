@@ -10,7 +10,7 @@ namespace UniFiler10.ViewModels
 		public Briefcase Briefcase { get { return _briefcase; } }
 
 		public BriefcaseContentVM() { }
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			_briefcase = Briefcase.GetCreateInstance();
 			await _briefcase.OpenAsync();

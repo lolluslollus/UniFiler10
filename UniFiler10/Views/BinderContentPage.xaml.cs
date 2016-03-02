@@ -23,7 +23,7 @@ namespace UniFiler10.Views
 			NavigationCacheMode = NavigationCacheMode.Enabled;
 			InitializeComponent();
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			//_vm = new BinderContentVM(AudioRecorderView, CameraView);
 			_vm = new BinderContentVM();

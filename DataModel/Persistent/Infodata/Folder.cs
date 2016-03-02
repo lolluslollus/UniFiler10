@@ -24,7 +24,7 @@ namespace UniFiler10.Data.Model
 			Name = name;
 			DateCreated = dateCreated;
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			if (DBManager == null) throw new Exception("Folder.OpenMayOverrideAsync found no open instances of DBManager");
 

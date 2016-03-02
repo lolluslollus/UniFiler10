@@ -89,7 +89,7 @@ namespace UniFiler10.ViewModels
 			base.Dispose(isDisposing);
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await RunInUiThreadAsync(delegate
 			{

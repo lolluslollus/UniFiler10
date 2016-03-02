@@ -23,7 +23,7 @@ namespace UniFiler10.Views
 			InitializeComponent();
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			_vm = new BriefcaseContentVM();
 			await _vm.OpenAsync();
