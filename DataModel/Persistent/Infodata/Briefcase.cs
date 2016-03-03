@@ -59,11 +59,12 @@ namespace UniFiler10.Data.Model
 			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
-			_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
-			_isWantAndCanUseOneDrive = IsWantToUseOneDrive && _metaBriefcase.IsSyncedOnceSinceLastOpen && _runtimeData.IsConnectionAvailable;
+			_isWantAndCanUseOneDrive = IsWantToUseOneDrive && _metaBriefcase.IsLocalSyncedOnceSinceLastOpen && _runtimeData.IsConnectionAvailable;
 			RaisePropertyChanged_UI(nameof(IsWantAndCanUseOneDrive));
 			_isWantAndCannotUseOneDrive = _isWantToUseOneDrive && !_isWantAndCanUseOneDrive;
 			RaisePropertyChanged_UI(nameof(IsWantAndCannotUseOneDrive));
+
+			_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 
 			await UpdateCurrentBinder2Async(false).ConfigureAwait(false);
 		}
@@ -165,7 +166,7 @@ namespace UniFiler10.Data.Model
 																	// update the current binder, whichever it is, and open it if it was open before
 					await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
 
-					_isWantAndCanUseOneDrive = _metaBriefcase.IsSyncedOnceSinceLastOpen;
+					_isWantAndCanUseOneDrive = _metaBriefcase.IsLocalSyncedOnceSinceLastOpen;
 				}
 				else
 				{
