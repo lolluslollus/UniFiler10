@@ -25,20 +25,20 @@ namespace UniFiler10.Views
 		private MediaCapture _mediaCapture;
 
 		private readonly object _lastMessageLocker = new object();
-		private volatile string _lastMessage = string.Empty;
+		private string _lastMessage = string.Empty;
 		public string LastMessage { get { lock (_lastMessageLocker) { return _lastMessage; } } set { lock (_lastMessageLocker) { _lastMessage = value; } RaisePropertyChanged_UI(); } }
 
 		// For listening to media property changes
 		//private readonly SystemMediaTransportControls _systemMediaControls = SystemMediaTransportControls.GetForCurrentView();
 
 		private SemaphoreSlimSafeRelease _recordLockingSemaphore = null;
+
+		private volatile bool _isRecording = false;
+		public bool IsRecording { get { return _isRecording; } private set { _isRecording = value; RaisePropertyChanged_UI(); } }
 		#endregion properties
 
 
 		#region IRecorder
-		private volatile bool _isRecording = false;
-		public bool IsRecording { get { return _isRecording; } private set { _isRecording = value; RaisePropertyChanged_UI(); } }
-
 		[STAThread]
 		public Task<bool> RecordAsync(StorageFile file, CancellationToken cancToken)
 		{
@@ -108,7 +108,6 @@ namespace UniFiler10.Views
 			{
 				audioRecorder.UnrecoverableError -= OnAudioRecorder_UnrecoverableError;
 				await audioRecorder.CloseAsync();
-				audioRecorder.Dispose();
 			}
 			_audioRecorder = null;
 
@@ -199,11 +198,11 @@ namespace UniFiler10.Views
 
 			bool isOk = false;
 
-			var ar = _audioRecorder;
-			if (ar != null)
+			var audioRecorder = _audioRecorder;
+			if (audioRecorder != null)
 			{
 				IsRecording = false;
-				isOk = await ar.StopRecordingAsync();
+				isOk = await audioRecorder.StopRecordingAsync();
 			}
 
 			await RunInUiThreadAsync(delegate

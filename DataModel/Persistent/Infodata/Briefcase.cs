@@ -493,7 +493,7 @@ namespace UniFiler10.Data.Model
 				await _metaBriefcase.CloseAsync().ConfigureAwait(false);
 				// do not replace the instance or you may screw the binding. Close, change and reopen will do.
 				//_metaBriefcase.SetSourceFileJustOnce(fromFile);
-				await _metaBriefcase.OpenAsync(new MetaBriefcase.OpenParameters(fromFile, true)).ConfigureAwait(false);
+				await _metaBriefcase.OpenAsync(new MetaBriefcase.OpenParameters(fromFile, true, false)).ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
 				// update the current binder, whichever it is, and open it if it was open before

@@ -235,6 +235,27 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
+		[IgnoreDataMember]
+		private static bool IsLoadFromOneDrive
+		{
+			get
+			{
+				lock (_lastUpdateLocker)
+				{
+					bool result = RegistryAccess.GetValue(ConstantData.REG_MBC_IS_LOAD_FROM_ONE_DRIVE).ToLower().Equals(true.ToString().ToLower());
+					return result;
+				}
+			}
+			set
+			{
+				lock (_lastUpdateLocker)
+				{
+					bool newValue = value.ToString().ToLower().Equals(true.ToString().ToLower());
+					RegistryAccess.TrySetValue(ConstantData.REG_MBC_IS_LOAD_FROM_ONE_DRIVE, newValue.ToString().ToLower());
+				}
+			}
+		}
+
 		private readonly RuntimeData _runtimeData = null;
 		private readonly Briefcase _briefcase = null;
 		#endregion properties
@@ -273,12 +294,12 @@ namespace UniFiler10.Data.Metadata
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			var openParams = args as OpenParameters ?? new OpenParameters();
-			if (openParams.IsReloadProps) IsPropsLoaded = false;
+			if (openParams.IsReloadProps != OpenParameters.DefaultIsReloadProps) IsPropsLoaded = false;
+			if (openParams.IsLoadFromOneDrive != OpenParameters.DefaultIsLoadFromOneDrive) IsLoadFromOneDrive = openParams.IsLoadFromOneDrive;
 
 			bool wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 			try
 			{
-				_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
 
 				wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
@@ -312,7 +333,8 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
-				await LoadAsync(wantToUseOneDrive, openParams.SourceFile, openParams.IsLoadFromOneDrive).ConfigureAwait(false);
+				await LoadAsync(wantToUseOneDrive, openParams.SourceFile).ConfigureAwait(false);
+				_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 		}
@@ -355,7 +377,7 @@ namespace UniFiler10.Data.Metadata
 		#region loading methods
 		public const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
 		private readonly object _reloadLocker = new object();
-		private StorageFile _sourceFile = null;
+		//private StorageFile _sourceFile = null;
 		//private StorageFile SourceFile
 		//{
 		//	get { lock (_reloadLocker) { return _sourceFile; } }
@@ -393,7 +415,7 @@ namespace UniFiler10.Data.Metadata
 		//	IsPropsLoaded = false;
 		//}
 
-		private async Task LoadAsync(bool wantToUseOneDrive, StorageFile sourceFile, bool loadFromOneDrive)
+		private async Task LoadAsync(bool wantToUseOneDrive, StorageFile sourceFile)
 		{
 			if (IsPropsLoaded && IsSyncedOnceSinceLastOpen) return;
 
@@ -422,7 +444,8 @@ namespace UniFiler10.Data.Metadata
 			if (CancToken.IsCancellationRequested) return;
 
 			var serializer = new DataContractSerializer(typeof(MetaBriefcase));
-			if (loadFromOneDrive)
+			if (IsLoadFromOneDrive) // LOLLO TODO what if loadFromOneDrive is false and the upload to OneDrive fails? Next time I try, it will load from one drive, overwriting local data against my will.
+									// I tweaked this, check it.
 			{
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
@@ -634,6 +657,7 @@ namespace UniFiler10.Data.Metadata
 							if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal))
 							{
 								LastTimeUpdateOneDriveRan = DateTime.Now.AddMilliseconds(1.0);
+								IsLoadFromOneDrive = true;
 								return;
 							}
 
@@ -653,6 +677,7 @@ namespace UniFiler10.Data.Metadata
 								await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
 							}
 							LastTimeUpdateOneDriveRan = DateTime.Now.AddMilliseconds(1.0);
+							IsLoadFromOneDrive = true;
 						}
 					}
 				}

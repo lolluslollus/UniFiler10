@@ -124,26 +124,29 @@ namespace UniFiler10.Views
 		//	VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
 		//}
 
-		//private void OnIsWantToUseOneDrive_Toggled(object sender, RoutedEventArgs e)
+		private void OnIsWantToUseOneDrive_Toggled(object sender, RoutedEventArgs e)
+		{
+			// Only allow this method firing when the toggle event comes from user interaction.
+			var ts = sender as ToggleSwitch;
+			if (ts == null || !_isWantToUseOneDrive_PointerJustRelleased) return;
+
+			_isWantToUseOneDrive_PointerJustRelleased = false;
+			VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
+		}
+		private bool _isWantToUseOneDrive_PointerJustRelleased = false;
+		private void OnIsWantToUseOneDrive_PointerReleased(object sender, PointerRoutedEventArgs e)
+		{
+			var ts = sender as ToggleSwitch;
+			if (ts == null) return;
+			_isWantToUseOneDrive_PointerJustRelleased = true;
+		}
+
+		//private void OnIsWantToUseOneDrive_LostFocus(object sender, RoutedEventArgs e)
 		//{
 		//	var ts = sender as ToggleSwitch;
 		//	if (ts == null) return;
 		//	VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
 		//}
-
-		//private void OnIsWantToUseOneDrive_PointerReleased(object sender, PointerRoutedEventArgs e)
-		//{
-		//	var ts = sender as ToggleSwitch;
-		//	if (ts == null) return;
-		//	VM?.SetIsWantToUseOneDriveAsync(!ts.IsOn);
-		//}
-
-		private void OnIsWantToUseOneDrive_LostFocus(object sender, RoutedEventArgs e)
-		{
-			var ts = sender as ToggleSwitch;
-			if (ts == null) return;
-			VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
-		}
 
 		private void OnRetry_Tapped(object sender, TappedRoutedEventArgs e)
 		{

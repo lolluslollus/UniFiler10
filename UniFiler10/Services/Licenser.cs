@@ -240,6 +240,8 @@ namespace Utilz
 				{
 					// go to the store and quit instead of calling RequestAppPurchaseAsync, which is not supported 
 					// LOLLO TODO MAYBE see if it works with win10
+					// LOLLO TODO add in-app purchases as explained at https://msdn.microsoft.com/en-us/windows/uwp/monetize/enable-in-app-product-purchases
+					// and at https://msdn.microsoft.com/en-us/windows/uwp/monetize/use-receipts-to-verify-product-purchases
 					// https://msdn.microsoft.com/en-us/library/windows/apps/mt228343.aspx
 					var uri = new Uri(ConstantData.BUY_URI);
 

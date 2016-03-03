@@ -99,55 +99,57 @@
 						TextWrapping="Wrap"/>
 				</Border>
 
-				<Border RelativePanel.Below="SafeNotice"
-					x:Name="BackgroundNotice"
-					Visibility="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}, FallbackValue=Collapsed}"
-					BorderBrush="{StaticResource FlashyForeground}"
-					BorderThickness="{StaticResource Thickness2222}"
-					Padding="{StaticResource Thickness8282}">
-					<TextBlock x:Uid="BackgroundProblem"
-						VerticalAlignment="Stretch"
-						HorizontalAlignment="Stretch"
-						Foreground="{StaticResource FlashyForeground}"
-						TextWrapping="Wrap"/>
-				</Border>
-
 				<!-- connection settings -->
-				<StackPanel Orientation="Vertical" RelativePanel.Below="BackgroundNotice" x:Name="MeteredConnection">
-					<TextBlock x:Uid="SettingsAllowMeteredConnection"
+				<Grid RelativePanel.Below="SafeNotice" x:Name="ConnectionSettings">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+					</Grid.RowDefinitions>
+					
+					<TextBlock Grid.Row="1"
+						x:Uid="SettingsAllowMeteredConnection"
 						VerticalAlignment="Center"/>
-					<StackPanel Orientation="Horizontal">
-						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"
-							VerticalAlignment="Center"/>
-						<TextBlock x:Uid="RuntimeIsConnectionAvailableFalse" Foreground="{StaticResource FlashyForeground}"
-							Visibility="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
-							VerticalAlignment="Center"/>
-					</StackPanel>
-				</StackPanel>
-				<StackPanel Orientation="Vertical" RelativePanel.Below="MeteredConnection" x:Name="IsWantToUseOneDrive">
-					<TextBlock x:Uid="SettingsUseOneDrive"
+					<ToggleSwitch Grid.Row="2"
+						IsOn="{x:Bind VM.Briefcase.IsAllowMeteredConnection, Mode=OneWay}"
 						VerticalAlignment="Center"/>
-					<StackPanel Orientation="Horizontal">
-						<!--Toggled="OnIsWantToUseOneDrive_Toggled"-->
-						<!--Tapped="OnIsWantToUseOneDrive_Tapped"-->
-						<!--PointerReleased="OnIsWantToUseOneDrive_PointerReleased"-->
-						<ToggleSwitch IsOn="{x:Bind VM.Briefcase.IsWantToUseOneDrive, Mode=OneWay}"
-							LostFocus="OnIsWantToUseOneDrive_LostFocus"
+					<TextBlock Grid.Row="3"
+						x:Uid="RuntimeIsConnectionAvailableFalse" Foreground="{StaticResource FlashyForeground}"
+						Visibility="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
+						VerticalAlignment="Center"/>
+
+					<TextBlock Grid.Row="5"
+						x:Uid="SettingsUseOneDrive"
+						VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Row="6"
+						IsOn="{x:Bind VM.Briefcase.IsWantToUseOneDrive, Mode=OneWay}"
+						PointerReleased="OnIsWantToUseOneDrive_PointerReleased"
+						Toggled="OnIsWantToUseOneDrive_Toggled"
+						VerticalAlignment="Center"/>
+					<uctl:UniversalWrapPanel Grid.Row="7"
+						Orientation="Horizontal"
+						Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
+						VerticalAlignment="Center">
+						<TextBlock
+							x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
 							VerticalAlignment="Center"/>
-						<TextBlock x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
-							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
-							VerticalAlignment="Center"/>
-						<AppBarButton Icon="Refresh" x:Uid="Retry"
-							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
+						<AppBarButton
+							Icon="Refresh" x:Uid="Retry"
 							IsEnabled="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay}"
 							VerticalAlignment="Center"
+							Margin="10, 0, 0, 0"
 							Tapped="OnRetry_Tapped"/>
-					</StackPanel>
-				</StackPanel>
+					</uctl:UniversalWrapPanel>
+				</Grid>
 
 				<!-- edit metadata -->
-				<!--IsEnabled="{x:Bind VM.BackgroundTaskHelper.UploadToOneDriveStatus.Item1, Mode=OneWay}"-->
-				<ContentControl RelativePanel.Below="IsWantToUseOneDrive" x:Name="MBView"
+				<ContentControl RelativePanel.Below="ConnectionSettings" x:Name="MBView"
 					IsEnabled="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}">
 					<local:MetaBriefcaseView
 						VM="{x:Bind VM, Mode=OneWay}"

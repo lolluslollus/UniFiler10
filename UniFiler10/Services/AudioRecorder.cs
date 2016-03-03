@@ -13,7 +13,7 @@ using Windows.Storage;
 
 namespace Utilz
 {
-	public class AudioRecorder : OpenableObservableDisposableData
+	public class AudioRecorder : OpenableObservableData
 	{
 		#region events
 		public event EventHandler UnrecoverableError;

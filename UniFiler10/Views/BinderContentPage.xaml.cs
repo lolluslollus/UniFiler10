@@ -25,7 +25,6 @@ namespace UniFiler10.Views
 		}
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
-			//_vm = new BinderContentVM(AudioRecorderView, CameraView);
 			_vm = new BinderContentVM();
 			await _vm.OpenAsync();
 			RaisePropertyChanged_UI(nameof(VM));

@@ -417,9 +417,6 @@
   <data name="CameraResSmall.Content" xml:space="preserve">
     <value>Small (Vga)</value>
   </data>
-  <data name="BackgroundProblem.Text" xml:space="preserve">
-    <value>The OneDrive updater is not ready, so data changes are barred.</value>
-  </data>
   <data name="AddBinderSuggestion.Text" xml:space="preserve">
     <value>You have no binders, add or import one.</value>
   </data>
@@ -448,6 +445,6 @@
     <value>Overwrite One Drive with local data</value>
   </data>
   <data name="MetadataChoiceExplanation.Text" xml:space="preserve">
-    <value>In future, your data will be synced with One Drive. This one time, you have a choice:</value>
+    <value>In future, your data will be synced with One Drive. This one time, you can choose:</value>
   </data>
 </root>
