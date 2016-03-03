@@ -11,7 +11,7 @@ using Utilz;
 using Utilz.Data;
 using Windows.Storage;
 using UniFiler10.Data.Constants;
-
+// LOLLO TODO somewhere in the app, something is bound to IsEnabled and dumps after resuming, when the last visited page was settings
 namespace UniFiler10.Data.Model
 {
 	[DataContract]

@@ -26,24 +26,29 @@ namespace UniFiler10.ViewModels
 
 		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null;
 		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
-		private void UpdateUnassignedFields()
+		private async Task UpdateUnassignedFieldsAsync(bool init = false)
 		{
-			var mbc = _briefcase.MetaBriefcase;
-			var unaFlds = _unassignedFields;
-			if (unaFlds == null) return;
+			await RunInUiThreadAsync(() =>
+			{
+				if (init) UnassignedFields = new SwitchableObservableDisposableCollection<FieldDescription>();
 
-			unaFlds.Clear();
-			if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptionIds == null) return;
+				var mbc = _briefcase.MetaBriefcase;
+				var unaFlds = _unassignedFields;
+				if (unaFlds == null) return;
 
-			_unassignedFields.AddRange(mbc.FieldDescriptions
-				.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id)));
-			//				_unassignedFields.AddRange(mbc.FieldDescriptions
-			//					.Where(allFldDsc => !mbc.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
+				unaFlds.Clear();
+				if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptionIds == null) return;
+
+				unaFlds.AddRange(mbc.FieldDescriptions
+					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id)));
+				//				_unassignedFields.AddRange(mbc.FieldDescriptions
+				//					.Where(allFldDsc => !mbc.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
+			}).ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(UnassignedFields));
 		}
 		public void OnDataContextChanged()
 		{
-			UpdateUnassignedFields();
+			Task upd = UpdateUnassignedFieldsAsync();
 		}
 
 		public static bool GetIsElevated()
@@ -132,16 +137,13 @@ namespace UniFiler10.ViewModels
 				RaisePropertyChanged_UI(nameof(BackgroundTaskHelper));
 				_briefcase = briefcase;
 				RaisePropertyChanged_UI(nameof(Briefcase));
-				UpdateUnassignedFields();
+				//UpdateUnassignedFields();
 			}
 		}
 
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
-			await RunInUiThreadAsync(delegate
-			{
-				UnassignedFields = new SwitchableObservableDisposableCollection<FieldDescription>();
-			}).ConfigureAwait(false);
+			await UpdateUnassignedFieldsAsync(true).ConfigureAwait(false);
 
 			if (IsExportingSettings)
 			{
@@ -190,7 +192,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.AddFieldDescriptionAsync())
 				{
-					UpdateUnassignedFields();
+					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -206,7 +208,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.RemoveFieldDescriptionAsync(fldDesc))
 				{
-					UpdateUnassignedFields();
+					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -221,7 +223,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
 				{
-					UpdateUnassignedFields();
+					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -237,7 +239,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
 				{
-					UpdateUnassignedFields();
+					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -267,7 +269,7 @@ namespace UniFiler10.ViewModels
 				if (mbc == null) return;
 
 				await mbc.SetCurrentCategoryAsync(newItem);
-				UpdateUnassignedFields();
+				await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
 			});
 		}
 		public Task SetCurrentFieldDescriptionAsync(FieldDescription newItem)
