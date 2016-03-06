@@ -26,6 +26,7 @@ namespace UniFiler10.ViewModels
 
 		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null;
 		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
+		// LOLLO TODO make sure IsJustAdded is shown right in the unassigned fields list
 		private async Task UpdateUnassignedFieldsAsync(bool init = false)
 		{
 			await RunInUiThreadAsync(() =>
