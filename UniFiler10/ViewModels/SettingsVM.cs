@@ -37,12 +37,10 @@ namespace UniFiler10.ViewModels
 				if (unaFlds == null) return;
 
 				unaFlds.Clear();
-				if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptionIds == null) return;
+				if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptions == null) return;
 
 				unaFlds.AddRange(mbc.FieldDescriptions
 					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id)));
-				//				_unassignedFields.AddRange(mbc.FieldDescriptions
-				//					.Where(allFldDsc => !mbc.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id)));
 			}).ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(UnassignedFields));
 		}

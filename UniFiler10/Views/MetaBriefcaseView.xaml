@@ -96,7 +96,7 @@
 
 					<TextBlock x:Uid="Categories"
                         VerticalAlignment="Center"
-						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
 					<AppBarButton Grid.Column="2"
 						Icon="Add"
@@ -136,7 +136,7 @@
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="View"
@@ -175,7 +175,7 @@
 
 					<TextBlock x:Uid="FieldDescrsAssignedToCat"
 						VerticalAlignment="Center"
-						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
 					<Rectangle Grid.Column="2"
 						Width="{StaticResource MetaItemHeight}"
@@ -225,7 +225,7 @@
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="View"
@@ -269,7 +269,7 @@
 
 					<TextBlock x:Uid="FieldDescrsNotAssignedToCat"
                         VerticalAlignment="Center"
-						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
 					<AppBarButton Grid.Column="2"
 						Icon="Add"
@@ -288,7 +288,7 @@
 				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 				<ListView
                     x:Name="UnassignedLV"
-                    ItemsSource="{Binding ElementName=me, Path=VM.UnassignedFields, Mode=OneWay}"
+                    ItemsSource="{x:Bind VM.UnassignedFields, Mode=OneWay}"
 					ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
@@ -298,8 +298,8 @@
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
 							<!-- no virtualistion here or we lose the OnLoaded! -->
-							<!--<ItemsStackPanel Orientation="Vertical"/>-->
-							<StackPanel Orientation="Vertical"/>
+							<ItemsStackPanel Orientation="Vertical"/>
+							<!--<StackPanel Orientation="Vertical"/>-->
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
@@ -318,7 +318,7 @@
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="View"
@@ -363,7 +363,7 @@
 
 					<TextBlock x:Uid="PossibleFieldValues"
                         VerticalAlignment="Center"
-						Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
 					<AppBarButton Grid.Column="2"
 						Icon="Add"
@@ -377,7 +377,7 @@
 				</Grid>
 
 				<Grid>
-					<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
+				<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
 						Foreground="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
 						IsEnabled="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource BooleanAndElevated}}"                   
 						HorizontalAlignment="Left"
@@ -385,10 +385,10 @@
 						VerticalContentAlignment="Center"
 						BorderThickness="0"
 						Style="{StaticResource CheckBoxLolloStyle}"
-						Width="{Binding ElementName=me, Path=MetaItemTextWidth}">
-						<CheckBox.Content>
+						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}">
+					<CheckBox.Content>
 							<TextBlock x:Uid="AllowAllFieldValues"
-								MaxWidth="{Binding ElementName=me, Path=MetaItemTextWidth, Converter={StaticResource ReduceWidthForText}, ConverterParameter=40}"
+								MaxWidth="{Binding ElementName=me, Path=MetaItemTextWidth, Converter={StaticResource ReduceWidthForText}, ConverterParameter=40, Mode=OneWay}"
 								TextWrapping="Wrap"/>
 						</CheckBox.Content>
 					</CheckBox>
@@ -422,7 +422,7 @@
                                     MaxLength="{StaticResource MaxVaalueLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
-									Width="{Binding ElementName=me, Path=MetaItemTextWidth}"
+									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
 								<AppBarButton Grid.Column="2"
 									Icon="Delete"

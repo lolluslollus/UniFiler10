@@ -11,6 +11,10 @@ namespace UniFiler10.Data.Metadata
 		#region properties
 		private static readonly string DEFAULT_ID = string.Empty;
 		public static readonly FieldValue Empty = new FieldValue() { Id = DEFAULT_ID };
+		private readonly object _propLocker = new object();
+		[IgnoreDataMember]
+		private object PropLocker { get { return _propLocker ?? new object(); /*for serialisation*/ } }
+
 
 		private string _id = DEFAULT_ID;
 		[DataMember]
@@ -18,13 +22,13 @@ namespace UniFiler10.Data.Metadata
 
 		private string _vaalue = string.Empty;
 		[DataMember]
-		public string Vaalue { get { return _vaalue; } set { _vaalue = value; RaisePropertyChanged_UI(); } }
+		public string Vaalue { get { lock (PropLocker) { return _vaalue; } } set { lock (PropLocker) { _vaalue = value; } RaisePropertyChanged_UI(); } }
 
-		private bool _isCustom = false;
+		private volatile bool _isCustom = false;
 		[DataMember]
-		public bool IsCustom { get { return _isCustom; } set { _isCustom = value; RaisePropertyChanged_UI(); } }
+		public bool IsCustom { get { return _isCustom; } private set { _isCustom = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isJustAdded = false;
+		private volatile bool _isJustAdded = false;
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } private set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 		#endregion properties

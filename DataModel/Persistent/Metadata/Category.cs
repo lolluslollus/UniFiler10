@@ -14,20 +14,24 @@ namespace UniFiler10.Data.Metadata
 
 		#region properties
 		private string _id = DEFAULT_ID;
+		private readonly object _propLocker = new object();
+		[IgnoreDataMember]
+		private object PropLocker { get { return _propLocker ?? new object(); /*for serialisation*/ } }
+
 		[DataMember]
 		public string Id { get { return _id; } set { _id = value; } }
 
 		private string _name = string.Empty;
 		[DataMember]
-		public string Name { get { return _name; } set { _name = value; RaisePropertyChanged_UI(); } }
+		public string Name { get { lock (PropLocker) { return _name; } } set { lock (PropLocker) { _name = value; } RaisePropertyChanged_UI(); } }
 
-		private bool _isCustom = false;
+		private volatile bool _isCustom = false;
 		[DataMember]
-		public bool IsCustom { get { return _isCustom; } set { _isCustom = value; RaisePropertyChanged_UI(); } }
+		public bool IsCustom { get { return _isCustom; } private set { _isCustom = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isJustAdded = false;
+		private volatile bool _isJustAdded = false;
 		[IgnoreDataMember]
-		public bool IsJustAdded { get { return _isJustAdded; } set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
+		public bool IsJustAdded { get { return _isJustAdded; } private set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
 		private readonly SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
 		[IgnoreDataMember]
@@ -80,6 +84,13 @@ namespace UniFiler10.Data.Metadata
 		public Category()
 		{
 			Id = Guid.NewGuid().ToString();
+		}
+
+		public Category(string name, bool isCustom, bool isJustAdded) : this()
+		{
+			Name = name;
+			IsCustom = isCustom;
+			IsJustAdded = isJustAdded;
 		}
 
 		//public void Dispose()

@@ -132,18 +132,18 @@ namespace UniFiler10.Data.Metadata
 		[DataMember]
 		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } private set { _fieldDescriptions = value; RaisePropertyChanged_UI(); } }
 
-		private readonly object _isElevatedLocker = new object();
+		private readonly object _propLocker = new object();
 		private bool _isElevated = false; // this must not be serialised because it does not belong in the metadata xml, so it has its own place in the registry.
 		[IgnoreDataMember]
 		public bool IsElevated
 		{
 			get
 			{
-				return GetPropertyLocking(ref _isElevated, _isElevatedLocker);
+				return GetPropertyLocking(ref _isElevated, _propLocker);
 			}
 			set
 			{
-				SetPropertyLocking(ref _isElevated, value, _isElevatedLocker);
+				SetPropertyLocking(ref _isElevated, value, _propLocker);
 			}
 		}
 
@@ -707,7 +707,7 @@ namespace UniFiler10.Data.Metadata
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
 				string name = RuntimeData.GetText("NewCategory");
-				var newCat = new Category() { Name = name, IsCustom = true, IsJustAdded = true };
+				var newCat = new Category(name, true, true);
 
 				if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
 				{

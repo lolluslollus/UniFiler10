@@ -10,18 +10,21 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
 	{
-		private static readonly string DEFAULT_ID = string.Empty;
-
 		#region properties
+		private static readonly string DEFAULT_ID = string.Empty;
+		private readonly object _propLocker = new object();
+		[IgnoreDataMember]
+		private object PropLocker { get { return _propLocker ?? new object(); /*for serialisation*/ } }
+
 		private string _id = DEFAULT_ID;
 		[DataMember]
 		public string Id { get { return _id; } set { _id = value; } }
 
-		private bool _isCustom = false;
+		private volatile bool _isCustom = false;
 		[DataMember]
-		public bool IsCustom { get { return _isCustom; } set { _isCustom = value; RaisePropertyChanged_UI(); } }
+		public bool IsCustom { get { return _isCustom; } private set { _isCustom = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isJustAdded = false;
+		private volatile bool _isJustAdded = false;
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } private set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
@@ -35,11 +38,11 @@ namespace UniFiler10.Data.Metadata
 		/// ie they can be added outside the metadata classes.
 		/// </summary>
 		[DataMember]
-		public bool IsAnyValueAllowed { get { return _isAnyValueAllowed; } set { _isAnyValueAllowed = value; RaisePropertyChanged_UI(); } }
+		public bool IsAnyValueAllowed { get { lock (PropLocker) { return _isAnyValueAllowed; } } set { lock (PropLocker) { _isAnyValueAllowed = value; } RaisePropertyChanged_UI(); } }
 
 		private string _caption = string.Empty;
 		[DataMember]
-		public string Caption { get { return _caption; } set { _caption = value; RaisePropertyChanged_UI(); } }
+		public string Caption { get { lock (PropLocker) { return _caption; } } set { lock (PropLocker) { _caption = value; } RaisePropertyChanged_UI(); } }
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableCollection<FieldValue> _possibleValues = new SwitchableObservableCollection<FieldValue>();
