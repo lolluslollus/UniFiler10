@@ -134,13 +134,14 @@
 						VerticalAlignment="Center"/>
 					<uctl:UniversalWrapPanel Grid.Row="7"
 						Orientation="Horizontal"
-						Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
 						VerticalAlignment="Center">
 						<TextBlock
-							x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
+							x:Uid="OneDrive_ThisNotSynced" 
+							Foreground="{StaticResource FlashyForeground}"
+							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
 							VerticalAlignment="Center"/>
 						<AppBarButton
-							Icon="Refresh" x:Uid="Retry"
+							Icon="Refresh" x:Uid="Sync"
 							IsEnabled="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay}"
 							VerticalAlignment="Center"
 							Margin="10, 0, 0, 0"
@@ -149,8 +150,8 @@
 				</Grid>
 
 				<!-- edit metadata -->
-				<ContentControl RelativePanel.Below="ConnectionSettings" x:Name="MBViewContainer"
-					IsEnabled="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}">
+				<!--IsEnabled="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}"-->
+				<ContentControl RelativePanel.Below="ConnectionSettings" x:Name="MBViewContainer">
 					<local:MetaBriefcaseView x:Name="MBView"
 						VM="{x:Bind VM, Mode=OneWay}"
 						DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"

@@ -435,8 +435,8 @@
   <data name="RuntimeIsConnectionAvailableFalse.Text" xml:space="preserve">
     <value>Connection not available</value>
   </data>
-  <data name="Retry.Label" xml:space="preserve">
-    <value>Retry</value>
+  <data name="Sync.Label" xml:space="preserve">
+    <value>Sync</value>
   </data>
   <data name="MetadataPullLocalFromOneDrive.Text" xml:space="preserve">
     <value>Overwrite local with One Drive data</value>

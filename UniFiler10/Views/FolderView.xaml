@@ -117,6 +117,7 @@
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
 							<Grid>
+								<!--IsReadonly2="{Binding ElementName=me, Path=VM.Briefcase.IsWantAndCannotUseOneDrive, Converter={StaticResource TrueToFalseConverter}}"-->
 								<ctl:LolloTextBox
 									Width="{StaticResource LandscapeItemWidth}"
 									MinHeight="{StaticResource LandscapeItemHeight}"
@@ -124,7 +125,6 @@
 									LostFocus="OnVaalue_LostFocus"									
 									Header="{Binding FieldDescription.Caption, Mode=OneWay}"
 									IsReadOnly="{Binding FieldDescription.IsAnyValueAllowed, Converter={StaticResource TrueToFalseConverter}}"
-									IsReadonly2="{Binding ElementName=me, Path=VM.Briefcase.IsWantAndCannotUseOneDrive, Converter={StaticResource TrueToFalseConverter}}"
 									Style="{StaticResource LolloTextBoxStyle}"
 									DisplayMemberPath="Vaalue"
 									MaxLength="{StaticResource MaxVaalueLength}"
