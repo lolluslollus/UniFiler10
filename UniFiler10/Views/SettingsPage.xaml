@@ -149,10 +149,11 @@
 				</Grid>
 
 				<!-- edit metadata -->
-				<ContentControl RelativePanel.Below="ConnectionSettings" x:Name="MBView"
+				<ContentControl RelativePanel.Below="ConnectionSettings" x:Name="MBViewContainer"
 					IsEnabled="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource TrueToFalseConverter}}">
-					<local:MetaBriefcaseView
+					<local:MetaBriefcaseView x:Name="MBView"
 						VM="{x:Bind VM, Mode=OneWay}"
+						DataContext="{x:Bind VM.Briefcase.MetaBriefcase, Mode=OneWay}"
 						HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 						IsEnabled="{x:Bind IsOpen, Mode=OneWay, FallbackValue=false}"/>
 				</ContentControl>
@@ -162,7 +163,7 @@
 					Canvas.ZIndex="900"/>
 
 				<!-- spacer -->
-				<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBView"/>
+				<Rectangle Height="20" Width="20" x:Name="Spacer" RelativePanel.Below="MBViewContainer"/>
 
 				<!-- camera resolution -->
 				<TextBlock x:Uid="CameraResHeader" RelativePanel.Below="Spacer" x:Name="CameraResHeader" 

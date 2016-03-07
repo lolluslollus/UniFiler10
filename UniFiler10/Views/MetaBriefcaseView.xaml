@@ -222,42 +222,42 @@
 							</Grid.ColumnDefinitions>
 
 							<ctl:LolloTextBox
-									Text="{Binding Caption, Mode=TwoWay}"
-                                    MaxLength="{StaticResource MaxTagLength}"
-                                    VerticalAlignment="Center"
-									BorderThickness="0"
-									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
-									Style="{StaticResource LolloTextBoxStyle}"/>
+								Text="{Binding FieldDescription.Caption, Mode=TwoWay}"
+                                MaxLength="{StaticResource MaxTagLength}"
+                                VerticalAlignment="Center"
+								BorderThickness="0"
+								Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
+								Style="{StaticResource LolloTextBoxStyle}"/>
 							<AppBarButton Grid.Column="2"
-									Icon="View"
-                                    IsCompact="True"
-                                    Click="OnSelectAssignedFldDsc_Click"
-                                    VerticalAlignment="Center"/>
+								Icon="View"
+                                IsCompact="True"
+                                Click="OnSelectAssignedFldDsc_Click"
+                                VerticalAlignment="Center"/>
 							<!--Loaded="OnFieldUnassignCommand_Loaded"-->
 							<AppBarButton Grid.Column="3"
-									Icon="Remove"
-                                    IsCompact="True"
-                                    Click="OnAssignFieldFromCurrentCategory_Click"
-									Visibility="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToVisible}}"
-									Foreground="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToColor}}"
-                                    VerticalAlignment="Center"/>
+								Icon="Remove"
+                                IsCompact="True"
+                                Click="OnUnassignFieldFromCurrentCategory_Click"
+								Visibility="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToVisible}}"
+								Foreground="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToColor}}"
+                                VerticalAlignment="Center"/>
 							<!--Loaded="OnFieldDeleteCommand_Loaded"-->
 							<AppBarButton Grid.Column="4"
-									Icon="Delete"
-                                    IsCompact="True"
-                                    Click="OnDeleteField_Click"
-									Visibility="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToVisible}}"
-									Foreground="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToColor}}"
-                                    VerticalAlignment="Center"/>
+								Icon="Delete"
+                                IsCompact="True"
+                                Click="OnDeleteField_Click"
+								Visibility="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToVisible}}"
+								Foreground="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToColor}}"
+                                VerticalAlignment="Center"/>
 							<Rectangle Grid.Column="2"
-									Width="{StaticResource MetaItemHeight}"
-									Height="{StaticResource MetaItemHeight}"/>
+								Width="{StaticResource MetaItemHeight}"
+								Height="{StaticResource MetaItemHeight}"/>
 							<Rectangle Grid.Column="3"
-									Width="{StaticResource MetaItemHeight}"
-									Height="{StaticResource MetaItemHeight}"/>
+								Width="{StaticResource MetaItemHeight}"
+								Height="{StaticResource MetaItemHeight}"/>
 							<Rectangle Grid.Column="4"
-									Width="{StaticResource MetaItemHeight}"
-									Height="{StaticResource MetaItemHeight}"/>
+								Width="{StaticResource MetaItemHeight}"
+								Height="{StaticResource MetaItemHeight}"/>
 
 						</Grid>
 					</DataTemplate>
@@ -292,14 +292,14 @@
 			<!-- unassigned field descriptions -->
 			<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 			<ListView
-                    x:Name="UnassignedLV"
-                    ItemsSource="{x:Bind VM.UnassignedFields, Mode=OneWay}"
-					ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
-                    IsMultiSelectCheckBoxEnabled="False" 
-                    IsItemClickEnabled="True"
-					SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
-					ScrollViewer.VerticalScrollBarVisibility="Disabled"
-					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                x:Name="UnassignedLV"
+                ItemsSource="{x:Bind VM.UnassignedFields, Mode=OneWay}"
+				ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
+                IsMultiSelectCheckBoxEnabled="False" 
+                IsItemClickEnabled="True"
+				SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
+				ScrollViewer.VerticalScrollBarVisibility="Disabled"
+				ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
 						<ItemsStackPanel Orientation="Vertical"/>
@@ -319,39 +319,39 @@
 							</Grid.ColumnDefinitions>
 
 							<ctl:LolloTextBox
-									Text="{Binding Caption, Mode=TwoWay}"
-                                    MaxLength="{StaticResource MaxTagLength}"
-                                    VerticalAlignment="Center"
-									BorderThickness="0"
-									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
-									Style="{StaticResource LolloTextBoxStyle}"/>
+								Text="{Binding FieldDescription.Caption, Mode=TwoWay}"
+                                MaxLength="{StaticResource MaxTagLength}"
+                                VerticalAlignment="Center"
+								BorderThickness="0"
+								Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
+								Style="{StaticResource LolloTextBoxStyle}"/>
 							<AppBarButton Grid.Column="2"
-									Icon="View"
-                                    IsCompact="True"
-                                    Click="OnSelectUnassignedFldDsc_Click"
-                                    VerticalAlignment="Center"/>
+								Icon="View"
+                                IsCompact="True"
+                                Click="OnSelectUnassignedFldDsc_Click"
+                                VerticalAlignment="Center"/>
 							<AppBarButton Grid.Column="3"
-									Icon="Accept"
-                                    IsCompact="True"
-                                    Click="OnAssignFieldToCurrentCat_Click"
-                                    VerticalAlignment="Center"/>
+								Icon="Accept"
+                                IsCompact="True"
+                                Click="OnAssignFieldToCurrentCat_Click"
+                                VerticalAlignment="Center"/>
 							<!--Loaded="OnFieldDeleteCommand_Loaded"-->
 							<AppBarButton Grid.Column="4"
-									Icon="Delete"
-                                    IsCompact="True"
-                                    Click="OnDeleteField_Click"
-									Visibility="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToVisible}}"
-									Foreground="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToColor}}"
-                                    VerticalAlignment="Center"/>
+								Icon="Delete"
+                                IsCompact="True"
+                                Click="OnDeleteField_Click"
+								Visibility="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToVisible}}"
+								Foreground="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToColor}}"
+                                VerticalAlignment="Center"/>
 							<Rectangle Grid.Column="2"
-									Width="{StaticResource MetaItemHeight}"
-									Height="{StaticResource MetaItemHeight}"/>
+								Width="{StaticResource MetaItemHeight}"
+								Height="{StaticResource MetaItemHeight}"/>
 							<Rectangle Grid.Column="3"
-									Width="{StaticResource MetaItemHeight}"
-									Height="{StaticResource MetaItemHeight}"/>
+								Width="{StaticResource MetaItemHeight}"
+								Height="{StaticResource MetaItemHeight}"/>
 							<Rectangle Grid.Column="4"
-									Width="{StaticResource MetaItemHeight}"
-									Height="{StaticResource MetaItemHeight}"/>
+								Width="{StaticResource MetaItemHeight}"
+								Height="{StaticResource MetaItemHeight}"/>
 						</Grid>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>

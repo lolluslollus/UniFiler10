@@ -8,7 +8,7 @@ using Utilz.Data;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
+	public sealed class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
 	{
 		#region properties
 		private static readonly string DEFAULT_ID = string.Empty;

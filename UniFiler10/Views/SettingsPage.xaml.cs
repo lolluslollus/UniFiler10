@@ -32,7 +32,7 @@ namespace UniFiler10.Views
 			InitializeComponent();
 			// LOLLO NOTE with x:Bind set on a nullable bool property, such as ToggleButton.IsChecked, FallbackValue=True and FallbackValue=False cause errors.
 			// Instead, use Binding ElementName=me, Path=....
-			MBView.DataContext = null; // otherwise, it will try something and run into binding errors. I am going to set its binding later.
+			//MBView.DataContext = null; // otherwise, it will try something and run into binding errors. I am going to set its binding later.
 			_animationStarter = AnimationsControl.AnimationStarter;
 		}
 		protected override async Task OpenMayOverrideAsync(object args = null)
@@ -47,8 +47,7 @@ namespace UniFiler10.Views
 			_vm.MetadataChanged += OnVm_MetadataChanged;
 			RaisePropertyChanged_UI(nameof(VM));
 
-			//LayoutRoot.DataContext = VM;
-			Task ccc = RunInUiThreadAsync(() => MBView.DataContext = VM.Briefcase.MetaBriefcase);
+			MBView.Refresh();
 		}
 
 
@@ -77,8 +76,7 @@ namespace UniFiler10.Views
 
 		private void OnToggleElevated_Tapped(object sender, TappedRoutedEventArgs e)
 		{
-			MBView.DataContext = null;
-			MBView.DataContext = VM.Briefcase.MetaBriefcase;
+			MBView.Refresh();
 		}
 
 		private void OnExport_Tapped(object sender, TappedRoutedEventArgs e)
@@ -93,11 +91,7 @@ namespace UniFiler10.Views
 
 		private void OnVm_MetadataChanged(object sender, EventArgs e)
 		{
-			Task upd = RunInUiThreadAsync(delegate
-			{
-				MBView.DataContext = null;
-				MBView.DataContext = VM.Briefcase.MetaBriefcase;
-			});
+			MBView.Refresh();
 		}
 
 		private void OnAbout_Tapped(object sender, TappedRoutedEventArgs e)
@@ -117,13 +111,6 @@ namespace UniFiler10.Views
 			catch { }
 		}
 
-		//private void OnIsWantToUseOneDrive_Tapped(object sender, TappedRoutedEventArgs e)
-		//{
-		//	var ts = sender as ToggleSwitch;
-		//	if (ts == null) return;
-		//	VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
-		//}
-
 		private void OnIsWantToUseOneDrive_Toggled(object sender, RoutedEventArgs e)
 		{
 			// Only allow this method firing when the toggle event comes from user interaction.
@@ -140,13 +127,6 @@ namespace UniFiler10.Views
 			if (ts == null) return;
 			_isWantToUseOneDrive_PointerJustRelleased = true;
 		}
-
-		//private void OnIsWantToUseOneDrive_LostFocus(object sender, RoutedEventArgs e)
-		//{
-		//	var ts = sender as ToggleSwitch;
-		//	if (ts == null) return;
-		//	VM?.SetIsWantToUseOneDriveAsync(ts.IsOn);
-		//}
 
 		private void OnRetry_Tapped(object sender, TappedRoutedEventArgs e)
 		{

@@ -6,7 +6,6 @@ using UniFiler10.Controlz;
 using UniFiler10.Data.Constants;
 using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
-using UniFiler10.Data.Runtime;
 using UniFiler10.Services;
 using Utilz;
 using Utilz.Data;
@@ -19,61 +18,54 @@ namespace UniFiler10.ViewModels
 {
 	public sealed class SettingsVM : OpenableObservableDisposableData
 	{
-		public class FieldDescriptionPlus : FieldDescription
+		public class FieldDescriptionPlus : ObservableData
 		{
 			public enum PermissionLevels { No, WithCaution, Yes }
 
 			private PermissionLevels _isAllowUnassign = PermissionLevels.No;
-			public PermissionLevels IsAllowUnassign { get { return _isAllowUnassign; } private set { _isAllowUnassign = value; RaisePropertyChanged_UI(); } }
+			public PermissionLevels IsAllowUnassign { get { return _isAllowUnassign; } /*private set { _isAllowUnassign = value; RaisePropertyChanged_UI(); } */}
 			private PermissionLevels _isAllowDelete = PermissionLevels.No;
-			public PermissionLevels IsAllowDelete { get { return _isAllowDelete; } private set { _isAllowDelete = value; RaisePropertyChanged_UI(); } }
-			private FieldDescriptionPlus() { }
-			public static FieldDescriptionPlus Get(FieldDescription fldDsc)
+			public PermissionLevels IsAllowDelete { get { return _isAllowDelete; } /*private set { _isAllowDelete = value; RaisePropertyChanged_UI(); }*/ }
+
+			private FieldDescription _fieldDescription = null;
+			public FieldDescription FieldDescription { get { return _fieldDescription; } }
+
+			private FieldDescriptionPlus(FieldDescription fldDsc)
 			{
-				if (fldDsc == null) return null;
+				if (fldDsc == null) return;
 				var mbc = MetaBriefcase.OpenInstance;
+				if (mbc == null) return;
 
-				var fdp = Cast(fldDsc);
-				if (mbc == null) return fdp;
-
+				_fieldDescription = fldDsc;
 				// LOLLO TODO the following line was buggy, check it
 				var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat?.FieldDescriptionIds != null && !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
 
 				if (catsWhereThisFieldWasAssignedBefore?.Any() == true)
 				{
-					if (SettingsVM.GetIsElevated()) fdp.IsAllowDelete = PermissionLevels.WithCaution;
+					if (GetIsElevated()) _isAllowDelete = PermissionLevels.WithCaution;
 				}
-				else fdp.IsAllowDelete = PermissionLevels.Yes;
+				else _isAllowDelete = PermissionLevels.Yes;
 
 				string currCatId = mbc.CurrentCategoryId;
 				if (!string.IsNullOrEmpty(currCatId))
 				{
-					if (fldDsc.JustAssignedToCats.Contains(currCatId)) fdp.IsAllowUnassign = PermissionLevels.Yes;
+					if (fldDsc.JustAssignedToCats.Contains(currCatId)) _isAllowUnassign = PermissionLevels.Yes;
 					else
 					{
-						if (SettingsVM.GetIsElevated()) fdp.IsAllowUnassign = PermissionLevels.WithCaution;
+						if (GetIsElevated()) _isAllowUnassign = PermissionLevels.WithCaution;
 					}
 				}
-				else fdp.IsAllowUnassign = PermissionLevels.Yes;
-
-				return fdp;
+				else _isAllowUnassign = PermissionLevels.Yes;
 			}
-			public static IList<FieldDescriptionPlus> Downcast(IEnumerable<FieldDescription> fldDscs)
+
+			public static IList<FieldDescriptionPlus> Get(IEnumerable<FieldDescription> fldDscs)
 			{
 				var result = new List<FieldDescriptionPlus>();
 				if (fldDscs == null) return result;
 				foreach (var fldDsc in fldDscs)
 				{
-					result.Add(Get(fldDsc));
+					result.Add(new FieldDescriptionPlus(fldDsc));
 				}
-				return result;
-			}
-			private static FieldDescriptionPlus Cast(FieldDescription fldDsc)
-			{
-				FieldDescriptionPlus result = new FieldDescriptionPlus();
-				FieldDescription upcastResult = (FieldDescription)result;
-
-				FieldDescription.Copy(fldDsc, ref upcastResult);
 				return result;
 			}
 		}
@@ -90,7 +82,7 @@ namespace UniFiler10.ViewModels
 
 		private SwitchableObservableDisposableCollection<FieldDescriptionPlus> _unassignedFields = null;
 		public SwitchableObservableDisposableCollection<FieldDescriptionPlus> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
-		// LOLLO TODO make sure IsJustAdded is shown right in the unassigned fields list
+
 		private async Task UpdateAssignedUnassignedFieldsAsync()
 		{
 			await RunInUiThreadAsync(() =>
@@ -102,25 +94,19 @@ namespace UniFiler10.ViewModels
 				unaFlds.Clear(); assFlds.Clear();
 				if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptions == null) return;
 
-				assFlds.AddRange(FieldDescriptionPlus.Downcast(mbc.FieldDescriptions
+				assFlds.AddRange(FieldDescriptionPlus.Get(mbc.FieldDescriptions
 					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id))));
 
-				unaFlds.AddRange(FieldDescriptionPlus.Downcast(mbc.FieldDescriptions
+				unaFlds.AddRange(FieldDescriptionPlus.Get(mbc.FieldDescriptions
 					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id))));
 			}).ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(UnassignedFields));
 		}
-		public void OnDataContextChanged()
+
+		public void Refresh()
 		{
 			Task upd = UpdateAssignedUnassignedFieldsAsync();
 		}
-		//private void OnMetaBriefcase_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-		//{
-		//	if (e.PropertyName == nameof(MetaBriefcase.IsElevated))
-		//	{
-		//		Task upd = UpdateUnassignedFieldsAsync();
-		//	}
-		//}
 
 		public static bool GetIsElevated()
 		{
@@ -219,9 +205,6 @@ namespace UniFiler10.ViewModels
 				if (_assignedFields == null || _assignedFields.IsDisposed) AssignedFields = new SwitchableObservableDisposableCollection<FieldDescriptionPlus>();
 				if (_unassignedFields == null || _unassignedFields.IsDisposed) UnassignedFields = new SwitchableObservableDisposableCollection<FieldDescriptionPlus>();
 			}).ConfigureAwait(false);
-			//await UpdateAssignedUnassignedFieldsAsync(true).ConfigureAwait(false);
-			//var mbc = _briefcase?.MetaBriefcase;
-			//if(mbc != null) mbc.PropertyChanged += OnMetaBriefcase_PropertyChanged;
 
 			if (IsExportingSettings)
 			{
@@ -238,12 +221,7 @@ namespace UniFiler10.ViewModels
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var mbc = _briefcase?.MetaBriefcase;
-			if (mbc != null)
-			{
-				//mbc.PropertyChanged -= OnMetaBriefcase_PropertyChanged;
-				await mbc.SaveAsync().ConfigureAwait(false);
-			}
-
+			if (mbc != null) await mbc.SaveAsync().ConfigureAwait(false);
 			_unassignedFields?.Dispose();
 		}
 		#endregion lifecycle

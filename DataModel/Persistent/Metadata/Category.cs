@@ -120,15 +120,15 @@ namespace UniFiler10.Data.Metadata
 			return false;
 		}
 
-		internal bool RemoveFieldDescription(FieldDescription fdToBeRemoved)
+		internal bool RemoveFieldDescription(string fldId)
 		{
-			if (fdToBeRemoved != null)
-			{
-				fdToBeRemoved.RemoveFromJustAssignedToCats(this);
-				bool isOk = _fieldDescriptions.Remove(fdToBeRemoved) & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
-				return isOk;
-			}
-			return false;
+			if (string.IsNullOrWhiteSpace(fldId)) return false;
+			var fldDsc = _fieldDescriptions.FirstOrDefault(fd => fd.Id == fldId);
+
+			fldDsc?.RemoveFromJustAssignedToCats(this);
+			if (fldDsc == null) return false;
+			bool isOk = _fieldDescriptions.Remove(fldDsc) & _fieldDescriptionIds.Remove(fldDsc.Id);
+			return isOk;
 		}
 
 		public static bool Check(Category cat)
