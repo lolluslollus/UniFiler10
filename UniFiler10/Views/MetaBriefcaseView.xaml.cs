@@ -45,19 +45,9 @@ namespace UniFiler10.Views
 			Task upd = VM?.SetCurrentCategoryAsync(e.ClickedItem as Category);
 		}
 
-		private void OnSelectCategory_Click(object sender, RoutedEventArgs e)
-		{
-			Task upd = VM?.SetCurrentCategoryAsync((sender as FrameworkElement)?.DataContext as Category);
-		}
-
 		private void OnUnassignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			Task sel = SelectUnaFldDsc((e?.ClickedItem as SettingsVM.FieldDescriptionPlus)?.FieldDescription);
-		}
-
-		private void OnSelectUnassignedFldDsc_Click(object sender, RoutedEventArgs e)
-		{
-			Task sel = SelectUnaFldDsc(((sender as FrameworkElement)?.DataContext as SettingsVM.FieldDescriptionPlus)?.FieldDescription);
 		}
 
 		private async Task SelectUnaFldDsc(FieldDescription fldDsc)
@@ -73,11 +63,6 @@ namespace UniFiler10.Views
 		private void OnAssignedFieldDescriptionsListView_ItemClick(object sender, ItemClickEventArgs e)
 		{
 			Task sel = SelectAssFldDsc((e?.ClickedItem as SettingsVM.FieldDescriptionPlus)?.FieldDescription);
-		}
-
-		private void OnSelectAssignedFldDsc_Click(object sender, RoutedEventArgs e)
-		{
-			Task sel = SelectAssFldDsc(((sender as FrameworkElement)?.DataContext as SettingsVM.FieldDescriptionPlus)?.FieldDescription);
 		}
 
 		private async Task SelectAssFldDsc(FieldDescription fldDsc)

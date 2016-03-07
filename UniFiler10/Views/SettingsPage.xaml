@@ -27,7 +27,7 @@
 			HorizontalScrollMode="Enabled"
 			ZoomMode="Disabled">
 			<RelativePanel x:Name="LayoutRoot"
-				Background="AntiqueWhite"
+				Background="#FFFFF0F0"
 				d:DataContext="{d:DesignInstance vm:SettingsVM, CreateList=True, IsDesignTimeCreatable=True}">
 				<!--DataContext="{x:Bind VM, Mode=OneWay}">-->
 				<FlyoutBase.AttachedFlyout>

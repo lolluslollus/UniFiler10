@@ -769,7 +769,7 @@ namespace UniFiler10.Data.Metadata
 					{
 						foreach (var cat in _categories)
 						{
-							cat.RemoveFieldDescription(fldDesc.Id);
+							cat.RemoveFieldDescription(fldDesc);
 						}
 						isRemoved = _fieldDescriptions.Remove(fldDesc);
 					}).ConfigureAwait(false);
@@ -851,7 +851,7 @@ namespace UniFiler10.Data.Metadata
 				if (fldDsc == null || _currentCategory == null || (!fldDsc.JustAssignedToCats.Contains(_currentCategoryId) && !IsElevated)) return false;
 
 				bool isRemoved = false;
-				await RunInUiThreadAsync(() => isRemoved = _currentCategory.RemoveFieldDescription(fldDsc.Id)).ConfigureAwait(false);
+				await RunInUiThreadAsync(() => isRemoved = _currentCategory.RemoveFieldDescription(fldDsc)).ConfigureAwait(false);
 				return isRemoved;
 			});
 		}

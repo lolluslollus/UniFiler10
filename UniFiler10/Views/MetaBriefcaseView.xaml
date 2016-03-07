@@ -138,12 +138,10 @@
 									BorderThickness="0"
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
+							<SymbolIcon Grid.Column="3"
+								Symbol="Forward"
+								VerticalAlignment="Center"/>
 							<AppBarButton Grid.Column="2"
-									Icon="View"
-                                    IsCompact="True"
-                                    Click="OnSelectCategory_Click"
-                                    VerticalAlignment="Center"/>
-							<AppBarButton Grid.Column="3"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
@@ -192,22 +190,18 @@
                 we need to do it in the code behind. -->
 			<!-- LOLLO NOTE not only here, use ItemClick instead of SelectionChanged
 				to be sure you only catch the user click and not the initial list filling -->
-			<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
-			<!--ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"-->
 			<ListView
-                    x:Name="AssignedLV"
-					ItemsSource="{x:Bind VM.AssignedFields, Mode=OneWay}"
-					ItemClick="OnAssignedFieldDescriptionsListView_ItemClick"
-                    IsMultiSelectCheckBoxEnabled="False"
-                    IsItemClickEnabled="True"
-					SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
-					ScrollViewer.VerticalScrollBarVisibility="Disabled"
-					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                x:Name="AssignedLV"
+				ItemsSource="{x:Bind VM.AssignedFields, Mode=OneWay}"
+				ItemClick="OnAssignedFieldDescriptionsListView_ItemClick"
+                IsMultiSelectCheckBoxEnabled="False"
+                IsItemClickEnabled="True"
+				SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"
+				ScrollViewer.VerticalScrollBarVisibility="Disabled"
+				ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
 						<ItemsStackPanel Orientation="Vertical"/>
-						<!-- no virtualistion here or we lose the OnLoaded! -->
-						<!--<StackPanel Orientation="Vertical"/>-->
 					</ItemsPanelTemplate>
 				</ItemsControl.ItemsPanel>
 				<ItemsControl.ItemTemplate>
@@ -228,21 +222,17 @@
 								BorderThickness="0"
 								Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 								Style="{StaticResource LolloTextBoxStyle}"/>
-							<AppBarButton Grid.Column="2"
-								Icon="View"
-                                IsCompact="True"
-                                Click="OnSelectAssignedFldDsc_Click"
+							<SymbolIcon Grid.Column="4"
+								Symbol="Forward"
                                 VerticalAlignment="Center"/>
-							<!--Loaded="OnFieldUnassignCommand_Loaded"-->
-							<AppBarButton Grid.Column="3"
+							<AppBarButton Grid.Column="2"
 								Icon="Remove"
                                 IsCompact="True"
                                 Click="OnUnassignFieldFromCurrentCategory_Click"
 								Visibility="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToVisible}}"
 								Foreground="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToColor}}"
                                 VerticalAlignment="Center"/>
-							<!--Loaded="OnFieldDeleteCommand_Loaded"-->
-							<AppBarButton Grid.Column="4"
+							<AppBarButton Grid.Column="3"
 								Icon="Delete"
                                 IsCompact="True"
                                 Click="OnDeleteField_Click"
@@ -290,21 +280,18 @@
 			</Grid>
 
 			<!-- unassigned field descriptions -->
-			<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
 			<ListView
                 x:Name="UnassignedLV"
                 ItemsSource="{x:Bind VM.UnassignedFields, Mode=OneWay}"
 				ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
                 IsMultiSelectCheckBoxEnabled="False" 
                 IsItemClickEnabled="True"
-				SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
+				SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"
 				ScrollViewer.VerticalScrollBarVisibility="Disabled"
 				ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 				<ItemsControl.ItemsPanel>
 					<ItemsPanelTemplate>
 						<ItemsStackPanel Orientation="Vertical"/>
-						<!-- no virtualistion here or we lose the OnLoaded! -->
-						<!--<StackPanel Orientation="Vertical"/>-->
 					</ItemsPanelTemplate>
 				</ItemsControl.ItemsPanel>
 				<ItemsControl.ItemTemplate>
@@ -325,18 +312,15 @@
 								BorderThickness="0"
 								Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 								Style="{StaticResource LolloTextBoxStyle}"/>
-							<AppBarButton Grid.Column="2"
-								Icon="View"
-                                IsCompact="True"
-                                Click="OnSelectUnassignedFldDsc_Click"
+							<SymbolIcon Grid.Column="4"
+								Symbol="Forward"
                                 VerticalAlignment="Center"/>
-							<AppBarButton Grid.Column="3"
+							<AppBarButton Grid.Column="2"
 								Icon="Accept"
                                 IsCompact="True"
                                 Click="OnAssignFieldToCurrentCat_Click"
                                 VerticalAlignment="Center"/>
-							<!--Loaded="OnFieldDeleteCommand_Loaded"-->
-							<AppBarButton Grid.Column="4"
+							<AppBarButton Grid.Column="3"
 								Icon="Delete"
                                 IsCompact="True"
                                 Click="OnDeleteField_Click"
