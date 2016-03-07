@@ -22,93 +22,93 @@
 		HorizontalScrollMode="Enabled"
 		ZoomMode="Disabled">-->
 
-		<!-- LOLLO NOTE these triggers must be put in the right place.
+	<!-- LOLLO NOTE these triggers must be put in the right place.
 		For example, this does not work outside the ScrollViewer -->
-		<!-- make all broader if the screen width allows it -->
-		<VisualStateManager.VisualStateGroups>
-			<VisualStateGroup>
-				<VisualState x:Name="State200">
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1050"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.MetaItemTextWidth" Value="200.0"/>
-					</VisualState.Setters>
-				</VisualState>
-				<VisualState x:Name="State250">
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1200"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.MetaItemTextWidth" Value="250.0"/>
-					</VisualState.Setters>
-				</VisualState>
-				<VisualState x:Name="State300">
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1350"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.MetaItemTextWidth" Value="300.0"/>
-					</VisualState.Setters>
-				</VisualState>
-				<VisualState x:Name="State350">
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1500"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.MetaItemTextWidth" Value="350.0"/>
-					</VisualState.Setters>
-				</VisualState>
-				<VisualState x:Name="State400">
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1650"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.MetaItemTextWidth" Value="400.0"/>
-					</VisualState.Setters>
-				</VisualState>
-				<VisualState x:Name="State450">
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1800"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.MetaItemTextWidth" Value="450.0"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>
+	<!-- make all broader if the screen width allows it -->
+	<VisualStateManager.VisualStateGroups>
+		<VisualStateGroup>
+			<VisualState x:Name="State200">
+				<VisualState.StateTriggers>
+					<AdaptiveTrigger MinWindowWidth="1050"/>
+				</VisualState.StateTriggers>
+				<VisualState.Setters>
+					<Setter Target="me.MetaItemTextWidth" Value="200.0"/>
+				</VisualState.Setters>
+			</VisualState>
+			<VisualState x:Name="State250">
+				<VisualState.StateTriggers>
+					<AdaptiveTrigger MinWindowWidth="1200"/>
+				</VisualState.StateTriggers>
+				<VisualState.Setters>
+					<Setter Target="me.MetaItemTextWidth" Value="250.0"/>
+				</VisualState.Setters>
+			</VisualState>
+			<VisualState x:Name="State300">
+				<VisualState.StateTriggers>
+					<AdaptiveTrigger MinWindowWidth="1350"/>
+				</VisualState.StateTriggers>
+				<VisualState.Setters>
+					<Setter Target="me.MetaItemTextWidth" Value="300.0"/>
+				</VisualState.Setters>
+			</VisualState>
+			<VisualState x:Name="State350">
+				<VisualState.StateTriggers>
+					<AdaptiveTrigger MinWindowWidth="1500"/>
+				</VisualState.StateTriggers>
+				<VisualState.Setters>
+					<Setter Target="me.MetaItemTextWidth" Value="350.0"/>
+				</VisualState.Setters>
+			</VisualState>
+			<VisualState x:Name="State400">
+				<VisualState.StateTriggers>
+					<AdaptiveTrigger MinWindowWidth="1650"/>
+				</VisualState.StateTriggers>
+				<VisualState.Setters>
+					<Setter Target="me.MetaItemTextWidth" Value="400.0"/>
+				</VisualState.Setters>
+			</VisualState>
+			<VisualState x:Name="State450">
+				<VisualState.StateTriggers>
+					<AdaptiveTrigger MinWindowWidth="1800"/>
+				</VisualState.StateTriggers>
+				<VisualState.Setters>
+					<Setter Target="me.MetaItemTextWidth" Value="450.0"/>
+				</VisualState.Setters>
+			</VisualState>
+		</VisualStateGroup>
+	</VisualStateManager.VisualStateGroups>
 
-		<Grid>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="1*"/>
-				<ColumnDefinition Width="1*"/>
-				<ColumnDefinition Width="1*"/>
-			</Grid.ColumnDefinitions>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="1*"/>
+			<ColumnDefinition Width="1*"/>
+			<ColumnDefinition Width="1*"/>
+		</Grid.ColumnDefinitions>
 
-			<!-- categories -->
-			<StackPanel Orientation="Vertical" Grid.Column="0">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
+		<!-- categories -->
+		<StackPanel Orientation="Vertical" Grid.Column="0">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
 
-					<TextBlock x:Uid="Categories"
+				<TextBlock x:Uid="Categories"
                         VerticalAlignment="Center"
 						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
-					<AppBarButton Grid.Column="2"
+				<AppBarButton Grid.Column="2"
 						Icon="Add"
                         IsCompact="True"
                         Click="OnAddCategory_Click"
                         VerticalAlignment="Center"/>
-					<Rectangle Grid.Column="2"
+				<Rectangle Grid.Column="2"
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
-				</Grid>
+			</Grid>
 
-				<ListView
+			<ListView
                     ItemsSource="{Binding Categories, Mode=OneWay}"
                     SelectedItem="{Binding CurrentCategory, Mode=OneWay}"
 					ItemClick="OnCategoryListView_ItemClick"
@@ -116,177 +116,182 @@
                     IsItemClickEnabled="True"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<ItemsStackPanel Orientation="Vertical"/>
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="Auto"/>
-								</Grid.ColumnDefinitions>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<ItemsStackPanel Orientation="Vertical"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
 
-								<ctl:LolloTextBox
+							<ctl:LolloTextBox
 									Text="{Binding Name, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
-								<AppBarButton Grid.Column="2"
+							<AppBarButton Grid.Column="2"
 									Icon="View"
                                     IsCompact="True"
                                     Click="OnSelectCategory_Click"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="3"
+							<AppBarButton Grid.Column="3"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteCategory_Click"
 									Foreground="{Binding IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
-								<Rectangle Grid.Column="2"
+							<Rectangle Grid.Column="2"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-								<Rectangle Grid.Column="3"
+							<Rectangle Grid.Column="3"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-							</Grid>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ListView>
-			</StackPanel>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ListView>
+		</StackPanel>
 
-			<!-- field descriptions-->
-			<StackPanel Orientation="Vertical" Grid.Column="1"
+		<!-- field descriptions-->
+		<StackPanel Orientation="Vertical" Grid.Column="1"
 					Visibility="{Binding CurrentCategory, Converter={StaticResource NotNullToVisible}}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
 
-					<TextBlock x:Uid="FieldDescrsAssignedToCat"
+				<TextBlock x:Uid="FieldDescrsAssignedToCat"
 						VerticalAlignment="Center"
 						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
-					<Rectangle Grid.Column="2"
+				<Rectangle Grid.Column="2"
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
-					<Rectangle Grid.Column="3"
+				<Rectangle Grid.Column="3"
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
-				</Grid>
+			</Grid>
 
-				<!-- assigned field descriptions -->
-				<!-- LOLLO NOTE binding to the index makes trouble, better bind to the item. 
+			<!-- assigned field descriptions -->
+			<!-- LOLLO NOTE binding to the index makes trouble, better bind to the item. 
                 Here, you have two lists that should look like one and have only one selected line
                 between the two of them, so no selected item binding whatsoever:
                 we need to do it in the code behind. -->
-				<!-- LOLLO NOTE not only here, use ItemClick instead of SelectionChanged
+			<!-- LOLLO NOTE not only here, use ItemClick instead of SelectionChanged
 				to be sure you only catch the user click and not the initial list filling -->
-				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
-				<ListView
+			<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
+			<!--ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"-->
+			<ListView
                     x:Name="AssignedLV"
-                    ItemsSource="{Binding CurrentCategory.FieldDescriptions, Mode=OneWay}"
+					ItemsSource="{x:Bind VM.AssignedFields, Mode=OneWay}"
 					ItemClick="OnAssignedFieldDescriptionsListView_ItemClick"
                     IsMultiSelectCheckBoxEnabled="False"
                     IsItemClickEnabled="True"
 					SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<!-- no virtualistion here or we lose the OnLoaded! -->
-							<!--<ItemsStackPanel Orientation="Vertical"/>-->
-							<StackPanel Orientation="Vertical"/>
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="Auto"/>
-								</Grid.ColumnDefinitions>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<ItemsStackPanel Orientation="Vertical"/>
+						<!-- no virtualistion here or we lose the OnLoaded! -->
+						<!--<StackPanel Orientation="Vertical"/>-->
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
 
-								<ctl:LolloTextBox
+							<ctl:LolloTextBox
 									Text="{Binding Caption, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
-								<AppBarButton Grid.Column="2"
+							<AppBarButton Grid.Column="2"
 									Icon="View"
                                     IsCompact="True"
                                     Click="OnSelectAssignedFldDsc_Click"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="3"
+							<!--Loaded="OnFieldUnassignCommand_Loaded"-->
+							<AppBarButton Grid.Column="3"
 									Icon="Remove"
                                     IsCompact="True"
                                     Click="OnAssignFieldFromCurrentCategory_Click"
-									Loaded="OnFieldUnassignCommand_Loaded"
+									Visibility="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToVisible}}"
+									Foreground="{Binding IsAllowUnassign, Converter={StaticResource PermissionLevelsToColor}}"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="4"
+							<!--Loaded="OnFieldDeleteCommand_Loaded"-->
+							<AppBarButton Grid.Column="4"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
-                                    Loaded="OnFieldDeleteCommand_Loaded"
+									Visibility="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToVisible}}"
+									Foreground="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToColor}}"
                                     VerticalAlignment="Center"/>
-								<Rectangle Grid.Column="2"
+							<Rectangle Grid.Column="2"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-								<Rectangle Grid.Column="3"
+							<Rectangle Grid.Column="3"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-								<Rectangle Grid.Column="4"
+							<Rectangle Grid.Column="4"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
 
-							</Grid>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ListView>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ListView>
 
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
 
-					<TextBlock x:Uid="FieldDescrsNotAssignedToCat"
+				<TextBlock x:Uid="FieldDescrsNotAssignedToCat"
                         VerticalAlignment="Center"
 						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
-					<AppBarButton Grid.Column="2"
+				<AppBarButton Grid.Column="2"
 						Icon="Add"
                         IsCompact="True"
                         Click="OnAddField_Click"
                         VerticalAlignment="Center"/>
-					<Rectangle Grid.Column="2"
+				<Rectangle Grid.Column="2"
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
-					<Rectangle Grid.Column="3"
+				<Rectangle Grid.Column="3"
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
-				</Grid>
+			</Grid>
 
-				<!-- unassigned field descriptions -->
-				<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
-				<ListView
+			<!-- unassigned field descriptions -->
+			<!--SelectedItem="{Binding CurrentFieldDescription, Mode=OneTime}"-->
+			<ListView
                     x:Name="UnassignedLV"
                     ItemsSource="{x:Bind VM.UnassignedFields, Mode=OneWay}"
 					ItemClick="OnUnassignedFieldDescriptionsListView_ItemClick"
@@ -295,88 +300,90 @@
 					SelectedItem="{Binding CurrentFieldDescription, Mode=OneWay}"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<!-- no virtualistion here or we lose the OnLoaded! -->
-							<ItemsStackPanel Orientation="Vertical"/>
-							<!--<StackPanel Orientation="Vertical"/>-->
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="Auto"/>
-								</Grid.ColumnDefinitions>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<ItemsStackPanel Orientation="Vertical"/>
+						<!-- no virtualistion here or we lose the OnLoaded! -->
+						<!--<StackPanel Orientation="Vertical"/>-->
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
 
-								<ctl:LolloTextBox
+							<ctl:LolloTextBox
 									Text="{Binding Caption, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxTagLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
-								<AppBarButton Grid.Column="2"
+							<AppBarButton Grid.Column="2"
 									Icon="View"
                                     IsCompact="True"
                                     Click="OnSelectUnassignedFldDsc_Click"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="3"
+							<AppBarButton Grid.Column="3"
 									Icon="Accept"
                                     IsCompact="True"
                                     Click="OnAssignFieldToCurrentCat_Click"
                                     VerticalAlignment="Center"/>
-								<AppBarButton Grid.Column="4"
+							<!--Loaded="OnFieldDeleteCommand_Loaded"-->
+							<AppBarButton Grid.Column="4"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeleteField_Click"
-									Loaded="OnFieldDeleteCommand_Loaded"
+									Visibility="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToVisible}}"
+									Foreground="{Binding IsAllowDelete, Converter={StaticResource PermissionLevelsToColor}}"
                                     VerticalAlignment="Center"/>
-								<Rectangle Grid.Column="2"
+							<Rectangle Grid.Column="2"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-								<Rectangle Grid.Column="3"
+							<Rectangle Grid.Column="3"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-								<Rectangle Grid.Column="4"
+							<Rectangle Grid.Column="4"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-							</Grid>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ListView>
-			</StackPanel>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ListView>
+		</StackPanel>
 
-			<!-- field values -->
-			<StackPanel Orientation="Vertical" Grid.Column="2"
+		<!-- field values -->
+		<StackPanel Orientation="Vertical" Grid.Column="2"
 				Visibility="{Binding CurrentFieldDescription, Converter={StaticResource NotNullToVisible}}">
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-						<ColumnDefinition Width="Auto"/>
-					</Grid.ColumnDefinitions>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
 
-					<TextBlock x:Uid="PossibleFieldValues"
+				<TextBlock x:Uid="PossibleFieldValues"
                         VerticalAlignment="Center"
 						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 						TextWrapping="Wrap"/>
-					<AppBarButton Grid.Column="2"
+				<AppBarButton Grid.Column="2"
 						Icon="Add"
                         IsCompact="True"
                         Click="OnAddFieldValue_Click"
                         VerticalAlignment="Center"/>
-					<Rectangle Grid.Column="2"
+				<Rectangle Grid.Column="2"
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
 
-				</Grid>
+			</Grid>
 
-				<Grid>
+			<Grid>
 				<CheckBox IsChecked="{Binding CurrentFieldDescription.IsAnyValueAllowed, Mode=TwoWay}"
 						Foreground="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
 						IsEnabled="{Binding CurrentFieldDescription.IsJustAdded, Converter={StaticResource BooleanAndElevated}}"                   
@@ -387,58 +394,58 @@
 						Style="{StaticResource CheckBoxLolloStyle}"
 						Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}">
 					<CheckBox.Content>
-							<TextBlock x:Uid="AllowAllFieldValues"
+						<TextBlock x:Uid="AllowAllFieldValues"
 								MaxWidth="{Binding ElementName=me, Path=MetaItemTextWidth, Converter={StaticResource ReduceWidthForText}, ConverterParameter=40, Mode=OneWay}"
 								TextWrapping="Wrap"/>
-						</CheckBox.Content>
-					</CheckBox>
-					<Rectangle
+					</CheckBox.Content>
+				</CheckBox>
+				<Rectangle
 						Width="{StaticResource MetaItemHeight}"
 						Height="{StaticResource MetaItemHeight}"/>
-				</Grid>
+			</Grid>
 
-				<ListView x:Name="PossibleValuesLV"
+			<ListView x:Name="PossibleValuesLV"
                     ItemsSource="{Binding CurrentFieldDescription.PossibleValues, Mode=TwoWay}"
                     IsMultiSelectCheckBoxEnabled="False" 
                     IsItemClickEnabled="True"
 					ScrollViewer.VerticalScrollBarVisibility="Disabled"
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<ItemsStackPanel Orientation="Vertical"/>
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="Auto"/>
-									<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
-									<ColumnDefinition Width="Auto"/>
-								</Grid.ColumnDefinitions>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<ItemsStackPanel Orientation="Vertical"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
 
-								<ctl:LolloTextBox
+							<ctl:LolloTextBox
 									Text="{Binding Vaalue, Mode=TwoWay}"
                                     MaxLength="{StaticResource MaxVaalueLength}"
                                     VerticalAlignment="Center"
 									BorderThickness="0"
 									Width="{Binding ElementName=me, Path=MetaItemTextWidth, Mode=OneWay}"
 									Style="{StaticResource LolloTextBoxStyle}"/>
-								<AppBarButton Grid.Column="2"
+							<AppBarButton Grid.Column="2"
 									Icon="Delete"
                                     IsCompact="True"
                                     Click="OnDeletePossibleValue_Click"
 									Foreground="{Binding IsJustAdded, Converter={StaticResource FalseToFlashyConverter}}"
                                     Visibility="{Binding IsJustAdded, Converter={StaticResource BooleanAndElevatedToVisible}}"
                                     VerticalAlignment="Center"/>
-								<Rectangle Grid.Column="2"
+							<Rectangle Grid.Column="2"
 									Width="{StaticResource MetaItemHeight}"
 									Height="{StaticResource MetaItemHeight}"/>
-							</Grid>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ListView>
-			</StackPanel>
-		</Grid>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ListView>
+		</StackPanel>
+	</Grid>
 	<!--</ScrollViewer>-->
 </uctl:ObservableControl>

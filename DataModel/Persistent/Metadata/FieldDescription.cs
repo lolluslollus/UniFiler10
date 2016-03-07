@@ -8,7 +8,7 @@ using Utilz.Data;
 namespace UniFiler10.Data.Metadata
 {
 	[DataContract]
-	public sealed class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
+	public class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
 	{
 		#region properties
 		private static readonly string DEFAULT_ID = string.Empty;
@@ -107,7 +107,7 @@ namespace UniFiler10.Data.Metadata
 				target.Typez = source._typez;
 			}
 		}
-		public static void Copy(SwitchableObservableCollection<FieldDescription> source, ref SwitchableObservableCollection<FieldDescription> target)
+		internal static void Copy(SwitchableObservableCollection<FieldDescription> source, ref SwitchableObservableCollection<FieldDescription> target)
 		{
 			if (source != null && target != null)
 			{
@@ -144,7 +144,7 @@ namespace UniFiler10.Data.Metadata
 			else return false;
 		}
 
-		public static bool Check(FieldDescription fldDsc)
+		internal static bool Check(FieldDescription fldDsc)
 		{
 			return fldDsc != null && fldDsc.Id != DEFAULT_ID && fldDsc.PossibleValues != null && !string.IsNullOrWhiteSpace(fldDsc.Caption);
 		}

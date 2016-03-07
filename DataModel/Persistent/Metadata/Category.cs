@@ -59,7 +59,7 @@ namespace UniFiler10.Data.Metadata
 
 				target.Id = source.Id;
 				target.IsCustom = source.IsCustom;
-				// target.IsJustAdded = source.IsJustAdded; // we don't actually need this
+				// target.IsJustAdded = source.IsJustAdded; // no!
 				target.Name = source.Name;
 			}
 		}

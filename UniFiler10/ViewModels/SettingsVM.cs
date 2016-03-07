@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UniFiler10.Controlz;
@@ -12,11 +13,71 @@ using Utilz.Data;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Media;
 
 namespace UniFiler10.ViewModels
 {
 	public sealed class SettingsVM : OpenableObservableDisposableData
 	{
+		public class FieldDescriptionPlus : FieldDescription
+		{
+			public enum PermissionLevels { No, WithCaution, Yes }
+
+			private PermissionLevels _isAllowUnassign = PermissionLevels.No;
+			public PermissionLevels IsAllowUnassign { get { return _isAllowUnassign; } private set { _isAllowUnassign = value; RaisePropertyChanged_UI(); } }
+			private PermissionLevels _isAllowDelete = PermissionLevels.No;
+			public PermissionLevels IsAllowDelete { get { return _isAllowDelete; } private set { _isAllowDelete = value; RaisePropertyChanged_UI(); } }
+			private FieldDescriptionPlus() { }
+			public static FieldDescriptionPlus Get(FieldDescription fldDsc)
+			{
+				if (fldDsc == null) return null;
+				var mbc = MetaBriefcase.OpenInstance;
+
+				var fdp = Cast(fldDsc);
+				if (mbc == null) return fdp;
+
+				// LOLLO TODO the following line was buggy, check it
+				var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat?.FieldDescriptionIds != null && !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
+
+				if (catsWhereThisFieldWasAssignedBefore?.Any() == true)
+				{
+					if (SettingsVM.GetIsElevated()) fdp.IsAllowDelete = PermissionLevels.WithCaution;
+				}
+				else fdp.IsAllowDelete = PermissionLevels.Yes;
+
+				string currCatId = mbc.CurrentCategoryId;
+				if (!string.IsNullOrEmpty(currCatId))
+				{
+					if (fldDsc.JustAssignedToCats.Contains(currCatId)) fdp.IsAllowUnassign = PermissionLevels.Yes;
+					else
+					{
+						if (SettingsVM.GetIsElevated()) fdp.IsAllowUnassign = PermissionLevels.WithCaution;
+					}
+				}
+				else fdp.IsAllowUnassign = PermissionLevels.Yes;
+
+				return fdp;
+			}
+			public static IList<FieldDescriptionPlus> Downcast(IEnumerable<FieldDescription> fldDscs)
+			{
+				var result = new List<FieldDescriptionPlus>();
+				if (fldDscs == null) return result;
+				foreach (var fldDsc in fldDscs)
+				{
+					result.Add(Get(fldDsc));
+				}
+				return result;
+			}
+			private static FieldDescriptionPlus Cast(FieldDescription fldDsc)
+			{
+				FieldDescriptionPlus result = new FieldDescriptionPlus();
+				FieldDescription upcastResult = (FieldDescription)result;
+
+				FieldDescription.Copy(fldDsc, ref upcastResult);
+				return result;
+			}
+		}
+
 		#region properties
 		private readonly BackgroundTaskHelper _backgroundTaskHelper = null;
 		public BackgroundTaskHelper BackgroundTaskHelper { get { return _backgroundTaskHelper; } }
@@ -24,31 +85,42 @@ namespace UniFiler10.ViewModels
 		private readonly Briefcase _briefcase = null;
 		public Briefcase Briefcase { get { return _briefcase; } }
 
-		private SwitchableObservableDisposableCollection<FieldDescription> _unassignedFields = null;
-		public SwitchableObservableDisposableCollection<FieldDescription> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
+		private SwitchableObservableDisposableCollection<FieldDescriptionPlus> _assignedFields = null;
+		public SwitchableObservableDisposableCollection<FieldDescriptionPlus> AssignedFields { get { return _assignedFields; } private set { _assignedFields = value; RaisePropertyChanged_UI(); } }
+
+		private SwitchableObservableDisposableCollection<FieldDescriptionPlus> _unassignedFields = null;
+		public SwitchableObservableDisposableCollection<FieldDescriptionPlus> UnassignedFields { get { return _unassignedFields; } private set { _unassignedFields = value; RaisePropertyChanged_UI(); } }
 		// LOLLO TODO make sure IsJustAdded is shown right in the unassigned fields list
-		private async Task UpdateUnassignedFieldsAsync(bool init = false)
+		private async Task UpdateAssignedUnassignedFieldsAsync()
 		{
 			await RunInUiThreadAsync(() =>
 			{
-				if (init) UnassignedFields = new SwitchableObservableDisposableCollection<FieldDescription>();
-
 				var mbc = _briefcase.MetaBriefcase;
-				var unaFlds = _unassignedFields;
-				if (unaFlds == null) return;
+				var unaFlds = _unassignedFields; var assFlds = AssignedFields;
+				if (unaFlds == null || assFlds == null) return;
 
-				unaFlds.Clear();
+				unaFlds.Clear(); assFlds.Clear();
 				if (mbc?.FieldDescriptions == null || mbc.CurrentCategory?.FieldDescriptions == null) return;
 
-				unaFlds.AddRange(mbc.FieldDescriptions
-					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id)));
+				assFlds.AddRange(FieldDescriptionPlus.Downcast(mbc.FieldDescriptions
+					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.Any(catFldDsc => catFldDsc.Id == allFldDsc.Id))));
+
+				unaFlds.AddRange(FieldDescriptionPlus.Downcast(mbc.FieldDescriptions
+					.Where(allFldDsc => mbc.CurrentCategory.FieldDescriptions.All(catFldDsc => catFldDsc.Id != allFldDsc.Id))));
 			}).ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(UnassignedFields));
 		}
 		public void OnDataContextChanged()
 		{
-			Task upd = UpdateUnassignedFieldsAsync();
+			Task upd = UpdateAssignedUnassignedFieldsAsync();
 		}
+		//private void OnMetaBriefcase_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		//{
+		//	if (e.PropertyName == nameof(MetaBriefcase.IsElevated))
+		//	{
+		//		Task upd = UpdateUnassignedFieldsAsync();
+		//	}
+		//}
 
 		public static bool GetIsElevated()
 		{
@@ -142,7 +214,14 @@ namespace UniFiler10.ViewModels
 
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
-			await UpdateUnassignedFieldsAsync(true).ConfigureAwait(false);
+			await RunInUiThreadAsync(() =>
+			{
+				if (_assignedFields == null || _assignedFields.IsDisposed) AssignedFields = new SwitchableObservableDisposableCollection<FieldDescriptionPlus>();
+				if (_unassignedFields == null || _unassignedFields.IsDisposed) UnassignedFields = new SwitchableObservableDisposableCollection<FieldDescriptionPlus>();
+			}).ConfigureAwait(false);
+			//await UpdateAssignedUnassignedFieldsAsync(true).ConfigureAwait(false);
+			//var mbc = _briefcase?.MetaBriefcase;
+			//if(mbc != null) mbc.PropertyChanged += OnMetaBriefcase_PropertyChanged;
 
 			if (IsExportingSettings)
 			{
@@ -159,7 +238,11 @@ namespace UniFiler10.ViewModels
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var mbc = _briefcase?.MetaBriefcase;
-			if (mbc != null) await mbc.SaveAsync().ConfigureAwait(false);
+			if (mbc != null)
+			{
+				//mbc.PropertyChanged -= OnMetaBriefcase_PropertyChanged;
+				await mbc.SaveAsync().ConfigureAwait(false);
+			}
 
 			_unassignedFields?.Dispose();
 		}
@@ -191,7 +274,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.AddFieldDescriptionAsync())
 				{
-					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
+					await UpdateAssignedUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -207,7 +290,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.RemoveFieldDescriptionAsync(fldDesc))
 				{
-					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
+					await UpdateAssignedUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -222,7 +305,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.AssignFieldDescriptionToCurrentCategoryAsync(fldDsc))
 				{
-					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
+					await UpdateAssignedUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -238,7 +321,7 @@ namespace UniFiler10.ViewModels
 
 				if (await mbc.UnassignFieldDescriptionFromCurrentCategoryAsync(fldDsc))
 				{
-					await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
+					await UpdateAssignedUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
 				}
 				return false;
@@ -268,7 +351,7 @@ namespace UniFiler10.ViewModels
 				if (mbc == null) return;
 
 				await mbc.SetCurrentCategoryAsync(newItem);
-				await UpdateUnassignedFieldsAsync().ConfigureAwait(false);
+				await UpdateAssignedUnassignedFieldsAsync().ConfigureAwait(false);
 			});
 		}
 		public Task SetCurrentFieldDescriptionAsync(FieldDescription newItem)
@@ -438,6 +521,36 @@ namespace UniFiler10.ViewModels
 			if (!(value is bool)) return Visibility.Collapsed;
 			bool output = (bool)value || SettingsVM.GetIsElevated();
 			return output ? Visibility.Visible : Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+
+	public class PermissionLevelsToVisible : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (!(value is SettingsVM.FieldDescriptionPlus.PermissionLevels)) return Visibility.Collapsed;
+			var output = (SettingsVM.FieldDescriptionPlus.PermissionLevels)value;
+			return output == SettingsVM.FieldDescriptionPlus.PermissionLevels.WithCaution || output == SettingsVM.FieldDescriptionPlus.PermissionLevels.Yes ? Visibility.Visible : Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+
+	public class PermissionLevelsToColor : IValueConverter
+	{
+		private static SolidColorBrush _default = (SolidColorBrush)Application.Current.Resources["SystemControlForegroundBaseHighBrush"];
+		private static SolidColorBrush _flashy = (SolidColorBrush)Application.Current.Resources["FlashyForeground"];
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (!(value is SettingsVM.FieldDescriptionPlus.PermissionLevels)) return _default;
+			var output = (SettingsVM.FieldDescriptionPlus.PermissionLevels)value;
+			return output == SettingsVM.FieldDescriptionPlus.PermissionLevels.WithCaution ? _flashy : _default;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{

@@ -138,63 +138,63 @@ namespace UniFiler10.Views
 			Task del = VM?.RemoveCategoryAsync((sender as FrameworkElement)?.DataContext as Category);
 		}
 
-		private void OnFieldUnassignCommand_Loaded(object sender, RoutedEventArgs e)
-		{
-			var mbc = MetaBriefcase.OpenInstance;
-			if (mbc != null)
-			{
-				var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-				if (fldDsc != null)
-				{
-					string currCatId = mbc.CurrentCategoryId;
-					if (!string.IsNullOrEmpty(currCatId))
-					{
-						if (fldDsc.JustAssignedToCats.Contains(currCatId)) Allow(sender);
-						else AllowIfElevated(sender);
-					}
-					else Allow(sender);
-				}
-				else Allow(sender);
-			}
-			else Forbid(sender);
-		}
+		//private void OnFieldUnassignCommand_Loaded(object sender, RoutedEventArgs e)
+		//{
+		//	var mbc = MetaBriefcase.OpenInstance;
+		//	if (mbc != null)
+		//	{
+		//		var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+		//		if (fldDsc != null)
+		//		{
+		//			string currCatId = mbc.CurrentCategoryId;
+		//			if (!string.IsNullOrEmpty(currCatId))
+		//			{
+		//				if (fldDsc.JustAssignedToCats.Contains(currCatId)) Allow(sender);
+		//				else AllowIfElevated(sender);
+		//			}
+		//			else Allow(sender);
+		//		}
+		//		else Allow(sender);
+		//	}
+		//	else Forbid(sender);
+		//}
 
-		private void OnFieldDeleteCommand_Loaded(object sender, RoutedEventArgs e)
-		{
-			var mbc = MetaBriefcase.OpenInstance;
-			if (mbc != null)
-			{
-				var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
-				if (fldDsc != null)
-				{
-					// LOLLO TODO the following line was buggy, check it
-					var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat?.FieldDescriptionIds != null && !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
+		//private void OnFieldDeleteCommand_Loaded(object sender, RoutedEventArgs e)
+		//{
+		//	var mbc = MetaBriefcase.OpenInstance;
+		//	if (mbc != null)
+		//	{
+		//		var fldDsc = (sender as FrameworkElement)?.DataContext as FieldDescription;
+		//		if (fldDsc != null)
+		//		{
+		//			// LOLLO TODO the following line was buggy, check it
+		//			var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat?.FieldDescriptionIds != null && !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
 
-					if (catsWhereThisFieldWasAssignedBefore?.Any() == true) AllowIfElevated(sender);
-					else Allow(sender);
-				}
-				else Allow(sender);
-			}
-			else Forbid(sender);
-		}
+		//			if (catsWhereThisFieldWasAssignedBefore?.Any() == true) AllowIfElevated(sender);
+		//			else Allow(sender);
+		//		}
+		//		else Allow(sender);
+		//	}
+		//	else Forbid(sender);
+		//}
 
-		private static void Forbid(object sender)
-		{
-			(sender as FrameworkElement).Visibility = Visibility.Collapsed;
-			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, string.Empty));
-		}
+		//private static void Forbid(object sender)
+		//{
+		//	(sender as FrameworkElement).Visibility = Visibility.Collapsed;
+		//	(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, string.Empty));
+		//}
 
-		private static void AllowIfElevated(object sender)
-		{
-			(sender as FrameworkElement).Visibility = SettingsVM.GetIsElevated() ? Visibility.Visible : Visibility.Collapsed;
+		//private static void AllowIfElevated(object sender)
+		//{
+		//	(sender as FrameworkElement).Visibility = SettingsVM.GetIsElevated() ? Visibility.Visible : Visibility.Collapsed;
 
-			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, string.Empty));
-		}
+		//	(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(false, null, null, string.Empty));
+		//}
 
-		private static void Allow(object sender)
-		{
-			(sender as FrameworkElement).Visibility = Visibility.Visible;
-			(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(true, null, null, string.Empty));
-		}
+		//private static void Allow(object sender)
+		//{
+		//	(sender as FrameworkElement).Visibility = Visibility.Visible;
+		//	(sender as ButtonBase).Foreground = (Brush)(new FalseToFlashyConverter().Convert(true, null, null, string.Empty));
+		//}
 	}
 }

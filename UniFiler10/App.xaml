@@ -34,6 +34,8 @@
 			<conv:ParameterMatchesToTrue x:Key="ParameterMatchesToTrue"/>
 			<vms:BooleanAndElevated x:Key="BooleanAndElevated"/>
 			<vms:BooleanAndElevatedToVisible x:Key="BooleanAndElevatedToVisible"/>
+			<vms:PermissionLevelsToVisible x:Key="PermissionLevelsToVisible"/>
+			<vms:PermissionLevelsToColor x:Key="PermissionLevelsToColor"/>
 		</ResourceDictionary>
 	</Application.Resources>
 </Application>
