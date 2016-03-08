@@ -427,10 +427,30 @@ namespace UniFiler10.Data.Metadata
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
 					if (GetIsOneDriveUpdateOverdue())
-					{
-						newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
-						mustSyncOneDrive = true;
-						IsLocalSyncedOnceSinceLastOpen = false;
+					{// LOLLO TODO also load form one drive and merge remote with local
+						var localMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
+						MetaBriefcase remoteMetaBriefcase = null;
+
+						using (var client = new HttpClient())
+						{
+							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
+
+							try
+							{
+								using (var odFileContent = await client.GetStreamAsync(new Uri(_oneDriveAppRootUri4Path + FILENAME + ":/content")).ConfigureAwait(false))
+								{
+									remoteMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
+								}
+								mustSaveLocal = true;
+								IsLocalSyncedOnceSinceLastOpen = true;
+							}
+							catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
+						}
+
+						newMetaBriefcase = Merge(localMetaBriefcase, remoteMetaBriefcase);
+						//mustSyncOneDrive = true;
+						//IsLocalSyncedOnceSinceLastOpen = false;
+						IsLocalSyncedOnceSinceLastOpen = true;
 					}
 					else
 					{
