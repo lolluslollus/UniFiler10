@@ -194,7 +194,7 @@ namespace UniFiler10.Data.Model
 				FieldValueId = availableFldVal.Id;
 				return true;
 			}
-			if (fd.IsAnyValueAllowed && bc != null /*&& !bc.IsWantAndCannotUseOneDrive*/)
+			if (fd.IsAnyValueAllowed && bc != null && !bc.IsWantAndCannotUseOneDrive)
 			{
 				var mb = MetaBriefcase.OpenInstance;
 				if (mb != null)
