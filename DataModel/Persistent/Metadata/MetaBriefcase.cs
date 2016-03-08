@@ -31,8 +31,23 @@ namespace UniFiler10.Data.Metadata
 			//if (_briefcase?.IsWantAndCanUseOneDrive == true)
 			if (_briefcase?.IsWantToUseOneDrive == true)
 			{
-				SetIsOneDriveUpdateCalled();
-				UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+				Task raise = Task.Run(() =>
+				{
+					try
+					{
+						_oneDriveMetaBriefcaseSemaphore.WaitOne();
+						SetIsOneDriveUpdateCalledNow();
+						UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+					}
+					finally
+					{
+						SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
+					}
+				});
 			}
 		}
 		#endregion events
@@ -166,24 +181,37 @@ namespace UniFiler10.Data.Metadata
 			set { lock (_oneDriveLocker) { _isPropsLoaded = value; } }
 		}
 
-		//private volatile bool _isLocalSyncedOnceSinceLastOpen = false;
+		//private static volatile bool _isLocalSyncedOnceSinceLastOpen = false;
 		//[IgnoreDataMember]
-		//public bool IsLocalSyncedOnceSinceLastOpen { get { { return _isLocalSyncedOnceSinceLastOpen; } } private set { { _isLocalSyncedOnceSinceLastOpen = value; } } }
+		//public static bool IsLocalSyncedOnceSinceLastOpen
+		//{
+		//	get
+		//	{
+		//		lock (_oneDriveLocker) { return _isLocalSyncedOnceSinceLastOpen; }
+		//	}
+		//	private set
+		//	{
+		//		lock (_oneDriveLocker) { _isLocalSyncedOnceSinceLastOpen = value; }
+		//	}
+		//}
 		[IgnoreDataMember]
-		public static bool IsLocalSyncedOnceSinceLastOpen // LOLLO TODO test this, it's new
+		private static bool IsLocalSyncedOnceSinceLastOpen // LOLLO TODO test this, it's new
 		{
 			get
 			{
 				lock (_oneDriveLocker)
 				{
-					return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_LOCAL_SYNCED_SINCE_OPEN).ToString().ToLower() == true.ToString().ToLower();
+					string regVal = RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_LOCAL_SYNCED_SINCE_OPEN).ToLower();
+					if (string.IsNullOrWhiteSpace(regVal)) return false;
+					return regVal.Equals(true.ToString().ToLower());
 				}
 			}
-			private set
+			set
 			{
 				lock (_oneDriveLocker)
 				{
-					RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_LOCAL_SYNCED_SINCE_OPEN, value.ToString().ToLower());
+					bool newValue = value.ToString().ToLower().Equals(true.ToString().ToLower());
+					RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_LOCAL_SYNCED_SINCE_OPEN, newValue.ToString().ToLower());
 				}
 			}
 		}
@@ -191,8 +219,20 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		private static string OneDriveAccessToken
 		{
-			get { return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_TKN); }
-			set { RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_TKN, value); }
+			get
+			{
+				lock (_oneDriveLocker)
+				{
+					return RegistryAccess.GetValue(ConstantData.REG_MBC_ODU_TKN);
+				}
+			}
+			set
+			{
+				lock (_oneDriveLocker)
+				{
+					RegistryAccess.TrySetValue(ConstantData.REG_MBC_ODU_TKN, value);
+				}
+			}
 		}
 
 		private static bool IsLoadFromOneDrive
@@ -239,7 +279,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static void SetIsOneDriveUpdateCalled()
+		private static void SetIsOneDriveUpdateCalledNow()
 		{
 			lock (_oneDriveLocker)
 			{
@@ -248,7 +288,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static void SetIsOneDriveUpdateRan()
+		private static void SetIsOneDriveUpdateRanNow()
 		{
 			lock (_oneDriveLocker)
 			{
@@ -264,14 +304,17 @@ namespace UniFiler10.Data.Metadata
 			public const StorageFile DefaultSourceFile = null;
 			public const bool DefaultIsReloadProps = false;
 			public const bool DefaultIsLoadFromOneDrive = true;
+			public const bool DefaultIsLocalSyncedOnceSinceLastOpen = false;
 			public StorageFile SourceFile { get; }
 			public bool IsReloadProps { get; }
 			public bool IsLoadFromOneDrive { get; }
+			public bool IsLocalSyncedOnceSinceLastOpen { get; internal set; }
 			public OpenParameters(StorageFile sourceFile = DefaultSourceFile, bool isReloadProps = DefaultIsReloadProps, bool isLoadFromOneDrive = DefaultIsLoadFromOneDrive)
 			{
 				SourceFile = sourceFile;
 				IsReloadProps = isReloadProps;
 				IsLoadFromOneDrive = isLoadFromOneDrive;
+				IsLocalSyncedOnceSinceLastOpen = DefaultIsLocalSyncedOnceSinceLastOpen;
 			}
 		}
 		#endregion one drive properties
@@ -310,13 +353,14 @@ namespace UniFiler10.Data.Metadata
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			var openParams = args as OpenParameters ?? new OpenParameters();
-			if (openParams.IsReloadProps != OpenParameters.DefaultIsReloadProps) IsPropsLoaded = false;
-			if (openParams.IsLoadFromOneDrive != OpenParameters.DefaultIsLoadFromOneDrive) IsLoadFromOneDrive = openParams.IsLoadFromOneDrive;
 
 			bool wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 			try
 			{
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+
+				if (openParams.IsReloadProps != OpenParameters.DefaultIsReloadProps) IsPropsLoaded = false;
+				if (openParams.IsLoadFromOneDrive != OpenParameters.DefaultIsLoadFromOneDrive) IsLoadFromOneDrive = openParams.IsLoadFromOneDrive;
 
 				wantToUseOneDrive = _briefcase.IsWantToUseOneDrive;
 				await LogonAsync(wantToUseOneDrive).ConfigureAwait(false);
@@ -327,7 +371,7 @@ namespace UniFiler10.Data.Metadata
 			}
 			finally
 			{
-				await LoadAsync(wantToUseOneDrive, openParams.SourceFile).ConfigureAwait(false);
+				await LoadAsync(wantToUseOneDrive, openParams).ConfigureAwait(false);
 				_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
@@ -362,7 +406,22 @@ namespace UniFiler10.Data.Metadata
 		{
 			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable) && _runtimeData.IsConnectionAvailable)
 			{
-				if (GetIsOneDriveUpdateOverdue()) RaiseUpdateOneDriveMetaBriefcaseRequested();
+				Task upd = Task.Run(() =>
+				{
+					try
+					{
+						_oneDriveMetaBriefcaseSemaphore.WaitOne();
+						if (GetIsOneDriveUpdateOverdue()) RaiseUpdateOneDriveMetaBriefcaseRequested();
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+					}
+					finally
+					{
+						SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
+					}
+				});
 			}
 		}
 		#endregion lifecycle
@@ -398,7 +457,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private async Task LoadAsync(bool wantToUseOneDrive, StorageFile sourceFile)
+		private async Task LoadAsync(bool wantToUseOneDrive, OpenParameters openParams)
 		{
 			if (IsPropsLoaded /*&& IsLocalSyncedOnceSinceLastOpen*/) return;
 
@@ -413,7 +472,7 @@ namespace UniFiler10.Data.Metadata
 			StorageFile localFile = null;
 			try
 			{
-				localFile = sourceFile ?? await GetDirectory()
+				localFile = openParams.SourceFile ?? await GetDirectory()
 					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
 					.AsTask().ConfigureAwait(false);
 			}
@@ -441,8 +500,6 @@ namespace UniFiler10.Data.Metadata
 								{
 									remoteMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 								}
-								mustSaveLocal = true;
-								IsLocalSyncedOnceSinceLastOpen = true;
 							}
 							catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
 						}
@@ -450,7 +507,7 @@ namespace UniFiler10.Data.Metadata
 						newMetaBriefcase = Merge(localMetaBriefcase, remoteMetaBriefcase);
 						mustSyncOneDrive = true;
 						mustSaveLocal = true;
-						IsLocalSyncedOnceSinceLastOpen = true;
+						IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = true;
 					}
 					else
 					{
@@ -465,7 +522,7 @@ namespace UniFiler10.Data.Metadata
 									newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 								}
 								mustSaveLocal = true;
-								IsLocalSyncedOnceSinceLastOpen = true;
+								IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = true;
 							}
 							catch (SerializationException) // one drive has invalid data: pick up the local data. This must never happen!
 							{
@@ -473,13 +530,13 @@ namespace UniFiler10.Data.Metadata
 								newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 								SetIsOneDriveUpdateOverdue();
 								mustSyncOneDrive = true;
-								IsLocalSyncedOnceSinceLastOpen = true;
+								IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = true;
 							}
 							catch (Exception ex0) // one drive could not connect to one drive: pick up the local data.
 							{
 								await Logger.AddAsync(ex0.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
 								newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
-								IsLocalSyncedOnceSinceLastOpen = false;
+								IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = false;
 							}
 						}
 					}
@@ -487,14 +544,14 @@ namespace UniFiler10.Data.Metadata
 				else // do not want or cannot use OneDive
 				{
 					newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
-					IsLocalSyncedOnceSinceLastOpen = false;
+					IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = false;
 				}
 			}
 			else // push the data from here into OneDrive
 			{
 				newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 				mustSyncOneDrive = true;
-				IsLocalSyncedOnceSinceLastOpen = true;
+				IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = true;
 			}
 
 			if (newMetaBriefcase != null) // if I could pick up some data, use it and sync whatever needs syncing
@@ -665,7 +722,7 @@ namespace UniFiler10.Data.Metadata
 
 						if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal))
 						{
-							SetIsOneDriveUpdateRan();
+							SetIsOneDriveUpdateRanNow();
 							return;
 						}
 						if (cancToken.IsCancellationRequested) return;
@@ -673,7 +730,7 @@ namespace UniFiler10.Data.Metadata
 						if (merge) await MergeIntoOneDriveAsync(cancToken, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
 						else await OverwriteOneDriveAsync(cancToken, client, localFileContent).ConfigureAwait(false);
 
-						SetIsOneDriveUpdateRan();
+						SetIsOneDriveUpdateRanNow();
 					}
 				}
 			}

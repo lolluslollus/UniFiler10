@@ -56,10 +56,12 @@ namespace UniFiler10.Data.Model
 
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData, this);
 			if (_isLight) return;
-			await _metaBriefcase.OpenAsync().ConfigureAwait(false);
+
+			var mbcOpenParams = new MetaBriefcase.OpenParameters();
+			await _metaBriefcase.OpenAsync(mbcOpenParams).ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
-			_isWantAndCanUseOneDrive = IsWantToUseOneDrive && _metaBriefcase.IsLocalSyncedOnceSinceLastOpen && _runtimeData.IsConnectionAvailable;
+			_isWantAndCanUseOneDrive = IsWantToUseOneDrive && mbcOpenParams.IsLocalSyncedOnceSinceLastOpen && _runtimeData.IsConnectionAvailable;
 			RaisePropertyChanged_UI(nameof(IsWantAndCanUseOneDrive));
 			_isWantAndCannotUseOneDrive = _isWantToUseOneDrive && !_isWantAndCanUseOneDrive;
 			RaisePropertyChanged_UI(nameof(IsWantAndCannotUseOneDrive));
@@ -161,12 +163,13 @@ namespace UniFiler10.Data.Model
 					bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 					await _metaBriefcase.CloseAsync().ConfigureAwait(false);
 					//_metaBriefcase.SetReloadJustOnce();
-					await _metaBriefcase.OpenAsync(new MetaBriefcase.OpenParameters(null, true, isLoadFromOneDrive)).ConfigureAwait(false);
+					var mbcOpenParams = new MetaBriefcase.OpenParameters(null, true, isLoadFromOneDrive);
+					await _metaBriefcase.OpenAsync(mbcOpenParams).ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 																	// update the current binder, whichever it is, and open it if it was open before
 					await UpdateCurrentBinder2Async(wasOpen).ConfigureAwait(false);
 
-					_isWantAndCanUseOneDrive = _metaBriefcase.IsLocalSyncedOnceSinceLastOpen;
+					_isWantAndCanUseOneDrive = mbcOpenParams.IsLocalSyncedOnceSinceLastOpen;
 				}
 				else
 				{
@@ -494,7 +497,8 @@ namespace UniFiler10.Data.Model
 				await _metaBriefcase.CloseAsync().ConfigureAwait(false);
 				// do not replace the instance or you may screw the binding. Close, change and reopen will do.
 				//_metaBriefcase.SetSourceFileJustOnce(fromFile);
-				await _metaBriefcase.OpenAsync(new MetaBriefcase.OpenParameters(fromFile, true, false)).ConfigureAwait(false);
+				var mbcOpenParams = new MetaBriefcase.OpenParameters(fromFile, true, false);
+				await _metaBriefcase.OpenAsync(mbcOpenParams).ConfigureAwait(false);
 				RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
 				// update the current binder, whichever it is, and open it if it was open before
