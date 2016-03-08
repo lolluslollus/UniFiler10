@@ -427,7 +427,7 @@ namespace UniFiler10.Data.Metadata
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
 					if (GetIsOneDriveUpdateOverdue())
-					{// LOLLO TODO also load form one drive and merge remote with local
+					{// LOLLO TODO also load form one drive and merge remote with local: check it
 						var localMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 						MetaBriefcase remoteMetaBriefcase = null;
 
@@ -448,8 +448,8 @@ namespace UniFiler10.Data.Metadata
 						}
 
 						newMetaBriefcase = Merge(localMetaBriefcase, remoteMetaBriefcase);
-						//mustSyncOneDrive = true;
-						//IsLocalSyncedOnceSinceLastOpen = false;
+						mustSyncOneDrive = true;
+						mustSaveLocal = true;
 						IsLocalSyncedOnceSinceLastOpen = true;
 					}
 					else
