@@ -60,7 +60,7 @@ namespace BackgroundTasks
 				if (briefcase.RuntimeData?.IsConnectionAvailable == true)
 				{
 					if (cancToken.IsCancellationRequested) return;
-					await briefcase.MetaBriefcase.SaveLocalFileToOneDriveAsync(cancToken).ConfigureAwait(false);
+					await briefcase.MetaBriefcase.SaveIntoOneDriveAsync(cancToken).ConfigureAwait(false);
 				}
 			}
 			catch (ObjectDisposedException) // comes from the cts
