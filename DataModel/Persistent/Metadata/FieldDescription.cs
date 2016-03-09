@@ -11,7 +11,7 @@ namespace UniFiler10.Data.Metadata
 	public sealed class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
 	{
 		#region events
-		public event EventHandler CaptionChanged;
+		public static event EventHandler CaptionChanged;
 		#endregion events
 
 

@@ -243,7 +243,7 @@ namespace UniFiler10.ViewModels
 		{
 			var mbc = _briefcase?.MetaBriefcase;
 			if (mbc == null) return false;
-			return await RunFunctionIfOpenAsyncTB(mbc.AddCategoryAsync).ConfigureAwait(false);
+			return await RunFunctionIfOpenAsyncTB(mbc.AddNewCategoryAsync).ConfigureAwait(false);
 		}
 
 		public async Task<bool> RemoveCategoryAsync(Category cat)
@@ -261,7 +261,7 @@ namespace UniFiler10.ViewModels
 				var mbc = _briefcase?.MetaBriefcase;
 				if (mbc == null) return false;
 
-				if (await mbc.AddFieldDescriptionAsync())
+				if (await mbc.AddNewFieldDescriptionAsync())
 				{
 					await UpdateAssignedUnassignedFieldsAsync().ConfigureAwait(false);
 					return true;
@@ -322,7 +322,7 @@ namespace UniFiler10.ViewModels
 			var mbc = _briefcase?.MetaBriefcase;
 			if (mbc == null) return false;
 
-			return await RunFunctionIfOpenAsyncTB(mbc.AddPossibleValueToCurrentFieldDescriptionAsync).ConfigureAwait(false);
+			return await RunFunctionIfOpenAsyncTB(mbc.AddNewPossibleValueToCurrentFieldDescriptionAsync).ConfigureAwait(false);
 		}
 
 		public async Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)

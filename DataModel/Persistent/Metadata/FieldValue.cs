@@ -9,7 +9,7 @@ namespace UniFiler10.Data.Metadata
 	public sealed class FieldValue : ObservableData
 	{
 		#region events
-		public event EventHandler VaalueChanged;
+		public static event EventHandler VaalueChanged;
 		#endregion events
 
 

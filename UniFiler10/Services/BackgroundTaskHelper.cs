@@ -8,6 +8,7 @@ using UniFiler10.Data.Metadata;
 using Utilz;
 using Utilz.Data;
 using Windows.ApplicationModel.Background;
+using Windows.Foundation;
 
 namespace UniFiler10.Services
 {
@@ -19,21 +20,22 @@ namespace UniFiler10.Services
 
 		private IBackgroundTaskRegistration _uploadToOneDriveBkgTaskReg = null;
 		private ApplicationTrigger _uploadToOneDriveTrigger = null;
+		private readonly List<IAsyncOperation<ApplicationTriggerResult>> _uploadToOneDriveTriggerTasks = new List<IAsyncOperation<ApplicationTriggerResult>>();
 		#endregion properties
 
 
 		#region lifecycle
 		private static BackgroundTaskHelper _instance = null;
-		public static BackgroundTaskHelper Instance
-		{
-			get
-			{
-				lock (_instanceLocker)
-				{
-					return _instance;
-				}
-			}
-		}
+		//public static BackgroundTaskHelper Instance
+		//{
+		//	get
+		//	{
+		//		lock (_instanceLocker)
+		//		{
+		//			return _instance;
+		//		}
+		//	}
+		//}
 
 		private static readonly object _instanceLocker = new object();
 		public static BackgroundTaskHelper GetInstance()
@@ -70,7 +72,8 @@ namespace UniFiler10.Services
 			//		where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
 			//		select cur.Value).FirstOrDefault();
 			var tasks = new List<IBackgroundTaskRegistration>();
-			foreach (var cur in BackgroundTaskRegistration.AllTasks.Where(task => task.Value.Name == ConstantData.ODU_BACKGROUND_TASK_NAME))
+			foreach (var cur in BackgroundTaskRegistration.AllTasks
+				.Where(task => task.Value.Name == ConstantData.ODU_BACKGROUND_TASK_NAME))
 			{
 				tasks.Add(cur.Value);
 			}
@@ -140,7 +143,25 @@ namespace UniFiler10.Services
 
 		private void OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested(object sender, EventArgs e)
 		{
-			var req = _uploadToOneDriveTrigger?.RequestAsync();
+			Task.Run(() =>
+			{
+				var uploadToOneDriveTrigger = _uploadToOneDriveTrigger;
+				if (uploadToOneDriveTrigger == null) return;
+
+				// LOLLO TODO see if you can cancel running tasks when starting a new one.
+				// It would be useful to avoid sending out dozens of tasks when actively editing the metadata.
+				int activeCount = BackgroundTaskRegistration.AllTasks
+					.Count(task => task.Value.Name == ConstantData.ODU_BACKGROUND_TASK_NAME);
+
+				// this is probably more useful, check it
+				foreach (var item in _uploadToOneDriveTriggerTasks)
+				{
+					item.Cancel();
+				}
+				_uploadToOneDriveTriggerTasks.Clear();
+
+				_uploadToOneDriveTriggerTasks.Add(uploadToOneDriveTrigger.RequestAsync());
+			});
 		}
 		#endregion services
 	}

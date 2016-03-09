@@ -28,7 +28,7 @@ namespace UniFiler10.Data.Metadata
 		#region events
 		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
 		private void RaiseUpdateOneDriveMetaBriefcaseRequested() // LOLLO TODO make sure you don't raise 20 requests when the user changes 20 little things.
-			// rather, wait 5 secs every time and then raise only one request
+																 // rather, wait 5 secs every time and then raise only one request
 		{
 			//if (_briefcase?.IsWantAndCanUseOneDrive == true)
 			if (_briefcase?.IsWantToUseOneDrive == true)
@@ -346,11 +346,19 @@ namespace UniFiler10.Data.Metadata
 
 		#region rubbish bin properties
 		private readonly RubbishBin _rubbishBin = new RubbishBin();
-		private class RubbishBin // LOLLO TODO test this
+		private class RubbishBin : OpenableObservableData // LOLLO TODO test this
 		{
-			private List<Category> Categories = new List<Category>();
-			private List<Tuple<List<string>, FieldDescription>> FieldDescriptions = new List<Tuple<List<string>, FieldDescription>>();
-			private List<Tuple<FieldDescription, FieldValue>> FieldValues = new List<Tuple<FieldDescription, FieldValue>>();
+			public const string FILENAME = "LolloSessionDataMetaBriefcaseRubbishBin.xml";
+
+			private List<Category> _categories = new List<Category>();
+			private List<Category> Categories { get { return _categories; } }
+
+			private List<Tuple<List<string>, FieldDescription>> _fieldDescriptions = new List<Tuple<List<string>, FieldDescription>>();
+			private List<Tuple<List<string>, FieldDescription>> FieldDescriptions { get { return _fieldDescriptions; } }
+
+			private List<Tuple<FieldDescription, FieldValue>> _fieldValues = new List<Tuple<FieldDescription, FieldValue>>();
+			private List<Tuple<FieldDescription, FieldValue>> FieldValues { get { return _fieldValues; } }
+
 			public void AddCategory(Category category)
 			{
 				var availableCat = Categories.FirstOrDefault(cat => cat.Name == category.Name);
@@ -381,6 +389,83 @@ namespace UniFiler10.Data.Metadata
 			{
 				return FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
 			}
+
+			#region lifecycle
+			protected override Task OpenMayOverrideAsync(object args = null)
+			{
+				return LoadAsync();
+			}
+
+			protected override Task CloseMayOverrideAsync()
+			{
+				return SaveAsync();
+			}
+			private async Task LoadAsync()
+			{
+				var file = await GetDirectory()
+					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
+					.AsTask().ConfigureAwait(false);
+
+				RubbishBin newInstance = null;
+				var serializer = new DataContractSerializer(typeof(RubbishBin));
+				try
+				{
+					using (var localFileContent = await file.OpenStreamForReadAsync().ConfigureAwait(false))
+					{
+						newInstance = (RubbishBin)(serializer.ReadObject(localFileContent));
+					}
+				}
+				catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+				if (newInstance != null) CopyXMLPropertiesFrom(newInstance);
+			}
+			private bool CopyXMLPropertiesFrom(RubbishBin source)
+			{// LOLLO TODO check if this is good enough or I need deep copies
+				if (source == null) return false;
+
+				_categories = source._categories;
+				_fieldDescriptions = source._fieldDescriptions;
+				_fieldValues = source._fieldValues;
+
+				return true;
+			}
+			private async Task<bool> SaveAsync()
+			{
+				try
+				{
+					using (var memoryStream = new MemoryStream())
+					{
+						var serializer = new DataContractSerializer(typeof(RubbishBin));
+						serializer.WriteObject(memoryStream, this);
+
+						string currentInstance = string.Empty;
+						memoryStream.Seek(0, SeekOrigin.Begin);
+						using (StreamReader streamReader = new StreamReader(memoryStream))
+						{
+							currentInstance = streamReader.ReadToEnd();
+
+							var file = await GetDirectory()
+								.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+
+							using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+							{
+								fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
+								memoryStream.Seek(0, SeekOrigin.Begin);
+								await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+								await memoryStream.FlushAsync().ConfigureAwait(false);
+								await fileStream.FlushAsync().ConfigureAwait(false);
+							}
+						}
+					}
+					return true;
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+				}
+
+				return false;
+			}
+			#endregion lifecycle
 		}
 		#endregion rubbish bin properties
 
@@ -441,34 +526,44 @@ namespace UniFiler10.Data.Metadata
 				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 
-			foreach (var cat in _categories)
-			{
-				cat.NameChanged += OnCategory_NameChanged;
-			}
-			foreach (var fldDsc in _fieldDescriptions)
-			{
-				fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
-				foreach (var pv in fldDsc.PossibleValues)
-				{
-					pv.VaalueChanged += OnFieldValue_VaalueChanged;
-				}
-			}
+
+			Category.NameChanged += OnCategory_NameChanged;
+			FieldDescription.CaptionChanged += OnFldDsc_CaptionChanged;
+			FieldValue.VaalueChanged += OnFieldValue_VaalueChanged;
+			//foreach (var cat in _categories)
+			//{
+			//	cat.NameChanged += OnCategory_NameChanged;
+			//}
+			//foreach (var fldDsc in _fieldDescriptions)
+			//{
+			//	fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
+			//	foreach (var pv in fldDsc.PossibleValues)
+			//	{
+			//		pv.VaalueChanged += OnFieldValue_VaalueChanged;
+			//	}
+			//}
+			await _rubbishBin.OpenAsync().ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			foreach (var cat in _categories)
-			{
-				cat.NameChanged -= OnCategory_NameChanged;
-			}
-			foreach (var fldDsc in _fieldDescriptions)
-			{
-				fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-				foreach (var pv in fldDsc.PossibleValues)
-				{
-					pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-				}
-			}
+			Category.NameChanged -= OnCategory_NameChanged;
+			FieldDescription.CaptionChanged -= OnFldDsc_CaptionChanged;
+			FieldValue.VaalueChanged -= OnFieldValue_VaalueChanged;
+
+			//foreach (var cat in _categories)
+			//{
+			//	cat.NameChanged -= OnCategory_NameChanged;
+			//}
+			//foreach (var fldDsc in _fieldDescriptions)
+			//{
+			//	fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
+			//	foreach (var pv in fldDsc.PossibleValues)
+			//	{
+			//		pv.VaalueChanged -= OnFieldValue_VaalueChanged;
+			//	}
+			//}
+			await _rubbishBin.CloseAsync().ConfigureAwait(false);
 
 			var rd = _runtimeData;
 			if (rd != null) rd.PropertyChanged -= OnRuntimeData_PropertyChanged;
@@ -752,7 +847,8 @@ namespace UniFiler10.Data.Metadata
 				if (!_runtimeData.IsConnectionAvailable) return;
 
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
-				await SaveIntoOneDriveAsync(cancToken, IsLocalSyncedOnceSinceLastOpen).ConfigureAwait(false);
+				await Task.Delay(5000).ConfigureAwait(false); // LOLLO TODO remove when doen testing
+				await SaveIntoOneDrive2Async(cancToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -764,7 +860,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private async Task SaveIntoOneDriveAsync(CancellationToken cancToken, bool merge)
+		private static async Task SaveIntoOneDrive2Async(CancellationToken cancToken)
 		{// LOLLO TODO test this with the merging (it's new)
 			var localFile = await GetDirectory().TryGetItemAsync(FILENAME).AsTask(cancToken).ConfigureAwait(false) as StorageFile;
 			if (localFile == null) return;
@@ -798,7 +894,7 @@ namespace UniFiler10.Data.Metadata
 						}
 						if (cancToken.IsCancellationRequested) return;
 
-						if (merge || GetWhenOneDrivePullRan() < oneDriveFileLastModifiedWhen) await MergeIntoOneDriveAsync(cancToken, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
+						if (!IsLocalSyncedOnceSinceLastOpen || GetWhenOneDrivePullRan() < oneDriveFileLastModifiedWhen) await MergeIntoOneDriveAsync(cancToken, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
 						else await OverwriteOneDriveAsync(cancToken, client, localFileContent).ConfigureAwait(false);
 
 						SetIsOneDriveUpdateRanNow();
@@ -807,7 +903,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private async Task OverwriteOneDriveAsync(CancellationToken cancToken, HttpClient client, Stream localFileContent)
+		private static async Task OverwriteOneDriveAsync(CancellationToken cancToken, HttpClient client, Stream localFileContent)
 		{
 			localFileContent.Position = 0;
 			using (var content = new StreamContent(localFileContent))
@@ -816,7 +912,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private async Task MergeIntoOneDriveAsync(CancellationToken cancToken, HttpClient client, string localFileContentString, string remoteFilecontentString)
+		private static async Task MergeIntoOneDriveAsync(CancellationToken cancToken, HttpClient client, string localFileContentString, string remoteFilecontentString)
 		{
 			MetaBriefcase remoteMbc = null;
 			MetaBriefcase localMbc = null;
@@ -992,7 +1088,7 @@ namespace UniFiler10.Data.Metadata
 		//	return RunFunctionIfOpenAsyncA(delegate { IsElevated = newValue; });
 		//}
 
-		public Task<bool> AddCategoryAsync()
+		public Task<bool> AddNewCategoryAsync()
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
@@ -1003,8 +1099,8 @@ namespace UniFiler10.Data.Metadata
 				{
 					await RunInUiThreadAsync(() => _categories.Add(newCat)).ConfigureAwait(false);
 
-					newCat.NameChanged -= OnCategory_NameChanged;
-					newCat.NameChanged += OnCategory_NameChanged;
+					//newCat.NameChanged -= OnCategory_NameChanged;
+					//newCat.NameChanged += OnCategory_NameChanged;
 					return true;
 				}
 				return false;
@@ -1017,7 +1113,7 @@ namespace UniFiler10.Data.Metadata
 				if (cat != null && (cat.IsJustAdded || IsElevated))
 				{
 					bool isRemoved = false;
-					cat.NameChanged -= OnCategory_NameChanged;
+					//cat.NameChanged -= OnCategory_NameChanged;
 					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
 					//if (isRemoved) cat?.Dispose();
 					_rubbishBin.AddCategory(cat);
@@ -1039,7 +1135,7 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		public Task<bool> AddFieldDescriptionAsync()
+		public Task<bool> AddNewFieldDescriptionAsync()
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
@@ -1050,8 +1146,8 @@ namespace UniFiler10.Data.Metadata
 				{
 					await RunInUiThreadAsync(() => _fieldDescriptions.Add(fldDsc)).ConfigureAwait(false);
 
-					fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-					fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
+					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
+					//fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
 					return true;
 				}
 				return false;
@@ -1066,11 +1162,11 @@ namespace UniFiler10.Data.Metadata
 				{
 					bool isRemoved = false;
 
-					fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-					foreach (var pv in fldDsc.PossibleValues)
-					{
-						pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-					}
+					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
+					//foreach (var pv in fldDsc.PossibleValues)
+					//{
+					//	pv.VaalueChanged -= OnFieldValue_VaalueChanged;
+					//}
 
 					var catsWithFldDsc = new List<string>();
 					await RunInUiThreadAsync(delegate
@@ -1090,7 +1186,7 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		public Task<bool> AddPossibleValueToCurrentFieldDescriptionAsync()
+		public Task<bool> AddNewPossibleValueToCurrentFieldDescriptionAsync()
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
@@ -1101,11 +1197,11 @@ namespace UniFiler10.Data.Metadata
 
 				bool isAdded = false;
 				await RunInUiThreadAsync(() => isAdded = _currentFieldDescription.AddPossibleValue(newFldVal)).ConfigureAwait(false);
-				if (isAdded)
-				{
-					newFldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-					newFldVal.VaalueChanged += OnFieldValue_VaalueChanged;
-				}
+				//if (isAdded)
+				//{
+				//	newFldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
+				//	newFldVal.VaalueChanged += OnFieldValue_VaalueChanged;
+				//}
 				return isAdded;
 			});
 		}
@@ -1126,8 +1222,9 @@ namespace UniFiler10.Data.Metadata
 
 				bool isAdded = false;
 
-				//var recycledFldVal = _rubbishBin.GetPossibleValue(fldDsc, newFldVal.Vaalue);
-				//if (recycledFldVal != null) newFldVal = recycledFldVal.Item2;
+				// LOLLO TODO check if I need or want this
+				var recycledFldVal = _rubbishBin.GetPossibleValue(fldDsc, newFldVal.Vaalue);
+				if (recycledFldVal?.Item2 != null) newFldVal = recycledFldVal.Item2;
 
 				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
 				if (isAdded && save)
@@ -1135,11 +1232,11 @@ namespace UniFiler10.Data.Metadata
 					isAdded = await Save2Async().ConfigureAwait(false);
 					RaiseUpdateOneDriveMetaBriefcaseRequested();
 				}
-				if (isAdded)
-				{
-					newFldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-					newFldVal.VaalueChanged += OnFieldValue_VaalueChanged;
-				}
+				//if (isAdded)
+				//{
+				//	newFldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
+				//	newFldVal.VaalueChanged += OnFieldValue_VaalueChanged;
+				//}
 				return isAdded;
 			});
 		}
@@ -1153,7 +1250,7 @@ namespace UniFiler10.Data.Metadata
 
 				bool isRemoved = false;
 
-				fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
+				//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
 
 				await RunInUiThreadAsync(() => isRemoved = currFldDsc.RemovePossibleValue(fldVal)).ConfigureAwait(false);
 				_rubbishBin.AddPossibleValue(currFldDsc, fldVal);
@@ -1241,10 +1338,11 @@ namespace UniFiler10.Data.Metadata
 				var recycledCat = _rubbishBin.GetCategory(cat.Name);
 				if (recycledCat != null)
 				{
-					cat.NameChanged -= OnCategory_NameChanged;
+					//cat.NameChanged -= OnCategory_NameChanged;
 
 					await RunInUiThreadAsync(() =>
 					{
+						bool setCurrent = CurrentCategoryId == cat.Id;
 						_categories.Remove(cat);
 						cat = recycledCat;
 						_categories.Add(cat);
@@ -1253,10 +1351,11 @@ namespace UniFiler10.Data.Metadata
 						{
 							cat.RemoveFieldDescription(missingFldDsc);
 						}
+						if (setCurrent) CurrentCategoryId = cat.Id;
 					}).ConfigureAwait(false);
 
-					cat.NameChanged -= OnCategory_NameChanged;
-					cat.NameChanged += OnCategory_NameChanged;
+					//cat.NameChanged -= OnCategory_NameChanged;
+					//cat.NameChanged += OnCategory_NameChanged;
 
 					DataChanged?.Invoke(this, EventArgs.Empty);
 				}
@@ -1273,18 +1372,20 @@ namespace UniFiler10.Data.Metadata
 				var recycledFldDsc = _rubbishBin.GetFieldDescription(fldDsc.Caption);
 				if (recycledFldDsc != null)
 				{
-					fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-					foreach (var pv in fldDsc.PossibleValues)
-					{
-						pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-					}
-					foreach (var cat in _categories)
-					{
-						cat.RemoveFieldDescription(fldDsc);
-					}
+					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
+					//foreach (var pv in fldDsc.PossibleValues)
+					//{
+					//	pv.VaalueChanged -= OnFieldValue_VaalueChanged;
+					//}
 
 					await RunInUiThreadAsync(() =>
 					{
+						bool setCurrent = CurrentFieldDescriptionId == fldDsc.Id;
+						foreach (var cat in _categories)
+						{
+							cat.RemoveFieldDescription(fldDsc);
+						}
+
 						_fieldDescriptions.Remove(fldDsc);
 						fldDsc = recycledFldDsc.Item2;
 						_fieldDescriptions.Add(fldDsc);
@@ -1294,15 +1395,16 @@ namespace UniFiler10.Data.Metadata
 							var registeredCat = _categories.FirstOrDefault(cat => cat.Id == catId);
 							registeredCat?.AddFieldDescription(fldDsc);
 						}
+						if (setCurrent) CurrentFieldDescriptionId = fldDsc.Id;
 					}).ConfigureAwait(false);
 
-					foreach (var pv in fldDsc.PossibleValues)
-					{
-						pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-						pv.VaalueChanged += OnFieldValue_VaalueChanged;
-					}
-					fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-					fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
+					//foreach (var pv in fldDsc.PossibleValues)
+					//{
+					//	pv.VaalueChanged -= OnFieldValue_VaalueChanged;
+					//	pv.VaalueChanged += OnFieldValue_VaalueChanged;
+					//}
+					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
+					//fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
 
 					DataChanged?.Invoke(this, EventArgs.Empty);
 				}
@@ -1319,7 +1421,7 @@ namespace UniFiler10.Data.Metadata
 				var recycledFldVal = _rubbishBin.GetPossibleValue(cfd, fldVal.Vaalue);
 				if (recycledFldVal != null)
 				{
-					fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
+					//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
 
 					await RunInUiThreadAsync(() =>
 					{
@@ -1328,8 +1430,8 @@ namespace UniFiler10.Data.Metadata
 						cfd.AddPossibleValue(fldVal);
 					}).ConfigureAwait(false);
 
-					fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-					fldVal.VaalueChanged += OnFieldValue_VaalueChanged;
+					//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
+					//fldVal.VaalueChanged += OnFieldValue_VaalueChanged;
 
 					DataChanged?.Invoke(this, EventArgs.Empty);
 				}

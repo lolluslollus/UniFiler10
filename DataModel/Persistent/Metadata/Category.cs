@@ -11,7 +11,7 @@ namespace UniFiler10.Data.Metadata
 	public sealed class Category : ObservableData //, IDisposable
 	{
 		#region events
-		public event EventHandler NameChanged;
+		public static event EventHandler NameChanged;
 		#endregion events
 
 
