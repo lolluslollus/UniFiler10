@@ -304,7 +304,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static void SetIsOneDrivePullRanNow()
+		private static void SetOneDrivePullRanNow()
 		{
 			lock (_oneDriveLocker)
 			{
@@ -312,6 +312,16 @@ namespace UniFiler10.Data.Metadata
 				RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_PULL_ONEDRIVE_RAN, now);
 			}
 		}
+		private static DateTime GetWhenOneDrivePullRan()
+		{
+			lock (_oneDriveLocker)
+			{
+				DateTime when = default(DateTime);
+				DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_PULL_ONEDRIVE_RAN), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out when);
+				return when;
+			}
+		}
+
 		public class OpenParameters
 		{
 			public const StorageFile DefaultSourceFile = null;
@@ -544,7 +554,7 @@ namespace UniFiler10.Data.Metadata
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
 					if (GetIsOneDriveUpdateOverdue())
-					{// LOLLO TODO also load form one drive and merge remote with local: check it
+					{// LOLLO TODO load form one drive and merge remote with local: check it
 						var localMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 						MetaBriefcase remoteMetaBriefcase = null;
 
@@ -558,7 +568,7 @@ namespace UniFiler10.Data.Metadata
 								{
 									remoteMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 								}
-								SetIsOneDrivePullRanNow();
+								SetOneDrivePullRanNow();
 							}
 							catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename); }
 						}
@@ -580,7 +590,7 @@ namespace UniFiler10.Data.Metadata
 								{
 									newMetaBriefcase = (MetaBriefcase)serializer.ReadObject(odFileContent);
 								}
-								SetIsOneDrivePullRanNow();
+								SetOneDrivePullRanNow();
 								mustSaveLocal = true;
 								IsLocalSyncedOnceSinceLastOpen = openParams.IsLocalSyncedOnceSinceLastOpen = true;
 							}
@@ -787,7 +797,7 @@ namespace UniFiler10.Data.Metadata
 						}
 						if (cancToken.IsCancellationRequested) return;
 
-						if (merge) await MergeIntoOneDriveAsync(cancToken, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
+						if (merge || GetWhenOneDrivePullRan() < oneDriveFileLastModifiedWhen) await MergeIntoOneDriveAsync(cancToken, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
 						else await OverwriteOneDriveAsync(cancToken, client, localFileContent).ConfigureAwait(false);
 
 						SetIsOneDriveUpdateRanNow();
