@@ -27,7 +27,8 @@ namespace UniFiler10.Data.Metadata
 	{
 		#region events
 		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
-		private void RaiseUpdateOneDriveMetaBriefcaseRequested()
+		private void RaiseUpdateOneDriveMetaBriefcaseRequested() // LOLLO TODO make sure you don't raise 20 requests when the user changes 20 little things.
+			// rather, wait 5 secs every time and then raise only one request
 		{
 			//if (_briefcase?.IsWantAndCanUseOneDrive == true)
 			if (_briefcase?.IsWantToUseOneDrive == true)
@@ -349,12 +350,12 @@ namespace UniFiler10.Data.Metadata
 		{
 			private List<Category> Categories = new List<Category>();
 			private List<Tuple<List<string>, FieldDescription>> FieldDescriptions = new List<Tuple<List<string>, FieldDescription>>();
-			private List<Tuple<FieldDescription, FieldValue>> PossibleValues = new List<Tuple<FieldDescription, FieldValue>>();
+			private List<Tuple<FieldDescription, FieldValue>> FieldValues = new List<Tuple<FieldDescription, FieldValue>>();
 			public void AddCategory(Category category)
 			{
 				var availableCat = Categories.FirstOrDefault(cat => cat.Name == category.Name);
-				if (availableCat != null) availableCat = category;
-				else Categories.Add(category);
+				if (availableCat != null) Categories.Remove(availableCat);
+				Categories.Add(category);
 			}
 			public Category GetCategory(string name)
 			{
@@ -363,8 +364,8 @@ namespace UniFiler10.Data.Metadata
 			public void AddFieldDescription(List<string> catsWithFldDsc, FieldDescription fieldDescription)
 			{
 				var availableFldDsc = FieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == fieldDescription.Caption);
-				if (availableFldDsc != null) availableFldDsc = Tuple.Create(catsWithFldDsc, fieldDescription);
-				else FieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
+				if (availableFldDsc != null) FieldDescriptions.Remove(availableFldDsc);
+				FieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
 			}
 			public Tuple<List<string>, FieldDescription> GetFieldDescription(string caption)
 			{
@@ -372,13 +373,13 @@ namespace UniFiler10.Data.Metadata
 			}
 			public void AddPossibleValue(FieldDescription fieldDescription, FieldValue fieldValue)
 			{
-				var availablePv = PossibleValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
-				if (availablePv != null) availablePv = Tuple.Create(fieldDescription, fieldValue);
-				else PossibleValues.Add(Tuple.Create(fieldDescription, fieldValue));
+				var availablePv = FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
+				if (availablePv != null) FieldValues.Remove(availablePv);
+				FieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
 			}
 			public Tuple<FieldDescription, FieldValue> GetPossibleValue(FieldDescription fieldDescription, string vaalue)
 			{
-				return PossibleValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
+				return FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
 			}
 		}
 		#endregion rubbish bin properties
