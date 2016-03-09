@@ -87,10 +87,13 @@ namespace UniFiler10.Views
 			var vm = VM;
 			if (textBox == null || vm == null) return;
 
-			string oldText = textBox.Text;
-			// LOLLO TODO check if I need to reset the value, it's new
-			bool isValueSet = await vm.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
-			if (!isValueSet) textBox.Text = oldText;
+			await RunFunctionIfOpenAsyncT(async () =>
+			{
+				string oldText = textBox.Text;
+				// LOLLO TODO check if I need to reset the value, it's new
+				bool isValueSet = await vm.TrySetFieldValueAsync(textBox.DataContext as DynamicField, textBox.Text);
+				if (!isValueSet) textBox.Text = oldText;
+			}).ConfigureAwait(false);
 		}
 	}
 }

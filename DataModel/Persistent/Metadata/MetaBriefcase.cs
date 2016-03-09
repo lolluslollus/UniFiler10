@@ -755,6 +755,7 @@ namespace UniFiler10.Data.Metadata
 				CopyXMLPropertiesFrom(newMetaBriefcase);
 				if (mustSaveLocal)
 				{
+					//Task syncLocal = Task.Run(() => Save2Async(), CancToken);
 					await Save2Async().ConfigureAwait(false);
 				}
 				if (mustSyncOneDrive)
@@ -798,7 +799,7 @@ namespace UniFiler10.Data.Metadata
 			// save xml properties
 			try
 			{
-				//_oneDriveMetaBriefcaseSemaphore.WaitOne();
+				_oneDriveMetaBriefcaseSemaphore.WaitOne(); // LOLLO TODO this could be delayed by the background task
 
 				if (file == null)
 				{
@@ -859,7 +860,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				// save non-xml properties
 				result = result & RegistryAccess.TrySetValue(ConstantData.REG_MBC_IS_ELEVATED, IsElevated.ToString());
-				//SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
+				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 
 			return result;
@@ -907,7 +908,7 @@ namespace UniFiler10.Data.Metadata
 				using (var streamReader = new StreamReader(localFileContent))
 				{
 					localFileContentString = streamReader.ReadToEnd();
-					await Task.Delay(15000).ConfigureAwait(false); // LOLLO TODO remove after done testing
+					//await Task.Delay(15000).ConfigureAwait(false); // LOLLO TODO remove after done testing
 					if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 
 					using (var client = new HttpClient())
