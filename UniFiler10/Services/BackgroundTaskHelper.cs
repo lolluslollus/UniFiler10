@@ -103,7 +103,7 @@ namespace UniFiler10.Services
 
 				_uploadToOneDriveTrigger = new ApplicationTrigger();
 				bkgTaskBuilder.SetTrigger(_uploadToOneDriveTrigger);
-
+				// bkgTaskBuilder.AddCondition(new SystemCondition(SystemConditionType.SessionDisconnected)); // NO!
 				// Register the background task
 				_uploadToOneDriveBkgTaskReg = bkgTaskBuilder.Register();
 			}

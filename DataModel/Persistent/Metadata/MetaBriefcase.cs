@@ -27,8 +27,7 @@ namespace UniFiler10.Data.Metadata
 	{
 		#region events
 		public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
-		private void RaiseUpdateOneDriveMetaBriefcaseRequested() // LOLLO TODO make sure you don't raise 20 requests when the user changes 20 little things.
-																 // rather, wait 5 secs every time and then raise only one request
+		private void RaiseUpdateOneDriveMetaBriefcaseRequested()
 		{
 			if (_briefcase?.IsWantToUseOneDrive == true)
 			{
@@ -388,35 +387,68 @@ namespace UniFiler10.Data.Metadata
 			[DataMember]
 			private List<Tuple<FieldDescription, FieldValue>> FieldValues { get { return _fieldValues; } set { _fieldValues = value; } } // the setter is only for the serialiser
 
-			public void AddCategory(Category category)
+			public Task AddCategoryAsync(Category category)
 			{
-				var availableCat = Categories.FirstOrDefault(cat => cat.Name == category.Name);
-				if (availableCat != null) Categories.Remove(availableCat);
-				Categories.Add(category);
+				return RunFunctionIfOpenAsyncA(() =>
+				{
+					var availableCat = Categories.FirstOrDefault(cat => cat.Name == category.Name);
+					if (availableCat != null) Categories.Remove(availableCat);
+					Categories.Add(category);
+				});
 			}
-			public Category GetCategory(string name)
+			public async Task<Category> GetCategoryAsync(string name)
 			{
-				return Categories.FirstOrDefault(cat => cat.Name == name);
+				Category result = null;
+				await RunFunctionIfOpenAsyncA(() =>
+				{
+					result = Categories.FirstOrDefault(cat => cat.Name == name);
+				}).ConfigureAwait(false);
+				return result;
 			}
-			public void AddFieldDescription(List<string> catsWithFldDsc, FieldDescription fieldDescription)
+			public Task AddFieldDescriptionAsync(List<string> catsWithFldDsc, FieldDescription fieldDescription)
 			{
-				var availableFldDsc = FieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == fieldDescription.Caption);
-				if (availableFldDsc != null) FieldDescriptions.Remove(availableFldDsc);
-				FieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
+				return RunFunctionIfOpenAsyncA(() =>
+				{
+					var availableFldDsc = FieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == fieldDescription.Caption);
+					if (availableFldDsc != null) FieldDescriptions.Remove(availableFldDsc);
+					FieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
+				});
 			}
-			public Tuple<List<string>, FieldDescription> GetFieldDescription(string caption)
+			public async Task<Tuple<List<string>, FieldDescription>> GetFieldDescriptionAsync(string caption)
 			{
-				return FieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
+				Tuple<List<string>, FieldDescription> result = null;
+				await RunFunctionIfOpenAsyncA(() =>
+				{
+					result = FieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
+				}).ConfigureAwait(false);
+				return result;
 			}
-			public void AddPossibleValue(FieldDescription fieldDescription, FieldValue fieldValue)
+			public Task AddPossibleValueAsync(FieldDescription fieldDescription, FieldValue fieldValue)
 			{
-				var availablePv = FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
-				if (availablePv != null) FieldValues.Remove(availablePv);
-				FieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
+				return RunFunctionIfOpenAsyncA(() =>
+				{
+					var availablePv = FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
+					if (availablePv != null) FieldValues.Remove(availablePv);
+					FieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
+				});
 			}
-			public Tuple<FieldDescription, FieldValue> GetPossibleValue(FieldDescription fieldDescription, string vaalue)
+			public async Task<Tuple<FieldDescription, FieldValue>> GetPossibleValueAsync(FieldDescription fieldDescription, string vaalue)
 			{
-				return FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
+				Tuple<FieldDescription, FieldValue> result = null;
+				await RunFunctionIfOpenAsyncA(() =>
+				{
+					result = FieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
+				}).ConfigureAwait(false);
+				return result;
+			}
+			public Task ClearAsync() // LOLLO TODO call this at some point, but when?
+			{
+				return RunFunctionIfOpenAsyncA(() =>
+				{
+					_categories.Clear();
+					_fieldDescriptions.Clear();
+					_fieldValues.Clear();
+				});
 			}
 
 			#region lifecycle
@@ -800,6 +832,7 @@ namespace UniFiler10.Data.Metadata
 			try
 			{
 				_oneDriveMetaBriefcaseSemaphore.WaitOne(); // LOLLO TODO this could be delayed by the background task
+				// the only solution seems to be, only to run the bkg task when the app is off.
 
 				if (file == null)
 				{
@@ -908,7 +941,7 @@ namespace UniFiler10.Data.Metadata
 				using (var streamReader = new StreamReader(localFileContent))
 				{
 					localFileContentString = streamReader.ReadToEnd();
-					//await Task.Delay(15000).ConfigureAwait(false); // LOLLO TODO remove after done testing
+					//await Task.Delay(15000).ConfigureAwait(false);
 					if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 
 					using (var client = new HttpClient())
@@ -1155,7 +1188,7 @@ namespace UniFiler10.Data.Metadata
 					//cat.NameChanged -= OnCategory_NameChanged;
 					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
 					//if (isRemoved) cat?.Dispose();
-					_rubbishBin.AddCategory(cat);
+					await _rubbishBin.AddCategoryAsync(cat);
 					if (CurrentCategoryId == cat.Id && _categories.Any()) { CurrentCategoryId = _categories[0]?.Id; }
 					return isRemoved;
 				}
@@ -1217,7 +1250,7 @@ namespace UniFiler10.Data.Metadata
 						isRemoved = _fieldDescriptions.Remove(fldDsc);
 					}).ConfigureAwait(false);
 					//if (isRemoved) fldDesc?.Dispose();
-					_rubbishBin.AddFieldDescription(catsWithFldDsc, fldDsc);
+					await _rubbishBin.AddFieldDescriptionAsync(catsWithFldDsc, fldDsc);
 					if (CurrentFieldDescriptionId == fldDsc.Id) if (_fieldDescriptions.Any()) { CurrentFieldDescriptionId = _fieldDescriptions[0]?.Id; } else CurrentFieldDescriptionId = null;
 					return isRemoved;
 				}
@@ -1262,7 +1295,7 @@ namespace UniFiler10.Data.Metadata
 				bool isAdded = false;
 
 				// LOLLO TODO check if I need or want this
-				var recycledFldVal = _rubbishBin.GetPossibleValue(fldDsc, newFldVal.Vaalue);
+				var recycledFldVal = await _rubbishBin.GetPossibleValueAsync(fldDsc, newFldVal.Vaalue); //.ConfigureAwait(false);
 				if (recycledFldVal?.Item2 != null) newFldVal = recycledFldVal.Item2;
 
 				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
@@ -1292,7 +1325,7 @@ namespace UniFiler10.Data.Metadata
 				//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
 
 				await RunInUiThreadAsync(() => isRemoved = currFldDsc.RemovePossibleValue(fldVal)).ConfigureAwait(false);
-				_rubbishBin.AddPossibleValue(currFldDsc, fldVal);
+				await _rubbishBin.AddPossibleValueAsync(currFldDsc, fldVal).ConfigureAwait(false);
 				return isRemoved;
 			});
 		}
@@ -1374,7 +1407,7 @@ namespace UniFiler10.Data.Metadata
 				var cat = sender as Category;
 				if (cat == null) return;
 
-				var recycledCat = _rubbishBin.GetCategory(cat.Name);
+				var recycledCat = await _rubbishBin.GetCategoryAsync(cat.Name); //.ConfigureAwait(false);
 				if (recycledCat != null)
 				{
 					//cat.NameChanged -= OnCategory_NameChanged;
@@ -1408,7 +1441,7 @@ namespace UniFiler10.Data.Metadata
 				var fldDsc = sender as FieldDescription; var cats = _categories;
 				if (fldDsc == null || cats == null) return;
 
-				var recycledFldDsc = _rubbishBin.GetFieldDescription(fldDsc.Caption);
+				var recycledFldDsc = await _rubbishBin.GetFieldDescriptionAsync(fldDsc.Caption); //.ConfigureAwait(false);
 				if (recycledFldDsc != null)
 				{
 					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
@@ -1457,7 +1490,7 @@ namespace UniFiler10.Data.Metadata
 				var fldVal = sender as FieldValue; var cfd = _currentFieldDescription;
 				if (fldVal == null || cfd == null) return;
 
-				var recycledFldVal = _rubbishBin.GetPossibleValue(cfd, fldVal.Vaalue);
+				var recycledFldVal = await _rubbishBin.GetPossibleValueAsync(cfd, fldVal.Vaalue); //.ConfigureAwait(false);
 				if (recycledFldVal != null)
 				{
 					//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
