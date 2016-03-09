@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+using UniFiler10.Data.Metadata;
 using UniFiler10.Data.Model;
 using Utilz;
 using Windows.ApplicationModel.Background;
@@ -39,6 +41,9 @@ namespace BackgroundTasks
 
 				_deferral = taskInstance.GetDeferral();
 
+				await Task.Delay(5000).ConfigureAwait(false); // LOLLO TODO this picks up the last changes in case too many requests were triggered and the last were rejected.
+				// make sure it does not screw with the timeout.
+
 				_taskInstance = taskInstance;
 				_taskInstance.Canceled += OnCanceled;
 
@@ -59,8 +64,7 @@ namespace BackgroundTasks
 				await briefcase.OpenAsync().ConfigureAwait(false);
 				if (briefcase.RuntimeData?.IsConnectionAvailable == true)
 				{
-					if (cancToken.IsCancellationRequested) return;
-					await briefcase.MetaBriefcase.SaveIntoOneDriveAsync(cancToken).ConfigureAwait(false);
+					await briefcase.MetaBriefcase.SaveIntoOneDriveAsync(cancToken, taskInstance.InstanceId).ConfigureAwait(false);
 				}
 			}
 			catch (ObjectDisposedException) // comes from the cts

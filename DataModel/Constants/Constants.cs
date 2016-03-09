@@ -45,6 +45,9 @@ namespace UniFiler10.Data.Constants
 
 		public const string ODU_BACKGROUND_TASK_NAME = "BackgroundOneDriveUploader";
 		public const string ODU_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.BackgroundOneDriveUploader";
+		//public const string ODU_BACKGROUND_TASK_CANCEL = "BackgroundOneDriveUploader.Cancel";
+		public const string ODU_BACKGROUND_TASK_ALLOWED_INSTANCE_ID = "BackgroundOneDriveUploader.TaskInstanceId";
+
 		public const string REG_MBC_ODU_LOCAL_SYNCED_SINCE_OPEN = "MetaBriefcase.IsLocalSyncedOnceSinceLastOpen";
 		public const string REG_MBC_ODU_TKN = "MetaBriefcase.OneDriveAccessToken";
 		public const string REG_MBC_IS_ELEVATED = "MetaBriefcase.IsElevated";

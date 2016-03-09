@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,22 +21,11 @@ namespace UniFiler10.Services
 
 		private IBackgroundTaskRegistration _uploadToOneDriveBkgTaskReg = null;
 		private ApplicationTrigger _uploadToOneDriveTrigger = null;
-		private readonly List<IAsyncOperation<ApplicationTriggerResult>> _uploadToOneDriveTriggerTasks = new List<IAsyncOperation<ApplicationTriggerResult>>();
 		#endregion properties
 
 
 		#region lifecycle
 		private static BackgroundTaskHelper _instance = null;
-		//public static BackgroundTaskHelper Instance
-		//{
-		//	get
-		//	{
-		//		lock (_instanceLocker)
-		//		{
-		//			return _instance;
-		//		}
-		//	}
-		//}
 
 		private static readonly object _instanceLocker = new object();
 		public static BackgroundTaskHelper GetInstance()
@@ -143,25 +133,10 @@ namespace UniFiler10.Services
 
 		private void OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested(object sender, EventArgs e)
 		{
-			Task.Run(() =>
-			{
-				var uploadToOneDriveTrigger = _uploadToOneDriveTrigger;
-				if (uploadToOneDriveTrigger == null) return;
-
-				// LOLLO TODO see if you can cancel running tasks when starting a new one.
-				// It would be useful to avoid sending out dozens of tasks when actively editing the metadata.
-				int activeCount = BackgroundTaskRegistration.AllTasks
-					.Count(task => task.Value.Name == ConstantData.ODU_BACKGROUND_TASK_NAME);
-
-				// this is probably more useful, check it
-				foreach (var item in _uploadToOneDriveTriggerTasks)
-				{
-					item.Cancel();
-				}
-				_uploadToOneDriveTriggerTasks.Clear();
-
-				_uploadToOneDriveTriggerTasks.Add(uploadToOneDriveTrigger.RequestAsync());
-			});
+			//Task bkg = RunFunctionIfOpenAsyncT_MT(async () =>
+			//{
+			var upl = _uploadToOneDriveTrigger?.RequestAsync();
+			//});
 		}
 		#endregion services
 	}

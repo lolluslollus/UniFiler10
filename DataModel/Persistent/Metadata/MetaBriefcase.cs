@@ -30,7 +30,6 @@ namespace UniFiler10.Data.Metadata
 		private void RaiseUpdateOneDriveMetaBriefcaseRequested() // LOLLO TODO make sure you don't raise 20 requests when the user changes 20 little things.
 																 // rather, wait 5 secs every time and then raise only one request
 		{
-			//if (_briefcase?.IsWantAndCanUseOneDrive == true)
 			if (_briefcase?.IsWantToUseOneDrive == true)
 			{
 				Task raise = Task.Run(() =>
@@ -38,7 +37,7 @@ namespace UniFiler10.Data.Metadata
 					try
 					{
 						_oneDriveMetaBriefcaseSemaphore.WaitOne();
-						SetIsOneDriveUpdateCalledNow();
+						SetOneDriveUpdateCalledNow();
 						UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 					}
 					catch (Exception ex)
@@ -285,7 +284,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static void SetIsOneDriveUpdateCalledNow()
+		private static void SetOneDriveUpdateCalledNow()
 		{
 			lock (_oneDriveLocker)
 			{
@@ -294,7 +293,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static void SetIsOneDriveUpdateRanNow()
+		private static void SetOneDriveUpdateRanNow()
 		{
 			lock (_oneDriveLocker)
 			{
@@ -322,6 +321,32 @@ namespace UniFiler10.Data.Metadata
 				return when;
 			}
 		}
+		private static bool GetIsCurrentInstanceAllowed(Guid id)
+		{
+			if (id == null) return false;
+			try
+			{
+				_oneDriveCancelBkgTaskSemaphore.WaitOne();
+				string regVal = RegistryAccess.GetValue(ConstantData.ODU_BACKGROUND_TASK_ALLOWED_INSTANCE_ID);
+				return regVal.Equals(id.ToString());
+			}
+			finally
+			{
+				SemaphoreExtensions.TryRelease(_oneDriveCancelBkgTaskSemaphore);
+			}
+		}
+		private static void SetBackgroundTaskAllowedInstanceId(Guid id)
+		{
+			try
+			{
+				_oneDriveCancelBkgTaskSemaphore.WaitOne();
+				RegistryAccess.TrySetValue(ConstantData.ODU_BACKGROUND_TASK_ALLOWED_INSTANCE_ID, id.ToString());
+			}
+			finally
+			{
+				SemaphoreExtensions.TryRelease(_oneDriveCancelBkgTaskSemaphore);
+			}
+		}
 
 		public class OpenParameters
 		{
@@ -346,18 +371,22 @@ namespace UniFiler10.Data.Metadata
 
 		#region rubbish bin properties
 		private readonly RubbishBin _rubbishBin = new RubbishBin();
+		[DataContract]
 		private class RubbishBin : OpenableObservableData // LOLLO TODO test this
 		{
 			public const string FILENAME = "LolloSessionDataMetaBriefcaseRubbishBin.xml";
 
 			private List<Category> _categories = new List<Category>();
-			private List<Category> Categories { get { return _categories; } }
+			[DataMember]
+			private List<Category> Categories { get { return _categories; } set { _categories = value; } } // the setter is only for the serialiser
 
 			private List<Tuple<List<string>, FieldDescription>> _fieldDescriptions = new List<Tuple<List<string>, FieldDescription>>();
-			private List<Tuple<List<string>, FieldDescription>> FieldDescriptions { get { return _fieldDescriptions; } }
+			[DataMember]
+			private List<Tuple<List<string>, FieldDescription>> FieldDescriptions { get { return _fieldDescriptions; } set { _fieldDescriptions = value; } } // the setter is only for the serialiser
 
 			private List<Tuple<FieldDescription, FieldValue>> _fieldValues = new List<Tuple<FieldDescription, FieldValue>>();
-			private List<Tuple<FieldDescription, FieldValue>> FieldValues { get { return _fieldValues; } }
+			[DataMember]
+			private List<Tuple<FieldDescription, FieldValue>> FieldValues { get { return _fieldValues; } set { _fieldValues = value; } } // the setter is only for the serialiser
 
 			public void AddCategory(Category category)
 			{
@@ -422,9 +451,9 @@ namespace UniFiler10.Data.Metadata
 			{// LOLLO TODO check if this is good enough or I need deep copies
 				if (source == null) return false;
 
-				_categories = source._categories;
-				_fieldDescriptions = source._fieldDescriptions;
-				_fieldValues = source._fieldValues;
+				if (source._categories != null) _categories = source._categories;
+				if (source._fieldDescriptions != null) _fieldDescriptions = source._fieldDescriptions;
+				if (source._fieldValues != null) _fieldValues = source._fieldValues;
 
 				return true;
 			}
@@ -726,7 +755,7 @@ namespace UniFiler10.Data.Metadata
 				CopyXMLPropertiesFrom(newMetaBriefcase);
 				if (mustSaveLocal)
 				{
-					Task syncLocal = Task.Run(() => Save2Async(), CancToken);
+					await Save2Async().ConfigureAwait(false);
 				}
 				if (mustSyncOneDrive)
 				{
@@ -769,7 +798,7 @@ namespace UniFiler10.Data.Metadata
 			// save xml properties
 			try
 			{
-				_oneDriveMetaBriefcaseSemaphore.WaitOne();
+				//_oneDriveMetaBriefcaseSemaphore.WaitOne();
 
 				if (file == null)
 				{
@@ -830,7 +859,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				// save non-xml properties
 				result = result & RegistryAccess.TrySetValue(ConstantData.REG_MBC_IS_ELEVATED, IsElevated.ToString());
-				SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
+				//SemaphoreExtensions.TryRelease(_oneDriveMetaBriefcaseSemaphore);
 			}
 
 			return result;
@@ -840,15 +869,22 @@ namespace UniFiler10.Data.Metadata
 		/// This semaphore protects the token and the file, operating system-wide
 		/// </summary>
 		private static readonly Semaphore _oneDriveMetaBriefcaseSemaphore = new Semaphore(1, 1, "Unifiler10_OneDriveMetaBriefcaseSemaphore");
-		public async Task SaveIntoOneDriveAsync(CancellationToken cancToken)
+		/// <summary>
+		/// This semaphore protects the background task cancellation, operating system-wide
+		/// </summary>
+		private static readonly Semaphore _oneDriveCancelBkgTaskSemaphore = new Semaphore(1, 1, "Unifiler10_OneDriveCancelBkgTaskSemaphore");
+		public async Task SaveIntoOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId)
 		{
 			try
 			{
-				if (!_runtimeData.IsConnectionAvailable) return;
+				if (!_runtimeData.IsConnectionAvailable || cancToken.IsCancellationRequested) return;
 
+				SetBackgroundTaskAllowedInstanceId(taskInstanceId);
+				Debug.WriteLine("last taskInstanceId = " + taskInstanceId.ToString());
 				_oneDriveMetaBriefcaseSemaphore.WaitOne();
-				await Task.Delay(5000).ConfigureAwait(false); // LOLLO TODO remove when doen testing
-				await SaveIntoOneDrive2Async(cancToken).ConfigureAwait(false);
+				var myInstanceId = taskInstanceId;
+				if (!GetIsCurrentInstanceAllowed(myInstanceId)) return;
+				await SaveIntoOneDrive2Async(cancToken, myInstanceId).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -860,7 +896,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static async Task SaveIntoOneDrive2Async(CancellationToken cancToken)
+		private static async Task SaveIntoOneDrive2Async(CancellationToken cancToken, Guid taskInstanceId)
 		{// LOLLO TODO test this with the merging (it's new)
 			var localFile = await GetDirectory().TryGetItemAsync(FILENAME).AsTask(cancToken).ConfigureAwait(false) as StorageFile;
 			if (localFile == null) return;
@@ -871,7 +907,8 @@ namespace UniFiler10.Data.Metadata
 				using (var streamReader = new StreamReader(localFileContent))
 				{
 					localFileContentString = streamReader.ReadToEnd();
-					if (cancToken.IsCancellationRequested) return;
+					await Task.Delay(15000).ConfigureAwait(false); // LOLLO TODO remove after done testing
+					if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 
 					using (var client = new HttpClient())
 					{
@@ -889,21 +926,21 @@ namespace UniFiler10.Data.Metadata
 
 						if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal))
 						{
-							SetIsOneDriveUpdateRanNow();
+							SetOneDriveUpdateRanNow();
 							return;
 						}
-						if (cancToken.IsCancellationRequested) return;
+						if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 
-						if (!IsLocalSyncedOnceSinceLastOpen || GetWhenOneDrivePullRan() < oneDriveFileLastModifiedWhen) await MergeIntoOneDriveAsync(cancToken, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
-						else await OverwriteOneDriveAsync(cancToken, client, localFileContent).ConfigureAwait(false);
+						if (!IsLocalSyncedOnceSinceLastOpen || GetWhenOneDrivePullRan() < oneDriveFileLastModifiedWhen) await MergeIntoOneDriveAsync(cancToken, taskInstanceId, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
+						else await OverwriteOneDriveAsync(cancToken, taskInstanceId, client, localFileContent).ConfigureAwait(false);
 
-						SetIsOneDriveUpdateRanNow();
+						SetOneDriveUpdateRanNow();
 					}
 				}
 			}
 		}
 
-		private static async Task OverwriteOneDriveAsync(CancellationToken cancToken, HttpClient client, Stream localFileContent)
+		private static async Task OverwriteOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId, HttpClient client, Stream localFileContent)
 		{
 			localFileContent.Position = 0;
 			using (var content = new StreamContent(localFileContent))
@@ -912,7 +949,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static async Task MergeIntoOneDriveAsync(CancellationToken cancToken, HttpClient client, string localFileContentString, string remoteFilecontentString)
+		private static async Task MergeIntoOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId, HttpClient client, string localFileContentString, string remoteFilecontentString)
 		{
 			MetaBriefcase remoteMbc = null;
 			MetaBriefcase localMbc = null;
@@ -927,6 +964,7 @@ namespace UniFiler10.Data.Metadata
 					remoteMbc = (MetaBriefcase)serializer.ReadObject(ms);
 				}
 			}
+			if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 			using (var ms = new MemoryStream())
 			{
 				using (var sw = new StreamWriter(ms))
@@ -937,10 +975,10 @@ namespace UniFiler10.Data.Metadata
 					localMbc = (MetaBriefcase)serializer.ReadObject(ms);
 				}
 			}
-			if (cancToken.IsCancellationRequested) return;
+			if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 
 			var mergedMbc = Merge(localMbc, remoteMbc);
-			if (cancToken.IsCancellationRequested) return;
+			if (cancToken.IsCancellationRequested || !GetIsCurrentInstanceAllowed(taskInstanceId)) return;
 
 			using (var ms = new MemoryStream())
 			{
