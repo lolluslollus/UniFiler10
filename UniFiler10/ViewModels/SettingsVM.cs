@@ -217,7 +217,7 @@ namespace UniFiler10.ViewModels
 				await ContinueAfterFileOpenPickerAsync(file, Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
 			var mbc = _briefcase?.MetaBriefcase;
-			if (mbc != null) MetaBriefcase.RubbishBin.DataChanged += OnMetaDataChanged;
+			if (mbc != null) MetaBriefcaseRubbishBin.DataChanged += OnMetaDataChanged;
 		}
 
 		protected override async Task CloseMayOverrideAsync()
@@ -225,7 +225,7 @@ namespace UniFiler10.ViewModels
 			var mbc = _briefcase?.MetaBriefcase;
 			if (mbc != null)
 			{
-				MetaBriefcase.RubbishBin.DataChanged -= OnMetaDataChanged;
+				MetaBriefcaseRubbishBin.DataChanged -= OnMetaDataChanged;
 				await mbc.SaveAsync().ConfigureAwait(false);
 			}
 			_unassignedFields?.Dispose();

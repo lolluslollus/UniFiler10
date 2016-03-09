@@ -23,35 +23,6 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class MetaBriefcase : OpenableObservableData
 	{
-		#region events
-		//public static event EventHandler UpdateOneDriveMetaBriefcaseRequested;
-		//private void RaiseUpdateOneDriveMetaBriefcaseRequested()
-		//{
-		//	if (_briefcase?.IsWantToUseOneDrive == true)
-		//	{
-		//		Task raise = Task.Run(() =>
-		//		{
-		//			try
-		//			{
-		//				_oneDriveSemaphore.WaitOne();
-		//				SetOneDriveUpdateCalledNow();
-		//			}
-		//			catch (Exception ex)
-		//			{
-		//				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-		//			}
-		//			finally
-		//			{
-		//				SemaphoreExtensions.TryRelease(_oneDriveSemaphore);
-		//				UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
-		//			}
-		//		});
-		//	}
-		//}
-		//public event EventHandler DataChanged;
-		#endregion events
-
-
 		#region data properties
 		private static readonly string DEFAULT_ID = string.Empty;
 		private static MetaBriefcase _instance = null;
@@ -218,275 +189,7 @@ namespace UniFiler10.Data.Metadata
 
 
 		#region rubbish bin properties
-		private readonly RubbishBin _rubbishBin = null;
-		[DataContract]
-		public class RubbishBin : OpenableObservableData // LOLLO TODO test this
-		{
-			#region events
-			public static event EventHandler DataChanged;
-			#endregion events
-
-
-			#region properties
-			public const string FILENAME = "LolloSessionDataMetaBriefcaseRubbishBin.xml";
-			private readonly MetaBriefcase _mbc = null;
-
-			private List<Category> _deletedCategories = new List<Category>();
-			[DataMember]
-			private List<Category> DeletedCategories { get { return _deletedCategories; } set { _deletedCategories = value; } } // the setter is only for the serialiser
-
-			private List<Tuple<List<string>, FieldDescription>> _deletedFieldDescriptions = new List<Tuple<List<string>, FieldDescription>>();
-			[DataMember]
-			private List<Tuple<List<string>, FieldDescription>> DeletedFieldDescriptions { get { return _deletedFieldDescriptions; } set { _deletedFieldDescriptions = value; } } // the setter is only for the serialiser
-
-			private List<Tuple<FieldDescription, FieldValue>> _deletedFieldValues = new List<Tuple<FieldDescription, FieldValue>>();
-			[DataMember]
-			private List<Tuple<FieldDescription, FieldValue>> DeletedFieldValues { get { return _deletedFieldValues; } set { _deletedFieldValues = value; } } // the setter is only for the serialiser
-
-			internal Task AddCategoryAsync(Category category)
-			{
-				return RunFunctionIfOpenAsyncA(() =>
-				{
-					var availableCat = DeletedCategories.FirstOrDefault(cat => cat.Name == category.Name);
-					if (availableCat != null) DeletedCategories.Remove(availableCat);
-					DeletedCategories.Add(category);
-				});
-			}
-			internal async Task<Category> GetCategoryAsync(string name)
-			{
-				Category result = null;
-				await RunFunctionIfOpenAsyncA(() =>
-				{
-					result = DeletedCategories.FirstOrDefault(cat => cat.Name == name);
-				}).ConfigureAwait(false);
-				return result;
-			}
-			internal Task AddFieldDescriptionAsync(List<string> catsWithFldDsc, FieldDescription fieldDescription)
-			{
-				return RunFunctionIfOpenAsyncA(() =>
-				{
-					var availableFldDsc = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == fieldDescription.Caption);
-					if (availableFldDsc != null) DeletedFieldDescriptions.Remove(availableFldDsc);
-					DeletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
-				});
-			}
-			internal async Task<Tuple<List<string>, FieldDescription>> GetFieldDescriptionAsync(string caption)
-			{
-				Tuple<List<string>, FieldDescription> result = null;
-				await RunFunctionIfOpenAsyncA(() =>
-				{
-					result = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
-				}).ConfigureAwait(false);
-				return result;
-			}
-			internal Task AddPossibleValueAsync(FieldDescription fieldDescription, FieldValue fieldValue)
-			{
-				return RunFunctionIfOpenAsyncA(() =>
-				{
-					var availablePv = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
-					if (availablePv != null) DeletedFieldValues.Remove(availablePv);
-					DeletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
-				});
-			}
-			internal async Task<Tuple<FieldDescription, FieldValue>> GetPossibleValueAsync(FieldDescription fieldDescription, string vaalue)
-			{
-				Tuple<FieldDescription, FieldValue> result = null;
-				await RunFunctionIfOpenAsyncA(() =>
-				{
-					result = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
-				}).ConfigureAwait(false);
-				return result;
-			}
-			internal Task ClearAsync() // LOLLO TODO call this at some point, but when?
-			{
-				return RunFunctionIfOpenAsyncA(() =>
-				{
-					_deletedCategories.Clear();
-					_deletedFieldDescriptions.Clear();
-					_deletedFieldValues.Clear();
-				});
-			}
-			#endregion properties
-
-
-			#region lifecycle
-			internal RubbishBin(MetaBriefcase metaBriefcase)
-			{
-				_mbc = metaBriefcase;
-			}
-
-			protected override async Task OpenMayOverrideAsync(object args = null)
-			{
-				await LoadAsync().ConfigureAwait(false);
-				Category.NameChanged += OnCategory_NameChanged;
-				FieldDescription.CaptionChanged += OnFldDsc_CaptionChanged;
-				FieldValue.VaalueChanged += OnFieldValue_VaalueChanged;
-			}
-
-			protected override async Task CloseMayOverrideAsync()
-			{
-				Category.NameChanged -= OnCategory_NameChanged;
-				FieldDescription.CaptionChanged -= OnFldDsc_CaptionChanged;
-				FieldValue.VaalueChanged -= OnFieldValue_VaalueChanged;
-
-				await SaveAsync().ConfigureAwait(false);
-			}
-			private async Task LoadAsync()
-			{
-				var file = await GetDirectory()
-					.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
-					.AsTask().ConfigureAwait(false);
-
-				RubbishBin newInstance = null;
-				var serializer = new DataContractSerializer(typeof(RubbishBin));
-				try
-				{
-					using (var localFileContent = await file.OpenStreamForReadAsync().ConfigureAwait(false))
-					{
-						newInstance = (RubbishBin)(serializer.ReadObject(localFileContent));
-					}
-				}
-				catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
-				if (newInstance != null) CopyXMLPropertiesFrom(newInstance);
-			}
-			private bool CopyXMLPropertiesFrom(RubbishBin source)
-			{// LOLLO TODO check if this is good enough or I need deep copies
-				if (source == null) return false;
-
-				if (source._deletedCategories != null) _deletedCategories = source._deletedCategories;
-				if (source._deletedFieldDescriptions != null) _deletedFieldDescriptions = source._deletedFieldDescriptions;
-				if (source._deletedFieldValues != null) _deletedFieldValues = source._deletedFieldValues;
-
-				return true;
-			}
-			private async Task<bool> SaveAsync()
-			{
-				try
-				{
-					using (var memoryStream = new MemoryStream())
-					{
-						var serializer = new DataContractSerializer(typeof(RubbishBin));
-						serializer.WriteObject(memoryStream, this);
-
-						string currentInstance = string.Empty;
-						memoryStream.Seek(0, SeekOrigin.Begin);
-						using (StreamReader streamReader = new StreamReader(memoryStream))
-						{
-							currentInstance = streamReader.ReadToEnd();
-
-							var file = await GetDirectory()
-								.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-
-							using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-							{
-								fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
-								memoryStream.Seek(0, SeekOrigin.Begin);
-								await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
-								await memoryStream.FlushAsync().ConfigureAwait(false);
-								await fileStream.FlushAsync().ConfigureAwait(false);
-							}
-						}
-					}
-					return true;
-				}
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-				}
-
-				return false;
-			}
-			#endregion lifecycle
-
-
-			#region event handlers
-			private void OnCategory_NameChanged(object sender, EventArgs e)
-			{
-				Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
-				{
-					var cat = sender as Category;
-					if (cat == null) return;
-
-					var recycledCat = await GetCategoryAsync(cat.Name); //.ConfigureAwait(false);
-					if (recycledCat != null)
-					{
-						await RunInUiThreadAsync(() =>
-						{
-							bool setCurrent = _mbc.CurrentCategoryId == cat.Id;
-							_deletedCategories.Remove(cat);
-							cat = recycledCat;
-							_deletedCategories.Add(cat);
-
-							foreach (var missingFldDsc in cat.FieldDescriptions.Where(fd0 => _mbc.FieldDescriptions.All(fd1 => fd1.Id != fd0.Id)))
-							{
-								cat.RemoveFieldDescription(missingFldDsc);
-							}
-							if (setCurrent) _mbc.CurrentCategoryId = cat.Id;
-						}).ConfigureAwait(false);
-
-						DataChanged?.Invoke(this, EventArgs.Empty);
-					}
-				});
-			}
-
-			private void OnFldDsc_CaptionChanged(object sender, EventArgs e)
-			{
-				Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
-				{
-					var fldDsc = sender as FieldDescription; var cats = _deletedCategories;
-					if (fldDsc == null || cats == null) return;
-
-					var recycledFldDsc = await GetFieldDescriptionAsync(fldDsc.Caption); //.ConfigureAwait(false);
-					if (recycledFldDsc != null)
-					{
-						await RunInUiThreadAsync(() =>
-						{
-							bool setCurrent = _mbc.CurrentFieldDescriptionId == fldDsc.Id;
-							foreach (var cat in _deletedCategories)
-							{
-								cat.RemoveFieldDescription(fldDsc);
-							}
-
-							_mbc.FieldDescriptions.Remove(fldDsc);
-							fldDsc = recycledFldDsc.Item2;
-							_mbc.FieldDescriptions.Add(fldDsc);
-
-							foreach (var catId in recycledFldDsc.Item1)
-							{
-								var registeredCat = _deletedCategories.FirstOrDefault(cat => cat.Id == catId);
-								registeredCat?.AddFieldDescription(fldDsc);
-							}
-							if (setCurrent) _mbc.CurrentFieldDescriptionId = fldDsc.Id;
-						}).ConfigureAwait(false);
-
-						DataChanged?.Invoke(this, EventArgs.Empty);
-					}
-				});
-			}
-
-			private void OnFieldValue_VaalueChanged(object sender, EventArgs e)
-			{
-				Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
-				{
-					var fldVal = sender as FieldValue; var cfd = _mbc.CurrentFieldDescription;
-					if (fldVal == null || cfd == null) return;
-
-					var recycledFldVal = await GetPossibleValueAsync(cfd, fldVal.Vaalue); //.ConfigureAwait(false);
-					if (recycledFldVal != null)
-					{
-						await RunInUiThreadAsync(() =>
-						{
-							cfd.RemovePossibleValue(fldVal);
-							fldVal = recycledFldVal.Item2;
-							cfd.AddPossibleValue(fldVal);
-						}).ConfigureAwait(false);
-
-						DataChanged?.Invoke(this, EventArgs.Empty);
-					}
-				});
-			}
-			#endregion event handlers
-		}
+		private readonly MetaBriefcaseRubbishBin _rubbishBin = null;
 		#endregion rubbish bin properties
 
 
@@ -510,7 +213,7 @@ namespace UniFiler10.Data.Metadata
 			_runtimeData = runtimeData;
 
 			_oneDriveReaderWriter = new MetaBriefcaseOneDriveReaderWriter(_briefcase, _runtimeData);
-			_rubbishBin = new RubbishBin(this);
+			_rubbishBin = new MetaBriefcaseRubbishBin(this);
 		}
 
 		protected override async Task OpenMayOverrideAsync(object args = null)
@@ -534,19 +237,11 @@ namespace UniFiler10.Data.Metadata
 			}
 
 			await _oneDriveReaderWriter.OpenAsync().ConfigureAwait(false);
-			//Category.NameChanged += OnCategory_NameChanged;
-			//FieldDescription.CaptionChanged += OnFldDsc_CaptionChanged;
-			//FieldValue.VaalueChanged += OnFieldValue_VaalueChanged;
-
 			await _rubbishBin.OpenAsync().ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
-			//Category.NameChanged -= OnCategory_NameChanged;
-			//FieldDescription.CaptionChanged -= OnFldDsc_CaptionChanged;
-			//FieldValue.VaalueChanged -= OnFieldValue_VaalueChanged;
-
 			await _rubbishBin.CloseAsync().ConfigureAwait(false);
 			await _oneDriveReaderWriter.CloseAsync().ConfigureAwait(false);
 			//await Save2Async().ConfigureAwait(false); // LOLLO TODO see if I need this, I am trying to do fewer saves
@@ -830,11 +525,6 @@ namespace UniFiler10.Data.Metadata
 			});
 		}
 
-		//public Task SetIsElevatedAsync(bool newValue)
-		//{
-		//	return RunFunctionIfOpenAsyncA(delegate { IsElevated = newValue; });
-		//}
-
 		public Task<bool> AddNewCategoryAsync()
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
@@ -845,9 +535,6 @@ namespace UniFiler10.Data.Metadata
 				if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
 				{
 					await RunInUiThreadAsync(() => _categories.Add(newCat)).ConfigureAwait(false);
-
-					//newCat.NameChanged -= OnCategory_NameChanged;
-					//newCat.NameChanged += OnCategory_NameChanged;
 					return true;
 				}
 				return false;
@@ -860,11 +547,9 @@ namespace UniFiler10.Data.Metadata
 				if (cat != null && (cat.IsJustAdded || IsElevated))
 				{
 					bool isRemoved = false;
-					//cat.NameChanged -= OnCategory_NameChanged;
 					await RunInUiThreadAsync(() => isRemoved = _categories.Remove(cat)).ConfigureAwait(false);
-					//if (isRemoved) cat?.Dispose();
 					await _rubbishBin.AddCategoryAsync(cat);
-					if (CurrentCategoryId == cat.Id && _categories.Any()) { CurrentCategoryId = _categories[0]?.Id; }
+					if (CurrentCategoryId == cat.Id && _categories.Any()) CurrentCategoryId = _categories[0]?.Id;
 					return isRemoved;
 				}
 				else
@@ -892,9 +577,6 @@ namespace UniFiler10.Data.Metadata
 				if (FieldDescription.Check(fldDsc) && !_fieldDescriptions.Any(fd => fd.Caption == fldDsc.Caption || fd.Id == fldDsc.Id))
 				{
 					await RunInUiThreadAsync(() => _fieldDescriptions.Add(fldDsc)).ConfigureAwait(false);
-
-					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-					//fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
 					return true;
 				}
 				return false;
@@ -908,13 +590,6 @@ namespace UniFiler10.Data.Metadata
 				if (fldDsc != null && (fldDsc.IsJustAdded || IsElevated))
 				{
 					bool isRemoved = false;
-
-					//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-					//foreach (var pv in fldDsc.PossibleValues)
-					//{
-					//	pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-					//}
-
 					var catsWithFldDsc = new List<string>();
 					await RunInUiThreadAsync(delegate
 					{
@@ -924,9 +599,13 @@ namespace UniFiler10.Data.Metadata
 						}
 						isRemoved = _fieldDescriptions.Remove(fldDsc);
 					}).ConfigureAwait(false);
-					//if (isRemoved) fldDesc?.Dispose();
+
 					await _rubbishBin.AddFieldDescriptionAsync(catsWithFldDsc, fldDsc);
-					if (CurrentFieldDescriptionId == fldDsc.Id) if (_fieldDescriptions.Any()) { CurrentFieldDescriptionId = _fieldDescriptions[0]?.Id; } else CurrentFieldDescriptionId = null;
+					if (CurrentFieldDescriptionId == fldDsc.Id)
+					{
+						if (_fieldDescriptions.Any()) CurrentFieldDescriptionId = _fieldDescriptions[0]?.Id;
+						else CurrentFieldDescriptionId = null;
+					}
 					return isRemoved;
 				}
 				return false;
@@ -944,11 +623,6 @@ namespace UniFiler10.Data.Metadata
 
 				bool isAdded = false;
 				await RunInUiThreadAsync(() => isAdded = _currentFieldDescription.AddPossibleValue(newFldVal)).ConfigureAwait(false);
-				//if (isAdded)
-				//{
-				//	newFldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-				//	newFldVal.VaalueChanged += OnFieldValue_VaalueChanged;
-				//}
 				return isAdded;
 			});
 		}
@@ -979,11 +653,6 @@ namespace UniFiler10.Data.Metadata
 					isAdded = await Save2Async().ConfigureAwait(false);
 					_oneDriveReaderWriter.RaiseUpdateOneDriveMetaBriefcaseRequested();
 				}
-				//if (isAdded)
-				//{
-				//	newFldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-				//	newFldVal.VaalueChanged += OnFieldValue_VaalueChanged;
-				//}
 				return isAdded;
 			});
 		}
@@ -996,9 +665,6 @@ namespace UniFiler10.Data.Metadata
 				if (fldVal == null || currFldDsc == null || (!fldVal.IsJustAdded && !IsElevated)) return false;
 
 				bool isRemoved = false;
-
-				//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-
 				await RunInUiThreadAsync(() => isRemoved = currFldDsc.RemovePossibleValue(fldVal)).ConfigureAwait(false);
 				await _rubbishBin.AddPossibleValueAsync(currFldDsc, fldVal).ConfigureAwait(false);
 				return isRemoved;
@@ -1046,124 +712,6 @@ namespace UniFiler10.Data.Metadata
 			return result;
 		}
 		#endregion data methods
-
-
-		#region one drive writer methods
-
-		#endregion one drive writer methods
-
-
-		//#region rubbish bin event handlers
-		//private void OnCategory_NameChanged(object sender, EventArgs e)
-		//{
-		//	Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
-		//	{
-		//		var cat = sender as Category;
-		//		if (cat == null) return;
-
-		//		var recycledCat = await _rubbishBin.GetCategoryAsync(cat.Name); //.ConfigureAwait(false);
-		//		if (recycledCat != null)
-		//		{
-		//			//cat.NameChanged -= OnCategory_NameChanged;
-
-		//			await RunInUiThreadAsync(() =>
-		//			{
-		//				bool setCurrent = CurrentCategoryId == cat.Id;
-		//				_categories.Remove(cat);
-		//				cat = recycledCat;
-		//				_categories.Add(cat);
-
-		//				foreach (var missingFldDsc in cat.FieldDescriptions.Where(fd0 => _fieldDescriptions.All(fd1 => fd1.Id != fd0.Id)))
-		//				{
-		//					cat.RemoveFieldDescription(missingFldDsc);
-		//				}
-		//				if (setCurrent) CurrentCategoryId = cat.Id;
-		//			}).ConfigureAwait(false);
-
-		//			//cat.NameChanged -= OnCategory_NameChanged;
-		//			//cat.NameChanged += OnCategory_NameChanged;
-
-		//			DataChanged?.Invoke(this, EventArgs.Empty);
-		//		}
-		//	});
-		//}
-
-		//private void OnFldDsc_CaptionChanged(object sender, EventArgs e)
-		//{
-		//	Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
-		//	{
-		//		var fldDsc = sender as FieldDescription; var cats = _categories;
-		//		if (fldDsc == null || cats == null) return;
-
-		//		var recycledFldDsc = await _rubbishBin.GetFieldDescriptionAsync(fldDsc.Caption); //.ConfigureAwait(false);
-		//		if (recycledFldDsc != null)
-		//		{
-		//			//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-		//			//foreach (var pv in fldDsc.PossibleValues)
-		//			//{
-		//			//	pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-		//			//}
-
-		//			await RunInUiThreadAsync(() =>
-		//			{
-		//				bool setCurrent = CurrentFieldDescriptionId == fldDsc.Id;
-		//				foreach (var cat in _categories)
-		//				{
-		//					cat.RemoveFieldDescription(fldDsc);
-		//				}
-
-		//				_fieldDescriptions.Remove(fldDsc);
-		//				fldDsc = recycledFldDsc.Item2;
-		//				_fieldDescriptions.Add(fldDsc);
-
-		//				foreach (var catId in recycledFldDsc.Item1)
-		//				{
-		//					var registeredCat = _categories.FirstOrDefault(cat => cat.Id == catId);
-		//					registeredCat?.AddFieldDescription(fldDsc);
-		//				}
-		//				if (setCurrent) CurrentFieldDescriptionId = fldDsc.Id;
-		//			}).ConfigureAwait(false);
-
-		//			//foreach (var pv in fldDsc.PossibleValues)
-		//			//{
-		//			//	pv.VaalueChanged -= OnFieldValue_VaalueChanged;
-		//			//	pv.VaalueChanged += OnFieldValue_VaalueChanged;
-		//			//}
-		//			//fldDsc.CaptionChanged -= OnFldDsc_CaptionChanged;
-		//			//fldDsc.CaptionChanged += OnFldDsc_CaptionChanged;
-
-		//			DataChanged?.Invoke(this, EventArgs.Empty);
-		//		}
-		//	});
-		//}
-
-		//private void OnFieldValue_VaalueChanged(object sender, EventArgs e)
-		//{
-		//	Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
-		//	{
-		//		var fldVal = sender as FieldValue; var cfd = _currentFieldDescription;
-		//		if (fldVal == null || cfd == null) return;
-
-		//		var recycledFldVal = await _rubbishBin.GetPossibleValueAsync(cfd, fldVal.Vaalue); //.ConfigureAwait(false);
-		//		if (recycledFldVal != null)
-		//		{
-		//			//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-
-		//			await RunInUiThreadAsync(() =>
-		//			{
-		//				cfd.RemovePossibleValue(fldVal);
-		//				fldVal = recycledFldVal.Item2;
-		//				cfd.AddPossibleValue(fldVal);
-		//			}).ConfigureAwait(false);
-
-		//			//fldVal.VaalueChanged -= OnFieldValue_VaalueChanged;
-		//			//fldVal.VaalueChanged += OnFieldValue_VaalueChanged;
-
-		//			DataChanged?.Invoke(this, EventArgs.Empty);
-		//		}
-		//	});
-		//}
-		//#endregion rubbish bin event handlers
 	}
 
 	public class MetaBriefcaseOneDriveReaderWriter : OpenableObservableData
@@ -1603,5 +1151,278 @@ namespace UniFiler10.Data.Metadata
 			return one;
 		}
 		#endregion services
+	}
+
+	[DataContract]
+	public class MetaBriefcaseRubbishBin : OpenableObservableData // LOLLO TODO test this
+	{
+		#region events
+		public static event EventHandler DataChanged;
+		#endregion events
+
+
+		#region properties
+		public const string FILENAME = "LolloSessionDataMetaBriefcaseRubbishBin.xml";
+		private readonly MetaBriefcase _mbc = null;
+
+		private List<Category> _deletedCategories = new List<Category>();
+		[DataMember]
+		private List<Category> DeletedCategories { get { return _deletedCategories; } set { _deletedCategories = value; } } // the setter is only for the serialiser
+
+		private List<Tuple<List<string>, FieldDescription>> _deletedFieldDescriptions = new List<Tuple<List<string>, FieldDescription>>();
+		[DataMember]
+		private List<Tuple<List<string>, FieldDescription>> DeletedFieldDescriptions { get { return _deletedFieldDescriptions; } set { _deletedFieldDescriptions = value; } } // the setter is only for the serialiser
+
+		private List<Tuple<FieldDescription, FieldValue>> _deletedFieldValues = new List<Tuple<FieldDescription, FieldValue>>();
+		[DataMember]
+		private List<Tuple<FieldDescription, FieldValue>> DeletedFieldValues { get { return _deletedFieldValues; } set { _deletedFieldValues = value; } } // the setter is only for the serialiser
+
+		internal Task AddCategoryAsync(Category category)
+		{
+			return RunFunctionIfOpenAsyncA(() =>
+			{
+				var availableCat = DeletedCategories.FirstOrDefault(cat => cat.Name == category.Name);
+				if (availableCat != null) DeletedCategories.Remove(availableCat);
+				DeletedCategories.Add(category);
+			});
+		}
+		internal async Task<Category> GetCategoryAsync(string name)
+		{
+			Category result = null;
+			await RunFunctionIfOpenAsyncA(() =>
+			{
+				result = DeletedCategories.FirstOrDefault(cat => cat.Name == name);
+			}).ConfigureAwait(false);
+			return result;
+		}
+		internal Task AddFieldDescriptionAsync(List<string> catsWithFldDsc, FieldDescription fieldDescription)
+		{
+			return RunFunctionIfOpenAsyncA(() =>
+			{
+				var availableFldDsc = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == fieldDescription.Caption);
+				if (availableFldDsc != null) DeletedFieldDescriptions.Remove(availableFldDsc);
+				DeletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
+			});
+		}
+		internal async Task<Tuple<List<string>, FieldDescription>> GetFieldDescriptionAsync(string caption)
+		{
+			Tuple<List<string>, FieldDescription> result = null;
+			await RunFunctionIfOpenAsyncA(() =>
+			{
+				result = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
+			}).ConfigureAwait(false);
+			return result;
+		}
+		internal Task AddPossibleValueAsync(FieldDescription fieldDescription, FieldValue fieldValue)
+		{
+			return RunFunctionIfOpenAsyncA(() =>
+			{
+				var availablePv = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
+				if (availablePv != null) DeletedFieldValues.Remove(availablePv);
+				DeletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
+			});
+		}
+		internal async Task<Tuple<FieldDescription, FieldValue>> GetPossibleValueAsync(FieldDescription fieldDescription, string vaalue)
+		{
+			Tuple<FieldDescription, FieldValue> result = null;
+			await RunFunctionIfOpenAsyncA(() =>
+			{
+				result = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
+			}).ConfigureAwait(false);
+			return result;
+		}
+		internal Task ClearAsync() // LOLLO TODO call this at some point, but when?
+		{
+			return RunFunctionIfOpenAsyncA(() =>
+			{
+				_deletedCategories.Clear();
+				_deletedFieldDescriptions.Clear();
+				_deletedFieldValues.Clear();
+			});
+		}
+		#endregion properties
+
+
+		#region lifecycle
+		internal MetaBriefcaseRubbishBin(MetaBriefcase metaBriefcase)
+		{
+			_mbc = metaBriefcase;
+		}
+
+		protected override async Task OpenMayOverrideAsync(object args = null)
+		{
+			await LoadAsync().ConfigureAwait(false);
+			Category.NameChanged += OnCategory_NameChanged;
+			FieldDescription.CaptionChanged += OnFldDsc_CaptionChanged;
+			FieldValue.VaalueChanged += OnFieldValue_VaalueChanged;
+		}
+
+		protected override async Task CloseMayOverrideAsync()
+		{
+			Category.NameChanged -= OnCategory_NameChanged;
+			FieldDescription.CaptionChanged -= OnFldDsc_CaptionChanged;
+			FieldValue.VaalueChanged -= OnFieldValue_VaalueChanged;
+
+			await SaveAsync().ConfigureAwait(false);
+		}
+		private async Task LoadAsync()
+		{
+			var file = await MetaBriefcase.GetDirectory()
+				.CreateFileAsync(FILENAME, CreationCollisionOption.OpenIfExists)
+				.AsTask().ConfigureAwait(false);
+
+			MetaBriefcaseRubbishBin newInstance = null;
+			var serializer = new DataContractSerializer(typeof(MetaBriefcaseRubbishBin));
+			try
+			{
+				using (var localFileContent = await file.OpenStreamForReadAsync().ConfigureAwait(false))
+				{
+					newInstance = (MetaBriefcaseRubbishBin)(serializer.ReadObject(localFileContent));
+				}
+			}
+			catch (Exception ex1) { Logger.Add_TPL(ex1.ToString(), Logger.FileErrorLogFilename); }
+			if (newInstance != null) CopyXMLPropertiesFrom(newInstance);
+		}
+		private bool CopyXMLPropertiesFrom(MetaBriefcaseRubbishBin source)
+		{// LOLLO TODO check if this is good enough or I need deep copies
+			if (source == null) return false;
+
+			if (source._deletedCategories != null) _deletedCategories = source._deletedCategories;
+			if (source._deletedFieldDescriptions != null) _deletedFieldDescriptions = source._deletedFieldDescriptions;
+			if (source._deletedFieldValues != null) _deletedFieldValues = source._deletedFieldValues;
+
+			return true;
+		}
+		private async Task<bool> SaveAsync()
+		{
+			try
+			{
+				using (var memoryStream = new MemoryStream())
+				{
+					var serializer = new DataContractSerializer(typeof(MetaBriefcaseRubbishBin));
+					serializer.WriteObject(memoryStream, this);
+
+					string currentInstance = string.Empty;
+					memoryStream.Seek(0, SeekOrigin.Begin);
+					using (StreamReader streamReader = new StreamReader(memoryStream))
+					{
+						currentInstance = streamReader.ReadToEnd();
+
+						var file = await MetaBriefcase.GetDirectory()
+							.CreateFileAsync(FILENAME, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+
+						using (var fileStream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+						{
+							fileStream.SetLength(0); // avoid leaving crap at the end if overwriting a file that was longer
+							memoryStream.Seek(0, SeekOrigin.Begin);
+							await memoryStream.CopyToAsync(fileStream).ConfigureAwait(false);
+							await memoryStream.FlushAsync().ConfigureAwait(false);
+							await fileStream.FlushAsync().ConfigureAwait(false);
+						}
+					}
+				}
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+
+			return false;
+		}
+		#endregion lifecycle
+
+
+		#region event handlers
+		private void OnCategory_NameChanged(object sender, EventArgs e)
+		{
+			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
+			{
+				var cat = sender as Category;
+				if (cat == null) return;
+
+				var recycledCat = await GetCategoryAsync(cat.Name); //.ConfigureAwait(false);
+				if (recycledCat != null)
+				{
+					Task awaitThis = Task.CompletedTask;
+					await RunInUiThreadAsync(() =>
+					{
+						bool setCurrent = _mbc.CurrentCategoryId == cat.Id;
+						_deletedCategories.Remove(cat);
+						cat = recycledCat;
+						_deletedCategories.Add(cat);
+
+						foreach (var missingFldDsc in cat.FieldDescriptions.Where(fd0 => _mbc.FieldDescriptions.All(fd1 => fd1.Id != fd0.Id)))
+						{
+							cat.RemoveFieldDescription(missingFldDsc);
+						}
+						if (setCurrent) awaitThis = _mbc.SetCurrentCategoryAsync(cat);
+					}).ConfigureAwait(false);
+					await awaitThis;
+
+					DataChanged?.Invoke(this, EventArgs.Empty);
+				}
+			});
+		}
+
+		private void OnFldDsc_CaptionChanged(object sender, EventArgs e)
+		{
+			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
+			{
+				var fldDsc = sender as FieldDescription; var cats = _deletedCategories;
+				if (fldDsc == null || cats == null) return;
+
+				var recycledFldDsc = await GetFieldDescriptionAsync(fldDsc.Caption); //.ConfigureAwait(false);
+				if (recycledFldDsc != null)
+				{
+					Task awaitThis = Task.CompletedTask;
+					await RunInUiThreadAsync(() =>
+					{
+						bool setCurrent = _mbc.CurrentFieldDescriptionId == fldDsc.Id;
+						foreach (var cat in _deletedCategories)
+						{
+							cat.RemoveFieldDescription(fldDsc);
+						}
+
+						_mbc.FieldDescriptions.Remove(fldDsc);
+						fldDsc = recycledFldDsc.Item2;
+						_mbc.FieldDescriptions.Add(fldDsc);
+
+						foreach (var catId in recycledFldDsc.Item1)
+						{
+							var registeredCat = _deletedCategories.FirstOrDefault(cat => cat.Id == catId);
+							registeredCat?.AddFieldDescription(fldDsc);
+						}
+						if (setCurrent) awaitThis = _mbc.SetCurrentFieldDescriptionAsync(fldDsc);
+					}).ConfigureAwait(false);
+					await awaitThis;
+
+					DataChanged?.Invoke(this, EventArgs.Empty);
+				}
+			});
+		}
+
+		private void OnFieldValue_VaalueChanged(object sender, EventArgs e)
+		{
+			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
+			{
+				var fldVal = sender as FieldValue; var cfd = _mbc.CurrentFieldDescription;
+				if (fldVal == null || cfd == null) return;
+
+				var recycledFldVal = await GetPossibleValueAsync(cfd, fldVal.Vaalue); //.ConfigureAwait(false);
+				if (recycledFldVal != null)
+				{
+					await RunInUiThreadAsync(() =>
+					{
+						cfd.RemovePossibleValue(fldVal);
+						fldVal = recycledFldVal.Item2;
+						cfd.AddPossibleValue(fldVal);
+					}).ConfigureAwait(false);
+
+					DataChanged?.Invoke(this, EventArgs.Empty);
+				}
+			});
+		}
+		#endregion event handlers
 	}
 }
