@@ -57,7 +57,7 @@ namespace UniFiler10.Data.Model
 			_metaBriefcase = MetaBriefcase.GetInstance(_runtimeData, this);
 			if (_isLight) return;
 
-			var mbcOpenParams = new MetaBriefcase.OpenParameters();
+			var mbcOpenParams = new MetaBriefcase.OpenParameters(null, false, IsWantToUseOneDrive);
 			await _metaBriefcase.OpenAsync(mbcOpenParams).ConfigureAwait(false);
 			RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 
@@ -122,7 +122,8 @@ namespace UniFiler10.Data.Model
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { if (_isAllowMeteredConnection != value) { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } } }
 
-		private volatile bool _isWantToUseOneDrive = true;
+		public const bool DefaultIsWantToUseOneDrive = true;
+		private volatile bool _isWantToUseOneDrive = DefaultIsWantToUseOneDrive;
 		[DataMember]
 		public bool IsWantToUseOneDrive
 		{
@@ -143,16 +144,16 @@ namespace UniFiler10.Data.Model
 			get { return _isWantAndCannotUseOneDrive; }
 		}
 
-		public Task SetIsWantToUseOneDriveAsync(bool newValue, bool isLoadFromOneDrive) // = MetaBriefcase.OpenParameters.DefaultIsLoadFromOneDrive)
+		public Task SetIsWantToUseOneDriveAsync(bool newValue, bool isLoadFromOneDriveThisOneTime) // = MetaBriefcase.OpenParameters.DefaultIsLoadFromOneDrive)
 		{
 			return RunFunctionIfOpenAsyncT(async () =>
 			{
 				IsWantToUseOneDrive = newValue;
 				//RaisePropertyChanged_UI(nameof(IsWantToUseOneDrive));
-				await UpdateIsWantAndCanUseOneDriveAsync(isLoadFromOneDrive).ConfigureAwait(false);
+				await UpdateIsWantAndCanUseOneDriveAsync(isLoadFromOneDriveThisOneTime).ConfigureAwait(false);
 			});
 		}
-		private async Task UpdateIsWantAndCanUseOneDriveAsync(bool isLoadFromOneDrive = MetaBriefcase.OpenParameters.DefaultIsLoadFromOneDrive)
+		private async Task UpdateIsWantAndCanUseOneDriveAsync(bool isLoadFromOneDriveThisOneTime = true)
 		{
 			if (_isWantToUseOneDrive && _isWantAndCanUseOneDrive) return;
 
@@ -163,7 +164,7 @@ namespace UniFiler10.Data.Model
 					bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 					await _metaBriefcase.CloseAsync().ConfigureAwait(false);
 					//_metaBriefcase.SetReloadJustOnce();
-					var mbcOpenParams = new MetaBriefcase.OpenParameters(null, true, isLoadFromOneDrive);
+					var mbcOpenParams = new MetaBriefcase.OpenParameters(null, true, isLoadFromOneDriveThisOneTime);
 					await _metaBriefcase.OpenAsync(mbcOpenParams).ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded
 																	// update the current binder, whichever it is, and open it if it was open before

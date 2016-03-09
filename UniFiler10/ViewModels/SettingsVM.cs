@@ -471,17 +471,20 @@ namespace UniFiler10.ViewModels
 		{
 			var bc = _briefcase;
 			if (bc == null) return;
+			bool isLoadFromOneDriveThisOneTime = bc.IsWantToUseOneDrive;
 
-			bool isLoadFromOneDrive = MetaBriefcase.OpenParameters.DefaultIsLoadFromOneDrive;
-			if (newValue)
+			await RunFunctionIfOpenAsyncT(async () =>
 			{
-				var loadFromOneDrive = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeChangingMetadataSourceAsync(CancToken).ConfigureAwait(false);
-				if (CancToken.IsCancellationRequested) return;
-				isLoadFromOneDrive = !loadFromOneDrive.Item2 || !loadFromOneDrive.Item1;
-			}
+				if (newValue)
+				{
+					var loadFromOneDriveThisOneTime_dialogueResponse = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeChangingMetadataSourceAsync(CancToken).ConfigureAwait(false);
+					if (CancToken.IsCancellationRequested) return;
+					isLoadFromOneDriveThisOneTime = !loadFromOneDriveThisOneTime_dialogueResponse.Item2 || !loadFromOneDriveThisOneTime_dialogueResponse.Item1;
+				}
+			});
 
 			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			await bc.SetIsWantToUseOneDriveAsync(newValue, isLoadFromOneDrive);
+			await bc.SetIsWantToUseOneDriveAsync(newValue, isLoadFromOneDriveThisOneTime);
 			_animationStarter.EndAllAnimations();
 			_animationStarter.StartAnimation(bc.IsWantAndCannotUseOneDrive ? AnimationStarter.Animations.Failure : AnimationStarter.Animations.Success);
 		}

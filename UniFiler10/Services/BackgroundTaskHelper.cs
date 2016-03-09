@@ -45,11 +45,11 @@ namespace UniFiler10.Services
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			UploadToOneDriveStatus = await TryRegisterUploadToOneDriveBackgroundTaskAsync().ConfigureAwait(false);
-			MetaBriefcase.UpdateOneDriveMetaBriefcaseRequested += OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;
+			MetaBriefcase.OneDriveReaderWriter.UpdateOneDriveMetaBriefcaseRequested += OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
-			MetaBriefcase.UpdateOneDriveMetaBriefcaseRequested -= OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;
+			MetaBriefcase.OneDriveReaderWriter.UpdateOneDriveMetaBriefcaseRequested -= OnMetaBriefcase_UpdateOneDriveMetaBriefcaseRequested;
 			return Task.CompletedTask;
 		}
 		#endregion lifecycle

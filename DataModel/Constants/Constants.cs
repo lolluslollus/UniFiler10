@@ -45,7 +45,6 @@ namespace UniFiler10.Data.Constants
 
 		public const string ODU_BACKGROUND_TASK_NAME = "BackgroundOneDriveUploader";
 		public const string ODU_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.BackgroundOneDriveUploader";
-		//public const string ODU_BACKGROUND_TASK_CANCEL = "BackgroundOneDriveUploader.Cancel";
 		public const string ODU_BACKGROUND_TASK_ALLOWED_INSTANCE_ID = "BackgroundOneDriveUploader.TaskInstanceId";
 
 		public const string REG_MBC_ODU_LOCAL_SYNCED_SINCE_OPEN = "MetaBriefcase.IsLocalSyncedOnceSinceLastOpen";
@@ -53,9 +52,8 @@ namespace UniFiler10.Data.Constants
 		public const string REG_MBC_IS_ELEVATED = "MetaBriefcase.IsElevated";
 		public const string REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED = "MetaBriefcase.LastTimeUpdateOneDriveCalled";
 		public const string REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN = "MetaBriefcase.LastTimeUpdateOneDriveRan";
-		public const string REG_MBC_LAST_TIME_PULL_ONEDRIVE_CALLED = "MetaBriefcase.LastTimePullOneDriveCalled";
 		public const string REG_MBC_LAST_TIME_PULL_ONEDRIVE_RAN = "MetaBriefcase.LastTimePullOneDriveRan";
-		public const string REG_MBC_IS_LOAD_FROM_ONE_DRIVE = "MetaBriefcase.IsLoadFromOneDrive";
+		//public const string REG_MBC_IS_LOAD_FROM_ONE_DRIVE = "MetaBriefcase.IsLoadFromOneDrive";
 
 		public static string AppName { get { return APPNAME; } }
 		private static readonly string _version = Package.Current.Id.Version.Major.ToString()
