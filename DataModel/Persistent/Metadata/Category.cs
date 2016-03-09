@@ -10,9 +10,13 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class Category : ObservableData //, IDisposable
 	{
-		private static readonly string DEFAULT_ID = string.Empty;
+		#region events
+		public event EventHandler NameChanged;
+		#endregion events
+
 
 		#region properties
+		private static readonly string DEFAULT_ID = string.Empty;
 		private string _id = DEFAULT_ID;
 		private readonly object _propLocker = new object();
 		[IgnoreDataMember]
@@ -23,7 +27,7 @@ namespace UniFiler10.Data.Metadata
 
 		private string _name = string.Empty;
 		[DataMember]
-		public string Name { get { lock (PropLocker) { return _name; } } set { lock (PropLocker) { _name = value; } RaisePropertyChanged_UI(); } }
+		public string Name { get { lock (PropLocker) { return _name; } } set { lock (PropLocker) { _name = value; } RaisePropertyChanged_UI(); NameChanged?.Invoke(this, EventArgs.Empty); } }
 
 		private volatile bool _isCustom = false;
 		[DataMember]
@@ -110,7 +114,7 @@ namespace UniFiler10.Data.Metadata
 
 		internal bool AddFieldDescription(FieldDescription newFldDsc)
 		{
-			if (newFldDsc != null && !FieldDescriptions.Any(fds => fds.Caption == newFldDsc.Caption || fds.Id == newFldDsc.Id))
+			if (newFldDsc != null && FieldDescriptions.All(fds => fds.Caption != newFldDsc.Caption && fds.Id != newFldDsc.Id))
 			{
 				_fieldDescriptions.Add(newFldDsc);
 				_fieldDescriptionIds.Add(newFldDsc.Id);

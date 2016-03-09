@@ -216,13 +216,24 @@ namespace UniFiler10.ViewModels
 				var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
 				await ContinueAfterFileOpenPickerAsync(file, Briefcase.GetCurrentInstance()).ConfigureAwait(false);
 			}
+			var mbc = _briefcase?.MetaBriefcase;
+			if (mbc != null) mbc.DataChanged += OnMetaDataChanged;
 		}
 
 		protected override async Task CloseMayOverrideAsync()
 		{
 			var mbc = _briefcase?.MetaBriefcase;
-			if (mbc != null) await mbc.SaveAsync().ConfigureAwait(false);
+			if (mbc != null)
+			{
+				mbc.DataChanged -= OnMetaDataChanged;
+				await mbc.SaveAsync().ConfigureAwait(false);
+			}
 			_unassignedFields?.Dispose();
+		}
+
+		private void OnMetaDataChanged(object sender, EventArgs e)
+		{
+			Refresh();
 		}
 		#endregion lifecycle
 
@@ -439,7 +450,7 @@ namespace UniFiler10.ViewModels
 			if (isImported)
 			{
 				_animationStarter.StartAnimation(AnimationStarter.Animations.Success);
-				MetadataChanged?.Invoke(this, EventArgs.Empty);
+				Refresh();
 			}
 			else
 			{
@@ -448,8 +459,6 @@ namespace UniFiler10.ViewModels
 
 			IsImportingSettings = false;
 		}
-
-		public event EventHandler MetadataChanged;
 
 		public Task RetrySyncFromOneDriveAsync()
 		{

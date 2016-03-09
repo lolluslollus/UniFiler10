@@ -8,6 +8,11 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class FieldValue : ObservableData
 	{
+		#region events
+		public event EventHandler VaalueChanged;
+		#endregion events
+
+
 		#region properties
 		private static readonly string DEFAULT_ID = string.Empty;
 		public static readonly FieldValue Empty = new FieldValue() { Id = DEFAULT_ID };
@@ -22,7 +27,7 @@ namespace UniFiler10.Data.Metadata
 
 		private string _vaalue = string.Empty;
 		[DataMember]
-		public string Vaalue { get { lock (PropLocker) { return _vaalue; } } set { lock (PropLocker) { _vaalue = value; } RaisePropertyChanged_UI(); } }
+		public string Vaalue { get { lock (PropLocker) { return _vaalue; } } set { lock (PropLocker) { _vaalue = value; } RaisePropertyChanged_UI(); VaalueChanged?.Invoke(this, EventArgs.Empty); } }
 
 		private volatile bool _isCustom = false;
 		[DataMember]

@@ -10,6 +10,11 @@ namespace UniFiler10.Data.Metadata
 	[DataContract]
 	public sealed class FieldDescription : ObservableData //, IDisposable //, IEqualityComparer<FieldDescription>
 	{
+		#region events
+		public event EventHandler CaptionChanged;
+		#endregion events
+
+
 		#region properties
 		private static readonly string DEFAULT_ID = string.Empty;
 		private readonly object _propLocker = new object();
@@ -42,7 +47,7 @@ namespace UniFiler10.Data.Metadata
 
 		private string _caption = string.Empty;
 		[DataMember]
-		public string Caption { get { lock (PropLocker) { return _caption; } } set { lock (PropLocker) { _caption = value; } RaisePropertyChanged_UI(); } }
+		public string Caption { get { lock (PropLocker) { return _caption; } } set { lock (PropLocker) { _caption = value; } RaisePropertyChanged_UI(); CaptionChanged?.Invoke(this, EventArgs.Empty); } }
 
 		// we cannot make this readonly because it is serialised. we only use the setter for serialising.
 		private SwitchableObservableCollection<FieldValue> _possibleValues = new SwitchableObservableCollection<FieldValue>();

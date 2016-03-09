@@ -44,7 +44,6 @@ namespace UniFiler10.Views
 
 			_vm = new SettingsVM(briefcase, _animationStarter);
 			await _vm.OpenAsync();
-			_vm.MetadataChanged += OnVm_MetadataChanged;
 			RaisePropertyChanged_UI(nameof(VM));
 
 			MBView.Refresh();
@@ -56,7 +55,6 @@ namespace UniFiler10.Views
 			var vm = _vm;
 			if (vm != null)
 			{
-				vm.MetadataChanged -= OnVm_MetadataChanged;
 				await vm.CloseAsync().ConfigureAwait(false);
 				vm.Dispose();
 			}
@@ -87,11 +85,6 @@ namespace UniFiler10.Views
 		private void OnImport_Tapped(object sender, TappedRoutedEventArgs e)
 		{
 			_vm?.StartImport();
-		}
-
-		private void OnVm_MetadataChanged(object sender, EventArgs e)
-		{
-			MBView.Refresh();
 		}
 
 		private void OnAbout_Tapped(object sender, TappedRoutedEventArgs e)
