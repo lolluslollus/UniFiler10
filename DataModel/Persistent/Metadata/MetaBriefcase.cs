@@ -1369,7 +1369,7 @@ namespace UniFiler10.Data.Metadata
 		}
 
 		private void OnFldDsc_CaptionChanged(object sender, EventArgs e)
-		{
+		{// LOLLO TODO check this: delete a fld dsc, create a new one with the same name. wht happens with the folders that referenc ethe old one?
 			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
 			{
 				var fldDsc = sender as FieldDescription; var cats = _deletedCategories;
