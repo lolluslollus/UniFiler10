@@ -37,7 +37,7 @@ namespace UniFiler10.Data.Metadata
 		[IgnoreDataMember]
 		public bool IsJustAdded { get { return _isJustAdded; } private set { _isJustAdded = value; RaisePropertyChanged_UI(); } }
 
-		private readonly SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
+		private SwitchableObservableCollection<FieldDescription> _fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
 		[IgnoreDataMember]
 		public SwitchableObservableCollection<FieldDescription> FieldDescriptions { get { return _fieldDescriptions; } }
 
@@ -52,6 +52,26 @@ namespace UniFiler10.Data.Metadata
 			if (source != null && target != null)
 			{
 				target._fieldDescriptionIds.ReplaceAll(source._fieldDescriptionIds);
+				CopyFldDscs(source, ref target, allFldDscs);
+				//// populate FieldDescriptions
+				//List<FieldDescription> newFldDscs = new List<FieldDescription>();
+				//foreach (var fldDscId in source._fieldDescriptionIds)
+				//{
+				//	var newFldDsc = allFldDscs.FirstOrDefault(fd => fd.Id == fldDscId);
+				//	if (newFldDsc != null) newFldDscs.Add(newFldDsc);
+				//}
+				//target.FieldDescriptions.ReplaceAll(newFldDscs);
+
+				target.Id = source.Id;
+				target.IsCustom = source.IsCustom;
+				// target.IsJustAdded = source.IsJustAdded; // no!
+				target.Name = source.Name;
+			}
+		}
+		public static void CopyFldDscs(Category source, ref Category target, IList<FieldDescription> allFldDscs)
+		{
+			if (source != null && target != null)
+			{
 				// populate FieldDescriptions
 				List<FieldDescription> newFldDscs = new List<FieldDescription>();
 				foreach (var fldDscId in source._fieldDescriptionIds)
@@ -59,12 +79,8 @@ namespace UniFiler10.Data.Metadata
 					var newFldDsc = allFldDscs.FirstOrDefault(fd => fd.Id == fldDscId);
 					if (newFldDsc != null) newFldDscs.Add(newFldDsc);
 				}
+				if (target.FieldDescriptions == null) target._fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
 				target.FieldDescriptions.ReplaceAll(newFldDscs);
-
-				target.Id = source.Id;
-				target.IsCustom = source.IsCustom;
-				// target.IsJustAdded = source.IsJustAdded; // no!
-				target.Name = source.Name;
 			}
 		}
 		public static void Copy(SwitchableObservableCollection<Category> source, ref SwitchableObservableCollection<Category> target, IList<FieldDescription> allFldDscs)

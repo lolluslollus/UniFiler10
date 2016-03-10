@@ -646,7 +646,7 @@ namespace UniFiler10.Data.Metadata
 				bool isAdded = false;
 
 				// LOLLO TODO check if I need or want this
-				var recycledFldVal = await _rubbishBin.GetPossibleValueAsync(fldDsc, newFldVal.Vaalue); //.ConfigureAwait(false);
+				var recycledFldVal = _rubbishBin.GetPossibleValue2(fldDsc, newFldVal.Vaalue);
 				if (recycledFldVal?.Item2 != null) newFldVal = recycledFldVal.Item2;
 
 				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
@@ -1190,13 +1190,9 @@ namespace UniFiler10.Data.Metadata
 				DeletedCategories.Add(category);
 			});
 		}
-		internal async Task<Category> GetCategoryAsync(string name)
+		private Category GetCategory2(string name)
 		{
-			Category result = null;
-			await RunFunctionIfOpenAsyncA(() =>
-			{
-				result = DeletedCategories.FirstOrDefault(cat => cat.Name == name);
-			}).ConfigureAwait(false);
+			Category result = DeletedCategories.FirstOrDefault(cat => cat.Name == name);
 			return result;
 		}
 		internal Task AddFieldDescriptionAsync(List<string> catsWithFldDsc, FieldDescription fieldDescription)
@@ -1208,13 +1204,9 @@ namespace UniFiler10.Data.Metadata
 				DeletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
 			});
 		}
-		internal async Task<Tuple<List<string>, FieldDescription>> GetFieldDescriptionAsync(string caption)
+		private Tuple<List<string>, FieldDescription> GetFieldDescription2(string caption)
 		{
-			Tuple<List<string>, FieldDescription> result = null;
-			await RunFunctionIfOpenAsyncA(() =>
-			{
-				result = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
-			}).ConfigureAwait(false);
+			Tuple<List<string>, FieldDescription> result = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
 			return result;
 		}
 		internal Task AddPossibleValueAsync(FieldDescription fieldDescription, FieldValue fieldValue)
@@ -1226,13 +1218,9 @@ namespace UniFiler10.Data.Metadata
 				DeletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
 			});
 		}
-		internal async Task<Tuple<FieldDescription, FieldValue>> GetPossibleValueAsync(FieldDescription fieldDescription, string vaalue)
+		internal Tuple<FieldDescription, FieldValue> GetPossibleValue2(FieldDescription fieldDescription, string vaalue)
 		{
-			Tuple<FieldDescription, FieldValue> result = null;
-			await RunFunctionIfOpenAsyncA(() =>
-			{
-				result = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
-			}).ConfigureAwait(false);
+			Tuple<FieldDescription, FieldValue> result = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
 			return result;
 		}
 		internal Task ClearAsync() // LOLLO TODO call this at some point, but when?
@@ -1339,27 +1327,31 @@ namespace UniFiler10.Data.Metadata
 
 		#region event handlers
 		private void OnCategory_NameChanged(object sender, EventArgs e)
-		{
+		{// LOLLO TODO this does not work. Make a cat, add it to a folder, go to settings, delete it and make a new cat with the same name.
+			// the folder will not take it back.
 			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
 			{
 				var cat = sender as Category;
 				if (cat == null) return;
 
-				var recycledCat = await GetCategoryAsync(cat.Name); //.ConfigureAwait(false);
+				var recycledCat = GetCategory2(cat.Name);
 				if (recycledCat != null)
 				{
 					Task awaitThis = Task.CompletedTask;
 					await RunInUiThreadAsync(() =>
 					{
 						bool setCurrent = _mbc.CurrentCategoryId == cat.Id;
-						_deletedCategories.Remove(cat);
+						_mbc.Categories.Remove(cat);
 						cat = recycledCat;
-						_deletedCategories.Add(cat);
+						_mbc.Categories.Add(cat);
 
-						foreach (var missingFldDsc in cat.FieldDescriptions.Where(fd0 => _mbc.FieldDescriptions.All(fd1 => fd1.Id != fd0.Id)))
-						{
-							cat.RemoveFieldDescription(missingFldDsc);
-						}
+						Category.CopyFldDscs(cat, ref cat, _mbc.FieldDescriptions);
+
+						//foreach (var missingFldDscId in cat.FieldDescriptionIds.Where(fd0 => _mbc.FieldDescriptions.All(fd1 => fd1.Id != fd0)))
+						//{
+						//	var missingFldDsc = _mbc.FieldDescriptions.FirstOrDefault(fd => fd.Id == missingFldDscId);
+						//	cat.RemoveFieldDescription(missingFldDsc);
+						//}
 						if (setCurrent) awaitThis = _mbc.SetCurrentCategoryAsync(cat);
 					}).ConfigureAwait(false);
 					await awaitThis;
@@ -1376,7 +1368,7 @@ namespace UniFiler10.Data.Metadata
 				var fldDsc = sender as FieldDescription; var cats = _deletedCategories;
 				if (fldDsc == null || cats == null) return;
 
-				var recycledFldDsc = await GetFieldDescriptionAsync(fldDsc.Caption); //.ConfigureAwait(false);
+				var recycledFldDsc = GetFieldDescription2(fldDsc.Caption);
 				if (recycledFldDsc != null)
 				{
 					Task awaitThis = Task.CompletedTask;
@@ -1413,7 +1405,7 @@ namespace UniFiler10.Data.Metadata
 				var fldVal = sender as FieldValue; var cfd = _mbc.CurrentFieldDescription;
 				if (fldVal == null || cfd == null) return;
 
-				var recycledFldVal = await GetPossibleValueAsync(cfd, fldVal.Vaalue); //.ConfigureAwait(false);
+				var recycledFldVal = GetPossibleValue2(cfd, fldVal.Vaalue);
 				if (recycledFldVal != null)
 				{
 					await RunInUiThreadAsync(() =>
