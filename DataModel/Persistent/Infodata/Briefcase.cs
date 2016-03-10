@@ -75,7 +75,7 @@ namespace UniFiler10.Data.Model
 		{
 			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
 			{
-				Task upd = RunFunctionIfOpenAsyncT(() => { return UpdateIsWantAndCanUseOneDriveAsync(); });
+				Task upd = RunFunctionIfOpenAsyncT(() => { return UpdateIsWantAndCanUseOneDrive2Async(); });
 			}
 		}
 
@@ -144,18 +144,17 @@ namespace UniFiler10.Data.Model
 			get { return _isWantAndCannotUseOneDrive; }
 		}
 
-		public Task SetIsWantToUseOneDriveAsync(bool newValue, bool isLoadFromOneDriveThisOneTime) // = MetaBriefcase.OpenParameters.DefaultIsLoadFromOneDrive)
+		public Task SetIsWantToUseOneDriveAsync(bool newValue, bool isLoadFromOneDriveThisOneTime, bool force)
 		{
 			return RunFunctionIfOpenAsyncT(async () =>
 			{
 				IsWantToUseOneDrive = newValue;
-				//RaisePropertyChanged_UI(nameof(IsWantToUseOneDrive));
-				await UpdateIsWantAndCanUseOneDriveAsync(isLoadFromOneDriveThisOneTime).ConfigureAwait(false);
+				await UpdateIsWantAndCanUseOneDrive2Async(isLoadFromOneDriveThisOneTime, force).ConfigureAwait(false);
 			});
 		}
-		private async Task UpdateIsWantAndCanUseOneDriveAsync(bool isLoadFromOneDriveThisOneTime = true)
+		private async Task UpdateIsWantAndCanUseOneDrive2Async(bool isLoadFromOneDriveThisOneTime = true, bool force = false)
 		{
-			if (_isWantToUseOneDrive && _isWantAndCanUseOneDrive) return;// LOLLO TODO this skips out, which is bad if you want to force an update
+			if (_isWantToUseOneDrive && _isWantAndCanUseOneDrive && !force) return;
 
 			if (_isWantToUseOneDrive)
 			{
@@ -163,7 +162,7 @@ namespace UniFiler10.Data.Model
 				{
 					bool wasOpen = await CloseCurrentBinder2Async().ConfigureAwait(false);
 					await _metaBriefcase.CloseAsync().ConfigureAwait(false);
-					//_metaBriefcase.SetReloadJustOnce();
+
 					var mbcOpenParams = new MetaBriefcase.OpenParameters(null, true, isLoadFromOneDriveThisOneTime);
 					await _metaBriefcase.OpenAsync(mbcOpenParams).ConfigureAwait(false);
 					RaisePropertyChanged_UI(nameof(MetaBriefcase)); // notify the UI once the data has been loaded

@@ -462,29 +462,40 @@ namespace UniFiler10.ViewModels
 
 		public Task RetrySyncFromOneDriveAsync()
 		{
-			var bc = _briefcase;
-			if (bc == null || !bc.IsWantToUseOneDrive) return Task.CompletedTask;
+			return RunFunctionIfOpenAsyncT(() =>
+			{
+				var bc = _briefcase;
+				if (bc == null || !bc.IsWantToUseOneDrive) return Task.CompletedTask;
 
-			return SetIsWantToUseOneDriveAsync(true);
+				return SetIsWantToUseOneDrive2Async(true, true);
+			});
 		}
-		public async Task SetIsWantToUseOneDriveAsync(bool newValue)
+		public Task SetIsWantToUseOneDriveAsync(bool newValue)
+		{
+			return RunFunctionIfOpenAsyncT(() =>
+			{
+				var bc = _briefcase;
+				if (bc == null) return Task.CompletedTask;
+
+				return SetIsWantToUseOneDrive2Async(newValue, false);
+			});
+		}
+		private async Task SetIsWantToUseOneDrive2Async(bool newIsWantToUseOneDrive, bool force)
 		{
 			var bc = _briefcase;
 			if (bc == null) return;
+
 			bool isLoadFromOneDriveThisOneTime = bc.IsWantToUseOneDrive;
 
-			await RunFunctionIfOpenAsyncT(async () =>
+			if (newIsWantToUseOneDrive)
 			{
-				if (newValue)
-				{
-					var loadFromOneDriveThisOneTime_dialogueResponse = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeChangingMetadataSourceAsync(CancToken).ConfigureAwait(false);
-					if (CancToken.IsCancellationRequested) return;
-					isLoadFromOneDriveThisOneTime = !loadFromOneDriveThisOneTime_dialogueResponse.Item2 || !loadFromOneDriveThisOneTime_dialogueResponse.Item1;
-				}
-			});
+				var loadFromOneDriveThisOneTime_dialogueResponse = await UserConfirmationPopup.GetInstance().GetUserChoiceBeforeChangingMetadataSourceAsync(CancToken).ConfigureAwait(false);
+				if (CancToken.IsCancellationRequested) return;
+				isLoadFromOneDriveThisOneTime = !loadFromOneDriveThisOneTime_dialogueResponse.Item2 || !loadFromOneDriveThisOneTime_dialogueResponse.Item1;
+			}
 
 			_animationStarter.StartAnimation(AnimationStarter.Animations.Updating);
-			await bc.SetIsWantToUseOneDriveAsync(newValue, isLoadFromOneDriveThisOneTime);
+			await bc.SetIsWantToUseOneDriveAsync(newIsWantToUseOneDrive, isLoadFromOneDriveThisOneTime, force);
 			_animationStarter.EndAllAnimations();
 			_animationStarter.StartAnimation(bc.IsWantAndCannotUseOneDrive ? AnimationStarter.Animations.Failure : AnimationStarter.Animations.Success);
 		}
