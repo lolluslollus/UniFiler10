@@ -86,7 +86,7 @@ namespace UniFiler10.Views
 
 		private void OnAddField_Click(object sender, RoutedEventArgs e)
 		{
-			Task add = VM?.AddFieldDescriptionAsync();
+			Task add = VM?.AddFieldDescriptionAsync();// LOLLO TODO select the newly added item
 		}
 
 		private void OnDeleteField_Click(object sender, RoutedEventArgs e)
@@ -96,7 +96,7 @@ namespace UniFiler10.Views
 
 		private void OnAddFieldValue_Click(object sender, RoutedEventArgs e)
 		{
-			Task add = VM?.AddPossibleValueToCurrentFieldDescriptionAsync();
+			Task add = VM?.AddPossibleValueToCurrentFieldDescriptionAsync();// LOLLO TODO select the newly added item
 		}
 		private void OnDeletePossibleValue_Click(object sender, RoutedEventArgs e)
 		{
@@ -105,7 +105,7 @@ namespace UniFiler10.Views
 
 		private void OnAddCategory_Click(object sender, RoutedEventArgs e)
 		{
-			Task add = VM?.AddCategoryAsync();
+			Task add = VM?.AddCategoryAsync();          // LOLLO TODO select the newly added item
 		}
 
 		private void OnDeleteCategory_Click(object sender, RoutedEventArgs e)
