@@ -289,7 +289,7 @@ namespace UniFiler10.Data.Metadata
 							var localMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 							var remoteMetaBriefcase = (await _oneDriveReaderWriter.TryReadMetaBriefcase2Async().ConfigureAwait(false)).Item1;
 
-							newMetaBriefcase = MetaBriefcaseOneDriveReaderWriter.Merge(localMetaBriefcase, remoteMetaBriefcase);
+							newMetaBriefcase = Merge(localMetaBriefcase, remoteMetaBriefcase);
 							mustSaveLocal = true;
 							mustSyncOneDrive = true;
 							openParams.IsLocalSyncedOnceSinceLastOpen = true;
@@ -713,6 +713,88 @@ namespace UniFiler10.Data.Metadata
 			});
 			return result;
 		}
+
+		internal static MetaBriefcase Merge(MetaBriefcase one, MetaBriefcase two)
+		{
+			if (one?.Categories == null || one?.FieldDescriptions == null) return two;
+			if (two?.Categories == null || two?.FieldDescriptions == null) return one;
+
+			foreach (var fdOne in one.FieldDescriptions)
+			{
+				var fdTwo = two.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdOne.Id);
+				if (fdTwo != null)
+				{
+					foreach (var pvOne in fdOne.PossibleValues.Where(pv1 => fdTwo.PossibleValues.All(pv2 => pv2.Id != pv1.Id)))
+					{
+						fdTwo.PossibleValues.Add(pvOne);
+					}
+				}
+			}
+			foreach (var fdTwo in two.FieldDescriptions)
+			{
+				var fdOne = one.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdTwo.Id);
+				if (fdOne != null)
+				{
+					foreach (var pvTwo in fdTwo.PossibleValues.Where(pv2 => fdOne.PossibleValues.All(pv1 => pv1.Id != pv2.Id)))
+					{
+						fdOne.PossibleValues.Add(pvTwo);
+					}
+				}
+			}
+
+			foreach (var catOne in one.Categories)
+			{
+				var catTwo = two.Categories.FirstOrDefault(cat => cat.Id == catOne.Id);
+				if (catTwo != null)
+				{
+					foreach (var fdOne in catOne.FieldDescriptionIds.Where(fd1 => catTwo.FieldDescriptionIds.All(fd2 => fd2 != fd1)))
+					{
+						catTwo.FieldDescriptionIds.Add(fdOne);
+					}
+				}
+			}
+
+			foreach (var catTwo in two.Categories)
+			{
+				var catOne = one.Categories.FirstOrDefault(cat => cat.Id == catTwo.Id);
+				if (catOne != null)
+				{
+					foreach (var fdTwo in catTwo.FieldDescriptionIds.Where(fd2 => catOne.FieldDescriptionIds.All(fd1 => fd1 != fd2)))
+					{
+						catOne.FieldDescriptionIds.Add(fdTwo);
+					}
+				}
+			}
+
+			foreach (var fdInOne in one.FieldDescriptions.Where(fd1 => two.FieldDescriptions.All(fd2 => fd2.Id != fd1.Id && fd2.Caption != fd1.Caption)))
+			{
+				two.FieldDescriptions.Add(fdInOne);
+			}
+			foreach (var fdInTwo in two.FieldDescriptions.Where(fd2 => one.FieldDescriptions.All(fd1 => fd1.Id != fd2.Id && fd1.Caption != fd2.Caption)))
+			{
+				one.FieldDescriptions.Add(fdInTwo);
+			}
+			foreach (var fdInOne in one.FieldDescriptions)
+			{
+				var fdInTwo = two.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdInOne.Id);
+				if (fdInTwo != null)
+				{
+					bool isAnyValueAllowedTolerant = fdInOne.IsAnyValueAllowed | fdInTwo.IsAnyValueAllowed;
+					fdInOne.IsAnyValueAllowed = fdInTwo.IsAnyValueAllowed = isAnyValueAllowedTolerant;
+				}
+			}
+
+			foreach (var catInOne in one.Categories.Where(cat1 => two.Categories.All(cat2 => cat2.Id != cat1.Id && cat2.Name != cat1.Name)))
+			{
+				two.Categories.Add(catInOne);
+			}
+			foreach (var catInTwo in two.Categories.Where(cat2 => one.Categories.All(cat1 => cat1.Id != cat2.Id && cat1.Name != cat2.Name)))
+			{
+				one.Categories.Add(catInTwo);
+			}
+
+			return one;
+		}
 		#endregion data methods
 	}
 
@@ -731,7 +813,7 @@ namespace UniFiler10.Data.Metadata
 			{
 				Task raise = Task.Run(() =>
 				{
-					SetOneDriveUpdateCalledNow();
+					SetOneDriveUpdateCalledNow2();
 					UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 				});
 			}
@@ -780,7 +862,7 @@ namespace UniFiler10.Data.Metadata
 			}
 		}
 
-		private static string OneDriveAccessToken
+		private static string OneDriveAccessToken2
 		{
 			get
 			{
@@ -803,31 +885,31 @@ namespace UniFiler10.Data.Metadata
 			return lastTimeUpdateOneDriveCalled >= lastTimeUpdateOneDriveRan && lastTimeUpdateOneDriveCalled > default(DateTime);
 		}
 
-		private static void SetIsOneDriveUpdateOverdue()
+		private static void SetIsOneDriveUpdateOverdue2()
 		{
 			string newValue = default(DateTime).ToUniversalTime().ToString(CultureInfo.InvariantCulture);
 			RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN, newValue);
 		}
 
-		private static void SetOneDriveUpdateCalledNow()
+		private static void SetOneDriveUpdateCalledNow2()
 		{
 			string newValue = DateTime.Now.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
 			RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_CALLED, newValue);
 		}
 
-		private static void SetOneDriveUpdateRanNow()
+		private static void SetOneDriveUpdateRanNow2()
 		{
 			string now = DateTime.Now.AddMilliseconds(1.0).ToUniversalTime().ToString(CultureInfo.InvariantCulture);
 			RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_UPDATE_ONEDRIVE_RAN, now);
 		}
 
-		private static void SetOneDrivePullRanNow()
+		private static void SetOneDrivePullRanNow2()
 		{
 			string now = DateTime.Now.AddMilliseconds(1.0).ToUniversalTime().ToString(CultureInfo.InvariantCulture);
 			RegistryAccess.TrySetValue(ConstantData.REG_MBC_LAST_TIME_PULL_ONEDRIVE_RAN, now);
 		}
 
-		private static DateTime GetWhenOneDrivePullRan()
+		private static DateTime GetWhenOneDrivePullRan2()
 		{
 			DateTime when = default(DateTime);
 			DateTime.TryParse(RegistryAccess.GetValue(ConstantData.REG_MBC_LAST_TIME_PULL_ONEDRIVE_RAN), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out when);
@@ -913,7 +995,7 @@ namespace UniFiler10.Data.Metadata
 			return RunUnderSemaphore(async () =>
 			{
 				// LOLLO NOTE in the dashboard, set settings - API settings - Mobile or desktop client app = true
-				OneDriveAccessToken = string.Empty;
+				OneDriveAccessToken2 = string.Empty;
 				if (wantToUseOneDrive && _runtimeData.IsConnectionAvailable)
 				{
 					var oneDriveClient = OneDriveClientExtensions.GetUniversalClient(_oneDriveScopes);
@@ -931,7 +1013,7 @@ namespace UniFiler10.Data.Metadata
 					//await Task.WhenAny(waitMax(), authenticateF()).ConfigureAwait(false);
 					oneDriveAccountSession = await authenticateT.ConfigureAwait(false);
 
-					OneDriveAccessToken = oneDriveAccountSession?.AccessToken ?? string.Empty;
+					OneDriveAccessToken2 = oneDriveAccountSession?.AccessToken ?? string.Empty;
 					// var appRoot = await oneDriveClient.Drive.Special.AppRoot.Request().GetAsync().ConfigureAwait(false);
 					//}
 				}
@@ -944,7 +1026,7 @@ namespace UniFiler10.Data.Metadata
 
 			using (var client = new HttpClient())
 			{
-				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken2);
 
 				try
 				{
@@ -952,12 +1034,12 @@ namespace UniFiler10.Data.Metadata
 					{
 						mbc = (MetaBriefcase)serializer.ReadObject(odFileContent);
 					}
-					SetOneDrivePullRanNow();
+					SetOneDrivePullRanNow2();
 				}
 				catch (SerializationException ex)
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
-					SetIsOneDriveUpdateOverdue();
+					SetIsOneDriveUpdateOverdue2();
 					return Tuple.Create<MetaBriefcase, Exception>(null, ex);
 				}
 				catch (Exception ex)
@@ -969,6 +1051,7 @@ namespace UniFiler10.Data.Metadata
 
 			return Tuple.Create<MetaBriefcase, Exception>(mbc, null);
 		}
+
 		internal Task SaveIntoOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId)
 		{
 			if (!_runtimeData.IsConnectionAvailable || cancToken.IsCancellationRequested) return Task.CompletedTask;
@@ -983,6 +1066,7 @@ namespace UniFiler10.Data.Metadata
 				await SaveIntoOneDrive2Async(cancToken, myInstanceId).ConfigureAwait(false);
 			});
 		}
+
 		private async Task SaveIntoOneDrive2Async(CancellationToken cancToken, Guid taskInstanceId)
 		{// LOLLO TODO test this with the merging (it's new)
 			string localFileContentString = await _briefcase.MetaBriefcase.GetLocalFileContentString().ConfigureAwait(false);
@@ -992,7 +1076,7 @@ namespace UniFiler10.Data.Metadata
 
 			using (var client = new HttpClient())
 			{
-				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken);
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", OneDriveAccessToken2);
 
 				DateTime oneDriveFileLastModifiedWhen = default(DateTime);
 				string remoteFilecontentString = string.Empty;
@@ -1006,30 +1090,32 @@ namespace UniFiler10.Data.Metadata
 
 				if (localFileContentString.Trim().Equals(remoteFilecontentString.Trim(), StringComparison.Ordinal))
 				{
-					SetOneDriveUpdateRanNow();
+					SetOneDriveUpdateRanNow2();
 					return;
 				}
 				if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return;
 
-				if (!MetaBriefcase.GetIsLocalSyncedOnceSinceLastOpen() || GetWhenOneDrivePullRan() < oneDriveFileLastModifiedWhen) await MergeIntoOneDriveAsync(cancToken, taskInstanceId, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
-				else await OverwriteOneDriveAsync(cancToken, taskInstanceId, client, localFileContentString).ConfigureAwait(false);
-				//else await OverwriteOneDriveAsync(cancToken, taskInstanceId, client, localFileContent).ConfigureAwait(false);
+				HttpResponseMessage response = null;
+				if (!MetaBriefcase.GetIsLocalSyncedOnceSinceLastOpen() || GetWhenOneDrivePullRan2() < oneDriveFileLastModifiedWhen)
+					response = await MergeIntoOneDriveAsync(cancToken, taskInstanceId, client, localFileContentString, remoteFilecontentString).ConfigureAwait(false);
+				else
+					response = await OverwriteOneDriveAsync(cancToken, taskInstanceId, client, localFileContentString).ConfigureAwait(false);
 
-				SetOneDriveUpdateRanNow();
+				if (response?.IsSuccessStatusCode == true) SetOneDriveUpdateRanNow2();
 			}
 		}
 
-		private static async Task OverwriteOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId, HttpClient client, /*Stream localFileContent*/ string localFileContent)
+		private static async Task<HttpResponseMessage> OverwriteOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId, HttpClient client, /*Stream localFileContent*/ string localFileContent)
 		{
-			//localFileContent.Position = 0;
-			//using (var content = new StreamContent(localFileContent))
+			HttpResponseMessage response = null;
 			using (var content = new StringContent(localFileContent))
 			{
-				await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + MetaBriefcase.FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
+				response = await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + MetaBriefcase.FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
 			}
+			return response;
 		}
 
-		private static async Task MergeIntoOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId, HttpClient client, string localFileContent, string remoteFilecontent)
+		private static async Task<HttpResponseMessage> MergeIntoOneDriveAsync(CancellationToken cancToken, Guid taskInstanceId, HttpClient client, string localFileContent, string remoteFilecontent)
 		{
 			MetaBriefcase remoteMbc = null;
 			MetaBriefcase localMbc = null;
@@ -1044,7 +1130,7 @@ namespace UniFiler10.Data.Metadata
 					remoteMbc = (MetaBriefcase)serializer.ReadObject(ms);
 				}
 			}
-			if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return;
+			if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return null;
 			using (var ms = new MemoryStream())
 			{
 				using (var sw = new StreamWriter(ms))
@@ -1055,102 +1141,22 @@ namespace UniFiler10.Data.Metadata
 					localMbc = (MetaBriefcase)serializer.ReadObject(ms);
 				}
 			}
-			if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return;
+			if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return null;
 
-			var mergedMbc = Merge(localMbc, remoteMbc);
-			if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return;
+			var mergedMbc = MetaBriefcase.Merge(localMbc, remoteMbc);
+			if (cancToken.IsCancellationRequested || !GetIsCurrentBackgroundTaskInstanceAllowed(taskInstanceId)) return null;
 
+			HttpResponseMessage response = null;
 			using (var ms = new MemoryStream())
 			{
 				serializer.WriteObject(ms, mergedMbc);
 				ms.Position = 0;
 				using (var content = new StreamContent(ms))
 				{
-					await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + MetaBriefcase.FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
+					response = await client.PutAsync(new Uri(_oneDriveAppRootUri4Path + MetaBriefcase.FILENAME + ":/content"), content, cancToken).ConfigureAwait(false);
 				}
 			}
-		}
-
-		internal static MetaBriefcase Merge(MetaBriefcase one, MetaBriefcase two)
-		{
-			if (one?.Categories == null || one?.FieldDescriptions == null) return two;
-			if (two?.Categories == null || two?.FieldDescriptions == null) return one;
-
-			foreach (var fdOne in one.FieldDescriptions)
-			{
-				var fdTwo = two.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdOne.Id);
-				if (fdTwo != null)
-				{
-					foreach (var pvOne in fdOne.PossibleValues.Where(pv1 => fdTwo.PossibleValues.All(pv2 => pv2.Id != pv1.Id)))
-					{
-						fdTwo.PossibleValues.Add(pvOne);
-					}
-				}
-			}
-			foreach (var fdTwo in two.FieldDescriptions)
-			{
-				var fdOne = one.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdTwo.Id);
-				if (fdOne != null)
-				{
-					foreach (var pvTwo in fdTwo.PossibleValues.Where(pv2 => fdOne.PossibleValues.All(pv1 => pv1.Id != pv2.Id)))
-					{
-						fdOne.PossibleValues.Add(pvTwo);
-					}
-				}
-			}
-
-			foreach (var catOne in one.Categories)
-			{
-				var catTwo = two.Categories.FirstOrDefault(cat => cat.Id == catOne.Id);
-				if (catTwo != null)
-				{
-					foreach (var fdOne in catOne.FieldDescriptionIds.Where(fd1 => catTwo.FieldDescriptionIds.All(fd2 => fd2 != fd1)))
-					{
-						catTwo.FieldDescriptionIds.Add(fdOne);
-					}
-				}
-			}
-
-			foreach (var catTwo in two.Categories)
-			{
-				var catOne = one.Categories.FirstOrDefault(cat => cat.Id == catTwo.Id);
-				if (catOne != null)
-				{
-					foreach (var fdTwo in catTwo.FieldDescriptionIds.Where(fd2 => catOne.FieldDescriptionIds.All(fd1 => fd1 != fd2)))
-					{
-						catOne.FieldDescriptionIds.Add(fdTwo);
-					}
-				}
-			}
-
-			foreach (var fdInOne in one.FieldDescriptions.Where(fd1 => two.FieldDescriptions.All(fd2 => fd2.Id != fd1.Id && fd2.Caption != fd1.Caption)))
-			{
-				two.FieldDescriptions.Add(fdInOne);
-			}
-			foreach (var fdInTwo in two.FieldDescriptions.Where(fd2 => one.FieldDescriptions.All(fd1 => fd1.Id != fd2.Id && fd1.Caption != fd2.Caption)))
-			{
-				one.FieldDescriptions.Add(fdInTwo);
-			}
-			foreach (var fdInOne in one.FieldDescriptions)
-			{
-				var fdInTwo = two.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdInOne.Id);
-				if (fdInTwo != null)
-				{
-					bool isAnyValueAllowedTolerant = fdInOne.IsAnyValueAllowed | fdInTwo.IsAnyValueAllowed;
-					fdInOne.IsAnyValueAllowed = fdInTwo.IsAnyValueAllowed = isAnyValueAllowedTolerant;
-				}
-			}
-
-			foreach (var catInOne in one.Categories.Where(cat1 => two.Categories.All(cat2 => cat2.Id != cat1.Id && cat2.Name != cat1.Name)))
-			{
-				two.Categories.Add(catInOne);
-			}
-			foreach (var catInTwo in two.Categories.Where(cat2 => one.Categories.All(cat1 => cat1.Id != cat2.Id && cat1.Name != cat2.Name)))
-			{
-				one.Categories.Add(catInTwo);
-			}
-
-			return one;
+			return response;
 		}
 		#endregion services
 	}
