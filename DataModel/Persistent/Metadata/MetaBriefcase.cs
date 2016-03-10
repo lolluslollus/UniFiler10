@@ -244,8 +244,8 @@ namespace UniFiler10.Data.Metadata
 		{
 			await _rubbishBin.CloseAsync().ConfigureAwait(false);
 			await _oneDriveReaderWriter.CloseAsync().ConfigureAwait(false);
-			//await Save2Async().ConfigureAwait(false); // LOLLO TODO see if I need this, I am trying to do fewer saves
-			// RaiseUpdateOneDriveMetaBriefcaseRequested();
+			await Save2Async().ConfigureAwait(false);
+			_oneDriveReaderWriter.RaiseUpdateOneDriveMetaBriefcaseRequested();
 		}
 		#endregion lifecycle
 
@@ -809,14 +809,10 @@ namespace UniFiler10.Data.Metadata
 		}
 		private void RaiseUpdateOneDriveMetaBriefcaseRequested2()
 		{
-			if (_briefcase?.IsWantToUseOneDrive == true)
-			{
-				Task raise = Task.Run(() =>
-				{
-					SetOneDriveUpdateCalledNow2();
-					UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
-				});
-			}
+			if (_briefcase?.IsWantToUseOneDrive != true) return;
+
+			SetOneDriveUpdateCalledNow2();
+			UpdateOneDriveMetaBriefcaseRequested?.Invoke(this, EventArgs.Empty);
 		}
 		#endregion events
 

@@ -67,7 +67,6 @@ namespace UniFiler10
 
 		private async Task CloseAsync()
 		{
-			await _backgroundTaskHelper.CloseAsync().ConfigureAwait(false);
 			var briefcase = Briefcase.GetCurrentInstance();
 			if (briefcase != null)
 			{
@@ -75,6 +74,7 @@ namespace UniFiler10
 				//briefcase.Dispose();
 				//briefcase = null;
 			}
+			await _backgroundTaskHelper.CloseAsync().ConfigureAwait(false);
 		}
 		#endregion lifecycle
 
