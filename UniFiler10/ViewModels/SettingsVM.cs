@@ -463,7 +463,7 @@ namespace UniFiler10.ViewModels
 		public Task RetrySyncFromOneDriveAsync()
 		{
 			var bc = _briefcase;
-			if (bc == null || !bc.IsWantAndCannotUseOneDrive) return Task.CompletedTask;
+			if (bc == null || !bc.IsWantToUseOneDrive) return Task.CompletedTask;
 
 			return SetIsWantToUseOneDriveAsync(true);
 		}

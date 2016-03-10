@@ -155,7 +155,7 @@ namespace UniFiler10.Data.Model
 		}
 		private async Task UpdateIsWantAndCanUseOneDriveAsync(bool isLoadFromOneDriveThisOneTime = true)
 		{
-			if (_isWantToUseOneDrive && _isWantAndCanUseOneDrive) return;
+			if (_isWantToUseOneDrive && _isWantAndCanUseOneDrive) return;// LOLLO TODO this skips out, which is bad if you want to force an update
 
 			if (_isWantToUseOneDrive)
 			{

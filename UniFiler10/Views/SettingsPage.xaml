@@ -134,13 +134,15 @@
 						VerticalAlignment="Center"/>
 					<uctl:UniversalWrapPanel Grid.Row="7"
 						Orientation="Horizontal"
-						Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
 						VerticalAlignment="Center">
 						<TextBlock
-							x:Uid="OneDrive_ThisNotSynced" Foreground="{StaticResource FlashyForeground}"
+							x:Uid="OneDrive_ThisNotSynced" 
+							Foreground="{StaticResource FlashyForeground}"
+							Visibility="{x:Bind VM.Briefcase.IsWantAndCannotUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
 							VerticalAlignment="Center"/>
 						<AppBarButton
 							Icon="Refresh" x:Uid="Retry"
+							Visibility="{x:Bind VM.Briefcase.IsWantToUseOneDrive, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"
 							IsEnabled="{x:Bind VM.Briefcase.RuntimeData.IsConnectionAvailable, Mode=OneWay}"
 							VerticalAlignment="Center"
 							Margin="10, 0, 0, 0"

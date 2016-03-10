@@ -251,7 +251,7 @@ namespace UniFiler10.Data.Metadata
 
 
 		#region loading methods
-		public const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
+		internal const string FILENAME = "LolloSessionDataMetaBriefcase.xml";
 
 		private async Task LoadAsync(bool wantToUseOneDriveNowOrLater, OpenParameters openParams)
 		{
@@ -299,11 +299,13 @@ namespace UniFiler10.Data.Metadata
 							var mbcAndException = await _oneDriveReaderWriter.TryReadMetaBriefcase2Async().ConfigureAwait(false);
 							if (mbcAndException.Item1 != null)
 							{
+								newMetaBriefcase = mbcAndException.Item1;
 								mustSaveLocal = true;
 								openParams.IsLocalSyncedOnceSinceLastOpen = true;
 							}
 							else if (mbcAndException.Item2 is SerializationException)
 							{
+								newMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 								mustSyncOneDrive = true;
 								openParams.IsLocalSyncedOnceSinceLastOpen = true;
 							}
@@ -1162,7 +1164,7 @@ namespace UniFiler10.Data.Metadata
 
 
 		#region properties
-		public const string FILENAME = "LolloSessionDataMetaBriefcaseRubbishBin.xml";
+		internal const string FILENAME = "LolloSessionDataMetaBriefcaseRubbishBin.xml";
 		private readonly MetaBriefcase _mbc = null;
 
 		private List<Category> _deletedCategories = new List<Category>();
