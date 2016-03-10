@@ -145,7 +145,7 @@ namespace UniFiler10.Data.Metadata
 			if (fdToBeRemoved != null)
 			{
 				fdToBeRemoved.RemoveFromJustAssignedToCats(this);
-				bool isOk = _fieldDescriptions.Remove(fdToBeRemoved) & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
+				bool isOk = _fieldDescriptions?.Remove(fdToBeRemoved) == true & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
 				return isOk;
 			}
 			return false;

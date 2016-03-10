@@ -1185,8 +1185,11 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				var availableCat = DeletedCategories.FirstOrDefault(cat => cat.Name == category.Name);
-				if (availableCat != null) DeletedCategories.Remove(availableCat);
+				var availableCats = DeletedCategories.Where(cat => cat.Name == category.Name);
+				foreach (var availableCat in availableCats)
+				{
+					DeletedCategories.Remove(availableCat);
+				}
 				DeletedCategories.Add(category);
 			});
 		}
@@ -1199,8 +1202,11 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				var availableFldDsc = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == fieldDescription.Caption);
-				if (availableFldDsc != null) DeletedFieldDescriptions.Remove(availableFldDsc);
+				var availableFldDscs = DeletedFieldDescriptions.Where(fd => fd.Item2.Caption == fieldDescription.Caption);
+				foreach (var availableFldDsc in availableFldDscs)
+				{
+					DeletedFieldDescriptions.Remove(availableFldDsc);
+				}
 				DeletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
 			});
 		}
@@ -1213,8 +1219,11 @@ namespace UniFiler10.Data.Metadata
 		{
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				var availablePv = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
-				if (availablePv != null) DeletedFieldValues.Remove(availablePv);
+				var availablePvs = DeletedFieldValues.Where(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
+				foreach (var availablePv in availablePvs)
+				{
+					DeletedFieldValues.Remove(availablePv);
+				}
 				DeletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
 			});
 		}
@@ -1223,14 +1232,12 @@ namespace UniFiler10.Data.Metadata
 			Tuple<FieldDescription, FieldValue> result = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
 			return result;
 		}
-		internal Task ClearAsync() // LOLLO TODO call this at some point, but when?
+		internal void Clear2() // LOLLO TODO call this at some point, but when?
 		{
-			return RunFunctionIfOpenAsyncA(() =>
-			{
-				_deletedCategories.Clear();
-				_deletedFieldDescriptions.Clear();
-				_deletedFieldValues.Clear();
-			});
+
+			_deletedCategories.Clear();
+			_deletedFieldDescriptions.Clear();
+			_deletedFieldValues.Clear();
 		}
 		#endregion properties
 
@@ -1328,7 +1335,7 @@ namespace UniFiler10.Data.Metadata
 		#region event handlers
 		private void OnCategory_NameChanged(object sender, EventArgs e)
 		{// LOLLO TODO this does not work. Make a cat, add it to a folder, go to settings, delete it and make a new cat with the same name.
-			// the folder will not take it back.
+		 // the folder will not take it back.
 			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
 			{
 				var cat = sender as Category;
@@ -1376,6 +1383,10 @@ namespace UniFiler10.Data.Metadata
 					{
 						bool setCurrent = _mbc.CurrentFieldDescriptionId == fldDsc.Id;
 						foreach (var cat in _deletedCategories)
+						{
+							cat.RemoveFieldDescription(fldDsc);
+						}
+						foreach (var cat in _mbc.Categories)
 						{
 							cat.RemoveFieldDescription(fldDsc);
 						}
