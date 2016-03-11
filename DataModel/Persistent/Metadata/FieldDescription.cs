@@ -98,7 +98,7 @@ namespace UniFiler10.Data.Metadata
 		#endregion ctor and dispose
 
 
-		public static void Copy(FieldDescription source, ref FieldDescription target)
+		internal static void Copy(FieldDescription source, ref FieldDescription target)
 		{
 			if (source != null && target != null)
 			{

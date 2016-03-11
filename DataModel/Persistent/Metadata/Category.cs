@@ -47,12 +47,12 @@ namespace UniFiler10.Data.Metadata
 		public SwitchableObservableCollection<string> FieldDescriptionIds { get { return _fieldDescriptionIds; } set { _fieldDescriptionIds = value; } }
 		#endregion properties
 
-		public static void Copy(Category source, ref Category target, IList<FieldDescription> allFldDscs)
+		internal static void Copy(Category source, ref Category target, IList<FieldDescription> allFldDscs)
 		{
 			if (source != null && target != null)
 			{
 				target._fieldDescriptionIds.ReplaceAll(source._fieldDescriptionIds);
-				CopyFldDscs(source, ref target, allFldDscs);
+				UpdateFldDscs(target, allFldDscs);
 				//// populate FieldDescriptions
 				//List<FieldDescription> newFldDscs = new List<FieldDescription>();
 				//foreach (var fldDscId in source._fieldDescriptionIds)
@@ -68,18 +68,18 @@ namespace UniFiler10.Data.Metadata
 				target.Name = source.Name;
 			}
 		}
-		public static void CopyFldDscs(Category source, ref Category target, IList<FieldDescription> allFldDscs)
+		private static void UpdateFldDscs(Category target, IList<FieldDescription> allFldDscs)
 		{
-			if (source != null && target != null)
+			if (target != null)
 			{
 				// populate FieldDescriptions
 				List<FieldDescription> newFldDscs = new List<FieldDescription>();
-				foreach (var fldDscId in source._fieldDescriptionIds)
+				foreach (var fldDscId in target._fieldDescriptionIds)
 				{
 					var newFldDsc = allFldDscs.FirstOrDefault(fd => fd.Id == fldDscId);
 					if (newFldDsc != null) newFldDscs.Add(newFldDsc);
 				}
-				if (target.FieldDescriptions == null) target._fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
+				//if (target.FieldDescriptions == null) target._fieldDescriptions = new SwitchableObservableCollection<FieldDescription>();
 				target.FieldDescriptions.ReplaceAll(newFldDscs);
 			}
 		}
@@ -96,6 +96,19 @@ namespace UniFiler10.Data.Metadata
 					target.Add(targetRecord);
 				}
 				target.IsObserving = true;
+			}
+		}
+		public static void Copy(IList<Category> source, ref List<Category> target, IList<FieldDescription> allFldDscs)
+		{
+			if (source != null && target != null)
+			{
+				target.Clear();
+				foreach (var sourceRecord in source)
+				{
+					var targetRecord = new Category();
+					Copy(sourceRecord, ref targetRecord, allFldDscs);
+					target.Add(targetRecord);
+				}
 			}
 		}
 
@@ -145,7 +158,8 @@ namespace UniFiler10.Data.Metadata
 			if (fdToBeRemoved != null)
 			{
 				fdToBeRemoved.RemoveFromJustAssignedToCats(this);
-				bool isOk = _fieldDescriptions?.Remove(fdToBeRemoved) == true & _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
+				_fieldDescriptions?.Remove(fdToBeRemoved);
+				bool isOk = _fieldDescriptionIds.Remove(fdToBeRemoved.Id);
 				return isOk;
 			}
 			return false;

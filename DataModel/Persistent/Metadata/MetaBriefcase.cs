@@ -529,19 +529,32 @@ namespace UniFiler10.Data.Metadata
 
 		public Task<bool> AddNewCategoryAsync()
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncTB(delegate
 			{
 				string name = RuntimeData.GetText("NewCategory");
 				var newCat = new Category(name, true, true);
 
-				if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
-				{
-					await RunInUiThreadAsync(() => _categories.Add(newCat)).ConfigureAwait(false);
-					return true;
-				}
-				return false;
+				return AddCategory2Async(newCat);
 			});
 		}
+		public Task<bool> AddCategoryAsync(Category newCat)
+		{
+			return RunFunctionIfOpenAsyncTB(delegate
+			{
+				return AddCategory2Async(newCat);
+			});
+		}
+
+		private async Task<bool> AddCategory2Async(Category newCat)
+		{
+			if (Category.Check(newCat) && !Categories.Any(cat => cat.Name == newCat.Name || cat.Id == newCat.Id))
+			{
+				await RunInUiThreadAsync(() => _categories.Add(newCat)).ConfigureAwait(false);
+				return true;
+			}
+			return false;
+		}
+
 		public Task<bool> RemoveCategoryAsync(Category cat)
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
@@ -1064,7 +1077,7 @@ namespace UniFiler10.Data.Metadata
 		}
 
 		private async Task SaveIntoOneDrive2Async(CancellationToken cancToken, Guid taskInstanceId)
-		{// LOLLO TODO test this with the merging (it's new)
+		{
 			string localFileContentString = await _briefcase.MetaBriefcase.GetLocalFileContentString().ConfigureAwait(false);
 
 			//await Task.Delay(15000).ConfigureAwait(false);
@@ -1158,7 +1171,7 @@ namespace UniFiler10.Data.Metadata
 	}
 
 	[DataContract]
-	public class MetaBriefcaseRubbishBin : OpenableObservableData // LOLLO TODO test this
+	public class MetaBriefcaseRubbishBin : OpenableObservableData
 	{
 		#region events
 		public static event EventHandler DataChanged;
@@ -1183,13 +1196,10 @@ namespace UniFiler10.Data.Metadata
 
 		internal Task AddCategoryAsync(Category category)
 		{
+			if (category == null) return Task.CompletedTask;
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				var availableCats = DeletedCategories.Where(cat => cat.Name == category.Name);
-				foreach (var availableCat in availableCats)
-				{
-					DeletedCategories.Remove(availableCat);
-				}
+				DeletedCategories.RemoveAll(cat => cat.Name == category.Name);
 				DeletedCategories.Add(category);
 			});
 		}
@@ -1200,13 +1210,10 @@ namespace UniFiler10.Data.Metadata
 		}
 		internal Task AddFieldDescriptionAsync(List<string> catsWithFldDsc, FieldDescription fieldDescription)
 		{
+			if (catsWithFldDsc == null || fieldDescription == null) return Task.CompletedTask;
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				var availableFldDscs = DeletedFieldDescriptions.Where(fd => fd.Item2.Caption == fieldDescription.Caption);
-				foreach (var availableFldDsc in availableFldDscs)
-				{
-					DeletedFieldDescriptions.Remove(availableFldDsc);
-				}
+				DeletedFieldDescriptions.RemoveAll(fd => fd.Item2.Caption == fieldDescription.Caption);
 				DeletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
 			});
 		}
@@ -1217,13 +1224,10 @@ namespace UniFiler10.Data.Metadata
 		}
 		internal Task AddPossibleValueAsync(FieldDescription fieldDescription, FieldValue fieldValue)
 		{
+			if (fieldDescription == null || fieldValue == null) return Task.CompletedTask;
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				var availablePvs = DeletedFieldValues.Where(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
-				foreach (var availablePv in availablePvs)
-				{
-					DeletedFieldValues.Remove(availablePv);
-				}
+				DeletedFieldValues.RemoveAll(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
 				DeletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
 			});
 		}
@@ -1283,12 +1287,33 @@ namespace UniFiler10.Data.Metadata
 			if (newInstance != null) CopyXMLPropertiesFrom(newInstance);
 		}
 		private bool CopyXMLPropertiesFrom(MetaBriefcaseRubbishBin source)
-		{// LOLLO TODO check if this is good enough or I need deep copies
+		{
 			if (source == null) return false;
 
-			if (source._deletedCategories != null) _deletedCategories = source._deletedCategories;
-			if (source._deletedFieldDescriptions != null) _deletedFieldDescriptions = source._deletedFieldDescriptions;
-			if (source._deletedFieldValues != null) _deletedFieldValues = source._deletedFieldValues;
+			Category.Copy(source._deletedCategories, ref _deletedCategories, _mbc.FieldDescriptions);
+
+			_deletedFieldDescriptions?.Clear();
+			if (source._deletedFieldDescriptions != null)
+			{
+				foreach (var srcLine in source._deletedFieldDescriptions)
+				{
+					var fldDsc = new FieldDescription();
+					FieldDescription.Copy(srcLine.Item2, ref fldDsc);
+					_deletedFieldDescriptions.Add(Tuple.Create(srcLine.Item1, fldDsc));
+				}
+			}
+
+			if (source._deletedFieldValues != null)
+			{
+				foreach (var srcLine in source._deletedFieldValues)
+				{
+					var fldDsc = new FieldDescription();
+					FieldDescription.Copy(srcLine.Item1, ref fldDsc);
+					var fldVal = new FieldValue();
+					FieldValue.Copy(srcLine.Item2, ref fldVal);
+					_deletedFieldValues.Add(Tuple.Create(fldDsc, fldVal));
+				}
+			}
 
 			return true;
 		}
@@ -1334,78 +1359,70 @@ namespace UniFiler10.Data.Metadata
 
 		#region event handlers
 		private void OnCategory_NameChanged(object sender, EventArgs e)
-		{// LOLLO TODO this does not work. Make a cat, add it to a folder, go to settings, delete it and make a new cat with the same name.
-		 // the folder will not take it back.
+		{
 			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
 			{
 				var cat = sender as Category;
 				if (cat == null) return;
 
 				var recycledCat = GetCategory2(cat.Name);
-				if (recycledCat != null)
+				if (recycledCat == null) return;
+
+				Task awaitThis = Task.CompletedTask;
+				await RunInUiThreadAsync(() =>
 				{
-					Task awaitThis = Task.CompletedTask;
-					await RunInUiThreadAsync(() =>
-					{
-						bool setCurrent = _mbc.CurrentCategoryId == cat.Id;
-						_mbc.Categories.Remove(cat);
-						cat = recycledCat;
-						_mbc.Categories.Add(cat);
+					bool setCurrent = _mbc.CurrentCategoryId == cat.Id;
 
-						Category.CopyFldDscs(cat, ref cat, _mbc.FieldDescriptions);
+					_mbc.Categories.Remove(cat);
+					_mbc.Categories.Add(recycledCat);
 
-						//foreach (var missingFldDscId in cat.FieldDescriptionIds.Where(fd0 => _mbc.FieldDescriptions.All(fd1 => fd1.Id != fd0)))
-						//{
-						//	var missingFldDsc = _mbc.FieldDescriptions.FirstOrDefault(fd => fd.Id == missingFldDscId);
-						//	cat.RemoveFieldDescription(missingFldDsc);
-						//}
-						if (setCurrent) awaitThis = _mbc.SetCurrentCategoryAsync(cat);
-					}).ConfigureAwait(false);
-					await awaitThis;
+					if (setCurrent) awaitThis = _mbc.SetCurrentCategoryAsync(recycledCat);
+				}).ConfigureAwait(false);
+				await awaitThis;
 
-					DataChanged?.Invoke(this, EventArgs.Empty);
-				}
+				DataChanged?.Invoke(this, EventArgs.Empty);
 			});
 		}
 
 		private void OnFldDsc_CaptionChanged(object sender, EventArgs e)
-		{// LOLLO TODO check this: delete a fld dsc, create a new one with the same name. wht happens with the folders that referenc ethe old one?
+		{
 			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
 			{
 				var fldDsc = sender as FieldDescription; var cats = _deletedCategories;
 				if (fldDsc == null || cats == null) return;
 
 				var recycledFldDsc = GetFieldDescription2(fldDsc.Caption);
-				if (recycledFldDsc != null)
+				if (recycledFldDsc?.Item1 == null || recycledFldDsc?.Item2 == null)
 				{
-					Task awaitThis = Task.CompletedTask;
-					await RunInUiThreadAsync(() =>
-					{
-						bool setCurrent = _mbc.CurrentFieldDescriptionId == fldDsc.Id;
-						foreach (var cat in _deletedCategories)
-						{
-							cat.RemoveFieldDescription(fldDsc);
-						}
-						foreach (var cat in _mbc.Categories)
-						{
-							cat.RemoveFieldDescription(fldDsc);
-						}
-
-						_mbc.FieldDescriptions.Remove(fldDsc);
-						fldDsc = recycledFldDsc.Item2;
-						_mbc.FieldDescriptions.Add(fldDsc);
-
-						foreach (var catId in recycledFldDsc.Item1)
-						{
-							var registeredCat = _deletedCategories.FirstOrDefault(cat => cat.Id == catId);
-							registeredCat?.AddFieldDescription(fldDsc);
-						}
-						if (setCurrent) awaitThis = _mbc.SetCurrentFieldDescriptionAsync(fldDsc);
-					}).ConfigureAwait(false);
-					await awaitThis;
-
-					DataChanged?.Invoke(this, EventArgs.Empty);
+					Logger.Add_TPL("OnFldDsc_CaptionChanged: recycledFldDsc has a null item, this should never happen", Logger.FileErrorLogFilename);
+					return;
 				}
+
+				Task awaitThis = Task.CompletedTask;
+				await RunInUiThreadAsync(() =>
+				{
+					bool setCurrent = _mbc.CurrentFieldDescriptionId == fldDsc.Id;
+
+					_mbc.FieldDescriptions.Remove(fldDsc);
+
+					foreach (var cat in _deletedCategories)
+					{
+						if (cat.RemoveFieldDescription(fldDsc) || recycledFldDsc.Item1.Contains(cat.Id))
+							cat.AddFieldDescription(recycledFldDsc.Item2);
+					}
+					foreach (var cat in _mbc.Categories)
+					{
+						if (cat.RemoveFieldDescription(fldDsc) || recycledFldDsc.Item1.Contains(cat.Id))
+							cat.AddFieldDescription(recycledFldDsc.Item2);
+					}
+
+					_mbc.FieldDescriptions.Add(recycledFldDsc.Item2);
+
+					if (setCurrent) awaitThis = _mbc.SetCurrentFieldDescriptionAsync(recycledFldDsc.Item2);
+				}).ConfigureAwait(false);
+				await awaitThis;
+
+				DataChanged?.Invoke(this, EventArgs.Empty);
 			});
 		}
 
@@ -1417,17 +1434,15 @@ namespace UniFiler10.Data.Metadata
 				if (fldVal == null || cfd == null) return;
 
 				var recycledFldVal = GetPossibleValue2(cfd, fldVal.Vaalue);
-				if (recycledFldVal != null)
-				{
-					await RunInUiThreadAsync(() =>
-					{
-						cfd.RemovePossibleValue(fldVal);
-						fldVal = recycledFldVal.Item2;
-						cfd.AddPossibleValue(fldVal);
-					}).ConfigureAwait(false);
+				if (recycledFldVal == null) return;
 
-					DataChanged?.Invoke(this, EventArgs.Empty);
-				}
+				await RunInUiThreadAsync(() =>
+				{
+					cfd.RemovePossibleValue(fldVal);
+					cfd.AddPossibleValue(recycledFldVal.Item2);
+				}).ConfigureAwait(false);
+
+				DataChanged?.Invoke(this, EventArgs.Empty);
 			});
 		}
 		#endregion event handlers
