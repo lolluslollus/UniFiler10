@@ -644,32 +644,35 @@ namespace UniFiler10.Data.Metadata
 
 		/// <summary>
 		/// Save metaBriefcase, in case there is a crash before the next Suspend.
-		/// This is the only method that is not called by the VM, which saves when closing.
+		/// LOLLO NOTE This is the only method that is not called by SettingsVM, which saves when closing.
 		/// </summary>
 		/// <param name="fldDsc"></param>
 		/// <param name="newFldVal"></param>
 		/// <param name="save"></param>
 		/// <returns></returns>
-		public Task<bool> AddPossibleValueToFieldDescriptionAsync(FieldDescription fldDsc, FieldValue newFldVal, bool save)
+		public async Task<FieldValue> AddPossibleValueToFieldDescriptionAsync(FieldDescription fldDsc, string newVaalue)
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
+			if (fldDsc == null || string.IsNullOrEmpty(newVaalue)) return null;
+
+			FieldValue newFldVal = null;
+			bool isAdded = false;
+
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (fldDsc == null || newFldVal == null) return false;
+				if (fldDsc == null || string.IsNullOrEmpty(newVaalue)) return;
 
-				bool isAdded = false;
-
-				// LOLLO TODO check if I need or want this
-				var recycledFldVal = _rubbishBin.GetPossibleValue2(fldDsc, newFldVal.Vaalue);
-				if (recycledFldVal?.Item2 != null) newFldVal = recycledFldVal.Item2;
+				var recycledFldVal = _rubbishBin.GetPossibleValue2(fldDsc, newVaalue);
+				newFldVal = recycledFldVal?.Item2 ?? new FieldValue(newVaalue, true, true);
 
 				await RunInUiThreadAsync(() => isAdded = fldDsc.AddPossibleValue(newFldVal)).ConfigureAwait(false);
-				if (isAdded && save)
+				if (isAdded)
 				{
 					isAdded = await Save2Async().ConfigureAwait(false);
-					_oneDriveReaderWriter.RaiseUpdateOneDriveMetaBriefcaseRequested();
+					if (isAdded) _oneDriveReaderWriter.RaiseUpdateOneDriveMetaBriefcaseRequested();
 				}
-				return isAdded;
-			});
+			}).ConfigureAwait(false);
+
+			if (isAdded) return newFldVal; else return null;
 		}
 
 		public Task<bool> RemovePossibleValueFromCurrentFieldDescriptionAsync(FieldValue fldVal)
@@ -792,7 +795,7 @@ namespace UniFiler10.Data.Metadata
 				var fdInTwo = two.FieldDescriptions.FirstOrDefault(fd => fd.Id == fdInOne.Id);
 				if (fdInTwo != null)
 				{
-					bool isAnyValueAllowedTolerant = fdInOne.IsAnyValueAllowed | fdInTwo.IsAnyValueAllowed;
+					bool isAnyValueAllowedTolerant = fdInOne.IsAnyValueAllowed || fdInTwo.IsAnyValueAllowed;
 					fdInOne.IsAnyValueAllowed = fdInTwo.IsAnyValueAllowed = isAnyValueAllowedTolerant;
 				}
 			}
@@ -1199,13 +1202,13 @@ namespace UniFiler10.Data.Metadata
 			if (category == null) return Task.CompletedTask;
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				DeletedCategories.RemoveAll(cat => cat.Name == category.Name);
-				DeletedCategories.Add(category);
+				_deletedCategories.RemoveAll(cat => cat.Name == category.Name);
+				_deletedCategories.Add(category);
 			});
 		}
 		private Category GetCategory2(string name)
 		{
-			Category result = DeletedCategories.FirstOrDefault(cat => cat.Name == name);
+			Category result = _deletedCategories.FirstOrDefault(cat => cat.Name == name);
 			return result;
 		}
 		internal Task AddFieldDescriptionAsync(List<string> catsWithFldDsc, FieldDescription fieldDescription)
@@ -1213,13 +1216,13 @@ namespace UniFiler10.Data.Metadata
 			if (catsWithFldDsc == null || fieldDescription == null) return Task.CompletedTask;
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				DeletedFieldDescriptions.RemoveAll(fd => fd.Item2.Caption == fieldDescription.Caption);
-				DeletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
+				_deletedFieldDescriptions.RemoveAll(fd => fd.Item2.Caption == fieldDescription.Caption);
+				_deletedFieldDescriptions.Add(Tuple.Create(catsWithFldDsc, fieldDescription));
 			});
 		}
 		private Tuple<List<string>, FieldDescription> GetFieldDescription2(string caption)
 		{
-			Tuple<List<string>, FieldDescription> result = DeletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
+			Tuple<List<string>, FieldDescription> result = _deletedFieldDescriptions.FirstOrDefault(fd => fd.Item2.Caption == caption);
 			return result;
 		}
 		internal Task AddPossibleValueAsync(FieldDescription fieldDescription, FieldValue fieldValue)
@@ -1227,18 +1230,17 @@ namespace UniFiler10.Data.Metadata
 			if (fieldDescription == null || fieldValue == null) return Task.CompletedTask;
 			return RunFunctionIfOpenAsyncA(() =>
 			{
-				DeletedFieldValues.RemoveAll(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
-				DeletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
+				_deletedFieldValues.RemoveAll(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == fieldValue.Vaalue);
+				_deletedFieldValues.Add(Tuple.Create(fieldDescription, fieldValue));
 			});
 		}
 		internal Tuple<FieldDescription, FieldValue> GetPossibleValue2(FieldDescription fieldDescription, string vaalue)
 		{
-			Tuple<FieldDescription, FieldValue> result = DeletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
+			Tuple<FieldDescription, FieldValue> result = _deletedFieldValues.FirstOrDefault(pv => pv.Item1.Id == fieldDescription.Id && pv.Item2.Vaalue == vaalue);
 			return result;
 		}
 		internal void Clear2() // LOLLO TODO call this at some point, but when?
 		{
-
 			_deletedCategories.Clear();
 			_deletedFieldDescriptions.Clear();
 			_deletedFieldValues.Clear();
@@ -1255,6 +1257,7 @@ namespace UniFiler10.Data.Metadata
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await LoadAsync().ConfigureAwait(false);
+
 			Category.NameChanged += OnCategory_NameChanged;
 			FieldDescription.CaptionChanged += OnFldDsc_CaptionChanged;
 			FieldValue.VaalueChanged += OnFieldValue_VaalueChanged;
@@ -1292,7 +1295,7 @@ namespace UniFiler10.Data.Metadata
 
 			Category.Copy(source._deletedCategories, ref _deletedCategories, _mbc.FieldDescriptions);
 
-			_deletedFieldDescriptions?.Clear();
+			_deletedFieldDescriptions.Clear();
 			if (source._deletedFieldDescriptions != null)
 			{
 				foreach (var srcLine in source._deletedFieldDescriptions)
@@ -1303,6 +1306,7 @@ namespace UniFiler10.Data.Metadata
 				}
 			}
 
+			_deletedFieldValues.Clear();
 			if (source._deletedFieldValues != null)
 			{
 				foreach (var srcLine in source._deletedFieldValues)
@@ -1388,8 +1392,8 @@ namespace UniFiler10.Data.Metadata
 		{
 			Task tryRecycle = RunFunctionIfOpenAsyncT(async () =>
 			{
-				var fldDsc = sender as FieldDescription; var cats = _deletedCategories;
-				if (fldDsc == null || cats == null) return;
+				var fldDsc = sender as FieldDescription;
+				if (fldDsc == null || _deletedCategories == null) return;
 
 				var recycledFldDsc = GetFieldDescription2(fldDsc.Caption);
 				if (recycledFldDsc?.Item1 == null || recycledFldDsc?.Item2 == null)

@@ -158,7 +158,7 @@ namespace UniFiler10.Data.Model
 
 
 		#region while open methods
-		public Task<bool> TrySetFieldValueAsync(string newValue)
+		public Task<bool> TrySetFieldValueAsync(string newVaalue)
 		{
 			return RunFunctionIfOpenAsyncTB(async delegate
 			{
@@ -168,47 +168,47 @@ namespace UniFiler10.Data.Model
 
 				bool isOk = false;
 
-				if (fv != null && fv.Vaalue != newValue)
+				if (fv != null && fv.Vaalue != newVaalue)
 				{
-					string oldValue = fv.Vaalue;
-					isOk = await TrySetFieldValueId(fd, newValue);
-					if (!isOk) fv.Vaalue = oldValue;
+					string oldVaalue = fv.Vaalue;
+					isOk = await TrySetFieldValueId(fd, newVaalue);
+					if (!isOk) fv.Vaalue = oldVaalue;
 				}
 				else if (fv == null)
 				{
-					isOk = await TrySetFieldValueId(fd, newValue);
+					isOk = await TrySetFieldValueId(fd, newVaalue);
 				}
 
 				return isOk;
 			});
 		}
 
-		private async Task<bool> TrySetFieldValueId(FieldDescription fd, string newValue)
+		private async Task<bool> TrySetFieldValueId(FieldDescription fldDsc, string newVaalue)
 		{
-			if (fd == null) return false;
+			if (fldDsc == null) return false;
 			var bc = Briefcase.GetCurrentInstance();
 
-			var availableFldVal = fd.GetValueFromPossibleValues(newValue);
+			var availableFldVal = fldDsc.GetValueFromPossibleValues(newVaalue);
 			if (availableFldVal != null)
 			{
 				FieldValueId = availableFldVal.Id;
 				return true;
 			}
-			if (fd.IsAnyValueAllowed && bc != null && !bc.IsWantAndCannotUseOneDrive)
+
+			if (fldDsc.IsAnyValueAllowed && bc?.IsWantAndCannotUseOneDrive == false)
 			{
 				var mb = MetaBriefcase.OpenInstance;
 				if (mb != null)
 				{
-					var newFldVal = new FieldValue(newValue, true, true);
 					// LOLLO NOTE save metaBriefcase, in case there is a crash before the next Suspend.
 					// This problem actually affects all XML-based stuff, because they only save on closing.
 					// We only take extra care of MetaBriefcase because Briefcase and Binder do not save critical data.
 					// The DB, instead, saves at once. If there is a crash between the DB and the XML being saved, the next startup will have corrupt data.
-					if (await mb.AddPossibleValueToFieldDescriptionAsync(fd, newFldVal, true))
-					{
-						FieldValueId = newFldVal.Id;
-						return true;
-					}
+					var newFldVal = await mb.AddPossibleValueToFieldDescriptionAsync(fldDsc, newVaalue);
+					if (newFldVal == null) return false;
+
+					FieldValueId = newFldVal.Id;
+					return true;
 				}
 			}
 			return false;
