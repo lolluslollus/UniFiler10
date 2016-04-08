@@ -37,8 +37,8 @@ namespace UniFiler10.ViewModels
 				if (mbc == null) return;
 
 				_fieldDescription = fldDsc;
-				// LOLLO TODO the following line was buggy, check it
-				var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat?.FieldDescriptionIds != null && !fldDsc.JustAssignedToCats.Contains(cat.Id) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
+				var catsWhereThisFieldWasAssignedBefore = mbc.Categories.Where(cat => cat != null && cat.FieldDescriptionIds != null && cat.Id != null
+					&& (fldDsc.JustAssignedToCats == null || !fldDsc.JustAssignedToCats.Contains(cat.Id)) && cat.FieldDescriptionIds.Contains(fldDsc.Id));
 
 				if (catsWhereThisFieldWasAssignedBefore?.Any() == true)
 				{

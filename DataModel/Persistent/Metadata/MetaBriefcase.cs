@@ -285,7 +285,7 @@ namespace UniFiler10.Data.Metadata
 					await _oneDriveReaderWriter.RunUnderSemaphore(async () =>
 					{
 						if (MetaBriefcaseOneDriveReaderWriter.GetIsOneDriveUpdateOverdue2())
-						{// LOLLO TODO load form one drive and merge remote with local: check it
+						{// LOLLO TODO load from one drive and merge remote with local: check it
 							var localMetaBriefcase = await LoadFromFile(localFile, serializer).ConfigureAwait(false);
 							var remoteMetaBriefcase = (await _oneDriveReaderWriter.TryReadMetaBriefcase2Async().ConfigureAwait(false)).Item1;
 

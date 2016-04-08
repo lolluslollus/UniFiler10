@@ -41,8 +41,8 @@ namespace BackgroundTasks
 
 				_deferral = taskInstance.GetDeferral();
 
-				await Task.Delay(5000).ConfigureAwait(false); // LOLLO TODO this picks up the last changes in case too many requests were triggered and the last were rejected.
-				// make sure it does not screw with the timeout.
+				await Task.Delay(5000).ConfigureAwait(false); // this picks up the last changes in case too many requests were triggered and the last were rejected.
+															  // LOLLO TODO make sure it does not screw with the timeout.
 
 				_taskInstance = taskInstance;
 				_taskInstance.Canceled += OnCanceled;
