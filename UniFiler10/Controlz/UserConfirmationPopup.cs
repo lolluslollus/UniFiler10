@@ -36,7 +36,7 @@ namespace UniFiler10.Controlz
 				dialog = new Flyout();
 				dialogContent = new ConfirmationBeforeDeletingBinder();
 
-				dialog.Closed += OnYesNoDialog_Closed;
+				dialog.Closed += OnDialog_Closed;
 
 				dialog.Content = dialogContent;
 				dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
@@ -52,7 +52,7 @@ namespace UniFiler10.Controlz
 
 			await RunInUiThreadAsync(delegate
 			{
-				dialog.Closed -= OnYesNoDialog_Closed;
+				dialog.Closed -= OnDialog_Closed;
 				dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
 				dialog.Hide();
 				result = new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted);
@@ -72,7 +72,7 @@ namespace UniFiler10.Controlz
 				dialog = new Flyout();
 				dialogContent = new ConfirmationBeforeExportingBinder();
 
-				dialog.Closed += OnYesNoDialog_Closed;
+				dialog.Closed += OnDialog_Closed;
 
 				dialog.Content = dialogContent;
 				dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
@@ -88,7 +88,7 @@ namespace UniFiler10.Controlz
 
 			await RunInUiThreadAsync(delegate
 			{
-				dialog.Closed -= OnYesNoDialog_Closed;
+				dialog.Closed -= OnDialog_Closed;
 				dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
 				dialog.Hide();
 				result = new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted);
@@ -97,7 +97,7 @@ namespace UniFiler10.Controlz
 			return result;
 		}
 
-		private void OnYesNoDialog_Closed(object sender, object e)
+		private void OnDialog_Closed(object sender, object e)
 		{
 			_isHasUserAnswered = true;
 		}
@@ -119,7 +119,7 @@ namespace UniFiler10.Controlz
 				dialog = new Flyout();
 				dialogContent = new ConfirmationBeforeImportingBinder();
 
-				dialog.Closed += OnThreeBtnDialog_Closed;
+				dialog.Closed += OnDialog_Closed;
 
 				dialog.Content = dialogContent;
 				dialogContent.UserAnswered += OnThreeBtnDialogContent_UserAnswered;
@@ -135,7 +135,7 @@ namespace UniFiler10.Controlz
 
 			await RunInUiThreadAsync(delegate
 			{
-				dialog.Closed -= OnThreeBtnDialog_Closed;
+				dialog.Closed -= OnDialog_Closed;
 				dialogContent.UserAnswered -= OnThreeBtnDialogContent_UserAnswered;
 				dialog.Hide();
 				result = new Tuple<BriefcaseVM.ImportBinderOperations, bool>(dialogContent.Operation, dialogContent.IsHasUserInteracted);
@@ -144,10 +144,10 @@ namespace UniFiler10.Controlz
 			return result;
 		}
 
-		private void OnThreeBtnDialog_Closed(object sender, object e)
-		{
-			_isHasUserAnswered = true;
-		}
+		//private void OnThreeBtnDialog_Closed(object sender, object e)
+		//{
+		//	_isHasUserAnswered = true;
+		//}
 
 		private void OnThreeBtnDialogContent_UserAnswered(object sender, BriefcaseVM.ImportBinderOperations e)
 		{
@@ -165,7 +165,7 @@ namespace UniFiler10.Controlz
 				dialog = new Flyout();
 				dialogContent = new ChoiceBeforeChangingMetadataSource();
 
-				dialog.Closed += OnYesNoDialog_Closed;
+				dialog.Closed += OnDialog_Closed;
 
 				dialog.Content = dialogContent;
 				dialogContent.UserAnswered += OnYesNoDialogContent_UserAnswered;
@@ -181,7 +181,7 @@ namespace UniFiler10.Controlz
 
 			await RunInUiThreadAsync(delegate
 			{
-				dialog.Closed -= OnYesNoDialog_Closed;
+				dialog.Closed -= OnDialog_Closed;
 				dialogContent.UserAnswered -= OnYesNoDialogContent_UserAnswered;
 				dialog.Hide();
 				result = new Tuple<bool, bool>(dialogContent.YesNo, dialogContent.IsHasUserInteracted);
@@ -201,7 +201,7 @@ namespace UniFiler10.Controlz
 				dialog = new Flyout();
 				dialogContent = new ChoiceBeforeImportingBinder(targetBinderName);
 
-				dialog.Closed += OnThreeBtnDialog_Closed;
+				dialog.Closed += OnDialog_Closed;
 
 				dialog.Content = dialogContent;
 				dialogContent.UserAnswered += OnThreeBtnDialogContent_UserAnswered;
@@ -217,13 +217,49 @@ namespace UniFiler10.Controlz
 
 			await RunInUiThreadAsync(delegate
 			{
-				dialog.Closed -= OnThreeBtnDialog_Closed;
+				dialog.Closed -= OnDialog_Closed;
 				dialogContent.UserAnswered -= OnThreeBtnDialogContent_UserAnswered;
 				dialog.Hide();
 				result = new Tuple<BriefcaseVM.ImportBinderOperations, string>(dialogContent.Operation, dialogContent.DBName);
 			}).ConfigureAwait(false);
 
 			return result;
+		}
+
+		public async Task ShowTextAsync(string text, CancellationToken cancToken)
+		{
+			Flyout dialog = null;
+			TextViewer tv = null;
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog = new Flyout();
+				tv = new TextViewer(text);
+
+				dialog.Closed += OnDialog_Closed;
+				dialog.Content = tv;
+				tv.UserAnswered += OnTextViewer_UserAnswered; ;
+
+				_isHasUserAnswered = false;
+				dialog.ShowAt(Window.Current.Content as FrameworkElement);
+			}).ConfigureAwait(false);
+
+			while (!_isHasUserAnswered && !cancToken.IsCancellationRequested)
+			{
+				await Task.Delay(DELAY, cancToken).ConfigureAwait(false);
+			}
+
+			await RunInUiThreadAsync(delegate
+			{
+				dialog.Closed -= OnDialog_Closed;
+				tv.UserAnswered -= OnTextViewer_UserAnswered;
+				dialog.Hide();
+			}).ConfigureAwait(false);
+		}
+
+		private void OnTextViewer_UserAnswered(object sender, bool e)
+		{
+			_isHasUserAnswered = true;
 		}
 	}
 }

@@ -143,6 +143,9 @@
     <Compile Include="Views\ChoiceBeforeChangingMetadataSource.xaml.cs">
       <DependentUpon>ChoiceBeforeChangingMetadataSource.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\TextViewer.xaml.cs">
+      <DependentUpon>TextViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ConfirmationBeforeExportingBinder.xaml.cs">
       <DependentUpon>ConfirmationBeforeExportingBinder.xaml</DependentUpon>
     </Compile>
@@ -263,6 +266,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\ChoiceBeforeChangingMetadataSource.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\TextViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

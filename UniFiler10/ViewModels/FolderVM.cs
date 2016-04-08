@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -198,11 +199,24 @@ namespace UniFiler10.ViewModels
 			if (doc == null) return;
 			try
 			{
-				var file = await StorageFile.GetFileFromPathAsync(doc?.GetFullUri0()).AsTask(); //.ConfigureAwait(false);
+				string uri = doc?.GetFullUri0();
+				if (string.IsNullOrWhiteSpace(uri)) return;
+				var file = await StorageFile.GetFileFromPathAsync(uri).AsTask(); //.ConfigureAwait(false);
 				if (file == null) return;
 
 				bool isOk = false;
-				// LOLLO TODO maybe open a big textBlock to see text files?
+
+				var fs = await Launcher.QueryFileSupportAsync(file);
+				if (fs != LaunchQuerySupportStatus.Available)
+				{
+					if (Path.GetExtension(uri) == DocumentExtensions.TXT_EXTENSION)
+					{
+						// open a big TextBlock popup to see text files if no app is found, which can read txt files
+						string text = await DocumentExtensions.GetTextFromFileAsync(uri);
+						await UserConfirmationPopup.GetInstance().ShowTextAsync(text, CancToken);
+						return;
+					}
+				}
 				isOk = await Launcher.LaunchFileAsync(file, new LauncherOptions() { DisplayApplicationPicker = true }).AsTask().ConfigureAwait(false);
 				//isOk = await Launcher.LaunchFileAsync(file).AsTask().ConfigureAwait(false);
 			}
