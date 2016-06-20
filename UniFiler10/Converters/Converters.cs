@@ -46,7 +46,7 @@ namespace UniFiler10.Converters
 		}
 	}
 	public class IListNotEmptyToVisible : IValueConverter
-	{
+	{// LOLLO TODO checl if you shouldn't rather bind to list.Count. This will only fire when the list is replaced, not when its count changed.
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null) return Visibility.Visible;
